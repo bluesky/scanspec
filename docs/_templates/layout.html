@@ -1,0 +1,16 @@
+
+<!-- Include Index in the sidebar -->
+<!-- https://stackoverflow.com/a/37843854 -->
+
+{% extends "!layout.html" %}
+  {% block menu %}
+    <style>
+      /* style mobile top nav to look like main nav */
+      .wy-nav-top {
+          background: {{ theme_style_nav_header_background }}
+      }
+    </style>
+    {{ super() }}
+    <a href="{{pathto('genindex.html', 1)}}">Index</a>
+  {% endblock %}
+

@@ -1,0 +1,27 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pytest-cov = "*"
+pytest-black = "*"
+pytest-flake8 = "*"
+flake8-isort = "*"
+isort = ">5.0"
+pytest-mypy = "*"
+sphinx-rtd-theme = "*"
+# Pinning black stops us having to allow pre-releases globally
+black = "==19.10b0"
+# Without these lines lockfile isn't usable on multiple Python versions and platforms
+mypy = "*"
+atomicwrites = "*"
+
+[packages]
+# All other package requirements from setup.cfg
+scanspec = {editable = true,path = "."}
+
+[scripts]
+# Put coverage here so we don't interfere with debugging in the IDE
+tests = "python -m pytest --cov-fail-under=90 --cov=scanspec --cov-report term"
+docs = "sphinx-build -E -b html docs build/html"
