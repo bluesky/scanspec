@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterator, List
+from typing import Any, Callable, Dict, Iterator, List
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -49,40 +49,57 @@ class Dimension:
         self.snake = snake
 
     @property
-    def keys(self):
-        return self.positions.keys()
+    def keys(self) -> List:
+        return list(self.positions.keys())
 
     def __len__(self) -> int:
         # All positions arrays are same length, pick the first one
         return len(list(self.positions.values())[0])
 
+    def _dim_with(self, func: Callable[[str, Any], np.ndarray]) -> "Dimension":
+        def apply_func(a: str):
+            return {k: func(a, k) for k in getattr(self, a)}
+
+        kwargs = dict(positions=apply_func("positions"), snake=self.snake)
+        if self.lower is not self.positions:
+            kwargs["lower"] = apply_func("lower")
+        if self.upper is not self.positions:
+            kwargs["upper"] = apply_func("upper")
+        return Dimension(**kwargs)
+
+    def tile(self, reps: int) -> "Dimension":
+        return self._dim_with(lambda a, k: np.tile(getattr(self, a)[k], reps))
+
+    def repeat(self, reps: int) -> "Dimension":
+        return self._dim_with(lambda a, k: np.repeats(getattr(self, a)[k], reps))
+
+    def _check_dim(self, other: "Dimension"):
+        assert isinstance(other, Dimension), f"Expected Dimension, gott {other}"
+        assert self.snake == other.snake, "Snake settings don't match"
+
+    def concat(self, other: "Dimension") -> "Dimension":
+        self._check_dim(other)
+        assert self.keys == other.keys, f"Differing keys {self.keys} and {other.keys}"
+        return self._dim_with(
+            lambda a, k: np.concatenate((getattr(self, a)[k], getattr(other, a)[k]))
+        )
+
+    def copy(self) -> "Dimension":
+        return self._dim_with(lambda a, k: getattr(self, a)[k])
+
     def __add__(self, other: "Dimension") -> "Dimension":
         """Zip them together"""
-        assert isinstance(other, Dimension), f"Can only add a Dimension, not {other}"
-        # rely on the contstructor to check lengths
+        self._check_dim(other)
+        overlapping = list(set(self.keys).intersection(other.keys))
+        assert not overlapping, f"Zipping would overwrite keys {overlapping}"
+        # rely on the constructor to check lengths
         dim = Dimension(
             positions={**self.positions, **other.positions},
             lower={**self.lower, **other.lower},
             upper={**self.upper, **other.upper},
+            snake=self.snake,
         )
         return dim
-
-    def _for_each_array(self, func):
-        def apply_func(d):
-            for k, arr in d.items():
-                d[k] = func(arr)
-
-        apply_func(self.positions)
-        if self.lower is not self.positions:
-            apply_func(self.lower)
-        if self.upper is not self.positions:
-            apply_func(self.upper)
-
-    def tile(self, reps: int):
-        self._for_each_array(lambda arr: np.tile(arr, reps))
-
-    def repeat(self, reps: int):
-        self._for_each_array(lambda arr: np.repeat(arr, reps))
 
 
 @dataclass
@@ -122,24 +139,53 @@ class View:
         self.end_index = start + num
         self.default_batch = default_batch
 
-    def get_batch(self, num: int) -> Batch:
+    def create_batch(self, num: int) -> Batch:
         batch = Batch()
         indices = np.arange(self.index, min(self.index + num, self.end_index))
         self.index = indices[-1] + 1
+        # Example numbers below from a 2x3x4 ZxYxX scan
         for i, dim in enumerate(self.dimensions):
-            each_point_repeats = np.product(self.sizes[i + 1 :])
-            dim_indices = indices // each_point_repeats
-            dim_run = indices % each_point_repeats
-            backwards = (dim_run % 2 == 1) & dim.snake
-            src_indices = np.where(backwards, len(dim) - 1 - dim_indices, dim_indices)
-            for key in dim.keys:
-                batch.positions[key] = dim.positions[key][src_indices]
-                batch.lower[key] = np.where(
-                    backwards, dim.upper[key][src_indices], dim.lower[key][src_indices]
+            # Number of times each position will repeat: Z:12, Y:4, X:1
+            repeats = np.product(self.sizes[i + 1 :])
+            # How big is this dim: Z:2, Y:3, X:4
+            dim_len = self.sizes[i]
+            # Scan indices mapped to indices within dimension:
+            # Z:000000000000111111111111
+            # Y:000011112222000011112222
+            # X:012301230123012301230123
+            dim_indices = (indices // repeats) % dim_len
+            if dim.snake:
+                # Whether this point is running backwards:
+                # Z:000000000000000000000000
+                # Y:000000000000111111111111
+                # X:000011110000111100001111
+                backwards = (indices // (repeats * dim_len)) % 2
+                # The scan indices mapped to snaking ones:
+                # Z:000000000000111111111111
+                # Y:000011112222222211110000
+                # X:012332100123321001233210
+                snake_indices = np.where(
+                    backwards, dim_len - 1 - dim_indices, dim_indices
                 )
-                batch.upper[key] = np.where(
-                    backwards, dim.lower[key][src_indices], dim.upper[key][src_indices]
-                )
+                for key in dim.keys:
+                    batch.positions[key] = dim.positions[key][snake_indices]
+                    # If going backwards, select from the opposite bound
+                    batch.lower[key] = np.where(
+                        backwards,
+                        dim.upper[key][snake_indices],
+                        dim.lower[key][snake_indices],
+                    )
+                    batch.upper[key] = np.where(
+                        backwards,
+                        dim.lower[key][snake_indices],
+                        dim.upper[key][snake_indices],
+                    )
+            else:
+                for key in dim.keys:
+                    batch.positions[key] = dim.positions[key][dim_indices]
+                    batch.lower[key] = dim.lower[key][dim_indices]
+                    batch.upper[key] = dim.upper[key][dim_indices]
+
         return batch
 
     def __len__(self) -> int:
@@ -149,6 +195,6 @@ class View:
     def __iter__(self) -> Iterator[Positions]:
         # Fixed size batch iterator of positions
         while self.index < self.end_index:
-            batch = self.get_batch(self.default_batch)
+            batch = self.create_batch(self.default_batch)
             for i in range(len(batch)):
                 yield {k: batch.positions[k][i] for k in batch.keys}

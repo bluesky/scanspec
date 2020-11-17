@@ -15,7 +15,7 @@ class Spec(WithType):
 
     def create_view(self) -> View:
         """Create view of dimensions that can iterate through points"""
-        dims = self.create_dimensions(bounds=False)
+        dims = self.create_dimensions()
         view = View(dims)
         return view
 
@@ -83,10 +83,46 @@ class Product(Spec):
     left: Spec
     right: Spec
 
+    def get_keys(self) -> List:
+        return self.left.keys + self.right.keys
+
+    def create_dimensions(self, bounds=True) -> List[Dimension]:
+        dims_left = self.left.create_dimensions(bounds=False)
+        dims_right = self.right.create_dimensions(bounds)
+        return dims_left + dims_right
+
+
+class Snake(Spec):
+    spec: Spec
+
+    def get_keys(self) -> List:
+        return self.spec.keys
+
+    def create_dimensions(self, bounds=True) -> List[Dimension]:
+        dims = self.spec.create_dimensions(bounds)
+        for dim in dims:
+            dim.snake = True
+        return dims
+
 
 class Concat(Spec):
     left: Spec
     right: Spec
+
+    def get_keys(self) -> List:
+        assert self.left.keys == self.right.keys, "Keys don't match"
+        return self.left.keys
+
+    def create_dimensions(self, bounds=True) -> List[Dimension]:
+        dims_left = self.left.create_dimensions(bounds)
+        dims_right = self.right.create_dimensions(bounds)
+        assert len(dims_right) == len(
+            dims_left
+        ), f"Specs {self.left} and {self.right} don't have same number of dimensions"
+        dimensions = []
+        for dim_left, dim_right in zip(dims_left, dims_right):
+            dimensions.append(dim_left.concat(dim_right))
+        return dimensions
 
 
 class Line(Spec):
