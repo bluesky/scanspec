@@ -19,7 +19,7 @@ atomicwrites = "*"
 
 [packages]
 # All other package requirements from setup.cfg
-scanspec = {editable = true,path = "."}
+scanspec = {editable = true, path = "."}
 
 [scripts]
 # Put coverage here so we don't interfere with debugging in the IDE

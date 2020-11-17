@@ -1,10 +1,19 @@
 scanspec
-===========================
+========
 
 |build_status| |coverage| |pypi_version| |readthedocs| |license|
 
-This is where you should write a short paragraph that describes what your module does,
-how it does it, and why people should use it.
+Specify step and flyscan paths using combinations of:
+
+- Single or Multidimensional ScanSpecs like Line or Spiral
+- Optionally Snaking
+- Masks with multiple Regions
+
+Serialize the ScanSpec rather than the points and reconstruct it on the
+server. It can them be iterated over like a cycler_, or scan Dimensions
+can be produced and sliced Views created to consume chunk by chunk.
+
+.. _cycler: https://matplotlib.org/cycler/
 
 ============== ==============================================================
 PyPI           ``pip install scanspec``
@@ -12,20 +21,32 @@ Source code    https://github.com/dls-controls/scanspec
 Documentation  http://scanspec.readthedocs.io
 ============== ==============================================================
 
-This is where you should put some images or code snippets that illustrate
-some relevant examples. If it is a library then you might put some
-introductory code here:
+An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at each point looks like:
 
 .. code:: python
 
-    from scanspec import HelloClass
+    from scanspec.specs import Line, Snake, Mask, Static, TIME
+    from scanspec.regions import Circle
 
-    hello = HelloClass("me")
-    print(hello.format_greeting())
+    grid = Line(ymotor, 2.1, 3.8, 60) * Snake(Line(xmotor, 0.5, 1.5, 100))
+    spec = Mask(grid + Static(TIME, 0.4), Circle(1.0, 2.8, radius=0.5))
 
-Or if it is a commandline tool then you might put some example commands here::
+You can then either iterate through it directly for convenience, or produce chunked Dimensions for performance:
 
-    scanspec person --times=2
+.. code:: python
+
+    for positions in spec:
+        print(positions)
+        # {ymotor: 2.1, xmotor: 0.5, TIME: 0.4}
+
+    dims = spec.create_dimensions()
+    dims[0].shape  # (4600,)
+    dims[0].keys  # (ymotor, xmotor)
+
+    view = View(dims, start=5, num=60)
+    batch = view.get_batch(30)
+    batch.positions # {xmotor: <ndarray len=30>, ymotor: <ndarray len=30>, TIME: <ndarray len=30>}
+    batch.upper_bounds # bounds are same dimensionality as positions
 
 
 .. |build_status| image:: https://travis-ci.com/dls-controls/scanspec.svg?branch=master

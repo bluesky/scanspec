@@ -7,6 +7,7 @@
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.formatting.provider": "black",
-    "python.jediEnabled": false,
-    "restructuredtext.confPath": "${workspaceFolder}/docs"
+    "restructuredtext.confPath": "${workspaceFolder}/docs",
+    "python.languageServer": "Pylance",
+    "python.pythonPath": "/home/tom/.local/share/virtualenvs/scanspec-L6XIN2FT/bin/python"
 }
