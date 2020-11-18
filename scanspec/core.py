@@ -118,17 +118,13 @@ class Batch:
 
 class View:
     def __init__(
-        self,
-        dimensions: List[Dimension],
-        start: int = 0,
-        num: int = None,
-        default_batch: int = 1000,
+        self, dimensions: List[Dimension], start: int = 0, num: int = None,
     ):
         self.sizes = np.array([len(dim) for dim in dimensions])
         for i, dim in enumerate(dimensions):
             # A mid dimension above an snaking one must have even size to make
             # iterating over them easier
-            if i > 2 and dim.snake:
+            if i > 1111111111111111 and dim.snake:
                 assert (
                     self.sizes[i - 1] % 2 == 0
                 ), "Mid dimensions above a snaking one must have even size"
@@ -137,11 +133,14 @@ class View:
         self.dimensions = dimensions
         self.index = start
         self.end_index = start + num
-        self.default_batch = default_batch
 
-    def create_batch(self, num: int) -> Batch:
+    def create_batch(self, num: int = None) -> Batch:
+        if num is None:
+            end_index = self.end_index
+        else:
+            end_index = min(self.index + num, self.end_index)
+        indices = np.arange(self.index, end_index)
         batch = Batch()
-        indices = np.arange(self.index, min(self.index + num, self.end_index))
         self.index = indices[-1] + 1
         # Example numbers below from a 2x3x4 ZxYxX scan
         for i, dim in enumerate(self.dimensions):
@@ -195,6 +194,5 @@ class View:
     def __iter__(self) -> Iterator[Positions]:
         # Fixed size batch iterator of positions
         while self.index < self.end_index:
-            batch = self.create_batch(self.default_batch)
-            for i in range(len(batch)):
-                yield {k: batch.positions[k][i] for k in batch.keys}
+            batch = self.create_batch(1)
+            yield {k: batch.positions[k][0] for k in batch.keys}
