@@ -1,12 +1,37 @@
-from argparse import ArgumentParser
+import logging
 
-from scanspec import HelloClass, __version__, say_hello_lots
+import click
+
+# Need this so we can eval() below
+from .specs import *  # noqa
 
 
-def main(args=None):
-    parser = ArgumentParser()
-    parser.add_argument("--version", action="version", version=__version__)
-    parser.add_argument("name", help="Name of the person to greet")
-    parser.add_argument("--times", type=int, default=5, help="Number of times to greet")
-    args = parser.parse_args(args)
-    say_hello_lots(HelloClass(args.name), args.times)
+@click.group(invoke_without_command=True)
+@click.option(
+    "--log-level",
+    default="INFO",
+    type=click.Choice(
+        ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"], case_sensitive=False
+    ),
+)
+@click.version_option()
+@click.pass_context
+def cli(ctx, log_level: str):
+    """ScanSpec library command line interface."""
+
+    level = getattr(logging, log_level.upper(), None)
+    logging.basicConfig(format="%(levelname)s:%(message)s", level=level)
+
+    # if no command is supplied, print the help message
+    if ctx.invoked_subcommand is None:
+        click.echo(cli.get_help(ctx))
+
+
+@cli.command()
+@click.argument("spec")
+def plot(spec: str):
+    """Plot a ScanSpec"""
+    from scanspec.plot import plot_spec
+
+    eval_spec = eval(spec)
+    plot_spec(eval_spec)
