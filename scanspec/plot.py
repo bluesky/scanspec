@@ -35,26 +35,32 @@ def plot_arrow(axes, arrays: List[np.ndarray]):
     diffs = [a[1] - a[0] for a in arrays]
     if len(diffs) == 1:
         diffs = [0] + diffs
-    angle = np.degrees(np.arctan(diffs[-2] / diffs[-1]))
-    if diffs[-1] > 0:
-        angle -= 90
-    else:
-        angle += 90
-    plot_arrays(axes, [[a[0]] for a in arrays], marker=(3, 0, angle), color="lightgrey")
+    if diffs[-1] != 0:
+        angle = np.degrees(np.arctan(diffs[-2] / diffs[-1]))
+        if diffs[-1] > 0:
+            angle -= 90
+        else:
+            angle += 90
+        plot_arrays(axes, [[a[0]] for a in arrays], marker=(3, 0, angle), color="lightgrey")
 
 
-def plot_spline(axes, arrays: List[np.ndarray], index_colours: Dict[int, str]):
+def plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int, str]):
+    scaled_arrays = [a/r for a, r in zip(arrays, ranges)]
     # Define curves parametrically
     t = np.zeros(len(arrays[0]))
-    t[1:] = np.sqrt(sum((arr[1:] - arr[:-1]) ** 2 for arr in arrays))
+    t[1:] = np.sqrt(sum((arr[1:] - arr[:-1]) ** 2 for arr in scaled_arrays))
     t = np.cumsum(t)
     t /= t[-1]
-    tck, _ = interpolate.splprep(arrays, s=0)
+    # Scale the arrays so splines don't favour larger scaled axes
+    tck, _ = interpolate.splprep(scaled_arrays, s=0)
     starts = sorted(list(index_colours))
     stops = starts[1:] + [len(arrays[0]) - 1]
     for start, stop in zip(starts, stops):
         tnew = np.linspace(t[start], t[stop], num=1001)
-        plot_arrays(axes, interpolate.splev(tnew, tck), color=index_colours[start])
+        spline = interpolate.splev(tnew, tck)
+        # Scale the splines back to the original scaling
+        unscaled_splines = [a*r for a, r in zip(spline, ranges)]
+        plot_arrays(axes, unscaled_splines, color=index_colours[start])
 
 
 def plot_spec(spec: Spec):
@@ -62,10 +68,21 @@ def plot_spec(spec: Spec):
     ndims = len(spec.keys)
     if ndims > 2:
         axes = plt.axes(projection="3d")
+        z, y, x = list(spec.keys)[:3]
+        plt.ylabel(y)
+        axes.set_zlabel(z)
     else:
         axes = plt.axes()
+        if ndims == 1:
+            x = list(spec.keys)[0]
+            plt.tick_params(left='off', labelleft='off')
+        else:
+            y, x = list(spec.keys)[:2]
+            plt.ylabel(y)
+    plt.xlabel(x)
     last_index = 0
     tail: Any = {k: None for k in spec.keys}
+    ranges = [max(np.max(v) - np.min(v), 0.0001) for k, v in batch.positions.items()]
     seg_col = cycle(TABLEAU_COLORS)
     for index in find_breaks(batch) + [len(batch)]:
         num_points = index - last_index
@@ -88,14 +105,18 @@ def plot_spec(spec: Spec):
             tail[k][:PAD] = np.linspace(0, 0.01, PAD) * (arr[-1] - arr[-2]) + arr[-1]
 
         if turnaround:
-            plot_spline(axes, turnaround, {0: "lightgrey"})
+            plot_spline(axes, ranges, turnaround, {0: "lightgrey"})
         index_colours = {2 * i: next(seg_col) for i in range(num_points)}
-        plot_spline(axes, arrays, index_colours)
+        plot_spline(axes, ranges, arrays, index_colours)
         plot_arrow(axes, arrays)
         last_index = index
 
     # Plot the capture points
-    if len(batch) < 100:
+    if len(batch) < 200:
         arrays = list(batch.positions.values())
         plot_arrays(axes, arrays, linestyle="", marker=".", color="k")
+
+    # Plot the end
+    plot_arrays(axes, [a[-1] for a in batch.upper.values()], marker="x", color="lightgrey")
+
     plt.show()

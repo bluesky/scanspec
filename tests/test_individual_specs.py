@@ -1,4 +1,5 @@
 from typing import Dict
+
 import pytest
 
 from scanspec.specs import Line
@@ -54,24 +55,24 @@ def test_many_point_bounded_line() -> None:
 
 
 def _get_spiral_data(start_x: float, start_y: float) -> Dict[str, float]:
-    return [{'motor2': start_y + 0.000, 'motor1': start_x + 0.100},
-            {'motor2': start_y + 0.000, 'motor1': start_x + 0.200},
-            {'motor2': start_y + 0.000, 'motor1': start_x - 0.200},
-            {'motor2': start_y + 0.000, 'motor1': start_x + 0.300},
-            {'motor2': start_y + 0.260, 'motor1': start_x - 0.150},
-            {'motor2': start_y - 0.260, 'motor1': start_x - 0.150},
-            {'motor2': start_y + 0.000, 'motor1': start_x + 0.400},
-            {'motor2': start_y + 0.400, 'motor1': start_x + 0.000},
-            {'motor2': start_y + 0.000, 'motor1': start_x - 0.400},
-            {'motor2': start_y - 0.400, 'motor1': start_x - 0.000},
-            {'motor2': start_y + 0.000, 'motor1': start_x + 0.500},
-            {'motor2': start_y + 0.476, 'motor1': start_x + 0.155},
-            {'motor2': start_y + 0.294, 'motor1': start_x - 0.405},
-            {'motor2': start_y - 0.294, 'motor1': start_x - 0.405},
-            {'motor2': start_y - 0.476, 'motor1': start_x + 0.155},
-            ]
+    return [
+        {"motor2": start_y + 0.000, "motor1": start_x + 0.100},
+        {"motor2": start_y + 0.000, "motor1": start_x + 0.200},
+        {"motor2": start_y + 0.000, "motor1": start_x - 0.200},
+        {"motor2": start_y + 0.000, "motor1": start_x + 0.300},
+        {"motor2": start_y + 0.260, "motor1": start_x - 0.150},
+        {"motor2": start_y - 0.260, "motor1": start_x - 0.150},
+        {"motor2": start_y + 0.000, "motor1": start_x + 0.400},
+        {"motor2": start_y + 0.400, "motor1": start_x + 0.000},
+        {"motor2": start_y + 0.000, "motor1": start_x - 0.400},
+        {"motor2": start_y - 0.400, "motor1": start_x - 0.000},
+        {"motor2": start_y + 0.000, "motor1": start_x + 0.500},
+        {"motor2": start_y + 0.476, "motor1": start_x + 0.155},
+        {"motor2": start_y + 0.294, "motor1": start_x - 0.405},
+        {"motor2": start_y - 0.294, "motor1": start_x - 0.405},
+        {"motor2": start_y - 0.476, "motor1": start_x + 0.155},
+    ]
 
 
 def test_spiral() -> None:
-    scan = bp.spiral([det], motor1, motor2, 0.0, 0.0, 1.0, 1.0, 0.1, 1.0,
-                     tilt=0.0)
+    scan = bp.spiral([det], motor1, motor2, 0.0, 0.0, 1.0, 1.0, 0.1, 1.0, tilt=0.0)
