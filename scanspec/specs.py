@@ -174,3 +174,73 @@ class Line(Spec):
         else:
             dimension = Dimension(positions)
         return [dimension]
+
+
+
+
+class Spiral(Spec):
+    x_key: Any
+    y_key: Any
+    x_start: float = Field(..., description="x centre of the spiral")
+    y_start: float = Field(..., description="y centre of the spiral")
+    x_range: float = Field(..., description="x width of the spiral")
+    y_range: float = Field(..., description="y width of the spiral")
+    x_radius: float = Field(..., description="x radius of the spiral")
+    y_radius: float = Field(None, description="x radius of the spiral")
+    y_start: float
+    , x_range, y_range, dr, nth, *,
+           dr_y=None, tilt=0.0):
+    '''Spiral scan, centered around (x_start, y_start)
+    Parameters
+    ----------
+    x_motor : object, optional
+        any 'setable' object (motor, temp controller, etc.)
+    y_motor : object, optional
+        any 'setable' object (motor, temp controller, etc.)
+    x_start : float
+        x center
+    y_start : float
+        y center
+    x_range : float
+        x width of spiral
+    y_range : float
+        y width of spiral
+    dr : float
+        Delta radius along the minor axis of the ellipse.
+    dr_y : float, optional
+        Delta radius along the major axis of the ellipse, if not specifed
+        defaults to dr
+    nth : float
+        Number of theta steps
+    tilt : float, optional
+        Tilt angle in radians, default 0.0
+    Returns
+    -------
+    cyc : cycler
+    '''
+    if dr_y is None:
+        dr_aspect = 1
+    else:
+        dr_aspect = dr_y / dr
+
+    half_x = x_range / 2
+    half_y = y_range / (2 * dr_aspect)
+
+    r_max = np.sqrt(half_x ** 2 + half_y ** 2)
+    num_ring = 1 + int(r_max / dr)
+    tilt_tan = np.tan(tilt + np.pi / 2.)
+
+    x_points, y_points = [], []
+
+    for i_ring in range(1, num_ring + 2):
+        radius = i_ring * dr
+        angle_step = 2. * np.pi / (i_ring * nth)
+
+        for i_angle in range(int(i_ring * nth)):
+            angle = i_angle * angle_step
+            x = radius * np.cos(angle)
+            y = radius * np.sin(angle) * dr_aspect
+            if ((abs(x - (y / dr_aspect) / tilt_tan) <= half_x) and
+                    (abs(y / dr_aspect) <= half_y)):
+                x_points.append(x_start + x)
+                y_points.append(y_start + y)
