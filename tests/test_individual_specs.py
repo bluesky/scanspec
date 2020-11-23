@@ -1,8 +1,6 @@
-from typing import Dict
-
 import pytest
 
-from scanspec.specs import Line
+from scanspec.specs import Line, Spiral
 
 
 def test_one_point_line() -> None:
@@ -54,25 +52,38 @@ def test_many_point_bounded_line() -> None:
     assert dim.snake is False
 
 
-def _get_spiral_data(start_x: float, start_y: float) -> Dict[str, float]:
-    return [
-        {"motor2": start_y + 0.000, "motor1": start_x + 0.100},
-        {"motor2": start_y + 0.000, "motor1": start_x + 0.200},
-        {"motor2": start_y + 0.000, "motor1": start_x - 0.200},
-        {"motor2": start_y + 0.000, "motor1": start_x + 0.300},
-        {"motor2": start_y + 0.260, "motor1": start_x - 0.150},
-        {"motor2": start_y - 0.260, "motor1": start_x - 0.150},
-        {"motor2": start_y + 0.000, "motor1": start_x + 0.400},
-        {"motor2": start_y + 0.400, "motor1": start_x + 0.000},
-        {"motor2": start_y + 0.000, "motor1": start_x - 0.400},
-        {"motor2": start_y - 0.400, "motor1": start_x - 0.000},
-        {"motor2": start_y + 0.000, "motor1": start_x + 0.500},
-        {"motor2": start_y + 0.476, "motor1": start_x + 0.155},
-        {"motor2": start_y + 0.294, "motor1": start_x - 0.405},
-        {"motor2": start_y - 0.294, "motor1": start_x - 0.405},
-        {"motor2": start_y - 0.476, "motor1": start_x + 0.155},
-    ]
-
-
 def test_spiral() -> None:
-    scan = bp.spiral([det], motor1, motor2, 0.0, 0.0, 1.0, 1.0, 0.1, 1.0, tilt=0.0)
+    x, y = object(), object()
+    inst = Spiral(x, y, 0, 10, 5, 50, 10)
+    dim = inst.create_dimensions()[0]
+    assert dim.positions == {
+        y: pytest.approx(
+            [5.4, 6.4, 19.7, 23.8, 15.4, 1.7, -8.6, -10.7, -4.1, 8.3], abs=0.1
+        ),
+        x: pytest.approx(
+            [0.3, -0.9, -0.7, 0.5, 1.5, 1.6, 0.7, -0.6, -1.8, -2.4], abs=0.1
+        ),
+    }
+    assert dim.lower == {
+        y: pytest.approx(
+            [10.0, 2.7, 13.3, 23.5, 20.9, 8.7, -4.2, -10.8, -8.4, 1.6], abs=0.1
+        ),
+        x: pytest.approx(
+            [0.0, -0.3, -1.0, -0.1, 1.1, 1.7, 1.3, 0.0, -1.2, -2.2], abs=0.1
+        ),
+    }
+    assert dim.upper == {
+        y: pytest.approx(
+            [2.7, 13.3, 23.5, 20.9, 8.7, -4.2, -10.8, -8.4, 1.6, 15.3], abs=0.1
+        ),
+        x: pytest.approx(
+            [-0.3, -1.0, -0.1, 1.1, 1.7, 1.3, 0.0, -1.2, -2.2, -2.4], abs=0.1
+        ),
+    }
+    assert dim.snake is False
+
+
+def test_spaced_spiral() -> None:
+    x, y = object(), object()
+    inst = Spiral.spaced(x, y, 0, 10, 5, 1)
+    assert inst == Spiral(x, y, 0, 10, 5, 5, 78)

@@ -41,11 +41,13 @@ def plot_arrow(axes, arrays: List[np.ndarray]):
             angle -= 90
         else:
             angle += 90
-        plot_arrays(axes, [[a[0]] for a in arrays], marker=(3, 0, angle), color="lightgrey")
+        plot_arrays(
+            axes, [[a[0]] for a in arrays], marker=(3, 0, angle), color="lightgrey"
+        )
 
 
 def plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int, str]):
-    scaled_arrays = [a/r for a, r in zip(arrays, ranges)]
+    scaled_arrays = [a / r for a, r in zip(arrays, ranges)]
     # Define curves parametrically
     t = np.zeros(len(arrays[0]))
     t[1:] = np.sqrt(sum((arr[1:] - arr[:-1]) ** 2 for arr in scaled_arrays))
@@ -59,7 +61,7 @@ def plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int,
         tnew = np.linspace(t[start], t[stop], num=1001)
         spline = interpolate.splev(tnew, tck)
         # Scale the splines back to the original scaling
-        unscaled_splines = [a*r for a, r in zip(spline, ranges)]
+        unscaled_splines = [a * r for a, r in zip(spline, ranges)]
         plot_arrays(axes, unscaled_splines, color=index_colours[start])
 
 
@@ -75,7 +77,7 @@ def plot_spec(spec: Spec):
         axes = plt.axes()
         if ndims == 1:
             x = list(spec.keys)[0]
-            plt.tick_params(left='off', labelleft='off')
+            plt.tick_params(left="off", labelleft="off")
         else:
             y, x = list(spec.keys)[:2]
             plt.ylabel(y)
@@ -111,12 +113,14 @@ def plot_spec(spec: Spec):
         plot_arrow(axes, arrays)
         last_index = index
 
+    # Plot the end
+    plot_arrays(
+        axes, [[batch.upper[k][-1]] for k in spec.keys], marker="x", color="lightgrey"
+    )
+
     # Plot the capture points
     if len(batch) < 200:
-        arrays = list(batch.positions.values())
+        arrays = [batch.positions[k] for k in spec.keys]
         plot_arrays(axes, arrays, linestyle="", marker=".", color="k")
-
-    # Plot the end
-    plot_arrays(axes, [a[-1] for a in batch.upper.values()], marker="x", color="lightgrey")
 
     plt.show()

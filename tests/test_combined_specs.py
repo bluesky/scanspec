@@ -76,6 +76,7 @@ def test_product_snaking_lines() -> None:
 def test_concat_lines() -> None:
     x = object()
     inst = Concat(Line(x, 0, 1, 2), Line(x, 1, 2, 3))
+    assert inst.keys == [x]
     view = inst.create_view()
     batch = view.create_batch(1000)
     assert batch.positions == {x: pytest.approx([0, 1, 1, 1.5, 2])}

@@ -35,12 +35,14 @@ def test_plot_1D_line() -> None:
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.stdout == ""
     lines = f.axes[0].lines
-    assert len(lines) == 4
+    assert len(lines) == 5
     # Splines
     assert_min_max_2d(lines[0], 0.5, 1.5, 0, 0)
     assert_min_max_2d(lines[1], 1.5, 2.5, 0, 0)
     # Arrow
     assert_min_max_2d(lines[2], 0.5, 0.5, 0, 0)
+    # End
+    assert_min_max_2d(lines[3], 2.5, 2.5, 0, 0)
     # Capture points
     assert len(lines[-1].get_data()[0]) == 2
     assert_min_max_2d(lines[-1], 1, 2, 0, 0)
@@ -54,7 +56,7 @@ def test_plot_2D_line() -> None:
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.exit_code == 0
     lines = f.axes[0].lines
-    assert len(lines) == 8
+    assert len(lines) == 9
     # First row
     assert_min_max_2d(lines[0], 0.5, 1.5, 2, 2)
     assert_min_max_2d(lines[1], 1.5, 2.5, 2, 2)
@@ -67,6 +69,8 @@ def test_plot_2D_line() -> None:
     assert_min_max_2d(lines[5], 0.5, 1.5, 3, 3)
     # Arrow
     assert_min_max_2d(lines[6], 2.5, 2.5, 3, 3)
+    # End
+    assert_min_max_2d(lines[7], 0.5, 0.5, 3, 3)
     # Capture points
     assert len(lines[-1].get_data()[0]) == 4
     assert_min_max_2d(lines[-1], 1, 2, 2, 3)
@@ -80,7 +84,7 @@ def test_plot_3D_line() -> None:
         result = runner.invoke(cli.cli, ["plot", spec],)
     assert result.exit_code == 0
     lines = f.axes[0].lines
-    assert len(lines) == 16
+    assert len(lines) == 17
     # First grid
     # First row
     assert_min_max_3d(lines[0], 0.5, 1.5, 2, 2, 5, 5)
@@ -109,6 +113,8 @@ def test_plot_3D_line() -> None:
     assert_min_max_3d(lines[13], 0.5, 1.5, 2, 2, 6, 6)
     # Arrow
     assert_min_max_3d(lines[14], 2.5, 2.5, 2, 2, 6, 6)
+    # End
+    assert_min_max_3d(lines[15], 0.5, 0.5, 2, 2, 6, 6)
     # Capture points
     assert len(lines[-1].get_data()[0]) == 8
     assert_min_max_3d(lines[-1], 1, 2, 2, 3, 5, 6)

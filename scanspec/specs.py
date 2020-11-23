@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional, cast
 
 import numpy as np
 from pydantic import Field
@@ -125,13 +125,62 @@ class Concat(Spec):
         return dimensions
 
 
+def create_dimensions(
+    func: Callable[[np.ndarray], Dict[Any, np.ndarray]],
+    keys: List,
+    num: int,
+    bounds: bool,
+) -> List[Dimension]:
+    positions_calc = func(np.linspace(0.5, num - 0.5, num))
+    positions = {k: positions_calc[k] for k in keys}
+    if bounds:
+        bounds_calc = func(np.linspace(0, num, num + 1))
+        lower = {k: bounds_calc[k][:-1] for k in keys}
+        upper = {k: bounds_calc[k][1:] for k in keys}
+        dimension = Dimension(positions, lower, upper)
+    else:
+        dimension = Dimension(positions)
+    return [dimension]
+
+
+class Static(Spec):
+    key: Any
+    value: float = Field(..., description="The value at each point")
+    num: int = Field(1, ge=1, description="How many times to repeat this point")
+
+    def get_keys(self) -> List:
+        return [self.key]
+
+    def _repeat(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
+        return {self.key: np.full(len(indexes), self.value)}
+
+    def create_dimensions(self, bounds=True) -> List[Dimension]:
+        return create_dimensions(self._repeat, self.keys, self.num, bounds)
+
+
 class Line(Spec):
     """Thing"""
 
+    # TODO: are start and stop positions, bounds, or different for fly/step
     key: Any
     start: float
     stop: float
     num: int = Field(..., ge=1)
+
+    def get_keys(self) -> List:
+        return [self.key]
+
+    def _line(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
+        if self.num == 1:
+            # Only one point, stop-start gives length of one point
+            step = self.stop - self.start
+        else:
+            # Multiple points, stop-start gives length of num-1 points
+            step = (self.stop - self.start) / (self.num - 1)
+        return {self.key: (indexes - 0.5) * step + self.start}
+
+    def create_dimensions(self, bounds=True) -> List[Dimension]:
+        return create_dimensions(self._line, self.keys, self.num, bounds)
 
     @classmethod
     def bounded(cls, key, lower: float, upper: float, num: int):
@@ -153,28 +202,6 @@ class Line(Spec):
             stop = upper - half_step
         return cls(key, start, stop, num)
 
-    def get_keys(self) -> List:
-        return [self.key]
-
-    def create_dimensions(self, bounds=True) -> List[Dimension]:
-        positions = {self.key: np.linspace(self.start, self.stop, self.num)}
-        if bounds:
-            if self.num == 1:
-                # Only one point, stop-start gives length of one point
-                half_step = (self.stop - self.start) / 2
-                stop = self.start + half_step
-            else:
-                # Multiple points, stop-start gives length of num-1 points
-                half_step = (self.stop - self.start) / (self.num - 1) / 2
-                stop = self.stop + half_step
-            bounds_array = np.linspace(self.start - half_step, stop, self.num + 1)
-            lower = {self.key: bounds_array[:-1]}
-            upper = {self.key: bounds_array[1:]}
-            dimension = Dimension(positions, lower, upper)
-        else:
-            dimension = Dimension(positions)
-        return [dimension]
-
 
 class Spiral(Spec):
     x_key: Any
@@ -184,33 +211,46 @@ class Spiral(Spec):
     x_range: float = Field(..., description="x width of the spiral")
     y_range: float = Field(..., description="y width of the spiral")
     num: int = Field(..., description="Number of points in the spiral")
+    rotate: float = Field(0.0, description="How much to rotate the angle of the spiral")
 
     def get_keys(self) -> List:
-        return [self.x_key, self.y_key]
+        return [self.y_key, self.x_key]
 
-    def _make_spiral(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
-        # spiral equation : r = b * phi
-        # scale = 2 * pi * b
-        # parameterise phi with approximation:
-        # phi(t) = k * sqrt(t) (for some k)
-        # number of possible t is solved by sqrt(t) = max_r / b*k
-        alpha = np.sqrt(4 * np.pi)
-        phi = alpha * np.sqrt(indexes)
-        diameter = 2 * alpha * (np.sqrt(self.num) - 0.5)
+    def _spiral(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
+        # simplest spiral equation: r = phi
+        # we want point spacing across area to be the same as between rings
+        # so: sqrt(area / num) = ring_spacing
+        # so: sqrt(pi * phi^2 / num) = 2 * pi
+        # so: phi = sqrt(4 * pi * num)
+        phi = np.sqrt(4 * np.pi * indexes)
+        # indexes are 0..num inclusive, and diameter is 2x biggest phi
+        diameter = 2 * np.sqrt(4 * np.pi * self.num)
+        # scale so that the spiral is strictly smaller than the range
         x_scale = self.x_range / diameter
         y_scale = self.y_range / diameter
         return {
-          self.x_key: self.x_start + x_scale * phi * np.sin(phi),
-          self.y_key: self.y_start + y_scale * phi * np.cos(phi),
+            self.y_key: self.y_start + y_scale * phi * np.cos(phi + self.rotate),
+            self.x_key: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
         }
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
-        positions = self._make_spiral(np.linspace(0.5, self.num + 0.5, self.num))
-        if bounds:
-            bounds_array = self._make_spiral(np.linspace(0, self.num + 1, self.num + 1))
-            lower = {k: v[:-1] for k, v in bounds_array.items()}
-            upper = {k: v[1:] for k, v in bounds_array.items()}
-            dimension = Dimension(positions, lower, upper)
-        else:
-            dimension = Dimension(positions)
-        return [dimension]
+        return create_dimensions(self._spiral, self.keys, self.num, bounds)
+
+    @classmethod
+    def spaced(
+        cls,
+        x_key,
+        y_key,
+        x_start: float,
+        y_start: float,
+        radius: float,
+        dr: float,
+        rotate: float = 0.0,
+    ):
+        # phi = sqrt(4 * pi * num)
+        # and: n_rings = phi / (2 * pi)
+        # so: n_rings * 2 * pi = sqrt(4 * pi * num)
+        # so: num = n_rings^2 * pi
+        n_rings = radius / dr
+        num = n_rings ** 2 * np.pi
+        return cls(x_key, y_key, x_start, y_start, radius, radius, num, rotate)

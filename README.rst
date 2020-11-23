@@ -25,17 +25,17 @@ An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
 
 .. code:: python
 
-    from scanspec.specs import Line, Snake, Mask, Static, TIME
+    from scanspec.specs import Line, Snake, Mask
     from scanspec.regions import Circle
 
-    grid = Line(ymotor, 2.1, 3.8, 60) * Snake(Line(xmotor, 0.5, 1.5, 100))
-    spec = Mask(grid + Static(TIME, 0.4), Circle(1.0, 2.8, radius=0.5))
+    grid = Line.bounded(ymotor, 2.1, 3.8, 60) * Snake(Line(xmotor, 0.5, 1.5, 100))
+    spec = Mask(fly(grid, 0.4), Circle(1.0, 2.8, radius=0.5))
 
 You can then either iterate through it directly for convenience, or produce chunked Dimensions for performance:
 
 .. code:: python
 
-    for positions in spec:
+    for positions in spec.create_view():
         print(positions)
         # {ymotor: 2.1, xmotor: 0.5, TIME: 0.4}
 
