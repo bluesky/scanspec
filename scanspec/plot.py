@@ -1,12 +1,15 @@
 from itertools import cycle
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterator, List
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import patches
 from matplotlib.colors import TABLEAU_COLORS
+from pydantic.main import BaseModel
 from scipy import interpolate
 
 from .core import Batch
+from .regions import Circle, Rectangle, Region
 from .specs import Spec
 
 # Number of padding points to make the spline look nice
@@ -54,7 +57,7 @@ def plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int,
     t = np.cumsum(t)
     t /= t[-1]
     # Scale the arrays so splines don't favour larger scaled axes
-    tck, _ = interpolate.splprep(scaled_arrays, s=0)
+    tck, _ = interpolate.splprep(scaled_arrays, k=2, s=0)
     starts = sorted(list(index_colours))
     stops = starts[1:] + [len(arrays[0]) - 1]
     for start, stop in zip(starts, stops):
@@ -65,9 +68,19 @@ def plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int,
         plot_arrays(axes, unscaled_splines, color=index_colours[start])
 
 
+def find_regions(obj) -> Iterator[Region]:
+    if isinstance(obj, Region):
+        yield obj
+    elif isinstance(obj, BaseModel):
+        for name in obj.__fields__:
+            yield from find_regions(getattr(obj, name))
+
+
 def plot_spec(spec: Spec):
     batch = spec.create_view().create_batch()
     ndims = len(spec.keys)
+
+    # Setup axes
     if ndims > 2:
         axes = plt.axes(projection="3d")
         z, y, x = list(spec.keys)[:3]
@@ -82,10 +95,25 @@ def plot_spec(spec: Spec):
             y, x = list(spec.keys)[:2]
             plt.ylabel(y)
     plt.xlabel(x)
-    last_index = 0
+
+    # Plot any Regions
+    for region in find_regions(spec):
+        if isinstance(region, Rectangle):
+            xy = (region.x_min, region.y_min)
+            width = region.x_max - region.x_min
+            height = region.y_max - region.y_min
+            axes.add_patch(
+                patches.Rectangle(xy, width, height, region.angle, fill=False)
+            )
+        elif isinstance(region, Circle):
+            xy = (region.x_centre, region.y_centre)
+            axes.add_patch(patches.Circle(xy, region.radius, fill=False))
+
+    # Plot the splines
     tail: Any = {k: None for k in spec.keys}
     ranges = [max(np.max(v) - np.min(v), 0.0001) for k, v in batch.positions.items()]
     seg_col = cycle(TABLEAU_COLORS)
+    last_index = 0
     for index in find_breaks(batch) + [len(batch)]:
         num_points = index - last_index
         arrays = []

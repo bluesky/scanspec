@@ -145,7 +145,8 @@ class View:
             end_index = min(self.index + num, self.end_index)
         indices = np.arange(self.index, end_index)
         batch = Batch()
-        self.index = indices[-1] + 1
+        if len(indices) > 0:
+            self.index = indices[-1] + 1
         # Example numbers below from a 2x3x4 ZxYxX scan
         for i, dim in enumerate(self.dimensions):
             # Number of times each position will repeat: Z:12, Y:4, X:1

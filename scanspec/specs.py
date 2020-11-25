@@ -39,6 +39,17 @@ class Spec(WithType):
         else:
             return NotImplemented
 
+    def __invert__(self) -> "Spec":
+        """Snake this spec"""
+        return Snake(self)
+
+    def __and__(self, other: Region) -> "Spec":
+        """Mask with a region"""
+        if isinstance(other, Region):
+            return Mask(self, other)
+        else:
+            return NotImplemented
+
 
 class Squash(Spec):
     spec: Spec
@@ -67,6 +78,30 @@ class Mask(Spec):
         mask = self.region.mask(dim.positions)
         masked_dim = dim.mask(mask)
         return [masked_dim]
+
+    def __or__(self, other: "Region") -> "Spec":
+        if isinstance(other, Region):
+            return Mask(self.spec, other | self.region)
+        else:
+            return NotImplemented
+
+    def __and__(self, other: "Region") -> "Spec":
+        if isinstance(other, Region):
+            return Mask(self.spec, other & self.region)
+        else:
+            return NotImplemented
+
+    def __sub__(self, other: "Region") -> "Spec":
+        if isinstance(other, Region):
+            return Mask(self.spec, other - self.region)
+        else:
+            return NotImplemented
+
+    def __xor__(self, other: "Region") -> "Spec":
+        if isinstance(other, Region):
+            return Mask(self.spec, other ^ self.region)
+        else:
+            return NotImplemented
 
 
 class Zip(Spec):

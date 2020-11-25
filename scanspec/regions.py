@@ -11,6 +11,69 @@ class Region(WithType):
         # Return a mask of which positions are in the region
         raise NotImplementedError(self)
 
+    def __or__(self, other: "Region") -> "Region":
+        if isinstance(other, Region):
+            return UnionOf(self, other)
+        else:
+            return NotImplemented
+
+    def __and__(self, other: "Region") -> "Region":
+        if isinstance(other, Region):
+            return IntersectionOf(self, other)
+        else:
+            return NotImplemented
+
+    def __sub__(self, other: "Region") -> "Region":
+        if isinstance(other, Region):
+            return DifferenceOf(self, other)
+        else:
+            return NotImplemented
+
+    def __xor__(self, other: "Region") -> "Region":
+        if isinstance(other, Region):
+            return SymmetricDifferenceOf(self, other)
+        else:
+            return NotImplemented
+
+
+# Naming so we don't clash with typing.Union
+class UnionOf(Region):
+    left: Region
+    right: Region
+
+    def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
+        mask = self.left.mask(positions) | self.right.mask(positions)
+        return mask
+
+
+class IntersectionOf(Region):
+    left: Region
+    right: Region
+
+    def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
+        mask = self.left.mask(positions) & self.right.mask(positions)
+        return mask
+
+
+class DifferenceOf(Region):
+    left: Region
+    right: Region
+
+    def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
+        left_mask = self.left.mask(positions)
+        # Subtract the right mask wherever the left mask is present
+        mask = np.subtract(left_mask, self.right.mask(positions), where=left_mask)
+        return mask
+
+
+class SymmetricDifferenceOf(Region):
+    left: Region
+    right: Region
+
+    def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
+        mask = self.left.mask(positions) ^ self.right.mask(positions)
+        return mask
+
 
 class Rectangle(Region):
     x_key: Any = Field(..., description="The key matching the x axis of the spec")
@@ -25,14 +88,15 @@ class Rectangle(Region):
         x = positions[self.x_key] - self.x_min
         y = positions[self.y_key] - self.y_min
         if self.angle != 0:
-            # Rotate src positions by angle
-            rx = x * np.cos(self.angle) + y * np.sin(self.angle)
-            ry = y * np.cos(self.angle) - x * np.sin(self.angle)
+            # Rotate src positions by -angle
+            phi = np.radians(-self.angle)
+            rx = x * np.cos(phi) - y * np.sin(phi)
+            ry = x * np.sin(phi) + y * np.cos(phi)
             x = rx
             y = ry
-        mask_x = np.logical_and(x >= 0, x <= (self.x_max - self.x_min))
-        mask_y = np.logical_and(y >= 0, y <= (self.y_max - self.y_min))
-        return np.logical_and(mask_x, mask_y)
+        mask_x = np.bitwise_and(x >= 0, x <= (self.x_max - self.x_min))
+        mask_y = np.bitwise_and(y >= 0, y <= (self.y_max - self.y_min))
+        return mask_x & mask_y
 
 
 class Circle(Region):
