@@ -71,7 +71,11 @@ class Dimension:
         return self._dim_with(lambda a, k: np.tile(getattr(self, a)[k], reps))
 
     def repeat(self, reps: int) -> "Dimension":
-        return self._dim_with(lambda a, k: np.repeats(getattr(self, a)[k], reps))
+        return self._dim_with(lambda a, k: np.repeat(getattr(self, a)[k], reps))
+
+    def mask(self, mask: np.ndarray) -> "Dimension":
+        indices = mask.nonzero()[0]
+        return self._dim_with(lambda a, k: getattr(self, a)[k][indices])
 
     def _check_dim(self, other: "Dimension"):
         assert isinstance(other, Dimension), f"Expected Dimension, gott {other}"

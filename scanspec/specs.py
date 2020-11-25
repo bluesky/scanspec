@@ -1,7 +1,9 @@
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional, Union, cast
 
 import numpy as np
-from pydantic import Field
+from pydantic import Field, parse_raw_as, validate_arguments
+
+from scanspec.regions import Region
 
 from .core import Dimension, View, WithType
 
@@ -36,6 +38,40 @@ class Spec(WithType):
             return Zip(self, other)
         else:
             return NotImplemented
+
+
+class Squash(Spec):
+    spec: Spec
+
+    def get_keys(self) -> List:
+        return self.spec.keys
+
+    def create_dimensions(self, bounds=True) -> List[Dimension]:
+        dims = self.spec.create_dimensions(bounds)
+        lengths = [len(dim) for dim in dims]
+        ret = dims[0].repeat(np.product(lengths[1:]))
+        for i, dim in enumerate(dims):
+            if i > 0:
+                ntile = np.product(lengths[:i])
+                nrepeats = np.product(lengths[i + 1 :])
+                ret = ret + dim.repeat(nrepeats).tile(ntile)
+        return [ret]
+
+
+class Mask(Spec):
+    spec: Spec
+    region: Region
+
+    def get_keys(self) -> List:
+        return self.spec.keys
+
+    def create_dimensions(self, bounds=True) -> List[Dimension]:
+        # Squash the dimensions together
+        dim = Squash(self.spec).create_dimensions(bounds)[0]
+        # Generate masks from the positions showing what's inside
+        mask = self.region.mask(dim.positions)
+        masked_dim = dim.mask(mask)
+        return [masked_dim]
 
 
 class Zip(Spec):
@@ -80,16 +116,16 @@ class Zip(Spec):
 
 
 class Product(Spec):
-    left: Spec
-    right: Spec
+    outer: Spec = Field(..., description="Will be executed once")
+    inner: Spec = Field(..., description="Will be executed len(outer) times")
 
     def get_keys(self) -> List:
-        return self.left.keys + self.right.keys
+        return self.outer.keys + self.inner.keys
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
-        dims_left = self.left.create_dimensions(bounds=False)
-        dims_right = self.right.create_dimensions(bounds)
-        return dims_left + dims_right
+        dims_outer = self.outer.create_dimensions(bounds=False)
+        dims_inner = self.inner.create_dimensions(bounds)
+        return dims_outer + dims_inner
 
 
 class Snake(Spec):
@@ -163,9 +199,9 @@ class Line(Spec):
 
     # TODO: are start and stop positions, bounds, or different for fly/step
     key: Any
-    start: float
-    stop: float
-    num: int = Field(..., ge=1)
+    start: float = Field(..., description="Centre point of the first point of the line")
+    stop: float = Field(..., description="Centre point of the last point of the line")
+    num: int = Field(..., ge=1, description="Number of points to produce")
 
     def get_keys(self) -> List:
         return [self.key]
@@ -183,15 +219,19 @@ class Line(Spec):
         return create_dimensions(self._line, self.keys, self.num, bounds)
 
     @classmethod
-    def bounded(cls, key, lower: float, upper: float, num: int):
-        """Specify instance by extreme bounds
-
-        Args:
-            key: Thing to move
-            lower: Lower bound of the first point of the line
-            upper: Upper bound of the last point of the line
-            num: Number of points in the line
-        """
+    @validate_arguments
+    def bounded(
+        cls,
+        key,
+        lower: float = Field(
+            ..., description="Lower bound of the first point of the line"
+        ),
+        upper: float = Field(
+            ..., description="Upper bound of the last point of the line"
+        ),
+        num: int = num,
+    ):
+        """Specify instance by extreme bounds"""
         half_step = (upper - lower) / num / 2
         start = lower + half_step
         if num == 1:
@@ -214,6 +254,7 @@ class Spiral(Spec):
     rotate: float = Field(0.0, description="How much to rotate the angle of the spiral")
 
     def get_keys(self) -> List:
+        # TODO: reversed from __init__ args, a good idea?
         return [self.y_key, self.x_key]
 
     def _spiral(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
@@ -254,3 +295,34 @@ class Spiral(Spec):
         n_rings = radius / dr
         num = n_rings ** 2 * np.pi
         return cls(x_key, y_key, x_start, y_start, radius, radius, num, rotate)
+
+
+class _UnionModifier:
+    # Modifies all Spec subclasses so Spec->Union[all Spec subclasses]
+    def __init__(self):
+        _spec_subclasses = tuple(self._all_subclasses(Spec))
+        _region_subclasses = tuple(self._all_subclasses(Region))
+        self.spec_union = Union[_spec_subclasses]  # type: ignore
+        self.region_union = Union[_region_subclasses]  # type: ignore
+
+        for spec in _spec_subclasses + _region_subclasses:
+            for _, field in spec.__fields__.items():
+                if field.type_ is Spec:
+                    # TODO: Is it better to create a new field than modify?
+                    field.type_ = self.spec_union
+                    field.prepare()
+                elif field.type_ is Region:
+                    field.type_ = self.region_union
+                    field.prepare()
+
+    def _all_subclasses(self, cls):
+        return set(cls.__subclasses__()).union(
+            [s for c in cls.__subclasses__() for s in self._all_subclasses(c)]
+        )
+
+
+_modifier = _UnionModifier()
+
+
+def spec_from_json(text: str) -> Spec:
+    return parse_raw_as(_modifier.spec_union, text)  # type: ignore

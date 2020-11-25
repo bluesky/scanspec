@@ -18,6 +18,7 @@ mypy = "*"
 atomicwrites = "*"
 matplotlib = "*"
 scipy = "*"
+pytest = "<6.1.0"
 
 [packages]
 # All other package requirements from setup.cfg
