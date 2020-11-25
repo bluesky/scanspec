@@ -1,7 +1,7 @@
 import pytest
 
 from scanspec.core import View
-from scanspec.regions import Rectangle
+from scanspec.regions import Circle, Rectangle
 from scanspec.specs import Concat, Line, Mask, Snake, Spiral, Squash
 
 
@@ -168,7 +168,7 @@ def test_concat_lines() -> None:
 
 def test_rect_region() -> None:
     x, y = object(), object()
-    inst = Mask(Line(y, 1, 3, 5) * Line(x, 0, 2, 3), Rectangle(x, 1, 3, y, 1, 2))
+    inst = Mask(Line(y, 1, 3, 5) * Line(x, 0, 2, 3), Rectangle(x, y, 1, 1, 3, 2))
     assert inst.keys == [y, x]
     (dim,) = inst.create_dimensions()
     assert dim.positions == {
@@ -182,4 +182,42 @@ def test_rect_region() -> None:
     assert dim.upper == {
         x: pytest.approx([1.5, 2.5, 1.5, 2.5, 1.5, 2.5]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
+    }
+
+
+def test_circle_region() -> None:
+    x, y = object(), object()
+    inst = Mask(Line(y, 1, 3, 3) * Line(x, 0, 2, 3), Circle(x, y, 1, 2, 1))
+    assert inst.keys == [y, x]
+    (dim,) = inst.create_dimensions()
+    assert dim.positions == {
+        x: pytest.approx([1, 0, 1, 2, 1]),
+        y: pytest.approx([1, 2, 2, 2, 3]),
+    }
+    assert dim.lower == {
+        x: pytest.approx([0.5, -0.5, 0.5, 1.5, 0.5]),
+        y: pytest.approx([1, 2, 2, 2, 3]),
+    }
+    assert dim.upper == {
+        x: pytest.approx([1.5, 0.5, 1.5, 2.5, 1.5]),
+        y: pytest.approx([1, 2, 2, 2, 3]),
+    }
+
+
+def test_circle_snaked_region() -> None:
+    x, y = object(), object()
+    inst = Mask(Snake(Line(y, 1, 3, 3) * Line(x, 0, 2, 3)), Circle(x, y, 1, 2, 1))
+    assert inst.keys == [y, x]
+    (dim,) = inst.create_dimensions()
+    assert dim.positions == {
+        x: pytest.approx([1, 2, 1, 0, 1]),
+        y: pytest.approx([1, 2, 2, 2, 3]),
+    }
+    assert dim.lower == {
+        x: pytest.approx([0.5, 2.5, 1.5, 0.5, 0.5]),
+        y: pytest.approx([1, 2, 2, 2, 3]),
+    }
+    assert dim.upper == {
+        x: pytest.approx([1.5, 1.5, 0.5, -0.5, 1.5]),
+        y: pytest.approx([1, 2, 2, 2, 3]),
     }

@@ -48,14 +48,9 @@ class Squash(Spec):
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
         dims = self.spec.create_dimensions(bounds)
-        lengths = [len(dim) for dim in dims]
-        ret = dims[0].repeat(np.product(lengths[1:]))
-        for i, dim in enumerate(dims):
-            if i > 0:
-                ntile = np.product(lengths[:i])
-                nrepeats = np.product(lengths[i + 1 :])
-                ret = ret + dim.repeat(nrepeats).tile(ntile)
-        return [ret]
+        batch = View(dims).create_batch()
+        dim = Dimension(batch.positions, batch.lower, batch.upper, dims[0].snake)
+        return [dim]
 
 
 class Mask(Spec):
