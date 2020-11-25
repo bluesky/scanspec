@@ -69,9 +69,9 @@ def plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int,
 
 
 def find_regions(obj) -> Iterator[Region]:
-    if isinstance(obj, Region):
-        yield obj
-    elif isinstance(obj, BaseModel):
+    if isinstance(obj, BaseModel):
+        if isinstance(obj, Region):
+            yield obj
         for name in obj.__fields__:
             yield from find_regions(getattr(obj, name))
 

@@ -2,7 +2,7 @@ import pytest
 
 from scanspec.core import View
 from scanspec.regions import Circle, Rectangle
-from scanspec.specs import Concat, Line, Mask, Snake, Spiral, Squash
+from scanspec.specs import Concat, Line, Spiral, Squash
 
 
 def test_one_point_line() -> None:
@@ -136,7 +136,7 @@ def test_squashed_product() -> None:
 
 def test_product_snaking_lines() -> None:
     x, y = object(), object()
-    inst = Snake(Line(y, 1, 2, 3) * Line(x, 0, 1, 2))
+    inst = Line(y, 1, 2, 3) * ~Line(x, 0, 1, 2)
     assert inst.keys == [y, x]
     dims = inst.create_dimensions()
     assert len(dims) == 2
@@ -168,7 +168,7 @@ def test_concat_lines() -> None:
 
 def test_rect_region() -> None:
     x, y = object(), object()
-    inst = Mask(Line(y, 1, 3, 5) * Line(x, 0, 2, 3), Rectangle(x, y, 1, 1, 3, 2))
+    inst = Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(x, y, 1, 1, 3, 2)
     assert inst.keys == [y, x]
     (dim,) = inst.create_dimensions()
     assert dim.positions == {
@@ -187,7 +187,7 @@ def test_rect_region() -> None:
 
 def test_circle_region() -> None:
     x, y = object(), object()
-    inst = Mask(Line(y, 1, 3, 3) * Line(x, 0, 2, 3), Circle(x, y, 1, 2, 1))
+    inst = Line(y, 1, 3, 3) * Line(x, 0, 2, 3) & Circle(x, y, 1, 2, 1)
     assert inst.keys == [y, x]
     (dim,) = inst.create_dimensions()
     assert dim.positions == {
@@ -206,7 +206,7 @@ def test_circle_region() -> None:
 
 def test_circle_snaked_region() -> None:
     x, y = object(), object()
-    inst = Mask(Snake(Line(y, 1, 3, 3) * Line(x, 0, 2, 3)), Circle(x, y, 1, 2, 1))
+    inst = Line(y, 1, 3, 3) * ~Line(x, 0, 2, 3) & Circle(x, y, 1, 2, 1)
     assert inst.keys == [y, x]
     (dim,) = inst.create_dimensions()
     assert dim.positions == {

@@ -61,8 +61,8 @@ class DifferenceOf(Region):
 
     def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
         left_mask = self.left.mask(positions)
-        # Subtract the right mask wherever the left mask is present
-        mask = np.subtract(left_mask, self.right.mask(positions), where=left_mask)
+        # Return the xor restricted to the left region
+        mask = left_mask ^ self.right.mask(positions) & left_mask
         return mask
 
 
