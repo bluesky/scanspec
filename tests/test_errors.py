@@ -1,0 +1,23 @@
+import pytest
+
+from scanspec.regions import Region
+from scanspec.specs import Line, Spec, Squash
+
+
+def test_not_implemented() -> None:
+    with pytest.raises(NotImplementedError):
+        Region().key_sets()
+    with pytest.raises(NotImplementedError):
+        Region().mask({})
+    with pytest.raises(NotImplementedError):
+        Spec().keys()
+    with pytest.raises(NotImplementedError):
+        Spec().create_dimensions()
+    with pytest.raises(TypeError):
+        Spec() + Region()
+
+
+def test_non_snake_not_allowed_inside_snake():
+    with pytest.raises(ValueError) as cm:
+        Squash(~Line("y", 1, 3, 3) * Line("x", 0, 2, 3)).create_dimensions()
+    assert "['x'] would run backwards" in cm.value.args[0]

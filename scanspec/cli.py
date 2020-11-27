@@ -34,5 +34,7 @@ def plot(spec: str):
     """Plot a ScanSpec"""
     from scanspec.plot import plot_spec
 
+    for letter in "abcuvwxyz":
+        locals()[letter] = letter
     eval_spec = eval(spec)
     plot_spec(eval_spec)

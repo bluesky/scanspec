@@ -8,7 +8,7 @@ from matplotlib.colors import TABLEAU_COLORS
 from pydantic.main import BaseModel
 from scipy import interpolate
 
-from .core import Batch
+from .core import Dimension, View
 from .regions import Circle, Rectangle, Region
 from .specs import Spec
 
@@ -16,10 +16,10 @@ from .specs import Spec
 PAD = 2
 
 
-def find_breaks(batch: Batch):
+def find_breaks(dim: Dimension):
     breaks = []
-    for key in batch.keys:
-        breaks.append(batch.lower[key][1:] != batch.upper[key][:-1])
+    for key in dim.keys():
+        breaks.append(dim.lower[key][1:] != dim.upper[key][:-1])
     same = np.logical_or.reduce(breaks)
     break_indices = np.nonzero(same)[0] + 1
     return list(break_indices)
@@ -77,53 +77,54 @@ def find_regions(obj) -> Iterator[Region]:
 
 
 def plot_spec(spec: Spec):
-    batch = spec.create_view().create_batch()
-    ndims = len(spec.keys)
+    dim = View(spec.create_dimensions()).consume()
+    ndims = len(spec.keys())
 
     # Setup axes
     if ndims > 2:
         axes = plt.axes(projection="3d")
-        z, y, x = list(spec.keys)[:3]
+        z, y, x = spec.keys()[:3]
         plt.ylabel(y)
         axes.set_zlabel(z)
     else:
         axes = plt.axes()
         if ndims == 1:
-            x = list(spec.keys)[0]
+            x = spec.keys()[0]
             plt.tick_params(left="off", labelleft="off")
         else:
-            y, x = list(spec.keys)[:2]
+            y, x = spec.keys()[:2]
             plt.ylabel(y)
     plt.xlabel(x)
 
     # Plot any Regions
-    for region in find_regions(spec):
-        if isinstance(region, Rectangle):
-            xy = (region.x_min, region.y_min)
-            width = region.x_max - region.x_min
-            height = region.y_max - region.y_min
-            axes.add_patch(
-                patches.Rectangle(xy, width, height, region.angle, fill=False)
-            )
-        elif isinstance(region, Circle):
-            xy = (region.x_centre, region.y_centre)
-            axes.add_patch(patches.Circle(xy, region.radius, fill=False))
+    if ndims <= 2:
+        for region in find_regions(spec):
+            if isinstance(region, Rectangle):
+                xy = (region.x_min, region.y_min)
+                width = region.x_max - region.x_min
+                height = region.y_max - region.y_min
+                axes.add_patch(
+                    patches.Rectangle(xy, width, height, region.angle, fill=False)
+                )
+            elif isinstance(region, Circle):
+                xy = (region.x_centre, region.y_centre)
+                axes.add_patch(patches.Circle(xy, region.radius, fill=False))
 
     # Plot the splines
-    tail: Any = {k: None for k in spec.keys}
-    ranges = [max(np.max(v) - np.min(v), 0.0001) for k, v in batch.positions.items()]
+    tail: Any = {k: None for k in spec.keys()}
+    ranges = [max(np.max(v) - np.min(v), 0.0001) for k, v in dim.positions.items()]
     seg_col = cycle(TABLEAU_COLORS)
     last_index = 0
-    for index in find_breaks(batch) + [len(batch)]:
+    for index in find_breaks(dim) + [len(dim)]:
         num_points = index - last_index
         arrays = []
         turnaround = []
-        for k in spec.keys:
+        for k in spec.keys():
             # Add the lower and positions
             arr = np.empty(num_points * 2 + 1)
-            arr[:-1:2] = batch.lower[k][last_index:index]
-            arr[1::2] = batch.positions[k][last_index:index]
-            arr[-1] = batch.upper[k][index - 1]
+            arr[:-1:2] = dim.lower[k][last_index:index]
+            arr[1::2] = dim.positions[k][last_index:index]
+            arr[-1] = dim.upper[k][index - 1]
             arrays.append(arr)
             # Add the turnaround
             if tail[k] is not None:
@@ -143,12 +144,12 @@ def plot_spec(spec: Spec):
 
     # Plot the end
     plot_arrays(
-        axes, [[batch.upper[k][-1]] for k in spec.keys], marker="x", color="lightgrey"
+        axes, [[dim.upper[k][-1]] for k in spec.keys()], marker="x", color="lightgrey"
     )
 
     # Plot the capture points
-    if len(batch) < 200:
-        arrays = [batch.positions[k] for k in spec.keys]
+    if len(dim) < 200:
+        arrays = [dim.positions[k] for k in spec.keys()]
         plot_arrays(axes, arrays, linestyle="", marker=".", color="k")
 
     plt.show()

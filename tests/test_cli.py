@@ -76,6 +76,40 @@ def test_plot_2D_line() -> None:
     assert_min_max_2d(lines[-1], 1, 2, 2, 3)
 
 
+def test_plot_2D_line_rect_region() -> None:
+    runner = CliRunner()
+    f = plt.figure()
+    spec = "Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(x, y, 0, 1.1, 1.5, 2.1, 30)"
+    with patch("scanspec.plot.plt.show"):
+        result = runner.invoke(cli.cli, ["plot", spec])
+    assert result.exit_code == 0
+    lines = f.axes[0].lines
+    assert len(lines) == 8
+    # First row
+    assert_min_max_2d(lines[0], -0.5, 0.5, 1.5, 1.5)
+    # Arrow
+    assert_min_max_2d(lines[1], -0.5, -0.5, 1.5, 1.5)
+    # Turnaround
+    assert_min_max_2d(lines[2], -0.6071045, 0.60710456, 1.4999969, 2.000003)
+    # Second row
+    assert_min_max_2d(lines[3], -0.5, 0.5, 2, 2)
+    assert_min_max_2d(lines[4], 0.5, 1.5, 2, 2)
+    # Arrow
+    assert_min_max_2d(lines[5], -0.5, -0.5, 2, 2)
+    # End
+    assert_min_max_2d(lines[6], 1.5, 1.5, 2, 2)
+    # Capture points
+    assert len(lines[-1].get_data()[0]) == 3
+    assert_min_max_2d(lines[-1], 0, 1, 1.5, 2)
+    patches = f.axes[0].patches
+    assert len(patches) == 1
+    assert type(patches[0]).__name__ == "Rectangle"
+    assert patches[0].xy == (0, 1.1)
+    assert patches[0].get_height() == 1.0
+    assert patches[0].get_width() == 1.5
+    assert patches[0].angle == 30
+
+
 def test_plot_3D_line() -> None:
     runner = CliRunner()
     f = plt.figure()

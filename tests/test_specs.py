@@ -2,7 +2,7 @@ import pytest
 
 from scanspec.core import View
 from scanspec.regions import Circle, Rectangle
-from scanspec.specs import Concat, Line, Spiral, Squash
+from scanspec.specs import Concat, Line, Spiral, Squash, Static
 
 
 def test_one_point_line() -> None:
@@ -85,7 +85,7 @@ def test_spaced_spiral() -> None:
 def test_zipped_lines() -> None:
     x, y = object(), object()
     inst = Line(x, 0, 1, 5) + Line(y, 1, 2, 5)
-    assert inst.keys == [x, y]
+    assert inst.keys() == [x, y]
     (dim,) = inst.create_dimensions()
     assert dim.positions == {
         x: pytest.approx([0, 0.25, 0.5, 0.75, 1]),
@@ -96,20 +96,19 @@ def test_zipped_lines() -> None:
 def test_product_lines() -> None:
     x, y = object(), object()
     inst = Line(y, 1, 2, 3) * Line(x, 0, 1, 2)
-    assert inst.keys == [y, x]
+    assert inst.keys() == [y, x]
     dims = inst.create_dimensions()
     assert len(dims) == 2
-    view = View(dims)
-    batch = view.create_batch(1000)
-    assert batch.positions == {
+    dim = View(dims).consume()
+    assert dim.positions == {
         x: pytest.approx([0, 1, 0, 1, 0, 1]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
     }
-    assert batch.lower == {
+    assert dim.lower == {
         x: pytest.approx([-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
     }
-    assert batch.upper == {
+    assert dim.upper == {
         x: pytest.approx([0.5, 1.5, 0.5, 1.5, 0.5, 1.5]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
     }
@@ -118,7 +117,7 @@ def test_product_lines() -> None:
 def test_squashed_product() -> None:
     x, y = object(), object()
     inst = Squash(Line(y, 1, 2, 3) * Line(x, 0, 1, 2))
-    assert inst.keys == [y, x]
+    assert inst.keys() == [y, x]
     (dim,) = inst.create_dimensions()
     assert dim.positions == {
         x: pytest.approx([0, 1, 0, 1, 0, 1]),
@@ -137,20 +136,19 @@ def test_squashed_product() -> None:
 def test_product_snaking_lines() -> None:
     x, y = object(), object()
     inst = Line(y, 1, 2, 3) * ~Line(x, 0, 1, 2)
-    assert inst.keys == [y, x]
+    assert inst.keys() == [y, x]
     dims = inst.create_dimensions()
     assert len(dims) == 2
-    view = View(dims)
-    batch = view.create_batch(1000)
-    assert batch.positions == {
+    dim = View(dims).consume()
+    assert dim.positions == {
         x: pytest.approx([0, 1, 1, 0, 0, 1]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
     }
-    assert batch.lower == {
+    assert dim.lower == {
         x: pytest.approx([-0.5, 0.5, 1.5, 0.5, -0.5, 0.5]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
     }
-    assert batch.upper == {
+    assert dim.upper == {
         x: pytest.approx([0.5, 1.5, 0.5, -0.5, 0.5, 1.5]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
     }
@@ -159,7 +157,7 @@ def test_product_snaking_lines() -> None:
 def test_concat_lines() -> None:
     x = object()
     inst = Concat(Line(x, 0, 1, 2), Line(x, 1, 2, 3))
-    assert inst.keys == [x]
+    assert inst.keys() == [x]
     (dim,) = inst.create_dimensions()
     assert dim.positions == {x: pytest.approx([0, 1, 1, 1.5, 2])}
     assert dim.lower == {x: pytest.approx([-0.5, 0.5, 0.75, 1.25, 1.75])}
@@ -168,27 +166,108 @@ def test_concat_lines() -> None:
 
 def test_rect_region() -> None:
     x, y = object(), object()
-    inst = Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(x, y, 1, 1, 3, 2)
-    assert inst.keys == [y, x]
+    inst = Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(x, y, 0, 1, 1.5, 2.2)
+    assert inst.keys() == [y, x]
     (dim,) = inst.create_dimensions()
     assert dim.positions == {
-        x: pytest.approx([1, 2, 1, 2, 1, 2]),
+        x: pytest.approx([0, 1, 0, 1, 0, 1]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
     }
     assert dim.lower == {
-        x: pytest.approx([0.5, 1.5, 0.5, 1.5, 0.5, 1.5]),
+        x: pytest.approx([-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
     }
     assert dim.upper == {
-        x: pytest.approx([1.5, 2.5, 1.5, 2.5, 1.5, 2.5]),
+        x: pytest.approx([0.5, 1.5, 0.5, 1.5, 0.5, 1.5]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
+    }
+
+
+def test_rect_region_3D() -> None:
+    x, y, z = object(), object(), object()
+    inst = Static(z, 3.2, 2) * Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(
+        x, y, 0, 1, 1.5, 2.2
+    )
+    assert inst.keys() == [z, y, x]
+    zdim, xydim = inst.create_dimensions()
+    assert zdim.positions == {z: pytest.approx([3.2, 3.2])}
+    assert zdim.positions is zdim.upper
+    assert zdim.positions is zdim.lower
+    assert xydim.positions == {
+        x: pytest.approx([0, 1, 0, 1, 0, 1]),
+        y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
+    }
+    assert xydim.lower == {
+        x: pytest.approx([-0.5, 0.5, -0.5, 0.5, -0.5, 0.5]),
+        y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
+    }
+    assert xydim.upper == {
+        x: pytest.approx([0.5, 1.5, 0.5, 1.5, 0.5, 1.5]),
+        y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
+    }
+
+
+def test_rect_region_union() -> None:
+    x, y = object(), object()
+    inst = Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(
+        x, y, 0, 1, 1.5, 2.2
+    ) | Rectangle(x, y, 0.5, 1.5, 2, 2.5)
+    assert inst.keys() == [y, x]
+    (dim,) = inst.create_dimensions()
+    assert dim.positions == {
+        x: pytest.approx([0, 1, 0, 1, 2, 0, 1, 2, 1, 2]),
+        y: pytest.approx([1, 1, 1.5, 1.5, 1.5, 2, 2, 2, 2.5, 2.5]),
+    }
+
+
+def test_rect_region_intersection() -> None:
+    x, y = object(), object()
+    inst = (
+        Line(y, 1, 3, 5) * Line(x, 0, 2, 3)
+        & Rectangle(x, y, 0, 1, 1.5, 2.2)
+        & Rectangle(x, y, 0.5, 1.5, 2, 2.5)
+    )
+    assert inst.keys() == [y, x]
+    (dim,) = inst.create_dimensions()
+    assert dim.positions == {
+        x: pytest.approx([1, 1]),
+        y: pytest.approx([1.5, 2]),
+    }
+
+
+def test_rect_region_difference() -> None:
+    x, y, t = object(), object(), object()
+    # Bracket to
+    inst = (
+        Line(y, 1, 3, 5) * Line(x, 0, 2, 3) + Static(t, 0.1)
+        & Rectangle(x, y, 0, 1, 1.5, 2.2)
+    ) - Rectangle(x, y, 0.5, 1.5, 2, 2.5)
+    assert inst.keys() == [y, x, t]
+    (dim,) = inst.create_dimensions()
+    assert dim.positions == {
+        x: pytest.approx([0, 1, 0, 0]),
+        y: pytest.approx([1, 1, 1.5, 2]),
+        t: pytest.approx([0.1, 0.1, 0.1, 0.1]),
+    }
+
+
+def test_rect_region_symmetricdifference() -> None:
+    x, y = object(), object()
+    inst = Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(
+        x, y, 0, 1, 1.5, 2.2
+    ) ^ Rectangle(x, y, 0.5, 1.5, 2, 2.5)
+    assert inst.keys() == [y, x]
+    (dim,) = inst.create_dimensions()
+    assert dim.positions == {
+        x: pytest.approx([0, 1, 0, 2, 0, 2, 1, 2]),
+        y: pytest.approx([1, 1, 1.5, 1.5, 2, 2, 2.5, 2.5]),
     }
 
 
 def test_circle_region() -> None:
     x, y = object(), object()
     inst = Line(y, 1, 3, 3) * Line(x, 0, 2, 3) & Circle(x, y, 1, 2, 1)
-    assert inst.keys == [y, x]
+    assert inst.keys() == [y, x]
     (dim,) = inst.create_dimensions()
     assert dim.positions == {
         x: pytest.approx([1, 0, 1, 2, 1]),
@@ -207,7 +286,7 @@ def test_circle_region() -> None:
 def test_circle_snaked_region() -> None:
     x, y = object(), object()
     inst = Line(y, 1, 3, 3) * ~Line(x, 0, 2, 3) & Circle(x, y, 1, 2, 1)
-    assert inst.keys == [y, x]
+    assert inst.keys() == [y, x]
     (dim,) = inst.create_dimensions()
     assert dim.positions == {
         x: pytest.approx([1, 2, 1, 0, 1]),

@@ -1,8 +1,10 @@
+import json
+
 from pydantic.main import BaseModel
 from pydantic.typing import display_as_type
 
 from scanspec.regions import Circle
-from scanspec.specs import Line, Mask, spec_from_json
+from scanspec.specs import Line, Mask, spec_from_dict, spec_from_json
 
 
 def test_line_serializes() -> None:
@@ -10,6 +12,7 @@ def test_line_serializes() -> None:
     serialized = '{"type": "Line", "key": "x", "start": 0.0, "stop": 1.0, "num": 4}'
     assert ob.json() == serialized
     assert spec_from_json(serialized) == ob
+    assert spec_from_dict(json.loads(serialized)) == ob
 
 
 def test_masked_circle_serializes() -> None:

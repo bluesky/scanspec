@@ -1,5 +1,4 @@
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Iterator, List
+from typing import Any, Callable, Dict, List, Type, TypeVar
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -29,6 +28,16 @@ class WithType(BaseModel, metaclass=WithTypeMetaClass):
 Positions = Dict[Any, np.ndarray]
 
 
+T = TypeVar("T")
+
+
+def if_instance_do(x, cls: Type[T], func: Callable[[T], Any]):
+    if isinstance(x, cls):
+        return func(x)
+    else:
+        return NotImplemented
+
+
 class Dimension:
     def __init__(
         self,
@@ -48,7 +57,6 @@ class Dimension:
         assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
         self.snake = snake
 
-    @property
     def keys(self) -> List:
         return list(self.positions.keys())
 
@@ -83,7 +91,7 @@ class Dimension:
 
     def concat(self, other: "Dimension") -> "Dimension":
         self._check_dim(other)
-        assert self.keys == other.keys, f"Differing keys {self.keys} and {other.keys}"
+        assert self.keys() == other.keys(), f"Keys {self.keys()} != {other.keys()}"
         return self._dim_with(
             lambda a, k: np.concatenate((getattr(self, a)[k], getattr(other, a)[k]))
         )
@@ -94,7 +102,7 @@ class Dimension:
     def __add__(self, other: "Dimension") -> "Dimension":
         """Zip them together"""
         self._check_dim(other)
-        overlapping = list(set(self.keys).intersection(other.keys))
+        overlapping = list(set(self.keys()).intersection(other.keys()))
         assert not overlapping, f"Zipping would overwrite keys {overlapping}"
         # rely on the constructor to check lengths
         dim = Dimension(
@@ -106,18 +114,37 @@ class Dimension:
         return dim
 
 
-@dataclass
-class Batch:
-    positions: Dict[str, np.ndarray] = field(default_factory=dict)
-    lower: Dict[str, np.ndarray] = field(default_factory=dict)
-    upper: Dict[str, np.ndarray] = field(default_factory=dict)
-
-    @property
-    def keys(self) -> List:
-        return list(self.positions)
-
-    def __len__(self):
-        return len(list(self.positions.values())[0])
+def squash_dimensions(dimensions: List[Dimension]) -> Dimension:
+    view = View(dimensions)
+    # Comsuming a View of these dimensions performs the squash
+    # TODO: dim.tile might give better performance but is much longer
+    squashed = view.consume()
+    # Check that the squash is the same as the original
+    if dimensions and dimensions[0].snake:
+        squashed.snake = True
+        # The top level is snaking, so this dimension will run backwards
+        # This means any non-snaking axes will run backwards, which is
+        # surprising, so don't allow it
+        non_snaking = [k for d in dimensions for k in d.keys() if not d.snake]
+        if non_snaking:
+            raise ValueError(
+                f"Cannot squash non-snaking Specs in a snaking Dimension "
+                f"otherwise {non_snaking} would run backwards"
+            )
+    else:
+        # The top level is not snaking, so make sure there is an even
+        # number of iterations of any snaking axis within it so it
+        # doesn't jump when this dimension is iterated a second time
+        for i, dim in enumerate(dimensions):
+            # A snaking dimension within a non-snaking top level must repeat
+            # an even number of times
+            if False and dim.snake and np.product(view.sizes[:i]) % 2:
+                raise ValueError(
+                    f"Cannot squash snaking Specs in a non-snaking Dimension "
+                    f"when they do not repeat an even number of times "
+                    f"otherwise {dim.keys()} would jump in position"
+                )
+    return squashed
 
 
 class View:
@@ -125,26 +152,24 @@ class View:
         self, dimensions: List[Dimension], start: int = 0, num: int = None,
     ):
         self.sizes = np.array([len(dim) for dim in dimensions])
-        for i, dim in enumerate(dimensions):
-            # A mid dimension above an snaking one must have even size to make
-            # iterating over them easier
-            if i > 1111111111111111 and dim.snake:
-                assert (
-                    self.sizes[i - 1] % 2 == 0
-                ), "Mid dimensions above a snaking one must have even size"
         if num is None:
             num = np.product(self.sizes)
         self.dimensions = dimensions
         self.index = start
         self.end_index = start + num
 
-    def create_batch(self, num: int = None) -> Batch:
+    def consume(self, num: int = None) -> Dimension:
+        start_index = self.index
         if num is None:
             end_index = self.end_index
         else:
             end_index = min(self.index + num, self.end_index)
-        indices = np.arange(self.index, end_index)
-        batch = Batch()
+        self.index = end_index
+        return self.flat_dimension(start_index, end_index)
+
+    def flat_dimension(self, start_index: int, end_index: int) -> Dimension:
+        indices = np.arange(start_index, end_index)
+        positions, lower, upper = {}, {}, {}
         if len(indices) > 0:
             self.index = indices[-1] + 1
         # Example numbers below from a 2x3x4 ZxYxX scan
@@ -171,33 +196,26 @@ class View:
                 snake_indices = np.where(
                     backwards, dim_len - 1 - dim_indices, dim_indices
                 )
-                for key in dim.keys:
-                    batch.positions[key] = dim.positions[key][snake_indices]
+                for key in dim.keys():
+                    positions[key] = dim.positions[key][snake_indices]
                     # If going backwards, select from the opposite bound
-                    batch.lower[key] = np.where(
+                    lower[key] = np.where(
                         backwards,
                         dim.upper[key][snake_indices],
                         dim.lower[key][snake_indices],
                     )
-                    batch.upper[key] = np.where(
+                    upper[key] = np.where(
                         backwards,
                         dim.lower[key][snake_indices],
                         dim.upper[key][snake_indices],
                     )
             else:
-                for key in dim.keys:
-                    batch.positions[key] = dim.positions[key][dim_indices]
-                    batch.lower[key] = dim.lower[key][dim_indices]
-                    batch.upper[key] = dim.upper[key][dim_indices]
-
-        return batch
+                for key in dim.keys():
+                    positions[key] = dim.positions[key][dim_indices]
+                    lower[key] = dim.lower[key][dim_indices]
+                    upper[key] = dim.upper[key][dim_indices]
+        return Dimension(positions, lower, upper)
 
     def __len__(self) -> int:
         """Number of points in a scan"""
         return self.end_index - self.index
-
-    def __iter__(self) -> Iterator[Positions]:
-        # Fixed size batch iterator of positions
-        while self.index < self.end_index:
-            batch = self.create_batch(1)
-            yield {k: batch.positions[k][0] for k in batch.keys}

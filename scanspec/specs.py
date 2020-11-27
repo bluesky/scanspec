@@ -1,66 +1,81 @@
-from typing import Any, Callable, Dict, List, Optional, Union, cast
+from typing import Any, Callable, Dict, Iterator, List, Optional, Union, cast
 
 import numpy as np
 from pydantic import Field, parse_raw_as, validate_arguments
+from pydantic.tools import parse_obj_as
 
-from scanspec.regions import Region
+from scanspec.regions import Region, get_mask
 
-from .core import Dimension, View, WithType
+from .core import (
+    Dimension,
+    Positions,
+    View,
+    WithType,
+    if_instance_do,
+    squash_dimensions,
+)
 
 
 class Spec(WithType):
-    def get_keys(self) -> List:
+    def keys(self) -> List:
         raise NotImplementedError(self)
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
         raise NotImplementedError(self)
 
-    def create_view(self) -> View:
+    def positions(self) -> "SpecPositions":
         """Create view of dimensions that can iterate through points"""
-        dims = self.create_dimensions()
-        view = View(dims)
-        return view
-
-    @property
-    def keys(self) -> List:
-        return self.get_keys()
+        sp = SpecPositions(self.create_dimensions(bounds=False))
+        return sp
 
     def __mul__(self, other) -> "Spec":
         """Outer product of two Specs"""
-        if isinstance(other, Spec):
-            return Product(self, other)
-        else:
-            return NotImplemented
+        return if_instance_do(other, Spec, lambda o: Product(self, o))
 
     def __add__(self, other) -> "Spec":
         """Zip together"""
-        if isinstance(other, Spec):
-            return Zip(self, other)
-        else:
-            return NotImplemented
+        return if_instance_do(other, Spec, lambda o: Zip(self, o))
 
     def __invert__(self) -> "Spec":
         """Snake this spec"""
         return Snake(self)
 
-    def __and__(self, other: Region) -> "Spec":
+    def __and__(self, other: Region) -> "Mask":
         """Mask with a region"""
-        if isinstance(other, Region):
-            return Mask(self, other)
-        else:
-            return NotImplemented
+        return if_instance_do(other, Region, lambda o: Mask(self, o))
+
+
+class SpecPositions:
+    """Backwards compatibility with Cycler"""
+
+    def __init__(self, dimensions: List[Dimension]):
+        self.dimensions = dimensions
+
+    @property
+    def keys(self) -> List:
+        keys = []
+        for dim in self.dimensions:
+            keys += dim.keys()
+        return keys
+
+    def __len__(self) -> int:
+        return np.product([len(dim) for dim in self.dimensions])
+
+    def __iter__(self) -> Iterator[Positions]:
+        view = View(self.dimensions)
+        while len(view):
+            dim = view.consume(1)
+            yield {k: dim.positions[k][0] for k in dim.keys()}
 
 
 class Squash(Spec):
     spec: Spec
 
-    def get_keys(self) -> List:
-        return self.spec.keys
+    def keys(self) -> List:
+        return self.spec.keys()
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
-        dims = self.spec.create_dimensions(bounds)
-        batch = View(dims).create_batch()
-        dim = Dimension(batch.positions, batch.lower, batch.upper, dims[0].snake)
+        dim = squash_dimensions(self.spec.create_dimensions(bounds))
         return [dim]
 
 
@@ -68,48 +83,47 @@ class Mask(Spec):
     spec: Spec
     region: Region
 
-    def get_keys(self) -> List:
-        return self.spec.keys
+    def keys(self) -> List:
+        return self.spec.keys()
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
-        # Squash the dimensions together
-        dim = Squash(self.spec).create_dimensions(bounds)[0]
+        dims = self.spec.create_dimensions(bounds)
+        for key_set in self.region.key_sets():
+            # Squash the dimensions together containing these keys
+            matches = [i for i, d in enumerate(dims) if set(d.keys()) & key_set]
+            assert matches, f"No Specs match keys {list(key_set)}"
+            si, ei = matches[0], matches[-1]
+            if si != ei:
+                # Span Specs, squash them
+                squashed = squash_dimensions(dims[si : ei + 1])
+                dims = dims[:si] + [squashed] + dims[ei + 1 :]
         # Generate masks from the positions showing what's inside
-        mask = self.region.mask(dim.positions)
-        masked_dim = dim.mask(mask)
-        return [masked_dim]
+        masked_dims = [dim.mask(get_mask(self.region, dim.positions)) for dim in dims]
+        return masked_dims
 
-    def __or__(self, other: "Region") -> "Spec":
-        if isinstance(other, Region):
-            return Mask(self.spec, other | self.region)
-        else:
-            return NotImplemented
+    # *+ bind more tightly than &|^ so without these overrides we
+    # would need to add brackets to all combinations of Regions
+    def __or__(self, other: "Region") -> "Mask":
+        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region | o))
 
-    def __and__(self, other: "Region") -> "Spec":
-        if isinstance(other, Region):
-            return Mask(self.spec, other & self.region)
-        else:
-            return NotImplemented
+    def __and__(self, other: "Region") -> "Mask":
+        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region & o))
 
-    def __sub__(self, other: "Region") -> "Spec":
-        if isinstance(other, Region):
-            return Mask(self.spec, other - self.region)
-        else:
-            return NotImplemented
+    def __xor__(self, other: "Region") -> "Mask":
+        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region ^ o))
 
-    def __xor__(self, other: "Region") -> "Spec":
-        if isinstance(other, Region):
-            return Mask(self.spec, other ^ self.region)
-        else:
-            return NotImplemented
+    # This is here for completeness, tends not to be called as - binds
+    # tighter than &
+    def __sub__(self, other: "Region") -> "Mask":
+        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
 
 
 class Zip(Spec):
     left: Spec
     right: Spec
 
-    def get_keys(self) -> List:
-        return self.left.keys + self.right.keys
+    def keys(self) -> List:
+        return self.left.keys() + self.right.keys()
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
         dims_left = self.left.create_dimensions(bounds)
@@ -122,7 +136,8 @@ class Zip(Spec):
             if len(dims) == 1 and len(dims[0]) == 1:
                 dims = [dims[0].repeat(len(others[-1]))]
             # Left pad the dims with Nones so they are the same size
-            nones: List[Optional[Dimension]] = [None] * max(len(dims) - len(others), 0)
+            npad = max(len(dims), len(others)) - len(dims)
+            nones: List[Optional[Dimension]] = [None] * npad
             return nones + cast(List[Optional[Dimension]], dims)
 
         # Pad and expand them
@@ -149,8 +164,8 @@ class Product(Spec):
     outer: Spec = Field(..., description="Will be executed once")
     inner: Spec = Field(..., description="Will be executed len(outer) times")
 
-    def get_keys(self) -> List:
-        return self.outer.keys + self.inner.keys
+    def keys(self) -> List:
+        return self.outer.keys() + self.inner.keys()
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
         dims_outer = self.outer.create_dimensions(bounds=False)
@@ -161,8 +176,8 @@ class Product(Spec):
 class Snake(Spec):
     spec: Spec
 
-    def get_keys(self) -> List:
-        return self.spec.keys
+    def keys(self) -> List:
+        return self.spec.keys()
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
         dims = self.spec.create_dimensions(bounds)
@@ -175,9 +190,10 @@ class Concat(Spec):
     left: Spec
     right: Spec
 
-    def get_keys(self) -> List:
-        assert self.left.keys == self.right.keys, "Keys don't match"
-        return self.left.keys
+    def keys(self) -> List:
+        left_keys, right_keys = self.left.keys(), self.right.keys()
+        assert left_keys == right_keys, f"Keys {left_keys} != {right_keys}"
+        return left_keys
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
         dims_left = self.left.create_dimensions(bounds)
@@ -214,14 +230,14 @@ class Static(Spec):
     value: float = Field(..., description="The value at each point")
     num: int = Field(1, ge=1, description="How many times to repeat this point")
 
-    def get_keys(self) -> List:
+    def keys(self) -> List:
         return [self.key]
 
     def _repeat(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
         return {self.key: np.full(len(indexes), self.value)}
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
-        return create_dimensions(self._repeat, self.keys, self.num, bounds)
+        return create_dimensions(self._repeat, self.keys(), self.num, bounds)
 
 
 class Line(Spec):
@@ -233,7 +249,7 @@ class Line(Spec):
     stop: float = Field(..., description="Centre point of the last point of the line")
     num: int = Field(..., ge=1, description="Number of points to produce")
 
-    def get_keys(self) -> List:
+    def keys(self) -> List:
         return [self.key]
 
     def _line(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
@@ -246,7 +262,7 @@ class Line(Spec):
         return {self.key: (indexes - 0.5) * step + self.start}
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
-        return create_dimensions(self._line, self.keys, self.num, bounds)
+        return create_dimensions(self._line, self.keys(), self.num, bounds)
 
     @classmethod
     @validate_arguments
@@ -283,7 +299,7 @@ class Spiral(Spec):
     num: int = Field(..., description="Number of points in the spiral")
     rotate: float = Field(0.0, description="How much to rotate the angle of the spiral")
 
-    def get_keys(self) -> List:
+    def keys(self) -> List:
         # TODO: reversed from __init__ args, a good idea?
         return [self.y_key, self.x_key]
 
@@ -305,7 +321,7 @@ class Spiral(Spec):
         }
 
     def create_dimensions(self, bounds=True) -> List[Dimension]:
-        return create_dimensions(self._spiral, self.keys, self.num, bounds)
+        return create_dimensions(self._spiral, self.keys(), self.num, bounds)
 
     @classmethod
     def spaced(
@@ -352,6 +368,10 @@ class _UnionModifier:
 
 
 _modifier = _UnionModifier()
+
+
+def spec_from_dict(d: Dict) -> Spec:
+    return parse_obj_as(_modifier.spec_union, d)  # type: ignore
 
 
 def spec_from_json(text: str) -> Spec:

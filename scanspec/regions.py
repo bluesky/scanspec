@@ -1,77 +1,89 @@
-from typing import Any, Dict
+from typing import Any, Dict, Iterator, List, Set
 
 import numpy as np
 from pydantic.fields import Field
 
-from scanspec.core import WithType
+from .core import Positions, WithType, if_instance_do
 
 
 class Region(WithType):
+    def key_sets(self) -> List[Set[str]]:
+        # Return the non-overlapping sets of keys this region spans
+        raise NotImplementedError(self)
+
     def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
         # Return a mask of which positions are in the region
         raise NotImplementedError(self)
 
     def __or__(self, other: "Region") -> "Region":
-        if isinstance(other, Region):
-            return UnionOf(self, other)
-        else:
-            return NotImplemented
+        return if_instance_do(other, Region, lambda o: UnionOf(self, o))
 
     def __and__(self, other: "Region") -> "Region":
-        if isinstance(other, Region):
-            return IntersectionOf(self, other)
-        else:
-            return NotImplemented
+        return if_instance_do(other, Region, lambda o: IntersectionOf(self, o))
 
     def __sub__(self, other: "Region") -> "Region":
-        if isinstance(other, Region):
-            return DifferenceOf(self, other)
-        else:
-            return NotImplemented
+        return if_instance_do(other, Region, lambda o: DifferenceOf(self, o))
 
     def __xor__(self, other: "Region") -> "Region":
-        if isinstance(other, Region):
-            return SymmetricDifferenceOf(self, other)
-        else:
-            return NotImplemented
+        return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(self, o))
+
+
+def get_mask(region: Region, positions: Positions) -> np.ndarray:
+    keys = set(positions)
+    needs_mask = any(ks & keys for ks in region.key_sets())
+    if needs_mask:
+        return region.mask(positions)
+    else:
+        return np.ones(len(list(positions.values())[0]))
+
+
+def _merge_key_sets(key_sets: List[Set[str]]) -> Iterator[Set[str]]:
+    for ks in key_sets:
+        key_set = ks.copy()
+        # Empty matching sets into this key_set
+        for ks in key_sets:
+            if ks & key_set:
+                while ks:
+                    key_set.add(ks.pop())
+        # It might be emptied already, only yield if it isn't
+        if key_set:
+            yield key_set
+
+
+class CombinationOf(Region):
+    left: Region
+    right: Region
+
+    def key_sets(self) -> List[Set[str]]:
+        # Return the non-overlapping sets of keys this region spans
+        key_sets = list(_merge_key_sets(self.left.key_sets() + self.right.key_sets()))
+        return key_sets
 
 
 # Naming so we don't clash with typing.Union
-class UnionOf(Region):
-    left: Region
-    right: Region
-
+class UnionOf(CombinationOf):
     def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
-        mask = self.left.mask(positions) | self.right.mask(positions)
+        mask = get_mask(self.left, positions) | get_mask(self.right, positions)
         return mask
 
 
-class IntersectionOf(Region):
-    left: Region
-    right: Region
-
+class IntersectionOf(CombinationOf):
     def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
-        mask = self.left.mask(positions) & self.right.mask(positions)
+        mask = get_mask(self.left, positions) & get_mask(self.right, positions)
         return mask
 
 
-class DifferenceOf(Region):
-    left: Region
-    right: Region
-
+class DifferenceOf(CombinationOf):
     def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
-        left_mask = self.left.mask(positions)
+        left_mask = get_mask(self.left, positions)
         # Return the xor restricted to the left region
-        mask = left_mask ^ self.right.mask(positions) & left_mask
+        mask = left_mask ^ get_mask(self.right, positions) & left_mask
         return mask
 
 
-class SymmetricDifferenceOf(Region):
-    left: Region
-    right: Region
-
+class SymmetricDifferenceOf(CombinationOf):
     def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
-        mask = self.left.mask(positions) ^ self.right.mask(positions)
+        mask = get_mask(self.left, positions) ^ get_mask(self.right, positions)
         return mask
 
 
@@ -83,6 +95,9 @@ class Rectangle(Region):
     x_max: float = Field(..., description="Maximum inclusive x value in the region")
     y_max: float = Field(..., description="Maximum inclusive y value in the region")
     angle: float = Field(0, description="Clockwise rotation angle of the rectangle")
+
+    def key_sets(self) -> List[Set[str]]:
+        return [{self.x_key, self.y_key}]
 
     def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
         x = positions[self.x_key] - self.x_min
@@ -113,6 +128,9 @@ class Circle(Region):
     class Config:
         # Allow either centre or center
         allow_population_by_field_name = True
+
+    def key_sets(self) -> List[Set[str]]:
+        return [{self.x_key, self.y_key}]
 
     def mask(self, positions: Dict[Any, np.ndarray]) -> np.ndarray:
         x = positions[self.x_key] - self.x_centre
