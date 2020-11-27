@@ -1,10 +1,8 @@
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, Iterator, List, Optional, Union, cast
 
 import numpy as np
-from pydantic import Field, parse_raw_as, validate_arguments
-from pydantic.tools import parse_obj_as
-
-from scanspec.regions import Region, get_mask
+from pydantic import Field, parse_obj_as, parse_raw_as, validate_arguments
 
 from .core import (
     Dimension,
@@ -14,6 +12,7 @@ from .core import (
     if_instance_do,
     squash_dimensions,
 )
+from .regions import Region, get_mask
 
 
 class Spec(WithType):
@@ -341,6 +340,24 @@ class Spiral(Spec):
         n_rings = radius / dr
         num = n_rings ** 2 * np.pi
         return cls(x_key, y_key, x_start, y_start, radius, radius, num, rotate)
+
+
+@dataclass(frozen=True)
+class Time:
+    """Can be used as a special key to indicate how long each point should be"""
+
+
+TIME = Time()
+
+
+def fly(spec: Spec, duration: float):
+    """Flyscan, zipping TIME=duration for every point"""
+    return spec + Static(TIME, duration)
+
+
+def step(spec: Spec, duration: float):
+    """Step scan, adding TIME=duration as an inner dimension for every point"""
+    return spec * Static(TIME, duration)
 
 
 class _UnionModifier:

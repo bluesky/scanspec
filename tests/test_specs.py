@@ -2,7 +2,7 @@ import pytest
 
 from scanspec.core import View
 from scanspec.regions import Circle, Rectangle
-from scanspec.specs import Concat, Line, Spiral, Squash, Static
+from scanspec.specs import TIME, Concat, Line, Spiral, Squash, Static, fly, step
 
 
 def test_one_point_line() -> None:
@@ -22,6 +22,23 @@ def test_two_point_line() -> None:
     assert dim.positions == {x: pytest.approx([0, 1])}
     assert dim.lower == {x: pytest.approx([-0.5, 0.5])}
     assert dim.upper == {x: pytest.approx([0.5, 1.5])}
+
+
+def test_two_point_stepped_line() -> None:
+    x = object()
+    inst = step(Line(x, 0, 1, 2), 0.1)
+    dimx, dimt = inst.create_dimensions()
+    assert dimx.positions == dimx.lower == dimx.upper == {x: pytest.approx([0, 1])}
+    assert dimt.positions == dimt.lower == dimt.upper == {TIME: pytest.approx([0.1])}
+
+
+def test_two_point_fly_line() -> None:
+    x = object()
+    inst = fly(Line(x, 0, 1, 2), 0.1)
+    (dim,) = inst.create_dimensions()
+    assert dim.positions == {x: pytest.approx([0, 1]), TIME: pytest.approx([0.1, 0.1])}
+    assert dim.lower == {x: pytest.approx([-0.5, 0.5]), TIME: pytest.approx([0.1, 0.1])}
+    assert dim.upper == {x: pytest.approx([0.5, 1.5]), TIME: pytest.approx([0.1, 0.1])}
 
 
 def test_many_point_line() -> None:
@@ -111,6 +128,20 @@ def test_product_lines() -> None:
     assert dim.upper == {
         x: pytest.approx([0.5, 1.5, 0.5, 1.5, 0.5, 1.5]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
+    }
+
+
+def test_zipped_product_lines() -> None:
+    x, y, z = object(), object(), object()
+    inst = Line(x, 0, 1, 5) + Line(y, 1, 2, 3) * Line(z, 2, 3, 5)
+    assert inst.keys() == [x, y, z]
+    dimy, dimxz = inst.create_dimensions()
+    assert dimxz.positions == {
+        x: pytest.approx([0, 0.25, 0.5, 0.75, 1]),
+        z: pytest.approx([2, 2.25, 2.5, 2.75, 3]),
+    }
+    assert dimy.positions == {
+        y: pytest.approx([1, 1.5, 2]),
     }
 
 
