@@ -32,7 +32,7 @@ An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
     grid = Line(ymotor, 2.1, 3.8, 12) * ~Line(xmotor, 0.5, 1.5, 10)
     spec = fly(grid, 0.4) & Circle(xmotor, ymotor, 1.0, 2.8, radius=0.5)
 
-.. image:: images/plot_spec.png
+.. image:: docs/images/plot_spec.png
 
 You can then either iterate through the scan positions directly for convenience:
 
