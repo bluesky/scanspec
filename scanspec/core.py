@@ -18,6 +18,10 @@ class WithType(BaseModel, metaclass=WithTypeMetaClass):
 
     type: str
 
+    class Config:
+        # Forbid any extra input
+        extra = "forbid"
+
     def __init__(self, *args, **kwargs):
         # Allow positional args, but don't include type
         keys = [x for x in self.__fields__ if x != "type"]
@@ -114,31 +118,34 @@ class Dimension:
         return dim
 
 
-def squash_dimensions(dimensions: List[Dimension]) -> Dimension:
-    view = View(dimensions)
-    # Comsuming a View of these dimensions performs the squash
+def squash_dimensions(
+    dimensions: List[Dimension], check_path_changes=False
+) -> Dimension:
+    path = Path(dimensions)
+    # Comsuming a Path of these dimensions performs the squash
     # TODO: dim.tile might give better performance but is much longer
-    squashed = view.consume()
+    squashed = path.consume()
     # Check that the squash is the same as the original
     if dimensions and dimensions[0].snake:
         squashed.snake = True
         # The top level is snaking, so this dimension will run backwards
         # This means any non-snaking axes will run backwards, which is
         # surprising, so don't allow it
-        non_snaking = [k for d in dimensions for k in d.keys() if not d.snake]
-        if non_snaking:
-            raise ValueError(
-                f"Cannot squash non-snaking Specs in a snaking Dimension "
-                f"otherwise {non_snaking} would run backwards"
-            )
-    else:
+        if check_path_changes:
+            non_snaking = [k for d in dimensions for k in d.keys() if not d.snake]
+            if non_snaking:
+                raise ValueError(
+                    f"Cannot squash non-snaking Specs in a snaking Dimension "
+                    f"otherwise {non_snaking} would run backwards"
+                )
+    elif check_path_changes:
         # The top level is not snaking, so make sure there is an even
         # number of iterations of any snaking axis within it so it
         # doesn't jump when this dimension is iterated a second time
         for i, dim in enumerate(dimensions):
             # A snaking dimension within a non-snaking top level must repeat
             # an even number of times
-            if False and dim.snake and np.product(view.sizes[:i]) % 2:
+            if dim.snake and np.product(path.sizes[:i]) % 2:
                 raise ValueError(
                     f"Cannot squash snaking Specs in a non-snaking Dimension "
                     f"when they do not repeat an even number of times "
@@ -147,7 +154,7 @@ def squash_dimensions(dimensions: List[Dimension]) -> Dimension:
     return squashed
 
 
-class View:
+class Path:
     def __init__(
         self, dimensions: List[Dimension], start: int = 0, num: int = None,
     ):
@@ -159,16 +166,12 @@ class View:
         self.end_index = start + num
 
     def consume(self, num: int = None) -> Dimension:
-        start_index = self.index
         if num is None:
             end_index = self.end_index
         else:
             end_index = min(self.index + num, self.end_index)
+        indices = np.arange(self.index, end_index)
         self.index = end_index
-        return self.flat_dimension(start_index, end_index)
-
-    def flat_dimension(self, start_index: int, end_index: int) -> Dimension:
-        indices = np.arange(start_index, end_index)
         positions, lower, upper = {}, {}, {}
         if len(indices) > 0:
             self.index = indices[-1] + 1

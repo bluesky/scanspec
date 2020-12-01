@@ -6,8 +6,8 @@ from pydantic import Field, parse_obj_as, parse_raw_as, validate_arguments
 
 from .core import (
     Dimension,
+    Path,
     Positions,
-    View,
     WithType,
     if_instance_do,
     squash_dimensions,
@@ -19,11 +19,11 @@ class Spec(WithType):
     def keys(self) -> List:
         raise NotImplementedError(self)
 
-    def create_dimensions(self, bounds=True) -> List[Dimension]:
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
         raise NotImplementedError(self)
 
     def positions(self) -> "SpecPositions":
-        """Create view of dimensions that can iterate through points"""
+        """Create path of dimensions that can iterate through points"""
         sp = SpecPositions(self.create_dimensions(bounds=False))
         return sp
 
@@ -61,32 +61,36 @@ class SpecPositions:
         return np.product([len(dim) for dim in self.dimensions])
 
     def __iter__(self) -> Iterator[Positions]:
-        view = View(self.dimensions)
-        while len(view):
-            dim = view.consume(1)
+        path = Path(self.dimensions)
+        while len(path):
+            dim = path.consume(1)
             yield {k: dim.positions[k][0] for k in dim.keys()}
 
 
 class Squash(Spec):
     spec: Spec
+    check_path_changes: bool = True
 
     def keys(self) -> List:
         return self.spec.keys()
 
-    def create_dimensions(self, bounds=True) -> List[Dimension]:
-        dim = squash_dimensions(self.spec.create_dimensions(bounds))
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        # TODO: if we squash we explode the size, can we avoid this?
+        dims = self.spec.create_dimensions(bounds, nested)
+        dim = squash_dimensions(dims, nested and self.check_path_changes)
         return [dim]
 
 
 class Mask(Spec):
     spec: Spec
     region: Region
+    check_path_changes: bool = True
 
     def keys(self) -> List:
         return self.spec.keys()
 
-    def create_dimensions(self, bounds=True) -> List[Dimension]:
-        dims = self.spec.create_dimensions(bounds)
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        dims = self.spec.create_dimensions(bounds, nested)
         for key_set in self.region.key_sets():
             # Squash the dimensions together containing these keys
             matches = [i for i, d in enumerate(dims) if set(d.keys()) & key_set]
@@ -94,7 +98,10 @@ class Mask(Spec):
             si, ei = matches[0], matches[-1]
             if si != ei:
                 # Span Specs, squash them
-                squashed = squash_dimensions(dims[si : ei + 1])
+                # If the spec to be squashed is nested (inside the Mask or outside)
+                # then check the path changes if requested
+                check_path_changes = (nested or si) and self.check_path_changes
+                squashed = squash_dimensions(dims[si : ei + 1], check_path_changes)
                 dims = dims[:si] + [squashed] + dims[ei + 1 :]
         # Generate masks from the positions showing what's inside
         masked_dims = [dim.mask(get_mask(self.region, dim.positions)) for dim in dims]
@@ -124,16 +131,18 @@ class Zip(Spec):
     def keys(self) -> List:
         return self.left.keys() + self.right.keys()
 
-    def create_dimensions(self, bounds=True) -> List[Dimension]:
-        dims_left = self.left.create_dimensions(bounds)
-        dims_right = self.right.create_dimensions(bounds)
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        dims_left = self.left.create_dimensions(bounds, nested)
+        dims_right = self.right.create_dimensions(bounds, nested)
 
         def _pad_dims(
             dims: List[Dimension], others: List[Dimension]
         ) -> List[Optional[Dimension]]:
             # Special case, if only one dim with size 1, expand to the right size
             if len(dims) == 1 and len(dims[0]) == 1:
-                dims = [dims[0].repeat(len(others[-1]))]
+                repeated = dims[0].repeat(len(others[-1]))
+                repeated.snake = others[-1].snake
+                dims = [repeated]
             # Left pad the dims with Nones so they are the same size
             npad = max(len(dims), len(others)) - len(dims)
             nones: List[Optional[Dimension]] = [None] * npad
@@ -166,9 +175,9 @@ class Product(Spec):
     def keys(self) -> List:
         return self.outer.keys() + self.inner.keys()
 
-    def create_dimensions(self, bounds=True) -> List[Dimension]:
-        dims_outer = self.outer.create_dimensions(bounds=False)
-        dims_inner = self.inner.create_dimensions(bounds)
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        dims_outer = self.outer.create_dimensions(bounds=False, nested=nested)
+        dims_inner = self.inner.create_dimensions(bounds, nested=True)
         return dims_outer + dims_inner
 
 
@@ -178,8 +187,8 @@ class Snake(Spec):
     def keys(self) -> List:
         return self.spec.keys()
 
-    def create_dimensions(self, bounds=True) -> List[Dimension]:
-        dims = self.spec.create_dimensions(bounds)
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        dims = self.spec.create_dimensions(bounds, nested)
         for dim in dims:
             dim.snake = True
         return dims
@@ -194,9 +203,9 @@ class Concat(Spec):
         assert left_keys == right_keys, f"Keys {left_keys} != {right_keys}"
         return left_keys
 
-    def create_dimensions(self, bounds=True) -> List[Dimension]:
-        dims_left = self.left.create_dimensions(bounds)
-        dims_right = self.right.create_dimensions(bounds)
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        dims_left = self.left.create_dimensions(bounds, nested)
+        dims_right = self.right.create_dimensions(bounds, nested)
         assert len(dims_right) == len(
             dims_left
         ), f"Specs {self.left} and {self.right} don't have same number of dimensions"
@@ -235,7 +244,7 @@ class Static(Spec):
     def _repeat(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
         return {self.key: np.full(len(indexes), self.value)}
 
-    def create_dimensions(self, bounds=True) -> List[Dimension]:
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
         return create_dimensions(self._repeat, self.keys(), self.num, bounds)
 
 
@@ -260,7 +269,7 @@ class Line(Spec):
             step = (self.stop - self.start) / (self.num - 1)
         return {self.key: (indexes - 0.5) * step + self.start}
 
-    def create_dimensions(self, bounds=True) -> List[Dimension]:
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
         return create_dimensions(self._line, self.keys(), self.num, bounds)
 
     @classmethod
@@ -319,7 +328,7 @@ class Spiral(Spec):
             self.x_key: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
         }
 
-    def create_dimensions(self, bounds=True) -> List[Dimension]:
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
         return create_dimensions(self._spiral, self.keys(), self.num, bounds)
 
     @classmethod

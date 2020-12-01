@@ -1,8 +1,8 @@
 import pytest
 
-from scanspec.core import View
+from scanspec.core import Path
 from scanspec.regions import Circle, Rectangle
-from scanspec.specs import TIME, Concat, Line, Spiral, Squash, Static, fly, step
+from scanspec.specs import TIME, Concat, Line, Mask, Spiral, Squash, Static, fly, step
 
 
 def test_one_point_line() -> None:
@@ -116,7 +116,7 @@ def test_product_lines() -> None:
     assert inst.keys() == [y, x]
     dims = inst.create_dimensions()
     assert len(dims) == 2
-    dim = View(dims).consume()
+    dim = Path(dims).consume()
     assert dim.positions == {
         x: pytest.approx([0, 1, 0, 1, 0, 1]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
@@ -164,13 +164,31 @@ def test_squashed_product() -> None:
     }
 
 
+def test_squashed_multiplied_snake_scan() -> None:
+    x, y, z = object(), object(), object()
+    inst = Line(z, 1, 2, 2) * Squash(
+        Line(y, 1, 2, 2) * ~Line.bounded(x, 3, 7, 2) * Static(TIME, 9, 2)
+    )
+    assert inst.keys() == [z, y, x, TIME]
+    dimz, dimxyt = inst.create_dimensions()
+    for d in dimxyt.positions, dimxyt.lower, dimxyt.upper:
+        assert d == {
+            x: pytest.approx([4, 4, 6, 6, 6, 6, 4, 4]),
+            y: pytest.approx([1, 1, 1, 1, 2, 2, 2, 2]),
+            TIME: pytest.approx([9, 9, 9, 9, 9, 9, 9, 9]),
+        }
+    assert (
+        dimz.positions == dimz.lower == dimz.upper == {z: pytest.approx([1, 2]),}
+    )
+
+
 def test_product_snaking_lines() -> None:
     x, y = object(), object()
     inst = Line(y, 1, 2, 3) * ~Line(x, 0, 1, 2)
     assert inst.keys() == [y, x]
     dims = inst.create_dimensions()
     assert len(dims) == 2
-    dim = View(dims).consume()
+    dim = Path(dims).consume()
     assert dim.positions == {
         x: pytest.approx([0, 1, 1, 0, 0, 1]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
@@ -316,7 +334,11 @@ def test_circle_region() -> None:
 
 def test_circle_snaked_region() -> None:
     x, y = object(), object()
-    inst = Line(y, 1, 3, 3) * ~Line(x, 0, 2, 3) & Circle(x, y, 1, 2, 1)
+    inst = Mask(
+        Line(y, 1, 3, 3) * ~Line(x, 0, 2, 3),
+        Circle(x, y, 1, 2, 1),
+        check_path_changes=False,
+    )
     assert inst.keys() == [y, x]
     (dim,) = inst.create_dimensions()
     assert dim.positions == {

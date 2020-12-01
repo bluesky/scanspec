@@ -21,7 +21,8 @@ def test_masked_circle_serializes() -> None:
         '{"type": "Mask", '
         '"spec": {"type": "Line", "key": "x", "start": 0.0, "stop": 1.0, "num": 4}, '
         '"region": {"type": "Circle", "x_key": "x", "y_key": "y", "x_centre": 0.0, '
-        '"y_centre": 1.0, "radius": 4.0}'
+        '"y_centre": 1.0, "radius": 4.0}, '
+        '"check_path_changes": true'
         "}"
     )
     assert ob.json() == serialized

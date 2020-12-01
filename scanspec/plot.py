@@ -8,7 +8,7 @@ from matplotlib.colors import TABLEAU_COLORS
 from pydantic.main import BaseModel
 from scipy import interpolate
 
-from .core import Dimension, View
+from .core import Dimension, Path
 from .regions import Circle, Rectangle, Region
 from .specs import Spec
 
@@ -77,15 +77,17 @@ def find_regions(obj) -> Iterator[Region]:
 
 
 def plot_spec(spec: Spec):
-    dim = View(spec.create_dimensions()).consume()
+    dim = Path(spec.create_dimensions()).consume()
     ndims = len(spec.keys())
 
     # Setup axes
     if ndims > 2:
         axes = plt.axes(projection="3d")
+        axes.grid(False)
         z, y, x = spec.keys()[:3]
         plt.ylabel(y)
         axes.set_zlabel(z)
+        axes.view_init(elev=15)
     else:
         axes = plt.axes()
         if ndims == 1:

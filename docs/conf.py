@@ -44,8 +44,8 @@ extensions = [
     "sphinx.ext.viewcode",
     # Adds the inheritance-diagram generation directive
     "sphinx.ext.inheritance_diagram",
-    # Adds embedded graphviz support
-    "sphinx.ext.graphviz",
+    # Adds plotting directives
+    "matplotlib.sphinxext.plot_directive",
 ]
 
 # If true, Sphinx will warn about all references where the target cannot
@@ -97,6 +97,9 @@ intersphinx_mapping = dict(python=("https://docs.python.org/3/", None))
 
 # A dictionary of graphviz graph attributes for inheritance diagrams.
 inheritance_graph_attrs = dict(rankdir="TB")
+
+# Plot things
+plot_rcparams = {"axes3d.grid": False, "figure.figsize": (6.4, 6.4)}
 
 # Common links that should be available on every page
 rst_epilog = """

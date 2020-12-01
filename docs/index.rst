@@ -57,7 +57,7 @@ About the documentation
     :name: explanations
     :maxdepth: 1
 
-    explanations/why-is-something-so
+    explanations/why-squash-can-change-path
 
 .. rst-class:: no-margin-after-ul
 

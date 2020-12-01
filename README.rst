@@ -25,28 +25,35 @@ An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
 
 .. code:: python
 
-    from scanspec.specs import Line, Snake, Mask
+    from scanspec.specs import Line, fly
     from scanspec.regions import Circle
 
-    grid = Line.bounded(ymotor, 2.1, 3.8, 60) * Snake(Line(xmotor, 0.5, 1.5, 100))
-    spec = Mask(fly(grid, 0.4), Circle(1.0, 2.8, radius=0.5))
+    grid = Line(ymotor, 2.1, 3.8, 60) * ~Line(xmotor, 0.5, 1.5, 100)
+    spec = fly(grid, 0.4) & Circle(xmotor, ymotor, 1.0, 2.8, radius=0.5)
 
-You can then either iterate through it directly for convenience, or produce chunked Dimensions for performance:
+You can then either iterate through the scan positions directly for convenience:
+.. code:: python
+
+    for positions in spec.positions():
+        print(positions)
+    # ...
+    # {'y': 3.2813559322033896, 'x': 0.8838383838383839, Time(): 0.4}
+    # {'y': 3.2813559322033896, 'x': 0.8737373737373737, Time(): 0.4}
+
+or create a Path from the Dimensions and consume batches of a given length from it for performance:
 
 .. code:: python
 
-    for positions in spec.create_view():
-        print(positions)
-        # {ymotor: 2.1, xmotor: 0.5, TIME: 0.4}
+    from scanspec.core import Path
 
     dims = spec.create_dimensions()
-    dims[0].shape  # (4600,)
-    dims[0].keys  # (ymotor, xmotor)
+    len(dims[0].shape)  # 2696
+    dims[0].keys()  # (ymotor, xmotor, Time())
 
-    view = View(dims, start=5, num=60)
-    batch = view.get_batch(30)
-    batch.positions # {xmotor: <ndarray len=30>, ymotor: <ndarray len=30>, TIME: <ndarray len=30>}
-    batch.upper_bounds # bounds are same dimensionality as positions
+    path = Path(dims, start=5, num=60)
+    batch = path.consume(30)
+    batch.positions  # {xmotor: <ndarray len=30>, ymotor: <ndarray len=30>, TIME: <ndarray len=30>}
+    batch.upper  # bounds are same dimensionality as positions
 
 
 .. |build_status| image:: https://travis-ci.com/dls-controls/scanspec.svg?branch=master
