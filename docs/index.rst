@@ -1,4 +1,7 @@
 .. include:: ../README.rst
+    :end-before: replaced when included in index.rst
+
+.. |plot| image:: images/plot_spec.png
 
 How the documentation is structured
 -----------------------------------

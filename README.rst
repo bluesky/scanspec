@@ -7,12 +7,12 @@ Specify step and flyscan Paths using combinations of:
 
 - Specs like Line or Spiral
 - Optionally Snaking
-- Zip or Product to compose
-- Masks with multiple Regions
+- Zip, Product and Concat to compose
+- Masks with multiple Regions to restrict
 
 Serialize the Spec rather than the expanded Path and reconstruct it on the
 server. It can them be iterated over like a cycler_, or scan Dimensions
-can be produced and sliced Paths created to consume chunk by chunk.
+can be produced and expanded Paths created to consume chunk by chunk.
 
 .. _cycler: https://matplotlib.org/cycler/
 
@@ -32,7 +32,7 @@ An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
     grid = Line(ymotor, 2.1, 3.8, 12) * ~Line(xmotor, 0.5, 1.5, 10)
     spec = fly(grid, 0.4) & Circle(xmotor, ymotor, 1.0, 2.8, radius=0.5)
 
-.. image:: docs/images/plot_spec.png
+|plot|
 
 You can then either iterate through the scan positions directly for convenience:
 
@@ -79,3 +79,9 @@ or create a Path from the Dimensions and consume chunks of a given length from i
 .. |license| image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
     :target: https://opensource.org/licenses/Apache-2.0
     :alt: Apache License
+
+..
+    These definitions are used when viewing README.rst and will be
+    replaced when included in index.rst
+
+.. |plot| image:: docs/images/plot_spec.png
