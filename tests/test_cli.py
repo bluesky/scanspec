@@ -29,12 +29,11 @@ def assert_min_max_3d(line, xmin, xmax, ymin, ymax, zmin, zmax):
 
 def test_plot_1D_line() -> None:
     runner = CliRunner()
-    f = plt.figure()
     spec = 'Line("x", 1, 2, 2)'
     with patch("scanspec.plot.plt.show"):
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.stdout == ""
-    lines = f.axes[0].lines
+    lines = plt.gcf().axes[0].lines
     assert len(lines) == 5
     # Splines
     assert_min_max_2d(lines[0], 0.5, 1.5, 0, 0)
@@ -50,12 +49,11 @@ def test_plot_1D_line() -> None:
 
 def test_plot_2D_line() -> None:
     runner = CliRunner()
-    f = plt.figure()
     spec = 'Line("y", 2, 3, 2) * Snake(Line("x", 1, 2, 2))'
     with patch("scanspec.plot.plt.show"):
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.exit_code == 0
-    lines = f.axes[0].lines
+    lines = plt.gcf().axes[0].lines
     assert len(lines) == 9
     # First row
     assert_min_max_2d(lines[0], 0.5, 1.5, 2, 2)
@@ -78,11 +76,11 @@ def test_plot_2D_line() -> None:
 
 def test_plot_2D_line_rect_region() -> None:
     runner = CliRunner()
-    f = plt.figure()
     spec = "Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(x, y, 0, 1.1, 1.5, 2.1, 30)"
     with patch("scanspec.plot.plt.show"):
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.exit_code == 0
+    f = plt.gcf()
     lines = f.axes[0].lines
     assert len(lines) == 8
     # First row
@@ -112,12 +110,11 @@ def test_plot_2D_line_rect_region() -> None:
 
 def test_plot_3D_line() -> None:
     runner = CliRunner()
-    f = plt.figure()
     spec = 'Snake(Line("z", 5, 6, 2) * Line("y", 2, 3, 2) * Line("x", 1, 2, 2))'
     with patch("scanspec.plot.plt.show"):
         result = runner.invoke(cli.cli, ["plot", spec],)
     assert result.exit_code == 0
-    lines = f.axes[0].lines
+    lines = plt.gcf().axes[0].lines
     assert len(lines) == 17
     # First grid
     # First row

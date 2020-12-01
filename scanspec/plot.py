@@ -10,7 +10,7 @@ from scipy import interpolate
 
 from .core import Dimension, Path
 from .regions import Circle, Rectangle, Region
-from .specs import Spec, TIME
+from .specs import TIME, Spec
 
 # Number of padding points to make the spline look nice
 PAD = 2
@@ -83,6 +83,7 @@ def plot_spec(spec: Spec):
     ndims = len(keys)
 
     # Setup axes
+    plt.figure(figsize=(6, 6))
     if ndims > 2:
         axes = plt.axes(projection="3d")
         axes.grid(False)
@@ -150,9 +151,7 @@ def plot_spec(spec: Spec):
         last_index = index
 
     # Plot the end
-    plot_arrays(
-        axes, [[dim.upper[k][-1]] for k in keys], marker="x", color="lightgrey"
-    )
+    plot_arrays(axes, [[dim.upper[k][-1]] for k in keys], marker="x", color="lightgrey")
 
     # Plot the capture points
     if len(dim) < 200:

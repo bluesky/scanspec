@@ -99,7 +99,7 @@ intersphinx_mapping = dict(python=("https://docs.python.org/3/", None))
 inheritance_graph_attrs = dict(rankdir="TB")
 
 # Plot things
-plot_rcparams = {"axes3d.grid": False, "figure.figsize": (6.4, 6.4)}
+plot_rcparams = {"axes3d.grid": False, "figure.figsize": (6, 6)}
 
 # Common links that should be available on every page
 rst_epilog = """

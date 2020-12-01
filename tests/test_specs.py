@@ -177,9 +177,7 @@ def test_squashed_multiplied_snake_scan() -> None:
             y: pytest.approx([1, 1, 1, 1, 2, 2, 2, 2]),
             TIME: pytest.approx([9, 9, 9, 9, 9, 9, 9, 9]),
         }
-    assert (
-        dimz.positions == dimz.lower == dimz.upper == {z: pytest.approx([1, 2])}
-    )
+    assert dimz.positions == dimz.lower == dimz.upper == {z: pytest.approx([1, 2])}
 
 
 def test_product_snaking_lines() -> None:

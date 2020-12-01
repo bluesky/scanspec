@@ -29,7 +29,7 @@ An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
     from scanspec.specs import Line, fly
     from scanspec.regions import Circle
 
-    grid = Line(ymotor, 2.1, 3.8, 12) * ~Line(xmotor, 0.5, 1.5, 100)
+    grid = Line(ymotor, 2.1, 3.8, 12) * ~Line(xmotor, 0.5, 1.5, 10)
     spec = fly(grid, 0.4) & Circle(xmotor, ymotor, 1.0, 2.8, radius=0.5)
 
 .. image:: images/plot_spec.png
@@ -41,8 +41,8 @@ You can then either iterate through the scan positions directly for convenience:
     for positions in spec.positions():
         print(positions)
     # ...
-    # {'y': 3.2813559322033896, 'x': 0.8838383838383839, Time(): 0.4}
-    # {'y': 3.2813559322033896, 'x': 0.8737373737373737, Time(): 0.4}
+    # {ymotor: 3.2813559322033896, xmotor: 0.8838383838383839, "TIME": 0.4}
+    # {ymotor: 3.2813559322033896, xmotor: 0.8737373737373737, "TIME": 0.4}
 
 or create a Path from the Dimensions and consume chunks of a given length from it for performance:
 
@@ -51,12 +51,12 @@ or create a Path from the Dimensions and consume chunks of a given length from i
     from scanspec.core import Path
 
     dims = spec.create_dimensions()
-    len(dims[0].shape)  # 2696
-    dims[0].keys()  # (ymotor, xmotor, Time())
+    len(dims[0].shape)  # 44
+    dims[0].keys()  # (ymotor, xmotor, "TIME")
 
     path = Path(dims, start=5, num=60)
     chunk = path.consume(30)
-    chunk.positions  # {xmotor: <ndarray len=30>, ymotor: <ndarray len=30>, TIME: <ndarray len=30>}
+    chunk.positions  # {xmotor: <ndarray len=30>, ymotor: <ndarray len=30>, "TIME": <ndarray len=30>}
     chunk.upper  # bounds are same dimensionality as positions
 
 
