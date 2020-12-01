@@ -10,7 +10,7 @@ from scipy import interpolate
 
 from .core import Dimension, Path
 from .regions import Circle, Rectangle, Region
-from .specs import Spec
+from .specs import Spec, TIME
 
 # Number of padding points to make the spline look nice
 PAD = 2
@@ -77,26 +77,31 @@ def find_regions(obj) -> Iterator[Region]:
 
 
 def plot_spec(spec: Spec):
-    dim = Path(spec.create_dimensions()).consume()
-    ndims = len(spec.keys())
+    dims = spec.create_dimensions()
+    dim = Path(dims).consume()
+    keys = [k for k in spec.keys() if k is not TIME]
+    ndims = len(keys)
 
     # Setup axes
     if ndims > 2:
         axes = plt.axes(projection="3d")
         axes.grid(False)
-        z, y, x = spec.keys()[:3]
+        z, y, x = keys[:3]
         plt.ylabel(y)
         axes.set_zlabel(z)
         axes.view_init(elev=15)
     else:
         axes = plt.axes()
         if ndims == 1:
-            x = spec.keys()[0]
+            x = keys[0]
             plt.tick_params(left="off", labelleft="off")
         else:
-            y, x = spec.keys()[:2]
+            y, x = keys[:2]
             plt.ylabel(y)
     plt.xlabel(x)
+
+    # Title with dimension sizes
+    plt.title(", ".join(f"Dim[{' '.join(d.keys())} len={len(d)}]" for d in dims))
 
     # Plot any Regions
     if ndims <= 2:
@@ -113,7 +118,7 @@ def plot_spec(spec: Spec):
                 axes.add_patch(patches.Circle(xy, region.radius, fill=False))
 
     # Plot the splines
-    tail: Any = {k: None for k in spec.keys()}
+    tail: Any = {k: None for k in keys}
     ranges = [max(np.max(v) - np.min(v), 0.0001) for k, v in dim.positions.items()]
     seg_col = cycle(TABLEAU_COLORS)
     last_index = 0
@@ -121,7 +126,7 @@ def plot_spec(spec: Spec):
         num_points = index - last_index
         arrays = []
         turnaround = []
-        for k in spec.keys():
+        for k in keys:
             # Add the lower and positions
             arr = np.empty(num_points * 2 + 1)
             arr[:-1:2] = dim.lower[k][last_index:index]
@@ -146,12 +151,12 @@ def plot_spec(spec: Spec):
 
     # Plot the end
     plot_arrays(
-        axes, [[dim.upper[k][-1]] for k in spec.keys()], marker="x", color="lightgrey"
+        axes, [[dim.upper[k][-1]] for k in keys], marker="x", color="lightgrey"
     )
 
     # Plot the capture points
     if len(dim) < 200:
-        arrays = [dim.positions[k] for k in spec.keys()]
+        arrays = [dim.positions[k] for k in keys]
         plot_arrays(axes, arrays, linestyle="", marker=".", color="k")
 
     plt.show()

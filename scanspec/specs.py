@@ -351,12 +351,8 @@ class Spiral(Spec):
         return cls(x_key, y_key, x_start, y_start, radius, radius, num, rotate)
 
 
-@dataclass(frozen=True)
-class Time:
-    """Can be used as a special key to indicate how long each point should be"""
-
-
-TIME = Time()
+# Can be used as a special key to indicate how long each point should be
+TIME = "TIME"
 
 
 def fly(spec: Spec, duration: float):
