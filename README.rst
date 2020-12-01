@@ -3,15 +3,16 @@ scanspec
 
 |build_status| |coverage| |pypi_version| |readthedocs| |license|
 
-Specify step and flyscan paths using combinations of:
+Specify step and flyscan Paths using combinations of:
 
-- Single or Multidimensional ScanSpecs like Line or Spiral
+- Specs like Line or Spiral
 - Optionally Snaking
+- Zip or Product to compose
 - Masks with multiple Regions
 
-Serialize the ScanSpec rather than the points and reconstruct it on the
+Serialize the Spec rather than the expanded Path and reconstruct it on the
 server. It can them be iterated over like a cycler_, or scan Dimensions
-can be produced and sliced Views created to consume chunk by chunk.
+can be produced and sliced Paths created to consume chunk by chunk.
 
 .. _cycler: https://matplotlib.org/cycler/
 
@@ -40,7 +41,7 @@ You can then either iterate through the scan positions directly for convenience:
     # {'y': 3.2813559322033896, 'x': 0.8838383838383839, Time(): 0.4}
     # {'y': 3.2813559322033896, 'x': 0.8737373737373737, Time(): 0.4}
 
-or create a Path from the Dimensions and consume batches of a given length from it for performance:
+or create a Path from the Dimensions and consume chunks of a given length from it for performance:
 
 .. code:: python
 
@@ -51,9 +52,9 @@ or create a Path from the Dimensions and consume batches of a given length from 
     dims[0].keys()  # (ymotor, xmotor, Time())
 
     path = Path(dims, start=5, num=60)
-    batch = path.consume(30)
-    batch.positions  # {xmotor: <ndarray len=30>, ymotor: <ndarray len=30>, TIME: <ndarray len=30>}
-    batch.upper  # bounds are same dimensionality as positions
+    chunk = path.consume(30)
+    chunk.positions  # {xmotor: <ndarray len=30>, ymotor: <ndarray len=30>, TIME: <ndarray len=30>}
+    chunk.upper  # bounds are same dimensionality as positions
 
 
 .. |build_status| image:: https://travis-ci.com/dls-controls/scanspec.svg?branch=master
