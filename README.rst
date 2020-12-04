@@ -54,9 +54,9 @@ or create a Path from the Dimensions and consume chunks of a given length from i
     len(dims[0].shape)  # 44
     dims[0].keys()  # (ymotor, xmotor, "TIME")
 
-    path = Path(dims, start=5, num=60)
-    chunk = path.consume(30)
-    chunk.positions  # {xmotor: <ndarray len=30>, ymotor: <ndarray len=30>, "TIME": <ndarray len=30>}
+    path = Path(dims, start=5, num=30)
+    chunk = path.consume(10)
+    chunk.positions  # {xmotor: <ndarray len=10>, ymotor: <ndarray len=10>, "TIME": <ndarray len=10>}
     chunk.upper  # bounds are same dimensionality as positions
 
 
@@ -68,8 +68,8 @@ or create a Path from the Dimensions and consume chunks of a given length from i
     :target: https://coveralls.io/github/dls-controls/scanspec?branch=master
     :alt: Test Coverage
 
-.. |pypi_version| image:: https://badge.fury.io/py/scanspec.svg
-    :target: https://badge.fury.io/py/scanspec
+.. |pypi_version| image:: https://img.shields.io/pypi/v/scanspec.svg
+    :target: https://pypi.org/project/scanspec
     :alt: Latest PyPI version
 
 .. |readthedocs| image:: https://readthedocs.org/projects/scanspec/badge/?version=latest
@@ -81,7 +81,7 @@ or create a Path from the Dimensions and consume chunks of a given length from i
     :alt: Apache License
 
 ..
-    These definitions are used when viewing README.rst and will be
-    replaced when included in index.rst
+    These definitions are used when viewing README.rst and will be replaced
+    when included in index.rst
 
 .. |plot| image:: docs/images/plot_spec.png

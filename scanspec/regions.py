@@ -1,7 +1,7 @@
 from typing import Any, Dict, Iterator, List, Set
 
 import numpy as np
-from pydantic.fields import Field
+from pydantic import Field
 
 from .core import Positions, WithType, if_instance_do
 

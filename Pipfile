@@ -27,4 +27,4 @@ scanspec = {editable = true, path = "."}
 [scripts]
 # Put coverage here so we don't interfere with debugging in the IDE
 tests = "python -m pytest --cov-fail-under=90 --cov=scanspec --cov-report term"
-docs = "sphinx-build -E -b html docs build/html"
+docs = "sphinx-build -ET -b html docs build/html"

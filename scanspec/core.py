@@ -1,19 +1,20 @@
-from typing import Any, Callable, Dict, List, Type, TypeVar
+from typing import Any, Callable, Dict, Iterator, List, Type, TypeVar
 
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic.fields import Field, FieldInfo
 
 
 # These are used in the definition of the Schema
 # It allows the class to be inferred from the serialized "type" field
-class WithTypeMetaClass(type(BaseModel)):  # type: ignore
+class _WithTypeMetaClass(type(BaseModel)):  # type: ignore
     def __new__(mcs, name, bases, namespace, **kwargs):
         # Override type in namespace to be the literal value of the class name
         namespace["type"] = Field(name, const=True)
         return super().__new__(mcs, name, bases, namespace, **kwargs)
 
 
-class WithType(BaseModel, metaclass=WithTypeMetaClass):
+class WithType(BaseModel, metaclass=_WithTypeMetaClass):
     """BaseModel that adds a type parameter from class name."""
 
     type: str
@@ -26,6 +27,11 @@ class WithType(BaseModel, metaclass=WithTypeMetaClass):
         # Allow positional args, but don't include type
         keys = [x for x in self.__fields__ if x != "type"]
         kwargs.update(zip(keys, args))
+        # Work around the fact that arg=Field(default, ...) doesn't
+        # work with validate_arguments
+        for k, v in kwargs.items():
+            if isinstance(v, FieldInfo):
+                kwargs[k] = v.default
         super().__init__(**kwargs)
 
 
@@ -222,3 +228,26 @@ class Path:
     def __len__(self) -> int:
         """Number of points in a scan"""
         return self.end_index - self.index
+
+
+class SpecPositions:
+    """Backwards compatibility with Cycler"""
+
+    def __init__(self, dimensions: List[Dimension]):
+        self.dimensions = dimensions
+
+    @property
+    def keys(self) -> List:
+        keys = []
+        for dim in self.dimensions:
+            keys += dim.keys()
+        return keys
+
+    def __len__(self) -> int:
+        return np.product([len(dim) for dim in self.dimensions])
+
+    def __iter__(self) -> Iterator[Positions]:
+        path = Path(self.dimensions)
+        while len(path):
+            dim = path.consume(1)
+            yield {k: dim.positions[k][0] for k in dim.keys()}

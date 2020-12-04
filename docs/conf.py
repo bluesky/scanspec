@@ -46,6 +46,8 @@ extensions = [
     "sphinx.ext.inheritance_diagram",
     # Adds plotting directives
     "matplotlib.sphinxext.plot_directive",
+    # Add Pydantic information to autodoc entries
+    "scanspec.sphinxext",
 ]
 
 # If true, Sphinx will warn about all references where the target cannot
@@ -66,6 +68,12 @@ autoclass_content = "both"
 
 # Order the members by the order they appear in the source code
 autodoc_member_order = "bysource"
+
+# Don't inherit docstrings from baseclasses
+autodoc_inherit_docstrings = False
+
+# Include source in plot directive by default
+plot_include_source = True
 
 # Output graphviz directive produced images in a scalable format
 graphviz_output_format = "svg"
@@ -97,9 +105,6 @@ intersphinx_mapping = dict(python=("https://docs.python.org/3/", None))
 
 # A dictionary of graphviz graph attributes for inheritance diagrams.
 inheritance_graph_attrs = dict(rankdir="TB")
-
-# Plot things
-plot_rcparams = {"axes3d.grid": False, "figure.figsize": (6, 6)}
 
 # Common links that should be available on every page
 rst_epilog = """

@@ -1,5 +1,5 @@
 .. include:: ../README.rst
-    :end-before: replaced when included in index.rst
+    :end-before: when included in index.rst
 
 .. |plot| image:: images/plot_spec.png
 
@@ -47,19 +47,22 @@ About the documentation
     :maxdepth: 1
 
     tutorials/installation
+    tutorials/creating-a-spec
 
 .. toctree::
     :caption: How-to Guides
     :name: how-to
     :maxdepth: 1
 
-    how-to/accomplish-a-task
+    how-to/iterate-a-spec
+    how-to/serialize-a-spec
 
 .. toctree::
     :caption: Explanations
     :name: explanations
     :maxdepth: 1
 
+    explanations/what-are-dimensions
     explanations/why-squash-can-change-path
 
 .. rst-class:: no-margin-after-ul
@@ -70,6 +73,7 @@ About the documentation
     :maxdepth: 1
 
     reference/api
+    reference/changelog
     reference/contributing
 
 * :ref:`genindex`

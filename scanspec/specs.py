@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Iterator, List, Optional, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Union, cast
 
 import numpy as np
 from pydantic import Field, parse_obj_as, parse_raw_as, validate_arguments
@@ -6,7 +6,7 @@ from pydantic import Field, parse_obj_as, parse_raw_as, validate_arguments
 from .core import (
     Dimension,
     Path,
-    Positions,
+    SpecPositions,
     WithType,
     if_instance_do,
     squash_dimensions,
@@ -21,106 +21,29 @@ class Spec(WithType):
     def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
         raise NotImplementedError(self)
 
-    def positions(self) -> "SpecPositions":
-        """Create path of dimensions that can iterate through points"""
+    def path(self) -> Path:
+        path = Path(self.create_dimensions())
+        return path
+
+    def positions(self) -> SpecPositions:
         sp = SpecPositions(self.create_dimensions(bounds=False))
         return sp
 
-    def __mul__(self, other) -> "Spec":
-        """Outer product of two Specs"""
-        return if_instance_do(other, Spec, lambda o: Product(self, o))
-
-    def __add__(self, other) -> "Spec":
+    def __add__(self, other) -> "Zip":
         """Zip together"""
         return if_instance_do(other, Spec, lambda o: Zip(self, o))
 
-    def __invert__(self) -> "Spec":
+    def __mul__(self, other) -> "Product":
+        """Outer product of two Specs"""
+        return if_instance_do(other, Spec, lambda o: Product(self, o))
+
+    def __invert__(self) -> "Snake":
         """Snake this spec"""
         return Snake(self)
 
-    def __and__(self, other: Region) -> "Mask":
+    def __and__(self, other) -> "Mask":
         """Mask with a region"""
         return if_instance_do(other, Region, lambda o: Mask(self, o))
-
-
-class SpecPositions:
-    """Backwards compatibility with Cycler"""
-
-    def __init__(self, dimensions: List[Dimension]):
-        self.dimensions = dimensions
-
-    @property
-    def keys(self) -> List:
-        keys = []
-        for dim in self.dimensions:
-            keys += dim.keys()
-        return keys
-
-    def __len__(self) -> int:
-        return np.product([len(dim) for dim in self.dimensions])
-
-    def __iter__(self) -> Iterator[Positions]:
-        path = Path(self.dimensions)
-        while len(path):
-            dim = path.consume(1)
-            yield {k: dim.positions[k][0] for k in dim.keys()}
-
-
-class Squash(Spec):
-    spec: Spec
-    check_path_changes: bool = True
-
-    def keys(self) -> List:
-        return self.spec.keys()
-
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        # TODO: if we squash we explode the size, can we avoid this?
-        dims = self.spec.create_dimensions(bounds, nested)
-        dim = squash_dimensions(dims, nested and self.check_path_changes)
-        return [dim]
-
-
-class Mask(Spec):
-    spec: Spec
-    region: Region
-    check_path_changes: bool = True
-
-    def keys(self) -> List:
-        return self.spec.keys()
-
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        dims = self.spec.create_dimensions(bounds, nested)
-        for key_set in self.region.key_sets():
-            # Squash the dimensions together containing these keys
-            matches = [i for i, d in enumerate(dims) if set(d.keys()) & key_set]
-            assert matches, f"No Specs match keys {list(key_set)}"
-            si, ei = matches[0], matches[-1]
-            if si != ei:
-                # Span Specs, squash them
-                # If the spec to be squashed is nested (inside the Mask or outside)
-                # then check the path changes if requested
-                check_path_changes = (nested or si) and self.check_path_changes
-                squashed = squash_dimensions(dims[si : ei + 1], check_path_changes)
-                dims = dims[:si] + [squashed] + dims[ei + 1 :]
-        # Generate masks from the positions showing what's inside
-        masked_dims = [dim.mask(get_mask(self.region, dim.positions)) for dim in dims]
-        return masked_dims
-
-    # *+ bind more tightly than &|^ so without these overrides we
-    # would need to add brackets to all combinations of Regions
-    def __or__(self, other: "Region") -> "Mask":
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region | o))
-
-    def __and__(self, other: "Region") -> "Mask":
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region & o))
-
-    def __xor__(self, other: "Region") -> "Mask":
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region ^ o))
-
-    # This is here for completeness, tends not to be called as - binds
-    # tighter than &
-    def __sub__(self, other: "Region") -> "Mask":
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
 
 
 class Zip(Spec):
@@ -193,6 +116,49 @@ class Snake(Spec):
         return dims
 
 
+class Mask(Spec):
+    spec: Spec
+    region: Region
+    check_path_changes: bool = True
+
+    def keys(self) -> List:
+        return self.spec.keys()
+
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        dims = self.spec.create_dimensions(bounds, nested)
+        for key_set in self.region.key_sets():
+            # Squash the dimensions together containing these keys
+            matches = [i for i, d in enumerate(dims) if set(d.keys()) & key_set]
+            assert matches, f"No Specs match keys {list(key_set)}"
+            si, ei = matches[0], matches[-1]
+            if si != ei:
+                # Span Specs, squash them
+                # If the spec to be squashed is nested (inside the Mask or outside)
+                # then check the path changes if requested
+                check_path_changes = (nested or si) and self.check_path_changes
+                squashed = squash_dimensions(dims[si : ei + 1], check_path_changes)
+                dims = dims[:si] + [squashed] + dims[ei + 1 :]
+        # Generate masks from the positions showing what's inside
+        masked_dims = [dim.mask(get_mask(self.region, dim.positions)) for dim in dims]
+        return masked_dims
+
+    # *+ bind more tightly than &|^ so without these overrides we
+    # would need to add brackets to all combinations of Regions
+    def __or__(self, other: "Region") -> "Mask":
+        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region | o))
+
+    def __and__(self, other: "Region") -> "Mask":
+        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region & o))
+
+    def __xor__(self, other: "Region") -> "Mask":
+        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region ^ o))
+
+    # This is here for completeness, tends not to be called as - binds
+    # tighter than &
+    def __sub__(self, other: "Region") -> "Mask":
+        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
+
+
 class Concat(Spec):
     left: Spec
     right: Spec
@@ -214,7 +180,33 @@ class Concat(Spec):
         return dimensions
 
 
-def create_dimensions(
+class Squash(Spec):
+    """Squash the Dimensions together of the scan (but not positions) into one
+    long line.
+
+    .. example_spec::
+
+        from scanspec.specs import Line, Squash
+
+        spec = Squash(Line("y", 1, 2, 3) * Line("x", 0, 1, 4))
+    """
+
+    spec: Spec = Field(..., description="The Spec to squash the dimensions of")
+    check_path_changes: bool = Field(
+        True, description="If True path through scan will not be modified by squash"
+    )
+
+    def keys(self) -> List:
+        return self.spec.keys()
+
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        # TODO: if we squash we explode the size, can we avoid this?
+        dims = self.spec.create_dimensions(bounds, nested)
+        dim = squash_dimensions(dims, nested and self.check_path_changes)
+        return [dim]
+
+
+def _dimensions_from_indexes(
     func: Callable[[np.ndarray], Dict[Any, np.ndarray]],
     keys: List,
     num: int,
@@ -232,26 +224,19 @@ def create_dimensions(
     return [dimension]
 
 
-class Static(Spec):
-    key: Any
-    value: float = Field(..., description="The value at each point")
-    num: int = Field(1, ge=1, description="How many times to repeat this point")
-
-    def keys(self) -> List:
-        return [self.key]
-
-    def _repeat(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
-        return {self.key: np.full(len(indexes), self.value)}
-
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        return create_dimensions(self._repeat, self.keys(), self.num, bounds)
-
-
 class Line(Spec):
-    """Thing"""
+    """Linearly spaced points in the given key, with first and last points
+    centred on start and stop.
+
+    .. example_spec::
+
+        from scanspec.specs import Line
+
+        spec = Line("x", 1, 2, 5)
+    """
 
     # TODO: are start and stop positions, bounds, or different for fly/step
-    key: Any
+    key: Any = Field(..., description="An identifier for what to move")
     start: float = Field(..., description="Centre point of the first point of the line")
     stop: float = Field(..., description="Centre point of the last point of the line")
     num: int = Field(..., ge=1, description="Number of points to produce")
@@ -259,7 +244,7 @@ class Line(Spec):
     def keys(self) -> List:
         return [self.key]
 
-    def _line(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
+    def _line_from_indexes(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
         if self.num == 1:
             # Only one point, stop-start gives length of one point
             step = self.stop - self.start
@@ -269,13 +254,15 @@ class Line(Spec):
         return {self.key: (indexes - 0.5) * step + self.start}
 
     def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        return create_dimensions(self._line, self.keys(), self.num, bounds)
+        return _dimensions_from_indexes(
+            self._line_from_indexes, self.keys(), self.num, bounds
+        )
 
     @classmethod
     @validate_arguments
     def bounded(
         cls,
-        key,
+        key=key,
         lower: float = Field(
             ..., description="Lower bound of the first point of the line"
         ),
@@ -284,7 +271,14 @@ class Line(Spec):
         ),
         num: int = num,
     ):
-        """Specify instance by extreme bounds"""
+        """Specify a Line by extreme bounds instead of centre points.
+
+        .. example_spec::
+
+            from scanspec.specs import Line
+
+            spec = Line.bounded("x", 1, 2, 5)
+        """
         half_step = (upper - lower) / num / 2
         start = lower + half_step
         if num == 1:
@@ -296,9 +290,48 @@ class Line(Spec):
         return cls(key, start, stop, num)
 
 
+class Static(Spec):
+    """A static point, repeated "num" times, with "key" at "value". Can
+    be used to set key=value at every point in a scan.
+
+    .. example_spec::
+
+        from scanspec.specs import Line, Static
+
+        spec = Line("y", 1, 2, 3) + Static("x", 3)
+    """
+
+    key: Any = Field(..., description="An identifier for what to move")
+    value: float = Field(..., description="The value at each point")
+    num: int = Field(1, ge=1, description="How many times to repeat this point")
+
+    def keys(self) -> List:
+        return [self.key]
+
+    def _repeats_from_indexes(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
+        return {self.key: np.full(len(indexes), self.value)}
+
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        return _dimensions_from_indexes(
+            self._repeats_from_indexes, self.keys(), self.num, bounds
+        )
+
+
 class Spiral(Spec):
-    x_key: Any
-    y_key: Any
+    """Archimedean spiral of "x_key" and "y_key", starting at centre point
+    ("x_start", "y_start") with angle "rotate". Produces "num" points
+    in a spiral spanning width of "x_range" and height of "y_range"
+
+    .. example_spec::
+
+        from scanspec.specs import Spiral
+
+        spec = Spiral("x", "y", 1, 5, 10, 50, 30)
+    """
+
+    x_key: Any = Field(..., description="An identifier for what to move for x")
+    y_key: Any = Field(..., description="An identifier for what to move for y")
+    # TODO: do we like these names?
     x_start: float = Field(..., description="x centre of the spiral")
     y_start: float = Field(..., description="y centre of the spiral")
     x_range: float = Field(..., description="x width of the spiral")
@@ -310,7 +343,7 @@ class Spiral(Spec):
         # TODO: reversed from __init__ args, a good idea?
         return [self.y_key, self.x_key]
 
-    def _spiral(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
+    def _spiral_from_indexes(self, indexes: np.ndarray) -> Dict[Any, np.ndarray]:
         # simplest spiral equation: r = phi
         # we want point spacing across area to be the same as between rings
         # so: sqrt(area / num) = ring_spacing
@@ -328,19 +361,31 @@ class Spiral(Spec):
         }
 
     def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        return create_dimensions(self._spiral, self.keys(), self.num, bounds)
+        return _dimensions_from_indexes(
+            self._spiral_from_indexes, self.keys(), self.num, bounds
+        )
 
     @classmethod
+    @validate_arguments
     def spaced(
         cls,
-        x_key,
-        y_key,
-        x_start: float,
-        y_start: float,
-        radius: float,
-        dr: float,
-        rotate: float = 0.0,
+        x_key: Any = x_key,
+        y_key: Any = y_key,
+        x_start: float = x_start,
+        y_start: float = y_start,
+        radius: float = Field(..., description="radius of the spiral"),
+        dr: float = Field(..., description="difference between each ring"),
+        rotate: float = rotate,
     ):
+        """Specify a Spiral equally spaced in "x_key" and "y_key" by specifying
+        the "radius" and difference between each ring of the spiral "dr"
+
+        .. example_spec::
+
+            from scanspec.specs import Spiral
+
+            spec = Spiral.spaced("x", "y", 0, 0, 10, 3, 0)
+        """
         # phi = sqrt(4 * pi * num)
         # and: n_rings = phi / (2 * pi)
         # so: n_rings * 2 * pi = sqrt(4 * pi * num)
@@ -350,7 +395,7 @@ class Spiral(Spec):
         return cls(x_key, y_key, x_start, y_start, radius, radius, num, rotate)
 
 
-# Can be used as a special key to indicate how long each point should be
+#: Can be used as a special key to indicate how long each point should be
 TIME = "TIME"
 
 

@@ -3,9 +3,8 @@ from typing import Any, Dict, Iterator, List
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib import patches
-from matplotlib.colors import TABLEAU_COLORS
-from pydantic.main import BaseModel
+from matplotlib import colors, patches
+from pydantic import BaseModel
 from scipy import interpolate
 
 from .core import Dimension, Path
@@ -83,23 +82,22 @@ def plot_spec(spec: Spec):
     ndims = len(keys)
 
     # Setup axes
-    plt.figure(figsize=(6, 6))
     if ndims > 2:
+        plt.figure(figsize=(6, 6))
         axes = plt.axes(projection="3d")
         axes.grid(False)
-        z, y, x = keys[:3]
-        plt.ylabel(y)
-        axes.set_zlabel(z)
+        axes.set_zlabel(keys[-3])
+        axes.set_ylabel(keys[-2])
         axes.view_init(elev=15)
-    else:
+    elif ndims == 2:
+        plt.figure(figsize=(6, 6))
         axes = plt.axes()
-        if ndims == 1:
-            x = keys[0]
-            plt.tick_params(left="off", labelleft="off")
-        else:
-            y, x = keys[:2]
-            plt.ylabel(y)
-    plt.xlabel(x)
+        axes.set_ylabel(keys[-2])
+    else:
+        plt.figure(figsize=(6, 2))
+        axes = plt.axes()
+        axes.yaxis.set_visible(False)
+    axes.set_xlabel(keys[-1])
 
     # Title with dimension sizes
     plt.title(", ".join(f"Dim[{' '.join(d.keys())} len={len(d)}]" for d in dims))
@@ -121,7 +119,7 @@ def plot_spec(spec: Spec):
     # Plot the splines
     tail: Any = {k: None for k in keys}
     ranges = [max(np.max(v) - np.min(v), 0.0001) for k, v in dim.positions.items()]
-    seg_col = cycle(TABLEAU_COLORS)
+    seg_col = cycle(colors.TABLEAU_COLORS)
     last_index = 0
     for index in find_breaks(dim) + [len(dim)]:
         num_points = index - last_index

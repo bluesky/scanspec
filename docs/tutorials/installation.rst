@@ -37,6 +37,10 @@ from github::
 
     python3 -m pip install git+git://github.com/dls-controls/scanspec.git
 
+If you need to do any plotting (recommended), you should also install matplotlib::
+
+    python3 -m install matplotlib
+
 The library should now be installed and the commandline interface on your path.
 You can check the version that has been installed by typing::
 
