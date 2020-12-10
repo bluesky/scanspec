@@ -30,6 +30,7 @@ jobs:
           pip install pipenv
           pipenv install --dev
           pipenv graph
+          sudo apt-get install graphviz
 
       - name: Create Sdist and Wheel
         # for reproducible builds set SOURCE_DATE_EPOCH to the date of the last commit
@@ -73,7 +74,6 @@ jobs:
         if: matrix.python-version == '3.7'
         # Use the args we normally pass to sphinx-build, but run sphinx-multiversion
         run: |
-          sudo apt-get install graphviz
           mv $(pipenv --venv)/bin/sphinx-multiversion $(pipenv --venv)/bin/sphinx-build
           pipenv run docs
 
