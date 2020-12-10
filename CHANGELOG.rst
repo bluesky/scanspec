@@ -11,10 +11,21 @@ Unreleased_
 
 - Nothing yet
 
+
+0.1.1_ - 2020-12-10
+-------------------
+
+Fixed:
+
+- README so it works on PyPI
+
+
 0.1_ - 2020-12-10
 -----------------
 
 - Initial release
 
-.. _Unreleased: https://github.com/dls-controls/scanspec/compare/0.1...HEAD
+
+.. _Unreleased: https://github.com/dls-controls/scanspec/compare/0.1.1...HEAD
+.. _0.1.1: https://github.com/dls-controls/scanspec/compare/0.1...0.1.1
 .. _0.1: https://github.com/dls-controls/scanspec/releases/tag/0.1
