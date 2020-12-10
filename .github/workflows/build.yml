@@ -43,43 +43,43 @@ jobs:
       - name: Run Tests
         run : pipenv run tests | tee tests.out
 
-      - name: Deploy initial gh-pages
+      - name: Deploy gh-pages index.html redirect
+        # Only create branch once
+        if: matrix.python-version == '3.7'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./.github/pages
+          publish_dir: .github/pages
+          keep_files: true
 
       - name: Checkout gh-pages
+        # Only checkout gh-pages once
+        if: matrix.python-version == '3.7'
         uses: actions/checkout@v2
         with:
           ref: gh-pages
           path: build/gh-pages
 
-      - name: Make Coverage Badge
-        run : .github/workflows/coverage.sh tests.out build/gh-pages/coverage.svg
-
-      - name: Build Docs
+      - name: Build Docs and Coverage Badge
         # Only build the docs once
         if: matrix.python-version == '3.7'
         run: |
+          .github/workflows/coverage.sh tests.out build/gh-pages/coverage.svg
           pipenv run sphinx-multiversion docs build/gh-pages --log-level info
 
       - name: Push gh-pages
         # Only push docs once from master
         if: matrix.python-version == '3.7' && github.base_ref == 'master'
-        uses: EndBug/add-and-commit@v5
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          message: "updating built documentation"
-          branch: gh-pages
-          add: ". --force"
-          cwd: "./build/gh-pages/"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/gh-pages
+          keep_files: true
 
       - name: Publish to PyPI
         # Only publish to PyPI once when a tag is pushed
         if: matrix.python-version == '3.7' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@v1.4.1
         with:
           user: __token__
           password: ${{ secrets.pypi_token }}
