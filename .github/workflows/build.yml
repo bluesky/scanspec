@@ -41,46 +41,47 @@ jobs:
           python setup.py sdist bdist_wheel
 
       - name: Run Tests
-        run : pipenv run tests | tee tests.out
+        run : |
+          pipenv run tests | tee tests.out
+          .github/workflows/coverage.sh tests.out .github/pages/coverage.svg
 
-      - name: Deploy gh-pages index.html redirect
-        # Only create branch once
-        if: matrix.python-version == '3.7'
+      - name: Deploy gh-pages index.html and badge
+        # Only once from master
+        if: matrix.python-version == '3.7' && github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .github/pages
           keep_files: true
 
-      - name: Checkout gh-pages
-        # Only checkout gh-pages once
-        if: matrix.python-version == '3.7'
-        uses: actions/checkout@v2
-        with:
-          ref: gh-pages
-          path: build/gh-pages
-
-      - name: Build Docs and Coverage badge
-        # Only build the docs once
-        if: matrix.python-version == '3.7'
-        run: |
-          sudo apt-get install graphviz
-          .github/workflows/coverage.sh tests.out build/gh-pages/coverage.svg
-          pipenv run sphinx-multiversion docs build/gh-pages --log-level info
-
-      - name: Publish Docs to gh-pages
-        # Only push docs once from master
-        if: matrix.python-version == '3.7' && github.ref == 'refs/heads/master'
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: build/gh-pages
-          keep_files: true
-
       - name: Publish Sdist and Wheel to PyPI
-        # Only publish to PyPI once when a tag is pushed
+        # Only once when on a tag
         if: matrix.python-version == '3.7' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@v1.4.1
         with:
           user: __token__
           password: ${{ secrets.pypi_token }}
+
+      - name: Checkout gh-pages
+        if: matrix.python-version == '3.7'
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+          path: build/html
+
+      - name: Build Docs
+        if: matrix.python-version == '3.7'
+        # Use the args we normally pass to sphinx-build, but run sphinx-multiversion
+        run: |
+          sudo apt-get install graphviz
+          mv $(pipenv --venv)/bin/sphinx-multiversion $(pipenv --venv)/bin/sphinx-build
+          pipenv run docs
+
+      - name: Publish Docs to gh-pages
+        # Only once from master
+        if: matrix.python-version == '3.7' && github.ref == 'refs/heads/master'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/html
+          keep_files: true
