@@ -1,7 +1,7 @@
 scanspec
 ========
 
-|build_status| |coverage| |pypi_version| |readthedocs| |license|
+|build_status| |coverage| |pypi_version| |license|
 
 Specify step and flyscan Paths using combinations of:
 
@@ -19,7 +19,7 @@ can be produced and expanded Paths created to consume chunk by chunk.
 ============== ==============================================================
 PyPI           ``pip install scanspec``
 Source code    https://github.com/dls-controls/scanspec
-Documentation  http://scanspec.readthedocs.io
+Documentation  https://dls-controls.github.io/scanspec/index.html
 ============== ==============================================================
 
 An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at each point looks like:
@@ -60,21 +60,17 @@ or create a Path from the Dimensions and consume chunks of a given length from i
     chunk.upper  # bounds are same dimensionality as positions
 
 
-.. |build_status| image:: https://travis-ci.com/dls-controls/scanspec.svg?branch=master
-    :target: https://travis-ci.com/dls-controls/scanspec
+.. |build_status| image:: https://github.com/dls-controls/scanspec/workflows/Python%20CI/badge.svg?branch=master
+    :target: https://github.com/dls-controls/scanspec/actions?query=workflow%3A%22Python+CI%22
     :alt: Build Status
 
-.. |coverage| image:: https://coveralls.io/repos/github/dls-controls/scanspec/badge.svg?branch=master
-    :target: https://coveralls.io/github/dls-controls/scanspec?branch=master
+.. |coverage| image:: https://dls-controls.github.io/scanspec/coverage.svg
+    :target: https://github.com/dls-controls/scanspec/actions?query=workflow%3A%22Python+CI%22
     :alt: Test Coverage
 
 .. |pypi_version| image:: https://img.shields.io/pypi/v/scanspec.svg
     :target: https://pypi.org/project/scanspec
     :alt: Latest PyPI version
-
-.. |readthedocs| image:: https://readthedocs.org/projects/scanspec/badge/?version=latest
-    :target: http://scanspec.readthedocs.io
-    :alt: Documentation
 
 .. |license| image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
     :target: https://opensource.org/licenses/Apache-2.0

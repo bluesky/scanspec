@@ -1,2 +1,0 @@
-# Any extra requirements needed to import the module for autodocs. E.g.:
-#   numpy >= 1.16
