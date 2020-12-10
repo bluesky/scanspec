@@ -44,6 +44,8 @@ extensions = [
     "sphinx.ext.viewcode",
     # Adds the inheritance-diagram generation directive
     "sphinx.ext.inheritance_diagram",
+    # Add multiple versions of documentation on CI
+    "sphinx_multiversion",
     # Adds plotting directives
     "matplotlib.sphinxext.plot_directive",
     # Add Pydantic information to autodoc entries

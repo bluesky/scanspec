@@ -19,7 +19,7 @@ can be produced and expanded Paths created to consume chunk by chunk.
 ============== ==============================================================
 PyPI           ``pip install scanspec``
 Source code    https://github.com/dls-controls/scanspec
-Documentation  https://dls-controls.github.io/scanspec/index.html
+Documentation  https://dls-controls.github.io/scanspec
 ============== ==============================================================
 
 An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at each point looks like:
