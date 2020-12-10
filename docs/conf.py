@@ -54,13 +54,11 @@ extensions = [
 # be found.
 nitpicky = True
 
-# Don’t use a saved environment (the structure caching all cross-references),
-# but rebuild it completely.
-fresh_env = True
-
-# Turn warnings into errors. This means that the build stops at the first
-# warning and sphinx-build exits with exit status 1.
-warning_is_error = True
+# A list of (type, target) tuples (by default empty) that should be ignored when
+# generating warnings in "nitpicky mode". Note that type should include the
+# domain name if present. Example entries would be ('py:func', 'int') or
+# ('envvar', 'LD_LIBRARY_PATH').
+nitpick_ignore = [("py:func", "int")]
 
 # Both the class’ and the __init__ method’s docstring are concatenated and
 # inserted into the main body of the autoclass directive
@@ -101,10 +99,10 @@ pygments_style = "sphinx"
 
 # This means you can link things like `str` and `asyncio` to the relevant
 # docs in the python documentation.
-intersphinx_mapping = dict(python=("https://docs.python.org/3/", None))
-
-# A dictionary of graphviz graph attributes for inheritance diagrams.
-inheritance_graph_attrs = dict(rankdir="TB")
+intersphinx_mapping = dict(
+    python=("https://docs.python.org/3/", None),
+    numpy=("https://numpy.org/doc/stable/", None),
+)
 
 # Common links that should be available on every page
 rst_epilog = """

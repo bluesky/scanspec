@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 from pydantic import Field, parse_obj_as, parse_raw_as, validate_arguments
@@ -7,90 +7,67 @@ from .core import (
     Dimension,
     Path,
     SpecPositions,
-    WithType,
+    _WithType,
     if_instance_do,
     squash_dimensions,
 )
 from .regions import Region, get_mask
 
 
-class Spec(WithType):
+class Spec(_WithType):
+    """Abstract baseclass for the specification of a scan. Supports operators:
+
+    - ``*``: Outer `Product` of two Specs, nesting the second within the first
+    - ``+``: `Zip` two Specs together, iterating in tandem
+    - ``&``: `Mask` the Spec with a `Region`, excluding positions outside it
+    - ``~``: `Snake` the Spec, reversing every other iteration of it
+    """
+
     def keys(self) -> List:
+        """Implemented by subclasses to produce the list of keys that are
+        present in the positions, from slowest moving to fastest moving"""
         raise NotImplementedError(self)
 
     def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        """Implemented by subclasses to produce the `Dimension` list that
+        contribute to positions, from slowest moving to fastest moving"""
         raise NotImplementedError(self)
 
     def path(self) -> Path:
+        """Return a `Path` through the scan that can be consumed in chunks
+        to give positions and bounds"""
         path = Path(self.create_dimensions())
         return path
 
     def positions(self) -> SpecPositions:
+        """Return a `SpecPositions` that can be iterated position by position"""
         sp = SpecPositions(self.create_dimensions(bounds=False))
         return sp
 
-    def __add__(self, other) -> "Zip":
-        """Zip together"""
-        return if_instance_do(other, Spec, lambda o: Zip(self, o))
-
     def __mul__(self, other) -> "Product":
-        """Outer product of two Specs"""
         return if_instance_do(other, Spec, lambda o: Product(self, o))
 
-    def __invert__(self) -> "Snake":
-        """Snake this spec"""
-        return Snake(self)
+    def __add__(self, other) -> "Zip":
+        return if_instance_do(other, Spec, lambda o: Zip(self, o))
 
     def __and__(self, other) -> "Mask":
-        """Mask with a region"""
         return if_instance_do(other, Region, lambda o: Mask(self, o))
 
-
-class Zip(Spec):
-    left: Spec
-    right: Spec
-
-    def keys(self) -> List:
-        return self.left.keys() + self.right.keys()
-
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        dims_left = self.left.create_dimensions(bounds, nested)
-        dims_right = self.right.create_dimensions(bounds, nested)
-
-        def _pad_dims(
-            dims: List[Dimension], others: List[Dimension]
-        ) -> List[Optional[Dimension]]:
-            # Special case, if only one dim with size 1, expand to the right size
-            if len(dims) == 1 and len(dims[0]) == 1:
-                repeated = dims[0].repeat(len(others[-1]))
-                repeated.snake = others[-1].snake
-                dims = [repeated]
-            # Left pad the dims with Nones so they are the same size
-            npad = max(len(dims), len(others)) - len(dims)
-            nones: List[Optional[Dimension]] = [None] * npad
-            return nones + cast(List[Optional[Dimension]], dims)
-
-        # Pad and expand them
-        padded_left = _pad_dims(dims_left, dims_right)
-        padded_right = _pad_dims(dims_right, dims_left)
-
-        # Work through, zipping them together one by one
-        dimensions = []
-        for dim_left, dim_right in zip(padded_left, padded_right):
-            if dim_left is None:
-                dim = dim_right
-            elif dim_right is None:
-                dim = dim_left
-            else:
-                dim = dim_left + dim_right
-            assert isinstance(
-                dim, Dimension
-            ), f"Padding went wrong {padded_left} {padded_right}"
-            dimensions.append(dim)
-        return dimensions
+    def __invert__(self) -> "Snake":
+        return Snake(self)
 
 
 class Product(Spec):
+    """Outer product of two Specs, nesting inner within outer. This means that
+    inner will run in its entirety at each point in outer.
+
+    .. example_spec::
+
+        from scanspec.specs import Line
+
+        spec = Line("y", 1, 2, 3) * Line("x", 3, 4, 12)
+    """
+
     outer: Spec = Field(..., description="Will be executed once")
     inner: Spec = Field(..., description="Will be executed len(outer) times")
 
@@ -103,23 +80,97 @@ class Product(Spec):
         return dims_outer + dims_inner
 
 
-class Snake(Spec):
-    spec: Spec
+class Zip(Spec):
+    """Run two Specs in parallel, merging their positions together. Typically
+    formed using the ``+`` operator.
+
+    Dimensions are merged by:
+
+    - If right creates a single Dimension of size 1, expand it to the size of
+      the fastest Dimension created by left
+    - Merge individual dimensions together from fastest to slowest
+
+    This means that Zipping a Spec producing Dimensions [l2, l1] with a
+    Spec producing Dimension [r1] will assert len(l1)==len(r1), and produce
+    Dimensions [l2, l1+r1].
+
+    .. example_spec::
+
+        from scanspec.specs import Line
+
+        spec = Line("z", 1, 2, 3) * Line("y", 3, 4, 5) + Line("x", 4, 5, 5)
+    """
+
+    left: Spec = Field(
+        ..., description="The left-hand Spec to Zip, will appear earlier in keys"
+    )
+    right: Spec = Field(
+        ..., description="The right-hand Spec to Zip, will appear later in keys"
+    )
 
     def keys(self) -> List:
-        return self.spec.keys()
+        return self.left.keys() + self.right.keys()
 
     def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        dims = self.spec.create_dimensions(bounds, nested)
-        for dim in dims:
-            dim.snake = True
-        return dims
+        dims_left = self.left.create_dimensions(bounds, nested)
+        dims_right = self.right.create_dimensions(bounds, nested)
+        assert len(dims_left) >= len(
+            dims_right
+        ), f"Zip requires len({self.left}) >= len({self.right})"
+
+        # Pad and expand the right to be the same size as left
+        # Special case, if only one dim with size 1, expand to the right size
+        if len(dims_right) == 1 and len(dims_right[0]) == 1:
+            repeated = dims_right[0].repeat(len(dims_left[-1]))
+            repeated.snake = dims_left[-1].snake
+            dims_right = [repeated]
+
+        # Left pad dims_right with Nones so they are the same size
+        npad = len(dims_left) - len(dims_right)
+        padded_right: List[Optional[Dimension]] = [None] * npad
+        padded_right += dims_right
+
+        # Work through, zipping them together one by one
+        dimensions = []
+        for dim_left, dim_right in zip(dims_left, padded_right):
+            if dim_right is None:
+                dim = dim_left
+            else:
+                dim = dim_left.zip(dim_right)
+            assert isinstance(
+                dim, Dimension
+            ), f"Padding went wrong {dims_left} {padded_right}"
+            dimensions.append(dim)
+        return dimensions
 
 
 class Mask(Spec):
-    spec: Spec
-    region: Region
-    check_path_changes: bool = True
+    """Restrict the given Spec to only the positions that fall inside the given
+    Region.
+
+    Typically created with the ``&`` operator. It also pushes down the
+    ``& | ^ -`` operators to its `Region` to avoid the need for brackets on
+    combinations of Regions.
+
+    If a Region spans multiple Dimensions, these Dimensions will be squashed
+    together.
+
+    See Also:
+        `why-squash-can-change-path`
+
+    .. example_spec::
+
+        from scanspec.specs import Line
+        from scanspec.regions import Circle
+
+        spec = Line("y", 1, 3, 3) * Line("x", 3, 5, 5) & Circle("x", "y", 4, 2, 1.2)
+    """
+
+    spec: Spec = Field(..., description="The Spec containing the source positions")
+    region: Region = Field(..., description="The Region that positions will be inside")
+    check_path_changes: bool = Field(
+        True, description="If True path through scan will not be modified by squash"
+    )
 
     def keys(self) -> List:
         return self.spec.keys()
@@ -159,9 +210,48 @@ class Mask(Spec):
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
 
 
+class Snake(Spec):
+    """Run the Spec in reverse on every other iteration when nested inside
+    another Spec. Typically created with the ``~`` operator.
+
+    .. example_spec::
+
+        from scanspec.specs import Line
+
+        spec = Line("y", 1, 3, 3) * ~Line("x", 3, 5, 5)
+    """
+
+    spec: Spec = Field(
+        ..., description="The Spec to run in reverse every other iteration"
+    )
+
+    def keys(self) -> List:
+        return self.spec.keys()
+
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        dims = self.spec.create_dimensions(bounds, nested)
+        for dim in dims:
+            dim.snake = True
+        return dims
+
+
 class Concat(Spec):
-    left: Spec
-    right: Spec
+    """Concatenate two Specs together, running one after the other. Each Dimension
+    of left and right must contain the same keys.
+
+    .. example_spec::
+
+        from scanspec.specs import Line, Concat
+
+        spec = Concat(Line("x", 1, 3, 3), Line("x", 4, 5, 5))
+    """
+
+    left: Spec = Field(
+        ..., description="The left-hand Spec to Zip, positions will appear earlier"
+    )
+    right: Spec = Field(
+        ..., description="The right-hand Spec to Zip, positions will appear later"
+    )
 
     def keys(self) -> List:
         left_keys, right_keys = self.left.keys(), self.right.keys()
@@ -174,15 +264,16 @@ class Concat(Spec):
         assert len(dims_right) == len(
             dims_left
         ), f"Specs {self.left} and {self.right} don't have same number of dimensions"
-        dimensions = []
-        for dim_left, dim_right in zip(dims_left, dims_right):
-            dimensions.append(dim_left.concat(dim_right))
+        dimensions = [dl.concat(dr) for dl, dr in zip(dims_left, dims_right)]
         return dimensions
 
 
 class Squash(Spec):
     """Squash the Dimensions together of the scan (but not positions) into one
     long line.
+
+    See Also:
+        `why-squash-can-change-path`
 
     .. example_spec::
 
@@ -384,7 +475,7 @@ class Spiral(Spec):
 
             from scanspec.specs import Spiral
 
-            spec = Spiral.spaced("x", "y", 0, 0, 10, 3, 0)
+            spec = Spiral.spaced("x", "y", 0, 0, 10, 3)
         """
         # phi = sqrt(4 * pi * num)
         # and: n_rings = phi / (2 * pi)
@@ -392,7 +483,7 @@ class Spiral(Spec):
         # so: num = n_rings^2 * pi
         n_rings = radius / dr
         num = n_rings ** 2 * np.pi
-        return cls(x_key, y_key, x_start, y_start, radius, radius, num, rotate)
+        return cls(x_key, y_key, x_start, y_start, radius * 2, radius * 2, num, rotate)
 
 
 #: Can be used as a special key to indicate how long each point should be
@@ -400,12 +491,26 @@ TIME = "TIME"
 
 
 def fly(spec: Spec, duration: float):
-    """Flyscan, zipping TIME=duration for every point"""
+    """Flyscan, zipping TIME=duration for every position
+
+    .. example_spec::
+
+        from scanspec.specs import Line, fly
+
+        spec = fly(Line("x", 1, 2, 3), 0.1)
+    """
     return spec + Static(TIME, duration)
 
 
 def step(spec: Spec, duration: float):
-    """Step scan, adding TIME=duration as an inner dimension for every point"""
+    """Step scan, adding TIME=duration as an inner dimension for every position
+
+    .. example_spec::
+
+        from scanspec.specs import Line, step
+
+        spec = step(Line("x", 1, 2, 3), 0.1)
+    """
     return spec * Static(TIME, duration)
 
 

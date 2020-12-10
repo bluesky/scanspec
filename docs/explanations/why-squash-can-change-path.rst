@@ -1,3 +1,5 @@
+.. _why-squash-can-change-path:
+
 Why Squash (and Mask) can change the Path
 =========================================
 

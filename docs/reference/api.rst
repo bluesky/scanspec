@@ -11,7 +11,6 @@ from code:
 - `scanspec.regions`: `Region` and its subclasses
 - `scanspec.plot`: `plot_spec` to visualize a scan
 
-
 .. automodule:: scanspec.core
     :members:
 
@@ -24,11 +23,19 @@ from code:
     ``scanspec.specs``
     ------------------
 
+    .. inheritance-diagram:: scanspec.specs
+        :top-classes: scanspec.specs.Spec
+        :parts: 1
+
 .. automodule:: scanspec.regions
     :members:
 
     ``scanspec.regions``
     --------------------
+
+    .. inheritance-diagram:: scanspec.regions
+        :top-classes: scanspec.regions.Region
+        :parts: 1
 
 .. automodule:: scanspec.plot
     :members:

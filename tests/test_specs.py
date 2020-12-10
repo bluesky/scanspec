@@ -96,7 +96,7 @@ def test_spiral() -> None:
 def test_spaced_spiral() -> None:
     x, y = object(), object()
     inst = Spiral.spaced(x, y, 0, 10, 5, 1)
-    assert inst == Spiral(x, y, 0, 10, 5, 5, 78)
+    assert inst == Spiral(x, y, 0, 10, 10, 10, 78)
 
 
 def test_zipped_lines() -> None:
@@ -133,8 +133,8 @@ def test_product_lines() -> None:
 
 def test_zipped_product_lines() -> None:
     x, y, z = object(), object(), object()
-    inst = Line(x, 0, 1, 5) + Line(y, 1, 2, 3) * Line(z, 2, 3, 5)
-    assert inst.keys() == [x, y, z]
+    inst = Line(y, 1, 2, 3) * Line(x, 0, 1, 5) + Line(z, 2, 3, 5)
+    assert inst.keys() == [y, x, z]
     dimy, dimxz = inst.create_dimensions()
     assert dimxz.positions == {
         x: pytest.approx([0, 0.25, 0.5, 0.75, 1]),
