@@ -80,4 +80,4 @@ or create a Path from the Dimensions and consume chunks of a given length from i
     These definitions are used when viewing README.rst and will be replaced
     when included in index.rst
 
-.. |plot| image:: docs/images/plot_spec.png
+.. |plot| image:: https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/plot_spec.png

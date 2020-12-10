@@ -137,8 +137,8 @@ html_show_copyright = True
 html_css_files = ["theme_overrides.css"]
 
 # Logo
-html_logo = "scanspec-logo.svg"
-html_favicon = "scanspec-logo.ico"
+html_logo = "images/scanspec-logo.svg"
+html_favicon = "images/scanspec-logo.ico"
 
 # sphinx-multiversion config
 smv_rebuild_tags = False
