@@ -64,6 +64,7 @@ jobs:
         # Only build the docs once
         if: matrix.python-version == '3.7'
         run: |
+          sudo apt-get install graphviz
           .github/workflows/coverage.sh tests.out build/gh-pages/coverage.svg
           pipenv run sphinx-multiversion docs build/gh-pages --log-level info
 
