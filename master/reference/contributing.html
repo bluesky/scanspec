@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Contributing &mdash; scanspec 0+untagged.g346720b documentation</title>
+  <title>Contributing &mdash; scanspec 0+untagged.g0b31b29 documentation</title>
   
 
   
@@ -123,6 +123,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#running-the-tests">Running the tests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#code-styling">Code Styling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#release-checklist">Release Checklist</a></li>
 </ul>
 </li>
 </ul>
@@ -256,6 +257,17 @@ docstrings of the API.</p>
 $ firefox build/html/index.html
 </pre></div>
 </div>
+</div>
+<div class="section" id="release-checklist">
+<h2>Release Checklist<a class="headerlink" href="#release-checklist" title="Permalink to this headline">¶</a></h2>
+<p>Before a new release, please go through the following checklist:</p>
+<ul class="simple">
+<li><p>Choose a new PEP440 compliant release number</p></li>
+<li><p>Add a release note in CHANGELOG.rst</p></li>
+<li><p>Git tag the version with message from CHANGELOG</p></li>
+<li><p>Push to github and the actions will make a release on pypi</p></li>
+<li><p>Push to internal gitlab and do a dls-release.py of the tag</p></li>
+</ul>
 </div>
 </div>
 
