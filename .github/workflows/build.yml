@@ -43,6 +43,12 @@ jobs:
       - name: Run Tests
         run : pipenv run tests | tee tests.out
 
+      - name: Deploy initial gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./.github/pages
+
       - name: Checkout gh-pages
         uses: actions/checkout@v2
         with:

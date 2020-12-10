@@ -137,3 +137,11 @@ html_css_files = ["theme_overrides.css"]
 # Logo
 html_logo = "scanspec-logo.svg"
 html_favicon = "scanspec-logo.ico"
+
+# sphinx-multiversion config
+smv_rebuild_tags = False
+smv_tag_whitelist = r"^\d+\.\d+.*$"  # only document tags with form 0.9*
+smv_branch_whitelist = r"^master$"  # only branch to document is master
+smv_outputdir_format = "{ref.name}"
+smv_prefer_remote_refs = True
+smv_remote_whitelist = "origin|github"

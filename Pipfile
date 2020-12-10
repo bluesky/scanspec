@@ -4,6 +4,8 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+# Pinning black stops us having to allow pre-releases globally
+black = "==19.10b0"
 pytest-cov = "*"
 pytest-black = "*"
 pytest-flake8 = "*"
@@ -11,14 +13,15 @@ flake8-isort = "*"
 isort = ">5.0"
 pytest-mypy = "*"
 sphinx-rtd-theme = "*"
-# Pinning black stops us having to allow pre-releases globally
-black = "==19.10b0"
 # Without these lines lockfile isn't usable on multiple Python versions and platforms
 mypy = "*"
 atomicwrites = "*"
 matplotlib = "*"
 scipy = "*"
+# This pin no longer required after https://github.com/tholo/pytest-flake8/pull/71 merges
 pytest = "<6.1.0"
+# switch to main repo after PR https://github.com/Holzhaus/sphinx-multiversion/pull/60 is merged
+sphinx-multiversion = {editable = true,git = "https://github.com/dls-controls/sphinx-multiversion.git",ref = "only-arg"}
 
 [packages]
 # All other package requirements from setup.cfg
