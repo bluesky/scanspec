@@ -11,7 +11,7 @@ Unreleased_
 
 - Nothing yet
 
-0.1_ - 2020-07-09
+0.1_ - 2020-12-10
 -----------------
 
 - Initial release
