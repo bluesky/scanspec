@@ -60,7 +60,7 @@ jobs:
           ref: gh-pages
           path: build/gh-pages
 
-      - name: Build Docs and Coverage Badge
+      - name: Build Docs and Coverage badge
         # Only build the docs once
         if: matrix.python-version == '3.7'
         run: |
@@ -68,16 +68,16 @@ jobs:
           .github/workflows/coverage.sh tests.out build/gh-pages/coverage.svg
           pipenv run sphinx-multiversion docs build/gh-pages --log-level info
 
-      - name: Push gh-pages
+      - name: Publish Docs to gh-pages
         # Only push docs once from master
-        if: matrix.python-version == '3.7' && github.base_ref == 'master'
+        if: matrix.python-version == '3.7' && github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/gh-pages
           keep_files: true
 
-      - name: Publish to PyPI
+      - name: Publish Sdist and Wheel to PyPI
         # Only publish to PyPI once when a tag is pushed
         if: matrix.python-version == '3.7' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@v1.4.1
