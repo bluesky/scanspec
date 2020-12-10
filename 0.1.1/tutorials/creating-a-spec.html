@@ -1,0 +1,413 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Creating a Scan Spec &mdash; scanspec 0.1.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/scanspec-logo.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How to Iterate a Spec" href="../how-to/iterate-a-spec.html" />
+    <link rel="prev" title="Installation Tutorial" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgb(7, 43, 93)" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> scanspec
+          
+
+          
+            
+            <img src="../_static/scanspec-logo.svg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    <style>
+      /* style mobile top nav to look like main nav */
+      .wy-nav-top {
+          background: rgb(7, 43, 93)
+      }
+    </style>
+    
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Creating a Scan Spec</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#line">Line</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plotting-from-the-commandline">Plotting from the commandline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#line-with-2-axes">Line with 2 axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#grid">Grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#snaked-grid">Snaked Grid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#masking-with-regions">Masking with Regions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#masking-with-multiple-regions">Masking with Multiple Regions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conclusion">Conclusion</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">How-to Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Explanations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../explanations/what-are-dimensions.html">What are Dimensions?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../reference/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+</ul>
+
+            
+          
+    <!-- Include Index in the sidebar -->
+    <!-- https://stackoverflow.com/a/37843854 -->
+    <a href="../genindex.html">Index</a>
+    <!-- Include all versions of the docs -->
+    <!-- https://holzhaus.github.io/sphinx-multiversion/master/templates.html -->
+    
+    <p class="caption"><span class="caption-text">Versions</span></p>
+    <ul>
+      <li><a href="../../master/tutorials/creating-a-spec.html">master</a></li>
+      <li><a href="creating-a-spec.html">0.1.1</a></li>
+      <li><a href="../../0.1/tutorials/creating-a-spec.html">0.1</a></li>
+    </ul>
+    
+  
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">scanspec</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Creating a Scan Spec</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorials/creating-a-spec.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="creating-a-scan-spec">
+<span id="creating-a-spec"></span><h1>Creating a Scan Spec<a class="headerlink" href="#creating-a-scan-spec" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial shows how to create Scan Specs of increasing complexity, plotting
+the results.</p>
+<div class="section" id="line">
+<h2>Line<a class="headerlink" href="#line" title="Permalink to this headline">¶</a></h2>
+<p>We’ll start with a simple one, a <a class="reference internal" href="../reference/api.html#scanspec.specs.Line" title="scanspec.specs.Line"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Line</span></code></a>. If you enter the following
+code into an interactive Python terminal, it should plot a graph of a 1D line:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-1.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-1.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-1.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-1.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/creating-a-spec-1.png" src="../_images/creating-a-spec-1.png" />
+</div>
+<p>This will create a Spec with 5 points, the first centred on 1, the last centred
+on 2. The black dots mark the centre positions on the Path. The coloured
+lines mark the motion from the lower to upper bound of each point on the Path.
+The grey arrowhead marks the start of the scan, and the cross marks the end.</p>
+<p>You can see the points if you create the Path yourself, then consume all its points:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">path</span><span class="p">()</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">lower</span>
+<span class="go">{&#39;x&#39;: array([0.875, 1.125, 1.375, 1.625, 1.875])}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">positions</span>
+<span class="go">{&#39;x&#39;: array([1.  , 1.25, 1.5 , 1.75, 2.  ])}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">upper</span>
+<span class="go">{&#39;x&#39;: array([1.125, 1.375, 1.625, 1.875, 2.125])}</span>
+</pre></div>
+</div>
+<p>The array of positions is between the lower and upper bounds, with the upper bound
+and lower bound of adjacent points being equal. This consumable <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> object is
+what a scanning program should use to execute the scan described by a <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a>.</p>
+</div>
+<div class="section" id="plotting-from-the-commandline">
+<h2>Plotting from the commandline<a class="headerlink" href="#plotting-from-the-commandline" title="Permalink to this headline">¶</a></h2>
+<p>To quickly plot Scan Specs you can use the commandline client. The input is
+evaluated with variables <code class="docutils literal notranslate"><span class="pre">a</span></code> to <code class="docutils literal notranslate"><span class="pre">z</span></code> defined and the output plotted.</p>
+<p>For example, for the Line example above you would type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ scanspec plot &#39;Line(x, 1, 2, 5)&#39;
+</pre></div>
+</div>
+</div>
+<div class="section" id="line-with-2-axes">
+<h2>Line with 2 axes<a class="headerlink" href="#line-with-2-axes" title="Permalink to this headline">¶</a></h2>
+<p>If we want to plot a Line in two axes, we can do this with <a class="reference internal" href="../reference/api.html#scanspec.specs.Zip" title="scanspec.specs.Zip"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Zip</span></code></a>, or the <code class="docutils literal notranslate"><span class="pre">+</span></code> operator:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-2.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-2.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-2.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-2.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/creating-a-spec-2.png" src="../_images/creating-a-spec-2.png" />
+</div>
+</div>
+<div class="section" id="grid">
+<h2>Grid<a class="headerlink" href="#grid" title="Permalink to this headline">¶</a></h2>
+<p>We can make a grid by creating the <a class="reference internal" href="../reference/api.html#scanspec.specs.Product" title="scanspec.specs.Product"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Product</span></code></a> of 2 Lines with the <code class="docutils literal notranslate"><span class="pre">*</span></code> operator:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-3.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-3.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-3.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-3.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/creating-a-spec-3.png" src="../_images/creating-a-spec-3.png" />
+</div>
+<p>The plot shows grey arrowed lines marking the turnarounds. These are added by
+the plotting function as an indication of what a scanning program might do between
+two disjoint points, it is not a guarantee of the path that will be taken.</p>
+<p>Examining the spec shows that it is a <a class="reference internal" href="../reference/api.html#scanspec.specs.Product" title="scanspec.specs.Product"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Product</span></code></a>, whose length is
+the product of the lengths of the two input Specs:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span>
+<span class="go">Product(type=&#39;Product&#39;, outer=Line(type=&#39;Line&#39;, key=&#39;y&#39;, start=3.0, stop=4.0, num=3), inner=Line(type=&#39;Line&#39;, key=&#39;x&#39;, start=1.0, stop=2.0, num=5))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">path</span><span class="p">())</span>
+<span class="go">15</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="snaked-grid">
+<h2>Snaked Grid<a class="headerlink" href="#snaked-grid" title="Permalink to this headline">¶</a></h2>
+<p>We can <a class="reference internal" href="../reference/api.html#scanspec.specs.Snake" title="scanspec.specs.Snake"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Snake</span></code></a> a Spec with the <code class="docutils literal notranslate"><span class="pre">~</span></code> operator. If we apply this to the inner Spec of
+our grid we get:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-4.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-4.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-4.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-4.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/creating-a-spec-4.png" src="../_images/creating-a-spec-4.png" />
+</div>
+</div>
+<div class="section" id="masking-with-regions">
+<h2>Masking with Regions<a class="headerlink" href="#masking-with-regions" title="Permalink to this headline">¶</a></h2>
+<p>We can apply a <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a> to only include positions within a given <a class="reference internal" href="../reference/api.html#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> using
+the <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> operator:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Circle</span>
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-5.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-5.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-5.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-5.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/creating-a-spec-5.png" src="../_images/creating-a-spec-5.png" />
+</div>
+</div>
+<div class="section" id="masking-with-multiple-regions">
+<h2>Masking with Multiple Regions<a class="headerlink" href="#masking-with-multiple-regions" title="Permalink to this headline">¶</a></h2>
+<p>We can apply set-like operators to Masked Specs:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">|</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.regions.UnionOf" title="scanspec.regions.UnionOf"><code class="xref any py py-class docutils literal notranslate"><span class="pre">UnionOf</span></code></a> two Regions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&amp;</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.regions.IntersectionOf" title="scanspec.regions.IntersectionOf"><code class="xref any py py-class docutils literal notranslate"><span class="pre">IntersectionOf</span></code></a> two Regions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.regions.DifferenceOf" title="scanspec.regions.DifferenceOf"><code class="xref any py py-class docutils literal notranslate"><span class="pre">DifferenceOf</span></code></a> two Regions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">^</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.regions.SymmetricDifferenceOf" title="scanspec.regions.SymmetricDifferenceOf"><code class="xref any py py-class docutils literal notranslate"><span class="pre">SymmetricDifferenceOf</span></code></a> two Regions</p></li>
+</ul>
+<p>For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Circle</span>
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span> <span class="o">-</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-6.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-6.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-6.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpxd33rbtp/9256452c14d57702f3dfb1fb4f893b595965d069/docs/tutorials/creating-a-spec-6.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/creating-a-spec-6.png" src="../_images/creating-a-spec-6.png" />
+</div>
+</div>
+<div class="section" id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this headline">¶</a></h2>
+<p>This tutorial has demonstrated some Specs and combinations of them. From here
+you may like to read <a class="reference internal" href="../how-to/iterate-a-spec.html#iterate-a-spec"><span class="std std-ref">How to Iterate a Spec</span></a> to see how a scanning system could use
+these Specs and <a class="reference internal" href="../how-to/serialize-a-spec.html#serialize-a-spec"><span class="std std-ref">How to Serialize and Deserialize a Spec</span></a> to see how you might send one to such a
+scanning system.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../how-to/iterate-a-spec.html" class="btn btn-neutral float-right" title="How to Iterate a Spec" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Diamond Light Source
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
