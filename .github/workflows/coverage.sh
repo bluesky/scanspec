@@ -5,7 +5,7 @@
 #     ${1} filename of coverage output
 #     ${2} filename of the badge
 
-total=$(grep 'Total coverage:' ${1} | grep -Po '[0-9.]+(?=%$)')
+total=$(grep 'TOTAL    ' ${1} | grep -Po '[0-9]+(?=%$)')
 echo "Generating badge for Total Coverage of $total"
 
 if (( $(echo "$total <= 60" | bc -l) )) ; then
