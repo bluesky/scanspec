@@ -30,6 +30,7 @@ jobs:
           pip install pipenv
           pipenv install --dev
           pipenv graph
+          blah
           sudo apt-get install graphviz
 
       - name: Create Sdist and Wheel
