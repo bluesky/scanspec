@@ -5,7 +5,7 @@
 #     ${1} filename of coverage output
 #     ${2} filename of the badge
 
-total=$(grep 'TOTAL    ' ${1} | grep -Po '[0-9]+(?=%$)')
+total=$(grep 'TOTAL' ${1} | grep -Po '[0-9]+(?=%$)')
 echo "Generating badge for Total Coverage of $total"
 
 if (( $(echo "$total < 70" | bc -l) )) ; then
@@ -16,4 +16,6 @@ else
     COLOR=orange
 fi
 
+mkdir -p $(dirname ${2})
+echo "generating coverage badge in $(dirname ${2})"
 curl "https://img.shields.io/badge/coverage-$total%25-$COLOR" > ${2}

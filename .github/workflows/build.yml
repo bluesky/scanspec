@@ -24,13 +24,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Dependencies
+      - name: Install Packages
+        run: sudo apt-get install graphviz
+
+      - name: Install Python Dependencies
         run: |
           env
           pip install pipenv
-          pipenv install --dev
-          pipenv graph
-          sudo apt-get install graphviz
+          pipenv install --dev --deploy && pipenv graph
 
       - name: Create Sdist and Wheel
         # for reproducible builds set SOURCE_DATE_EPOCH to the date of the last commit
@@ -42,9 +43,10 @@ jobs:
           python setup.py sdist bdist_wheel
 
       - name: Run Tests
-        run : |
-          pipenv run tests | tee tests.out
-          .github/workflows/coverage.sh tests.out build/coverage/coverage.svg
+        run : pipenv run tests | tee /tmp/ci_tests.out
+
+      - name: Make Coverage Badge
+        run : .github/workflows/coverage.sh /tmp/ci_tests.out build/coverage/coverage.svg
 
       - name: Deploy badge
         # Only once from master
@@ -56,16 +58,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/coverage
           keep_files: true
-
-      - name: Publish Sdist and Wheel to PyPI
-        # Only once when on a tag
-        if: matrix.python-version == '3.7' && startsWith(github.ref, 'refs/tags')
-        # We pin to the SHA, not the tag, for security reasons.
-        # https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/security-hardening-for-github-actions#using-third-party-actions
-        uses: pypa/gh-action-pypi-publish@54b39fb9371c0b3a6f9f14bb8a67394defc7a806  # v1.4.1
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_token }}
 
       - name: Checkout gh-pages
         # As we already did a deploy of gh-pages above, it is guaranteed to be there
@@ -81,8 +73,7 @@ jobs:
         # Use the args we normally pass to sphinx-build, but run sphinx-multiversion
         run: |
           mv $(pipenv --venv)/bin/sphinx-multiversion $(pipenv --venv)/bin/sphinx-build
-          pipenv run docs
-          cp .github/pages/index.html build/html
+          pipenv run docs && cp .github/pages/index.html build/html
 
       - name: Publish Docs to gh-pages
         # Only once from master or a tag
@@ -94,3 +85,13 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/html
           keep_files: true
+
+      - name: Publish Sdist and Wheel to PyPI
+        # Only once when on a tag
+        if: matrix.python-version == '3.7' && startsWith(github.ref, 'refs/tags')
+        # We pin to the SHA, not the tag, for security reasons.
+        # https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/security-hardening-for-github-actions#using-third-party-actions
+        uses: pypa/gh-action-pypi-publish@54b39fb9371c0b3a6f9f14bb8a67394defc7a806  # v1.4.1
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_token }}
