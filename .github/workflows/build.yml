@@ -44,9 +44,9 @@ jobs:
       - name: Run Tests
         run : |
           pipenv run tests | tee tests.out
-          .github/workflows/coverage.sh tests.out .github/pages/coverage.svg
+          .github/workflows/coverage.sh tests.out build/coverage/coverage.svg
 
-      - name: Deploy gh-pages index.html and badge
+      - name: Deploy badge
         # Only once from master
         if: matrix.python-version == '3.7' && github.ref == 'refs/heads/master'
         # We pin to the SHA, not the tag, for security reasons.
@@ -54,7 +54,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@bbdfb200618d235585ad98e965f4aafc39b4c501  # v3.7.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .github/pages
+          publish_dir: build/coverage
           keep_files: true
 
       - name: Publish Sdist and Wheel to PyPI
@@ -68,6 +68,8 @@ jobs:
           password: ${{ secrets.pypi_token }}
 
       - name: Checkout gh-pages
+        # As we already did a deploy of gh-pages above, it is guaranteed to be there
+        # so check it out so we can selectively build docs below
         if: matrix.python-version == '3.7'
         uses: actions/checkout@v2
         with:
@@ -80,10 +82,11 @@ jobs:
         run: |
           mv $(pipenv --venv)/bin/sphinx-multiversion $(pipenv --venv)/bin/sphinx-build
           pipenv run docs
+          cp .github/pages/index.html build/html
 
       - name: Publish Docs to gh-pages
-        # Only once from master
-        if: matrix.python-version == '3.7' && github.ref == 'refs/heads/master'
+        # Only once from master or a tag
+        if: matrix.python-version == '3.7' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags'))
         # We pin to the SHA, not the tag, for security reasons.
         # https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/security-hardening-for-github-actions#using-third-party-actions
         uses: peaceiris/actions-gh-pages@bbdfb200618d235585ad98e965f4aafc39b4c501  # v3.7.3

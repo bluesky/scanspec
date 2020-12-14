@@ -29,10 +29,6 @@ version = scanspec.__version__.split("+")[0]
 # The full version, including alpha/beta/rc tags.
 release = scanspec.__version__
 
-if os.environ.get("READTHEDOCS") == "True":
-    # Readthedocs modifies conf.py, so will appear dirty when it isn't
-    release = release.split("+0")[0].replace(".dirty", "")
-
 extensions = [
     # Use this for generating API docs
     "sphinx.ext.autodoc",

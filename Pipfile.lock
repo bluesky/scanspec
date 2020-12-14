@@ -612,7 +612,7 @@
         "sphinx-multiversion": {
             "editable": true,
             "git": "https://github.com/dls-controls/sphinx-multiversion.git",
-            "ref": "08e335ef36620d818db99a13556d6731ee063f6e"
+            "ref": "3e72beb7f8f0a76b53722fb2eb3daeed3d2a3d31"
         },
         "sphinx-rtd-theme": {
             "hashes": [
