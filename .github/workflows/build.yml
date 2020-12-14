@@ -45,6 +45,11 @@ jobs:
       - name: Run Tests
         run : pipenv run tests | tee /tmp/ci_tests.out
 
+      - name: Debug versions
+        run: |
+          pipenv run scanspec --version
+          git describe --tags --dirty --always --long
+
       - name: Make Coverage Badge
         run : .github/workflows/coverage.sh /tmp/ci_tests.out build/coverage/coverage.svg
 
