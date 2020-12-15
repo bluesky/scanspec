@@ -542,8 +542,24 @@ _modifier = _UnionModifier()
 
 
 def spec_from_dict(d: Dict) -> Spec:
+    """Create a `Spec` from a dictionary representation of it
+
+    >>> spec_from_dict(
+    ... {'type': 'Line', 'key': 'x', 'start': 1.0, 'stop': 2.0, 'num': 3})
+    Line(key='x', start=1.0, stop=2.0, num=3)
+
+    .. seealso:: `serialize-a-spec`
+    """
     return parse_obj_as(_modifier.spec_union, d)  # type: ignore
 
 
 def spec_from_json(text: str) -> Spec:
+    """Create a `Spec` from a JSON representation of it
+
+    >>> spec_from_json(
+    ... '{"type": "Line", "key": "x", "start": 1.0, "stop": 2.0, "num": 3}')
+    Line(key='x', start=1.0, stop=2.0, num=3)
+
+    .. seealso:: `serialize-a-spec`
+    """
     return parse_raw_as(_modifier.spec_union, text)  # type: ignore

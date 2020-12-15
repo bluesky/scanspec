@@ -34,6 +34,9 @@ class _WithType(BaseModel, metaclass=_WithTypeMetaClass):
                 kwargs[k] = v.default
         super().__init__(**kwargs)
 
+    def __repr_args__(self):
+        return [(a, v) for a, v in super().__repr_args__() if a != "type"]
+
 
 #: Positions map {key: positions_ndarray}
 #: E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}
