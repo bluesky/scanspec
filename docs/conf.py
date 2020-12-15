@@ -28,7 +28,7 @@ author = "Tom Cobb"
 release = scanspec.__version__
 
 # The short X.Y version.
-if "+" in "release":
+if "+" in release:
     # Not on a tag
     version = "master"
 else:
