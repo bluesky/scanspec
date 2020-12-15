@@ -11,6 +11,14 @@ from code:
 - `scanspec.regions`: `Region` and its subclasses
 - `scanspec.plot`: `plot_spec` to visualize a scan
 
+``scanspec``
+------------
+
+.. data:: scanspec.__version__
+    :type: str
+
+    Version number as calculated by https://github.com/dls-controls/versiongit
+
 .. automodule:: scanspec.core
     :members:
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>scanspec.specs &mdash; scanspec 0.0+untagged.g907bdc3 documentation</title>
+  <title>scanspec.specs &mdash; scanspec 0.0+untagged.g4291c53 documentation</title>
   
 
   
@@ -740,12 +740,28 @@
 <span class="n">_modifier</span> <span class="o">=</span> <span class="n">_UnionModifier</span><span class="p">()</span>
 
 
-<span class="k">def</span> <span class="nf">spec_from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spec</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">parse_obj_as</span><span class="p">(</span><span class="n">_modifier</span><span class="o">.</span><span class="n">spec_union</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+<div class="viewcode-block" id="spec_from_dict"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.spec_from_dict">[docs]</a><span class="k">def</span> <span class="nf">spec_from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spec</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create a `Spec` from a dictionary representation of it</span>
+
+<span class="sd">    &gt;&gt;&gt; spec_from_dict(</span>
+<span class="sd">    ... {&#39;type&#39;: &#39;Line&#39;, &#39;key&#39;: &#39;x&#39;, &#39;start&#39;: 1.0, &#39;stop&#39;: 2.0, &#39;num&#39;: 3})</span>
+<span class="sd">    Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3)</span>
+
+<span class="sd">    .. seealso:: `serialize-a-spec`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">parse_obj_as</span><span class="p">(</span><span class="n">_modifier</span><span class="o">.</span><span class="n">spec_union</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
 
 
-<span class="k">def</span> <span class="nf">spec_from_json</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spec</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">parse_raw_as</span><span class="p">(</span><span class="n">_modifier</span><span class="o">.</span><span class="n">spec_union</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+<div class="viewcode-block" id="spec_from_json"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.spec_from_json">[docs]</a><span class="k">def</span> <span class="nf">spec_from_json</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spec</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create a `Spec` from a JSON representation of it</span>
+
+<span class="sd">    &gt;&gt;&gt; spec_from_json(</span>
+<span class="sd">    ... &#39;{&quot;type&quot;: &quot;Line&quot;, &quot;key&quot;: &quot;x&quot;, &quot;start&quot;: 1.0, &quot;stop&quot;: 2.0, &quot;num&quot;: 3}&#39;)</span>
+<span class="sd">    Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3)</span>
+
+<span class="sd">    .. seealso:: `serialize-a-spec`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">parse_raw_as</span><span class="p">(</span><span class="n">_modifier</span><span class="o">.</span><span class="n">spec_union</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
 </pre></div>
 
            </div>

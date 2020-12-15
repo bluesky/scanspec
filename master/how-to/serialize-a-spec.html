@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How to Serialize and Deserialize a Spec &mdash; scanspec 0.0+untagged.g907bdc3 documentation</title>
+  <title>How to Serialize and Deserialize a Spec &mdash; scanspec 0.0+untagged.g4291c53 documentation</title>
   
 
   
@@ -109,7 +109,12 @@
 <p class="caption"><span class="caption-text">How-to Guides</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="iterate-a-spec.html">How to Iterate a Spec</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">How to Serialize and Deserialize a Spec</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How to Serialize and Deserialize a Spec</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-serialize">How to Serialize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-deserialize">How to Deserialize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-specify-json-from-the-class-definitions">How to Specify JSON from the class definitions</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">Explanations</span></p>
 <ul>
@@ -202,6 +207,45 @@
             
   <div class="section" id="how-to-serialize-and-deserialize-a-spec">
 <span id="serialize-a-spec"></span><h1>How to Serialize and Deserialize a Spec<a class="headerlink" href="#how-to-serialize-and-deserialize-a-spec" title="Permalink to this headline">¶</a></h1>
+<p>Lets start with an example <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This Spec has a <a class="reference external" href="https://docs.python.org/3/library/functions.html#repr" title="(in Python v3.9)"><code class="xref any docutils literal notranslate"><span class="pre">repr</span></code></a> that shows its parameters it was instantiated with:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span>
+<span class="go">Product(outer=Line(key=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3))</span>
+</pre></div>
+</div>
+<div class="section" id="how-to-serialize">
+<h2>How to Serialize<a class="headerlink" href="#how-to-serialize" title="Permalink to this headline">¶</a></h2>
+<p>We can recursively serialize it to a dictionary:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+<span class="go">{&#39;type&#39;: &#39;Product&#39;, &#39;outer&#39;: {&#39;type&#39;: &#39;Line&#39;, &#39;key&#39;: &#39;y&#39;, &#39;start&#39;: 4.0, &#39;stop&#39;: 5.0, &#39;num&#39;: 6}, &#39;inner&#39;: {&#39;type&#39;: &#39;Line&#39;, &#39;key&#39;: &#39;x&#39;, &#39;start&#39;: 1.0, &#39;stop&#39;: 2.0, &#39;num&#39;: 3}}</span>
+</pre></div>
+</div>
+<p>Or directly to JSON:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+<span class="go">&#39;{&quot;type&quot;: &quot;Product&quot;, &quot;outer&quot;: {&quot;type&quot;: &quot;Line&quot;, &quot;key&quot;: &quot;y&quot;, &quot;start&quot;: 4.0, &quot;stop&quot;: 5.0, &quot;num&quot;: 6}, &quot;inner&quot;: {&quot;type&quot;: &quot;Line&quot;, &quot;key&quot;: &quot;x&quot;, &quot;start&quot;: 1.0, &quot;stop&quot;: 2.0, &quot;num&quot;: 3}}&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-deserialize">
+<h2>How to Deserialize<a class="headerlink" href="#how-to-deserialize" title="Permalink to this headline">¶</a></h2>
+<p>We can turn this back into a spec using <a class="reference internal" href="../reference/api.html#scanspec.specs.spec_from_json" title="scanspec.specs.spec_from_json"><code class="xref any py py-func docutils literal notranslate"><span class="pre">spec_from_json</span></code></a> or <a class="reference internal" href="../reference/api.html#scanspec.specs.spec_from_dict" title="scanspec.specs.spec_from_dict"><code class="xref any py py-func docutils literal notranslate"><span class="pre">spec_from_dict</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec_from_json</span><span class="p">(</span><span class="s1">&#39;{&quot;type&quot;: &quot;Product&quot;, &quot;outer&quot;: {&quot;type&quot;: &quot;Line&quot;, &quot;key&quot;: &quot;y&quot;, &quot;start&quot;: 4.0, &quot;stop&quot;: 5.0, &quot;num&quot;: 6}, &quot;inner&quot;: {&quot;type&quot;: &quot;Line&quot;, &quot;key&quot;: &quot;x&quot;, &quot;start&quot;: 1.0, &quot;stop&quot;: 2.0, &quot;num&quot;: 3}}&#39;</span><span class="p">)</span>
+<span class="go">Product(outer=Line(key=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec_from_dict</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Product&#39;</span><span class="p">,</span> <span class="s1">&#39;outer&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Line&#39;</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mf">4.0</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">},</span> <span class="s1">&#39;inner&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Line&#39;</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}})</span>
+<span class="go">Product(outer=Line(key=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-specify-json-from-the-class-definitions">
+<h2>How to Specify JSON from the class definitions<a class="headerlink" href="#how-to-specify-json-from-the-class-definitions" title="Permalink to this headline">¶</a></h2>
+<p>Every Spec lists in its documentation a list of parameters and types. The JSON
+representation is the dictionary of these parameters with one additional entry,
+<code class="docutils literal notranslate"><span class="pre">type</span></code> which must be equal to the classname. This allows the deserialization
+code to pick the correct class to deserialize to.</p>
+</div>
 </div>
 
 

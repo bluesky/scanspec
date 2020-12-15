@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>API &mdash; scanspec 0.0+untagged.g907bdc3 documentation</title>
+  <title>API &mdash; scanspec 0.0+untagged.g4291c53 documentation</title>
   
 
   
@@ -119,10 +119,13 @@
 <p class="caption"><span class="caption-text">Reference</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#scanspec-core"><code class="docutils literal notranslate"><span class="pre">scanspec.core</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#scanspec-specs"><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#scanspec-regions"><code class="docutils literal notranslate"><span class="pre">scanspec.regions</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#scanspec-plot"><code class="docutils literal notranslate"><span class="pre">scanspec.plot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scanspec"><code class="docutils literal notranslate"><span class="pre">scanspec</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scanspec-core"><code class="docutils literal notranslate"><span class="pre">scanspec.core</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scanspec-specs"><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scanspec-regions"><code class="docutils literal notranslate"><span class="pre">scanspec.regions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scanspec-plot"><code class="docutils literal notranslate"><span class="pre">scanspec.plot</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
@@ -216,8 +219,16 @@ from code:</p>
 <li><p><a class="reference internal" href="#module-scanspec.regions" title="scanspec.regions"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">scanspec.regions</span></code></a>: <a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> and its subclasses</p></li>
 <li><p><a class="reference internal" href="#module-scanspec.plot" title="scanspec.plot"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">scanspec.plot</span></code></a>: <a class="reference internal" href="#scanspec.plot.plot_spec" title="scanspec.plot.plot_spec"><code class="xref any py py-func docutils literal notranslate"><span class="pre">plot_spec</span></code></a> to visualize a scan</p></li>
 </ul>
+<div class="section" id="scanspec">
+<h2><code class="docutils literal notranslate"><span class="pre">scanspec</span></code><a class="headerlink" href="#scanspec" title="Permalink to this headline">¶</a></h2>
+<dl class="py data">
+<dt id="scanspec.__version__">
+<code class="sig-prename descclassname">scanspec.</code><code class="sig-name descname">__version__</code><em class="property">: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></em><a class="headerlink" href="#scanspec.__version__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Version number as calculated by <a class="reference external" href="https://github.com/dls-controls/versiongit">https://github.com/dls-controls/versiongit</a></p>
+</dd></dl>
+
 <span class="target" id="module-scanspec.core"></span><div class="section" id="scanspec-core">
-<h2><code class="docutils literal notranslate"><span class="pre">scanspec.core</span></code><a class="headerlink" href="#scanspec-core" title="Permalink to this headline">¶</a></h2>
+<h3><code class="docutils literal notranslate"><span class="pre">scanspec.core</span></code><a class="headerlink" href="#scanspec-core" title="Permalink to this headline">¶</a></h3>
 <dl class="py data">
 <dt id="scanspec.core.Positions">
 <code class="sig-prename descclassname">scanspec.core.</code><code class="sig-name descname">Positions</code><a class="headerlink" href="#scanspec.core.Positions" title="Permalink to this definition">¶</a></dt>
@@ -489,7 +500,7 @@ moving</p>
 
 </div>
 <span class="target" id="module-scanspec.specs"></span><div class="section" id="scanspec-specs">
-<h2><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code><a class="headerlink" href="#scanspec-specs" title="Permalink to this headline">¶</a></h2>
+<h3><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code><a class="headerlink" href="#scanspec-specs" title="Permalink to this headline">¶</a></h3>
 <div class="graphviz"><object data="../_images/inheritance-3ffbff4ca576a78a24cd0a6dbeade52ea8de3766.svg" type="image/svg+xml" class="inheritance graphviz">
 <p class="warning">Inheritance diagram of scanspec.specs</p></object></div>
 <dl class="py class">
@@ -553,7 +564,7 @@ inner will run in its entirety at each point in outer.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-1.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-1.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-1.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-1.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-1.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-1.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-1.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-1.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-1.png" src="../_images/api-1.png" />
 </div>
@@ -590,7 +601,7 @@ Dimensions [l2, l1+r1].</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-2.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-2.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-2.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-2.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-2.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-2.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-2.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-2.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-2.png" src="../_images/api-2.png" />
 </div>
@@ -629,7 +640,7 @@ together.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-3.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-3.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-3.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-3.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-3.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-3.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-3.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-3.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-3.png" src="../_images/api-3.png" />
 </div>
@@ -654,7 +665,7 @@ another Spec. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-4.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-4.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-4.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-4.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-4.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-4.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-4.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-4.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-4.png" src="../_images/api-4.png" />
 </div>
@@ -682,7 +693,7 @@ of left and right must contain the same keys.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-5.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-5.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-5.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-5.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-5.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-5.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-5.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-5.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-5.png" src="../_images/api-5.png" />
 </div>
@@ -714,7 +725,7 @@ long line.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-6.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-6.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-6.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-6.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-6.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-6.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-6.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-6.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-6.png" src="../_images/api-6.png" />
 </div>
@@ -744,7 +755,7 @@ centred on start and stop.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-7.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-7.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-7.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-7.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-7.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-7.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-7.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-7.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-7.png" src="../_images/api-7.png" />
 </div>
@@ -771,7 +782,7 @@ centred on start and stop.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-8.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-8.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-8.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-8.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-8.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-8.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-8.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-8.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-8.png" src="../_images/api-8.png" />
 </div>
@@ -802,7 +813,7 @@ be used to set key=value at every point in a scan.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-9.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-9.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-9.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-9.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-9.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-9.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-9.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-9.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-9.png" src="../_images/api-9.png" />
 </div>
@@ -837,7 +848,7 @@ in a spiral spanning width of “x_range” and height of “y_range”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-10.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-10.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-10.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-10.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-10.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-10.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-10.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-10.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-10.png" src="../_images/api-10.png" />
 </div>
@@ -868,7 +879,7 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-11.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-11.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-11.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-11.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-11.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-11.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-11.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-11.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-111.png" src="../_images/api-111.png" />
 </div>
@@ -895,7 +906,7 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-12.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-12.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-12.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-12.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-12.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-12.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-12.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-12.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-12.png" src="../_images/api-12.png" />
 </div>
@@ -914,15 +925,45 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-13.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-13.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-13.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-13.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-13.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-13.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-13.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-13.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-13.png" src="../_images/api-13.png" />
 </div>
 </dd></dl>
 
+<dl class="py function">
+<dt id="scanspec.specs.spec_from_dict">
+<code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">spec_from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec">scanspec.specs.Spec</a><a class="reference internal" href="../_modules/scanspec/specs.html#spec_from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.spec_from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a> from a dictionary representation of it</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec_from_dict</span><span class="p">(</span>
+<span class="gp">... </span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Line&#39;</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>
+<span class="go">Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../how-to/serialize-a-spec.html#serialize-a-spec"><span class="std std-ref">How to Serialize and Deserialize a Spec</span></a></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="scanspec.specs.spec_from_json">
+<code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">spec_from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec">scanspec.specs.Spec</a><a class="reference internal" href="../_modules/scanspec/specs.html#spec_from_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.spec_from_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a> from a JSON representation of it</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec_from_json</span><span class="p">(</span>
+<span class="gp">... </span><span class="s1">&#39;{&quot;type&quot;: &quot;Line&quot;, &quot;key&quot;: &quot;x&quot;, &quot;start&quot;: 1.0, &quot;stop&quot;: 2.0, &quot;num&quot;: 3}&#39;</span><span class="p">)</span>
+<span class="go">Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../how-to/serialize-a-spec.html#serialize-a-spec"><span class="std std-ref">How to Serialize and Deserialize a Spec</span></a></p>
+</div>
+</dd></dl>
+
 </div>
 <span class="target" id="module-scanspec.regions"></span><div class="section" id="scanspec-regions">
-<h2><code class="docutils literal notranslate"><span class="pre">scanspec.regions</span></code><a class="headerlink" href="#scanspec-regions" title="Permalink to this headline">¶</a></h2>
+<h3><code class="docutils literal notranslate"><span class="pre">scanspec.regions</span></code><a class="headerlink" href="#scanspec-regions" title="Permalink to this headline">¶</a></h3>
 <div class="graphviz"><object data="../_images/inheritance-1fc7044558d6437c88516218edd7f3f930c7fb86.svg" type="image/svg+xml" class="inheritance graphviz">
 <p class="warning">Inheritance diagram of scanspec.regions</p></object></div>
 <dl class="py class">
@@ -1100,7 +1141,7 @@ but not both. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-14.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-14.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-14.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-14.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-14.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-14.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-14.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-14.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-14.png" src="../_images/api-14.png" />
 </div>
@@ -1132,7 +1173,7 @@ but not both. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-15.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-15.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-15.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-15.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-15.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-15.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-15.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-15.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-15.png" src="../_images/api-15.png" />
 </div>
@@ -1147,7 +1188,7 @@ instances found</p>
 
 </div>
 <span class="target" id="module-scanspec.plot"></span><div class="section" id="scanspec-plot">
-<h2><code class="docutils literal notranslate"><span class="pre">scanspec.plot</span></code><a class="headerlink" href="#scanspec-plot" title="Permalink to this headline">¶</a></h2>
+<h3><code class="docutils literal notranslate"><span class="pre">scanspec.plot</span></code><a class="headerlink" href="#scanspec-plot" title="Permalink to this headline">¶</a></h3>
 <dl class="py function">
 <dt id="scanspec.plot.plot_spec">
 <code class="sig-prename descclassname">scanspec.plot.</code><code class="sig-name descname">plot_spec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec">scanspec.specs.Spec</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/plot.html#plot_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.plot.plot_spec" title="Permalink to this definition">¶</a></dt>
@@ -1166,12 +1207,13 @@ scan is 2D then 2D regions are shown in black.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-16.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-16.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-16.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpn0ecj4iq/907bdc3434d608a330af2178f6a9b14bc36367a5/docs/reference/api-16.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-16.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-16.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-16.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/reference/api-16.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-16.png" src="../_images/api-16.png" />
 </div>
 </dd></dl>
 
+</div>
 </div>
 </div>
 
