@@ -14,7 +14,6 @@ code into an interactive Python terminal, it should plot a graph of a 1D line:
 
 .. plot::
 
-
     from scanspec.specs import Line
     from scanspec.plot import plot_spec
 
@@ -58,13 +57,11 @@ Line with 2 axes
 
 If we want to plot a Line in two axes, we can do this with `Zip`, or the ``+`` operator:
 
-.. plot::
+.. example_spec::
 
     from scanspec.specs import Line
-    from scanspec.plot import plot_spec
 
     spec = Line("y", 3, 4, 5) + Line("x", 1, 2, 5)
-    plot_spec(spec)
 
 Grid
 ----

@@ -24,10 +24,15 @@ project = "scanspec"
 copyright = "2020, Diamond Light Source"
 author = "Tom Cobb"
 
-# The short X.Y version.
-version = scanspec.__version__.split("+")[0]
 # The full version, including alpha/beta/rc tags.
 release = scanspec.__version__
+
+# The short X.Y version.
+if "+" in "release":
+    # Not on a tag
+    version = "master"
+else:
+    version = release
 
 extensions = [
     # Use this for generating API docs
@@ -141,5 +146,5 @@ smv_rebuild_tags = False
 smv_tag_whitelist = r"^\d+\.\d+.*$"  # only document tags with form 0.9*
 smv_branch_whitelist = r"^master$"  # only branch to document is master
 smv_outputdir_format = "{ref.name}"
-smv_prefer_remote_refs = True
+smv_prefer_remote_refs = False
 smv_remote_whitelist = "origin|github"
