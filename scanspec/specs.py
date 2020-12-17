@@ -178,12 +178,12 @@ class Mask(Spec):
     def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
         dims = self.spec.create_dimensions(bounds, nested)
         for key_set in self.region.key_sets():
-            # Squash the dimensions together containing these keys
+            # Find the start and end index of any dimensions containing these keys
             matches = [i for i, d in enumerate(dims) if set(d.keys()) & key_set]
             assert matches, f"No Specs match keys {list(key_set)}"
             si, ei = matches[0], matches[-1]
             if si != ei:
-                # Span Specs, squash them
+                # The key_set spans multiple Dimensions, squash them together
                 # If the spec to be squashed is nested (inside the Mask or outside)
                 # then check the path changes if requested
                 check_path_changes = (nested or si) and self.check_path_changes
@@ -270,7 +270,7 @@ class Concat(Spec):
 
 class Squash(Spec):
     """Squash the Dimensions together of the scan (but not positions) into one
-    long line.
+    linear stack.
 
     See Also:
         `why-squash-can-change-path`
