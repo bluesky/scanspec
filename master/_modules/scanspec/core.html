@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>scanspec.core &mdash; scanspec 0.0+untagged.g3d86881 documentation</title>
+  <title>scanspec.core &mdash; scanspec 0.0+untagged.g7ce8a93 documentation</title>
   
 
   
@@ -206,15 +206,16 @@
 
 <span class="c1"># These are used in the definition of the Schema</span>
 <span class="c1"># It allows the class to be inferred from the serialized &quot;type&quot; field</span>
-<span class="k">class</span> <span class="nc">_WithTypeMetaClass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">)):</span>  <span class="c1"># type: ignore</span>
+<span class="k">class</span> <span class="nc">_SerializableMetaClass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">)):</span>  <span class="c1"># type: ignore</span>
     <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="n">mcs</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">namespace</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># Override type in namespace to be the literal value of the class name</span>
         <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">const</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcs</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">namespace</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">_WithType</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">_WithTypeMetaClass</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;BaseModel that adds a type parameter from class name.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Serializable"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Serializable">[docs]</a><span class="k">class</span> <span class="nc">Serializable</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">_SerializableMetaClass</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;pydantic BaseModel that adds support for positional arguments and a type</span>
+<span class="sd">    parameter from class name.&quot;&quot;&quot;</span>
 
     <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span>
 
@@ -234,7 +235,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__repr_args__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[(</span><span class="n">a</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__repr_args__</span><span class="p">()</span> <span class="k">if</span> <span class="n">a</span> <span class="o">!=</span> <span class="s2">&quot;type&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">a</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__repr_args__</span><span class="p">()</span> <span class="k">if</span> <span class="n">a</span> <span class="o">!=</span> <span class="s2">&quot;type&quot;</span><span class="p">]</span></div>
 
 
 <span class="c1">#: Positions map {key: positions_ndarray}</span>

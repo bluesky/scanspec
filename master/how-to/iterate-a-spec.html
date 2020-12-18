@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How to Iterate a Spec &mdash; scanspec 0.0+untagged.g3d86881 documentation</title>
+  <title>How to Iterate a Spec &mdash; scanspec 0.0+untagged.g7ce8a93 documentation</title>
   
 
   
@@ -212,7 +212,7 @@ positions. We can do this in a few ways.</p>
 <div class="section" id="if-you-only-need-the-positions">
 <h2>If you only need the positions<a class="headerlink" href="#if-you-only-need-the-positions" title="Permalink to this headline">¶</a></h2>
 <p>If you are conducting a step scan, you only need the central positions of each
-scan point. You can get these by using the <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.positions" title="scanspec.specs.Spec.positions"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.positions</span></code></a> method to produce an
+scan point. You can get these by using the <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.positions" title="scanspec.specs.Spec.positions"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.positions()</span></code></a> method to produce an
 <a class="reference internal" href="../reference/api.html#scanspec.core.SpecPositions" title="scanspec.core.SpecPositions"><code class="xref any py py-class docutils literal notranslate"><span class="pre">SpecPositions</span></code></a> iterator of scan positions:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -231,8 +231,8 @@ positions are unpacked point by point into position dictionaries</p>
 <h2>If you need to do a fly scan<a class="headerlink" href="#if-you-need-to-do-a-fly-scan" title="Permalink to this headline">¶</a></h2>
 <p>If you are conducting a fly scan then you need the Path that the motor moves
 through. You can get that from the lower and upper bounds of each point. It is
-more efficient to consume this Path in chunks that can be processed into a
-trajectory:</p>
+more efficient to consume this Path in numpy array chunks that can be processed
+into a trajectory:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">path</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 <span class="go">3</span>
@@ -253,11 +253,11 @@ should insert a gap where the motors move between segments</p>
 </div>
 <div class="section" id="if-you-need-to-do-multiple-runs-of-the-same-scan">
 <h2>If you need to do multiple runs of the same scan<a class="headerlink" href="#if-you-need-to-do-multiple-runs-of-the-same-scan" title="Permalink to this headline">¶</a></h2>
-<p>A <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> instance is a one-shot consumable view of the list of <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a> instances
-created by <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.create_dimensions" title="scanspec.specs.Spec.create_dimensions"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.create_dimensions</span></code></a>. Once you have consumed it you should create a new instance of it.
-For performance reasons, you can keep the intermediate Dimensions and create as many <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> wrappers
-to them as you need. You can also give
-a maximum size to <a class="reference internal" href="../reference/api.html#scanspec.core.Path.consume" title="scanspec.core.Path.consume"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Path.consume</span></code></a></p>
+<p>A <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> instance is a one-shot consumable view of the list of <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a>
+instances created by <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.create_dimensions" title="scanspec.specs.Spec.create_dimensions"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.create_dimensions()</span></code></a>. Once you have consumed it you
+should create a new instance of it. For performance reasons, you can keep the
+intermediate Dimensions and create as many <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> wrappers to them as you need.
+You can also give a maximum size to <a class="reference internal" href="../reference/api.html#scanspec.core.Path.consume" title="scanspec.core.Path.consume"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Path.consume()</span></code></a></p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.core</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dims</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>

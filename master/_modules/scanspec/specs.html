@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>scanspec.specs &mdash; scanspec 0.0+untagged.g3d86881 documentation</title>
+  <title>scanspec.specs &mdash; scanspec 0.0+untagged.g7ce8a93 documentation</title>
   
 
   
@@ -205,15 +205,15 @@
 <span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">Dimension</span><span class="p">,</span>
     <span class="n">Path</span><span class="p">,</span>
+    <span class="n">Serializable</span><span class="p">,</span>
     <span class="n">SpecPositions</span><span class="p">,</span>
-    <span class="n">_WithType</span><span class="p">,</span>
     <span class="n">if_instance_do</span><span class="p">,</span>
     <span class="n">squash_dimensions</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.regions</span> <span class="kn">import</span> <span class="n">Region</span><span class="p">,</span> <span class="n">get_mask</span>
 
 
-<div class="viewcode-block" id="Spec"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec">[docs]</a><span class="k">class</span> <span class="nc">Spec</span><span class="p">(</span><span class="n">_WithType</span><span class="p">):</span>
+<div class="viewcode-block" id="Spec"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec">[docs]</a><span class="k">class</span> <span class="nc">Spec</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract baseclass for the specification of a scan. Supports operators:</span>
 
 <span class="sd">    - ``*``: Outer `Product` of two Specs, nesting the second within the first</span>
@@ -223,8 +223,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Spec.keys"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Implemented by subclasses to produce the list of keys that are</span>
-<span class="sd">        present in the positions, from slowest moving to fastest moving&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return the list of keys that are present in the positions, from</span>
+<span class="sd">        slowest moving to fastest moving&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Spec.create_dimensions"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec.create_dimensions">[docs]</a>    <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>

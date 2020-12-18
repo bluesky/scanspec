@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>scanspec.regions &mdash; scanspec 0.0+untagged.g3d86881 documentation</title>
+  <title>scanspec.regions &mdash; scanspec 0.0+untagged.g7ce8a93 documentation</title>
   
 
   
@@ -203,10 +203,10 @@
 <span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">Field</span>
 <span class="kn">from</span> <span class="nn">pydantic.main</span> <span class="kn">import</span> <span class="n">BaseModel</span>
 
-<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">Positions</span><span class="p">,</span> <span class="n">_WithType</span><span class="p">,</span> <span class="n">if_instance_do</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">Positions</span><span class="p">,</span> <span class="n">Serializable</span><span class="p">,</span> <span class="n">if_instance_do</span>
 
 
-<div class="viewcode-block" id="Region"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region">[docs]</a><span class="k">class</span> <span class="nc">Region</span><span class="p">(</span><span class="n">_WithType</span><span class="p">):</span>
+<div class="viewcode-block" id="Region"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region">[docs]</a><span class="k">class</span> <span class="nc">Region</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract baseclass for a Region that can `Mask` a `Spec`. Supports operators:</span>
 
 <span class="sd">    - ``|``: `UnionOf` two Regions, positions present in either</span>

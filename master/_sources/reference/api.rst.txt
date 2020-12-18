@@ -21,9 +21,17 @@ from code:
 
 .. automodule:: scanspec.core
     :members:
+    :exclude-members: Serializable
 
     ``scanspec.core``
     -----------------
+
+    .. autoclass:: scanspec.core.Serializable
+        :no-show-inheritance:
+
+        .. seealso::
+            https://pydantic-docs.helpmanual.io/usage/exporting_models/ for
+            information on the usage of the ``dict()`` and ``json()`` methods
 
 .. automodule:: scanspec.specs
     :members:
