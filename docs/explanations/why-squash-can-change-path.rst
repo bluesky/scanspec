@@ -12,7 +12,7 @@ run more than once. This page lists the times where this is the case.
 .. note::
 
     The cases illustrated below will only be produced if
-    `check_path_changes=False` is passed to `Squash` or `Mask`, otherwise they
+    ``check_path_changes=False`` is passed to `Squash` or `Mask`, otherwise they
     will fail with `ValueError`
 
 Squash unsnaked axis into a snaked Dimension

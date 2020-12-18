@@ -63,6 +63,6 @@ contain all the information required to reshape a stack of HDF5 frames into the
 dimensionality of the scan using a VDS. This holds until we turn snake on, at
 which point it destroys the performance of the VDS. For this reason, it is
 advisable to `Squash` any snaking Specs with the first non-snaking axis above it
-so that the Dimension will not be snaking. See `why-squash-can-change-path` for
+so that the Dimension will not be snaking. See `./why-squash-can-change-path` for
 some details on this.
 

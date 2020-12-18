@@ -9,7 +9,9 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 Unreleased_
 -----------
 
-- Nothing yet
+Added:
+
+- repeat() Spec
 
 
 0.1.1_ - 2020-12-10

@@ -2,7 +2,18 @@ import pytest
 
 from scanspec.core import Path
 from scanspec.regions import Circle, Rectangle
-from scanspec.specs import TIME, Concat, Line, Mask, Spiral, Squash, Static, fly, step
+from scanspec.specs import (
+    TIME,
+    Concat,
+    Line,
+    Mask,
+    Spiral,
+    Squash,
+    Static,
+    fly,
+    repeat,
+    step,
+)
 
 
 def test_one_point_line() -> None:
@@ -350,4 +361,45 @@ def test_circle_snaked_region() -> None:
     assert dim.upper == {
         x: pytest.approx([1.5, 1.5, 0.5, -0.5, 1.5]),
         y: pytest.approx([1, 2, 2, 2, 3]),
+    }
+
+
+def test_beam_selector() -> None:
+    # Beam selector scan moves bounded between lower and upper positions at
+    # maximum speed. Turnaround sections are where it sends the triggers
+    bs = object()
+    spec = repeat(~Line.bounded(bs, 11, 19, 1), 10)
+    dim = spec.path().consume()
+    assert len(dim) == 10
+    assert dim.lower == {
+        bs: pytest.approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19]),
+        "REPEAT": pytest.approx([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+    }
+    assert dim.upper == {
+        bs: pytest.approx([19, 11, 19, 11, 19, 11, 19, 11, 19, 11]),
+        "REPEAT": pytest.approx([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+    }
+    assert dim.positions == {
+        bs: pytest.approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15]),
+        "REPEAT": pytest.approx([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+    }
+
+
+def test_blended_repeat() -> None:
+    # Check that if we blend the REPEATS don't change
+    bs = object()
+    spec = repeat(~Line.bounded(bs, 11, 19, 1), 10, blend=True)
+    dim = spec.path().consume()
+    assert len(dim) == 10
+    assert dim.lower == {
+        bs: pytest.approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19]),
+        "REPEAT": pytest.approx([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]),
+    }
+    assert dim.upper == {
+        bs: pytest.approx([19, 11, 19, 11, 19, 11, 19, 11, 19, 11]),
+        "REPEAT": pytest.approx([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]),
+    }
+    assert dim.positions == {
+        bs: pytest.approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15]),
+        "REPEAT": pytest.approx([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]),
     }

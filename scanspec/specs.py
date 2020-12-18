@@ -303,9 +303,11 @@ def _dimensions_from_indexes(
     num: int,
     bounds: bool,
 ) -> List[Dimension]:
+    # Calc num positions (fences) from 0.5 .. num - 0.5
     positions_calc = func(np.linspace(0.5, num - 0.5, num))
     positions = {k: positions_calc[k] for k in keys}
     if bounds:
+        # Calc num + 1 bounds (posts) from 0 .. num
         bounds_calc = func(np.linspace(0, num, num + 1))
         lower = {k: bounds_calc[k][:-1] for k in keys}
         upper = {k: bounds_calc[k][1:] for k in keys}
@@ -326,7 +328,6 @@ class Line(Spec):
         spec = Line("x", 1, 2, 5)
     """
 
-    # TODO: are start and stop positions, bounds, or different for fly/step
     key: Any = Field(..., description="An identifier for what to move")
     start: float = Field(..., description="Centre point of the first point of the line")
     stop: float = Field(..., description="Centre point of the last point of the line")
@@ -342,7 +343,10 @@ class Line(Spec):
         else:
             # Multiple points, stop-start gives length of num-1 points
             step = (self.stop - self.start) / (self.num - 1)
-        return {self.key: (indexes - 0.5) * step + self.start}
+        # self.start is the first centre point, but we need the lower bound
+        # of the first point as this is where the index array starts
+        first = self.start - step / 2
+        return {self.key: indexes * step + first}
 
     def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
         return _dimensions_from_indexes(
@@ -490,8 +494,16 @@ class Spiral(Spec):
 TIME = "TIME"
 
 
-def fly(spec: Spec, duration: float):
+#: Can be used as a special key to indicate repeats of a whole spec
+REPEAT = "REPEAT"
+
+
+def fly(spec: Spec, duration: float) -> Spec:
     """Flyscan, zipping TIME=duration for every position
+
+    Args:
+        spec: The source `Spec` to continuously move
+        duration: How long to spend at each point in the spec
 
     .. example_spec::
 
@@ -502,8 +514,15 @@ def fly(spec: Spec, duration: float):
     return spec + Static(TIME, duration)
 
 
-def step(spec: Spec, duration: float):
-    """Step scan, adding TIME=duration as an inner dimension for every position
+def step(spec: Spec, duration: float, num: int = 1):
+    """Step scan, adding num x TIME=duration as an inner dimension for
+    every position
+
+    Args:
+        spec: The source `Spec` with positions to move to and stop
+        duration: The duration of each scan point
+        num: Number of points to produce with given duration at each of point
+            in the spec
 
     .. example_spec::
 
@@ -511,7 +530,23 @@ def step(spec: Spec, duration: float):
 
         spec = step(Line("x", 1, 2, 3), 0.1)
     """
-    return spec * Static(TIME, duration)
+    return spec * Static(TIME, duration, num)
+
+
+def repeat(spec: Spec, num: int, blend=False):
+    """Repeat spec num times
+
+    Args:
+        spec: The source `Spec` that will be iterated
+        num: The number of times to repeat it
+        blend: If True and the slowest dimension of spec is snaked then
+            the end and start of consecutive iterations of Spec will be
+            blended together, leaving no gap
+    """
+    if blend:
+        return Static(REPEAT, num, num) * spec
+    else:
+        return Line(REPEAT, 1, num, num) * spec
 
 
 class _UnionModifier:
@@ -525,7 +560,6 @@ class _UnionModifier:
         for spec in _spec_subclasses + _region_subclasses:
             for _, field in spec.__fields__.items():
                 if field.type_ is Spec:
-                    # TODO: Is it better to create a new field than modify?
                     field.type_ = self.spec_union
                     field.prepare()
                 elif field.type_ is Region:

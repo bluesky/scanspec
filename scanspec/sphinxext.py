@@ -92,7 +92,6 @@ def process_signature(app, what, name, obj, options, signature, return_annotatio
                     args.append(name)
                 else:
                     args.append(f"{name}={field.default!r}")
-                # TODO: what about *args and **kwargs in functions?
         signature = f'({", ".join(args)})'
     return signature, return_annotation
 
