@@ -10,7 +10,7 @@ If you only need the positions
 ------------------------------
 
 If you are conducting a step scan, you only need the central positions of each
-scan point. You can get these by using the `Spec.positions` method to produce an
+scan point. You can get these by using the `Spec.positions()` method to produce an
 `SpecPositions` iterator of scan positions:
 
 >>> from scanspec.specs import Line
@@ -30,8 +30,8 @@ If you need to do a fly scan
 
 If you are conducting a fly scan then you need the Path that the motor moves
 through. You can get that from the lower and upper bounds of each point. It is
-more efficient to consume this Path in chunks that can be processed into a
-trajectory:
+more efficient to consume this Path in numpy array chunks that can be processed
+into a trajectory:
 
 >>> path = spec.path()
 >>> len(path)
@@ -54,11 +54,11 @@ should insert a gap where the motors move between segments
 If you need to do multiple runs of the same scan
 ------------------------------------------------
 
-A `Path` instance is a one-shot consumable view of the list of `Dimension` instances
-created by `Spec.create_dimensions`. Once you have consumed it you should create a new instance of it.
-For performance reasons, you can keep the intermediate Dimensions and create as many `Path` wrappers
-to them as you need. You can also give
-a maximum size to `Path.consume`
+A `Path` instance is a one-shot consumable view of the list of `Dimension`
+instances created by `Spec.create_dimensions()`. Once you have consumed it you
+should create a new instance of it. For performance reasons, you can keep the
+intermediate Dimensions and create as many `Path` wrappers to them as you need.
+You can also give a maximum size to `Path.consume()`
 
 >>> from scanspec.core import Path
 >>> dims = spec.create_dimensions()

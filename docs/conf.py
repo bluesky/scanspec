@@ -73,6 +73,9 @@ autodoc_member_order = "bysource"
 # Don't inherit docstrings from baseclasses
 autodoc_inherit_docstrings = False
 
+# Insert inheritance links
+autodoc_default_options = {"show-inheritance": True}
+
 # Include source in plot directive by default
 plot_include_source = True
 

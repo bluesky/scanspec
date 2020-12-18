@@ -7,15 +7,16 @@ from pydantic.fields import Field, FieldInfo
 
 # These are used in the definition of the Schema
 # It allows the class to be inferred from the serialized "type" field
-class _WithTypeMetaClass(type(BaseModel)):  # type: ignore
+class _SerializableMetaClass(type(BaseModel)):  # type: ignore
     def __new__(mcs, name, bases, namespace, **kwargs):
         # Override type in namespace to be the literal value of the class name
         namespace["type"] = Field(name, const=True)
         return super().__new__(mcs, name, bases, namespace, **kwargs)
 
 
-class _WithType(BaseModel, metaclass=_WithTypeMetaClass):
-    """BaseModel that adds a type parameter from class name."""
+class Serializable(BaseModel, metaclass=_SerializableMetaClass):
+    """pydantic BaseModel that adds support for positional arguments and a type
+    parameter from class name."""
 
     type: str
 

@@ -4,10 +4,10 @@ import numpy as np
 from pydantic import Field
 from pydantic.main import BaseModel
 
-from .core import Positions, _WithType, if_instance_do
+from .core import Positions, Serializable, if_instance_do
 
 
-class Region(_WithType):
+class Region(Serializable):
     """Abstract baseclass for a Region that can `Mask` a `Spec`. Supports operators:
 
     - ``|``: `UnionOf` two Regions, positions present in either

@@ -6,15 +6,15 @@ from pydantic import Field, parse_obj_as, parse_raw_as, validate_arguments
 from .core import (
     Dimension,
     Path,
+    Serializable,
     SpecPositions,
-    _WithType,
     if_instance_do,
     squash_dimensions,
 )
 from .regions import Region, get_mask
 
 
-class Spec(_WithType):
+class Spec(Serializable):
     """Abstract baseclass for the specification of a scan. Supports operators:
 
     - ``*``: Outer `Product` of two Specs, nesting the second within the first
@@ -24,8 +24,8 @@ class Spec(_WithType):
     """
 
     def keys(self) -> List:
-        """Implemented by subclasses to produce the list of keys that are
-        present in the positions, from slowest moving to fastest moving"""
+        """Return the list of keys that are present in the positions, from
+        slowest moving to fastest moving"""
         raise NotImplementedError(self)
 
     def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
