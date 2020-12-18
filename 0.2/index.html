@@ -1,0 +1,366 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>scanspec &mdash; scanspec 0.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/scanspec-logo.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation Tutorial" href="tutorials/installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgb(7, 43, 93)" >
+          
+
+          
+            <a href="#" class="icon icon-home" alt="Documentation Home"> scanspec
+          
+
+          
+            
+            <img src="_static/scanspec-logo.svg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    <style>
+      /* style mobile top nav to look like main nav */
+      .wy-nav-top {
+          background: rgb(7, 43, 93)
+      }
+    </style>
+    
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/installation.html">Installation Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
+</ul>
+<p class="caption"><span class="caption-text">How-to Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Explanations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="explanations/what-are-dimensions.html">What are Dimensions?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/contributing.html">Contributing</a></li>
+</ul>
+
+            
+          
+    <!-- Include Index in the sidebar -->
+    <!-- https://stackoverflow.com/a/37843854 -->
+    <a href="genindex.html">Index</a>
+    <!-- Include all versions of the docs -->
+    <!-- https://holzhaus.github.io/sphinx-multiversion/master/templates.html -->
+    
+    <p class="caption"><span class="caption-text">Versions</span></p>
+    <ul>
+      <li><a href="../master/index.html">master</a></li>
+      <li><a href="index.html">0.2</a></li>
+      <li><a href="../0.1.1/index.html">0.1.1</a></li>
+      <li><a href="../0.1/index.html">0.1</a></li>
+    </ul>
+    
+  
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">scanspec</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>scanspec</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="scanspec">
+<h1>scanspec<a class="headerlink" href="#scanspec" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://github.com/dls-controls/scanspec/actions?query=workflow%3A%22Python+CI%22"><img alt="Build Status" src="https://github.com/dls-controls/scanspec/workflows/Python%20CI/badge.svg?branch=master" /></a> <a class="reference external" href="https://github.com/dls-controls/scanspec/actions?query=workflow%3A%22Python+CI%22"><img alt="Test Coverage" src="https://dls-controls.github.io/scanspec/coverage.svg" /></a> <a class="reference external" href="https://pypi.org/project/scanspec"><img alt="Latest PyPI version" src="https://img.shields.io/pypi/v/scanspec.svg" /></a> <a class="reference external" href="https://opensource.org/licenses/Apache-2.0"><img alt="Apache License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a></p>
+<p>Specify step and flyscan Paths using combinations of:</p>
+<ul class="simple">
+<li><p>Specs like Line or Spiral</p></li>
+<li><p>Optionally Snaking</p></li>
+<li><p>Zip, Product and Concat to compose</p></li>
+<li><p>Masks with multiple Regions to restrict</p></li>
+</ul>
+<p>Serialize the Spec rather than the expanded Path and reconstruct it on the
+server. It can them be iterated over like a <a class="reference external" href="https://matplotlib.org/cycler/">cycler</a>, or scan Dimensions
+can be produced and expanded Paths created to consume chunk by chunk.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 82%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>PyPI</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">scanspec</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Source code</p></td>
+<td><p><a class="reference external" href="https://github.com/dls-controls/scanspec">https://github.com/dls-controls/scanspec</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Documentation</p></td>
+<td><p><a class="reference external" href="https://dls-controls.github.io/scanspec">https://dls-controls.github.io/scanspec</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at each point looks like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">fly</span>
+<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Circle</span>
+
+<span class="n">grid</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">ymotor</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mf">3.8</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="n">xmotor</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">fly</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="n">xmotor</span><span class="p">,</span> <span class="n">ymotor</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="plot" src="_images/plot_spec.png" /></p>
+<p>You can then either iterate through the scan positions directly for convenience:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">positions</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">positions</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+<span class="c1"># ...</span>
+<span class="c1"># {ymotor: 3.2813559322033896, xmotor: 0.8838383838383839, &quot;TIME&quot;: 0.4}</span>
+<span class="c1"># {ymotor: 3.2813559322033896, xmotor: 0.8737373737373737, &quot;TIME&quot;: 0.4}</span>
+</pre></div>
+</div>
+<p>or create a Path from the Dimensions and consume chunks of a given length from it for performance:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.core</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">dims</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">()</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># 44</span>
+<span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>  <span class="c1"># (ymotor, xmotor, &quot;TIME&quot;)</span>
+
+<span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">chunk</span><span class="o">.</span><span class="n">positions</span>  <span class="c1"># {xmotor: &lt;ndarray len=10&gt;, ymotor: &lt;ndarray len=10&gt;, &quot;TIME&quot;: &lt;ndarray len=10&gt;}</span>
+<span class="n">chunk</span><span class="o">.</span><span class="n">upper</span>  <span class="c1"># bounds are same dimensionality as positions</span>
+</pre></div>
+</div>
+<div class="section" id="how-the-documentation-is-structured">
+<h2>How the documentation is structured<a class="headerlink" href="#how-the-documentation-is-structured" title="Permalink to this headline">¶</a></h2>
+<div class="columns section" id="tutorials">
+<h3><a class="reference internal" href="#id1"><span class="std std-ref">Tutorials</span></a><a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h3>
+<p>Tutorials for installation, library and commandline usage. New users start here.</p>
+</div>
+<div class="columns section" id="how-to">
+<h3><a class="reference internal" href="#id2"><span class="std std-ref">How-to Guides</span></a><a class="headerlink" href="#how-to" title="Permalink to this headline">¶</a></h3>
+<p>Practical step-by-step guides for the more experienced user.</p>
+</div>
+<div class="columns section" id="explanations">
+<h3><a class="reference internal" href="#id3"><span class="std std-ref">Explanations</span></a><a class="headerlink" href="#explanations" title="Permalink to this headline">¶</a></h3>
+<p>Explanation of how the library works and why it works that way.</p>
+</div>
+<div class="columns section" id="reference">
+<h3><a class="reference internal" href="#id4"><span class="std std-ref">Reference</span></a><a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h3>
+<p>Technical reference material, for classes, methods, APIs, commands, and contributing to the project.</p>
+</div>
+<div class="endcolumns section" id="about-the-documentation">
+<h3>About the documentation<a class="headerlink" href="#about-the-documentation" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="https://documentation.divio.com">Why is the documentation structured this way?</a></p>
+<div class="toctree-wrapper compound" id="id1">
+<p class="caption"><span class="caption-text">Tutorials</span><a class="headerlink" href="#id1" title="Permalink to this toctree">¶</a></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/installation.html">Installation Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="id2">
+<p class="caption"><span class="caption-text">How-to Guides</span><a class="headerlink" href="#id2" title="Permalink to this toctree">¶</a></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="id3">
+<p class="caption"><span class="caption-text">Explanations</span><a class="headerlink" href="#id3" title="Permalink to this toctree">¶</a></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="explanations/what-are-dimensions.html">What are Dimensions?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper no-margin-after-ul compound" id="id4">
+<p class="caption"><span class="caption-text">Reference</span><a class="headerlink" href="#id4" title="Permalink to this toctree">¶</a></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/contributing.html">Contributing</a></li>
+</ul>
+</div>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tutorials/installation.html" class="btn btn-neutral float-right" title="Installation Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Diamond Light Source
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

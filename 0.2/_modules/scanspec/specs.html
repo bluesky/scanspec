@@ -1,0 +1,840 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>scanspec.specs &mdash; scanspec 0.2 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/scanspec-logo.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgb(7, 43, 93)" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> scanspec
+          
+
+          
+            
+            <img src="../../_static/scanspec-logo.svg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    <style>
+      /* style mobile top nav to look like main nav */
+      .wy-nav-top {
+          background: rgb(7, 43, 93)
+      }
+    </style>
+    
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/installation.html">Installation Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
+</ul>
+<p class="caption"><span class="caption-text">How-to Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Explanations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../explanations/what-are-dimensions.html">What are Dimensions?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/contributing.html">Contributing</a></li>
+</ul>
+
+            
+          
+    <!-- Include Index in the sidebar -->
+    <!-- https://stackoverflow.com/a/37843854 -->
+    <a href="../../genindex.html">Index</a>
+    <!-- Include all versions of the docs -->
+    <!-- https://holzhaus.github.io/sphinx-multiversion/master/templates.html -->
+    
+    <p class="caption"><span class="caption-text">Versions</span></p>
+    <ul>
+      <li><a href="../../../master/index.html">master</a></li>
+      <li><a href="specs.html">0.2</a></li>
+      <li><a href="../../../0.1.1/index.html">0.1.1</a></li>
+      <li><a href="../../../0.1/index.html">0.1</a></li>
+    </ul>
+    
+  
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">scanspec</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>scanspec.specs</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for scanspec.specs</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">Field</span><span class="p">,</span> <span class="n">parse_obj_as</span><span class="p">,</span> <span class="n">parse_raw_as</span><span class="p">,</span> <span class="n">validate_arguments</span>
+
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Dimension</span><span class="p">,</span>
+    <span class="n">Path</span><span class="p">,</span>
+    <span class="n">Serializable</span><span class="p">,</span>
+    <span class="n">SpecPositions</span><span class="p">,</span>
+    <span class="n">if_instance_do</span><span class="p">,</span>
+    <span class="n">squash_dimensions</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.regions</span> <span class="kn">import</span> <span class="n">Region</span><span class="p">,</span> <span class="n">get_mask</span>
+
+
+<div class="viewcode-block" id="Spec"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec">[docs]</a><span class="k">class</span> <span class="nc">Spec</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract baseclass for the specification of a scan. Supports operators:</span>
+
+<span class="sd">    - ``*``: Outer `Product` of two Specs, nesting the second within the first</span>
+<span class="sd">    - ``+``: `Zip` two Specs together, iterating in tandem</span>
+<span class="sd">    - ``&amp;``: `Mask` the Spec with a `Region`, excluding positions outside it</span>
+<span class="sd">    - ``~``: `Snake` the Spec, reversing every other iteration of it</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Spec.keys"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the list of keys that are present in the positions, from</span>
+<span class="sd">        slowest moving to fastest moving&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spec.create_dimensions"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec.create_dimensions">[docs]</a>    <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Implemented by subclasses to produce the `Dimension` list that</span>
+<span class="sd">        contribute to positions, from slowest moving to fastest moving&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spec.path"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec.path">[docs]</a>    <span class="k">def</span> <span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return a `Path` through the scan that can be consumed in chunks</span>
+<span class="sd">        to give positions and bounds&quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">path</span></div>
+
+<div class="viewcode-block" id="Spec.positions"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec.positions">[docs]</a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SpecPositions</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return a `SpecPositions` that can be iterated position by position&quot;&quot;&quot;</span>
+        <span class="n">sp</span> <span class="o">=</span> <span class="n">SpecPositions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">sp</span></div>
+
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Product&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Spec</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Zip&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Spec</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mask&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__invert__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Snake&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Snake</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Product"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Product">[docs]</a><span class="k">class</span> <span class="nc">Product</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Outer product of two Specs, nesting inner within outer. This means that</span>
+<span class="sd">    inner will run in its entirety at each point in outer.</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Line</span>
+
+<span class="sd">        spec = Line(&quot;y&quot;, 1, 2, 3) * Line(&quot;x&quot;, 3, 4, 12)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">outer</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Will be executed once&quot;</span><span class="p">)</span>
+    <span class="n">inner</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Will be executed len(outer) times&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+        <span class="n">dims_outer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="n">nested</span><span class="p">)</span>
+        <span class="n">dims_inner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dims_outer</span> <span class="o">+</span> <span class="n">dims_inner</span></div>
+
+
+<div class="viewcode-block" id="Zip"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Zip">[docs]</a><span class="k">class</span> <span class="nc">Zip</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run two Specs in parallel, merging their positions together. Typically</span>
+<span class="sd">    formed using the ``+`` operator.</span>
+
+<span class="sd">    Dimensions are merged by:</span>
+
+<span class="sd">    - If right creates a single Dimension of size 1, expand it to the size of</span>
+<span class="sd">      the fastest Dimension created by left</span>
+<span class="sd">    - Merge individual dimensions together from fastest to slowest</span>
+
+<span class="sd">    This means that Zipping a Spec producing Dimensions [l2, l1] with a</span>
+<span class="sd">    Spec producing Dimension [r1] will assert len(l1)==len(r1), and produce</span>
+<span class="sd">    Dimensions [l2, l1+r1].</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Line</span>
+
+<span class="sd">        spec = Line(&quot;z&quot;, 1, 2, 3) * Line(&quot;y&quot;, 3, 4, 5) + Line(&quot;x&quot;, 4, 5, 5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">left</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Spec to Zip, will appear earlier in keys&quot;</span>
+    <span class="p">)</span>
+    <span class="n">right</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Spec to Zip, will appear later in keys&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+        <span class="n">dims_left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
+        <span class="n">dims_right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims_left</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">dims_right</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Zip requires len(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="si">}</span><span class="s2">) &gt;= len(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+        <span class="c1"># Pad and expand the right to be the same size as left</span>
+        <span class="c1"># Special case, if only one dim with size 1, expand to the right size</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims_right</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims_right</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">repeated</span> <span class="o">=</span> <span class="n">dims_right</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dims_left</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">repeated</span><span class="o">.</span><span class="n">snake</span> <span class="o">=</span> <span class="n">dims_left</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">snake</span>
+            <span class="n">dims_right</span> <span class="o">=</span> <span class="p">[</span><span class="n">repeated</span><span class="p">]</span>
+
+        <span class="c1"># Left pad dims_right with Nones so they are the same size</span>
+        <span class="n">npad</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims_left</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims_right</span><span class="p">)</span>
+        <span class="n">padded_right</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">npad</span>
+        <span class="n">padded_right</span> <span class="o">+=</span> <span class="n">dims_right</span>
+
+        <span class="c1"># Work through, zipping them together one by one</span>
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">dim_left</span><span class="p">,</span> <span class="n">dim_right</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dims_left</span><span class="p">,</span> <span class="n">padded_right</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">dim_right</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">dim</span> <span class="o">=</span> <span class="n">dim_left</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dim</span> <span class="o">=</span> <span class="n">dim_left</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">dim_right</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">dim</span><span class="p">,</span> <span class="n">Dimension</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Padding went wrong </span><span class="si">{</span><span class="n">dims_left</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">padded_right</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">dimensions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dimensions</span></div>
+
+
+<div class="viewcode-block" id="Mask"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Mask">[docs]</a><span class="k">class</span> <span class="nc">Mask</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Restrict the given Spec to only the positions that fall inside the given</span>
+<span class="sd">    Region.</span>
+
+<span class="sd">    Typically created with the ``&amp;`` operator. It also pushes down the</span>
+<span class="sd">    ``&amp; | ^ -`` operators to its `Region` to avoid the need for brackets on</span>
+<span class="sd">    combinations of Regions.</span>
+
+<span class="sd">    If a Region spans multiple Dimensions, these Dimensions will be squashed</span>
+<span class="sd">    together.</span>
+
+<span class="sd">    See Also:</span>
+<span class="sd">        `why-squash-can-change-path`</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Line</span>
+<span class="sd">        from scanspec.regions import Circle</span>
+
+<span class="sd">        spec = Line(&quot;y&quot;, 1, 3, 3) * Line(&quot;x&quot;, 3, 5, 5) &amp; Circle(&quot;x&quot;, &quot;y&quot;, 4, 2, 1.2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Spec containing the source positions&quot;</span><span class="p">)</span>
+    <span class="n">region</span><span class="p">:</span> <span class="n">Region</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Region that positions will be inside&quot;</span><span class="p">)</span>
+    <span class="n">check_path_changes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If True path through scan will not be modified by squash&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key_set</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">key_sets</span><span class="p">():</span>
+            <span class="c1"># Find the start and end index of any dimensions containing these keys</span>
+            <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&amp;</span> <span class="n">key_set</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">matches</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;No Specs match keys </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">key_set</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">si</span><span class="p">,</span> <span class="n">ei</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">matches</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">si</span> <span class="o">!=</span> <span class="n">ei</span><span class="p">:</span>
+                <span class="c1"># The key_set spans multiple Dimensions, squash them together</span>
+                <span class="c1"># If the spec to be squashed is nested (inside the Mask or outside)</span>
+                <span class="c1"># then check the path changes if requested</span>
+                <span class="n">check_path_changes</span> <span class="o">=</span> <span class="p">(</span><span class="n">nested</span> <span class="ow">or</span> <span class="n">si</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_path_changes</span>
+                <span class="n">squashed</span> <span class="o">=</span> <span class="n">squash_dimensions</span><span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="n">si</span> <span class="p">:</span> <span class="n">ei</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">check_path_changes</span><span class="p">)</span>
+                <span class="n">dims</span> <span class="o">=</span> <span class="n">dims</span><span class="p">[:</span><span class="n">si</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">squashed</span><span class="p">]</span> <span class="o">+</span> <span class="n">dims</span><span class="p">[</span><span class="n">ei</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
+        <span class="c1"># Generate masks from the positions showing what&#39;s inside</span>
+        <span class="n">masked_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="n">dim</span><span class="o">.</span><span class="n">positions</span><span class="p">))</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">masked_dims</span>
+
+    <span class="c1"># *+ bind more tightly than &amp;|^ so without these overrides we</span>
+    <span class="c1"># would need to add brackets to all combinations of Regions</span>
+    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Region&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mask&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">|</span> <span class="n">o</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Region&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mask&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">&amp;</span> <span class="n">o</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__xor__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Region&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mask&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">^</span> <span class="n">o</span><span class="p">))</span>
+
+    <span class="c1"># This is here for completeness, tends not to be called as - binds</span>
+    <span class="c1"># tighter than &amp;</span>
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Region&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mask&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">-</span> <span class="n">o</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Snake"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Snake">[docs]</a><span class="k">class</span> <span class="nc">Snake</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run the Spec in reverse on every other iteration when nested inside</span>
+<span class="sd">    another Spec. Typically created with the ``~`` operator.</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Line</span>
+
+<span class="sd">        spec = Line(&quot;y&quot;, 1, 3, 3) * ~Line(&quot;x&quot;, 3, 5, 5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Spec to run in reverse every other iteration&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">:</span>
+            <span class="n">dim</span><span class="o">.</span><span class="n">snake</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">dims</span></div>
+
+
+<div class="viewcode-block" id="Concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Concat">[docs]</a><span class="k">class</span> <span class="nc">Concat</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Concatenate two Specs together, running one after the other. Each Dimension</span>
+<span class="sd">    of left and right must contain the same keys.</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Line, Concat</span>
+
+<span class="sd">        spec = Concat(Line(&quot;x&quot;, 1, 3, 3), Line(&quot;x&quot;, 4, 5, 5))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">left</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Spec to Zip, positions will appear earlier&quot;</span>
+    <span class="p">)</span>
+    <span class="n">right</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Spec to Zip, positions will appear later&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="n">left_keys</span><span class="p">,</span> <span class="n">right_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">left_keys</span> <span class="o">==</span> <span class="n">right_keys</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Keys </span><span class="si">{</span><span class="n">left_keys</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">right_keys</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">left_keys</span>
+
+    <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+        <span class="n">dims_left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
+        <span class="n">dims_right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims_right</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">dims_left</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Specs </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="si">}</span><span class="s2"> don&#39;t have same number of dimensions&quot;</span>
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">dl</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dr</span><span class="p">)</span> <span class="k">for</span> <span class="n">dl</span><span class="p">,</span> <span class="n">dr</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dims_left</span><span class="p">,</span> <span class="n">dims_right</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">dimensions</span></div>
+
+
+<div class="viewcode-block" id="Squash"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Squash">[docs]</a><span class="k">class</span> <span class="nc">Squash</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Squash the Dimensions together of the scan (but not positions) into one</span>
+<span class="sd">    linear stack.</span>
+
+<span class="sd">    See Also:</span>
+<span class="sd">        `why-squash-can-change-path`</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Line, Squash</span>
+
+<span class="sd">        spec = Squash(Line(&quot;y&quot;, 1, 2, 3) * Line(&quot;x&quot;, 0, 1, 4))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Spec to squash the dimensions of&quot;</span><span class="p">)</span>
+    <span class="n">check_path_changes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If True path through scan will not be modified by squash&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+        <span class="c1"># TODO: if we squash we explode the size, can we avoid this?</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="n">squash_dimensions</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">nested</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_path_changes</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">dim</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_dimensions_from_indexes</span><span class="p">(</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]],</span>
+    <span class="n">keys</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+    <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+    <span class="c1"># Calc num positions (fences) from 0.5 .. num - 0.5</span>
+    <span class="n">positions_calc</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">num</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
+    <span class="n">positions</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">positions_calc</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">bounds</span><span class="p">:</span>
+        <span class="c1"># Calc num + 1 bounds (posts) from 0 .. num</span>
+        <span class="n">bounds_calc</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">lower</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">bounds_calc</span><span class="p">[</span><span class="n">k</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
+        <span class="n">upper</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">bounds_calc</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
+        <span class="n">dimension</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dimension</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">dimension</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="Line"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Line">[docs]</a><span class="k">class</span> <span class="nc">Line</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Linearly spaced points in the given key, with first and last points</span>
+<span class="sd">    centred on start and stop.</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Line</span>
+
+<span class="sd">        spec = Line(&quot;x&quot;, 1, 2, 5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">)</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Centre point of the first point of the line&quot;</span><span class="p">)</span>
+    <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Centre point of the last point of the line&quot;</span><span class="p">)</span>
+    <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of points to produce&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_line_from_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indexes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Only one point, stop-start gives length of one point</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Multiple points, stop-start gives length of num-1 points</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># self.start is the first centre point, but we need the lower bound</span>
+        <span class="c1"># of the first point as this is where the index array starts</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">step</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="n">indexes</span> <span class="o">*</span> <span class="n">step</span> <span class="o">+</span> <span class="n">first</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">_dimensions_from_indexes</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_line_from_indexes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="n">bounds</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Line.bounded"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Line.bounded">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="nd">@validate_arguments</span>
+    <span class="k">def</span> <span class="nf">bounded</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
+        <span class="n">lower</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+            <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Lower bound of the first point of the line&quot;</span>
+        <span class="p">),</span>
+        <span class="n">upper</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+            <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Upper bound of the last point of the line&quot;</span>
+        <span class="p">),</span>
+        <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">num</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Specify a Line by extreme bounds instead of centre points.</span>
+
+<span class="sd">        .. example_spec::</span>
+
+<span class="sd">            from scanspec.specs import Line</span>
+
+<span class="sd">            spec = Line.bounded(&quot;x&quot;, 1, 2, 5)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">half_step</span> <span class="o">=</span> <span class="p">(</span><span class="n">upper</span> <span class="o">-</span> <span class="n">lower</span><span class="p">)</span> <span class="o">/</span> <span class="n">num</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">lower</span> <span class="o">+</span> <span class="n">half_step</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># One point, stop will only be used for step size</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">upper</span> <span class="o">+</span> <span class="n">half_step</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Many points, stop will be produced</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">upper</span> <span class="o">-</span> <span class="n">half_step</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Static"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Static">[docs]</a><span class="k">class</span> <span class="nc">Static</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A static point, repeated &quot;num&quot; times, with &quot;key&quot; at &quot;value&quot;. Can</span>
+<span class="sd">    be used to set key=value at every point in a scan.</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Line, Static</span>
+
+<span class="sd">        spec = Line(&quot;y&quot;, 1, 2, 3) + Static(&quot;x&quot;, 3)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">)</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The value at each point&quot;</span><span class="p">)</span>
+    <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;How many times to repeat this point&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_repeats_from_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indexes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indexes</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)}</span>
+
+    <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">_dimensions_from_indexes</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_repeats_from_indexes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="n">bounds</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Spiral"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spiral">[docs]</a><span class="k">class</span> <span class="nc">Spiral</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Archimedean spiral of &quot;x_key&quot; and &quot;y_key&quot;, starting at centre point</span>
+<span class="sd">    (&quot;x_start&quot;, &quot;y_start&quot;) with angle &quot;rotate&quot;. Produces &quot;num&quot; points</span>
+<span class="sd">    in a spiral spanning width of &quot;x_range&quot; and height of &quot;y_range&quot;</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Spiral</span>
+
+<span class="sd">        spec = Spiral(&quot;x&quot;, &quot;y&quot;, 1, 5, 10, 50, 30)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">x_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for x&quot;</span><span class="p">)</span>
+    <span class="n">y_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for y&quot;</span><span class="p">)</span>
+    <span class="c1"># TODO: do we like these names?</span>
+    <span class="n">x_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;x centre of the spiral&quot;</span><span class="p">)</span>
+    <span class="n">y_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;y centre of the spiral&quot;</span><span class="p">)</span>
+    <span class="n">x_range</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;x width of the spiral&quot;</span><span class="p">)</span>
+    <span class="n">y_range</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;y width of the spiral&quot;</span><span class="p">)</span>
+    <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of points in the spiral&quot;</span><span class="p">)</span>
+    <span class="n">rotate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;How much to rotate the angle of the spiral&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="c1"># TODO: reversed from __init__ args, a good idea?</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_key</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_spiral_from_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indexes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="c1"># simplest spiral equation: r = phi</span>
+        <span class="c1"># we want point spacing across area to be the same as between rings</span>
+        <span class="c1"># so: sqrt(area / num) = ring_spacing</span>
+        <span class="c1"># so: sqrt(pi * phi^2 / num) = 2 * pi</span>
+        <span class="c1"># so: phi = sqrt(4 * pi * num)</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">indexes</span><span class="p">)</span>
+        <span class="c1"># indexes are 0..num inclusive, and diameter is 2x biggest phi</span>
+        <span class="n">diameter</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">)</span>
+        <span class="c1"># scale so that the spiral is strictly smaller than the range</span>
+        <span class="n">x_scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_range</span> <span class="o">/</span> <span class="n">diameter</span>
+        <span class="n">y_scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_range</span> <span class="o">/</span> <span class="n">diameter</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_key</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_start</span> <span class="o">+</span> <span class="n">y_scale</span> <span class="o">*</span> <span class="n">phi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotate</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_key</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_start</span> <span class="o">+</span> <span class="n">x_scale</span> <span class="o">*</span> <span class="n">phi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotate</span><span class="p">),</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">_dimensions_from_indexes</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_spiral_from_indexes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="n">bounds</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Spiral.spaced"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spiral.spaced">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="nd">@validate_arguments</span>
+    <span class="k">def</span> <span class="nf">spaced</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">x_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">x_key</span><span class="p">,</span>
+        <span class="n">y_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">y_key</span><span class="p">,</span>
+        <span class="n">x_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">x_start</span><span class="p">,</span>
+        <span class="n">y_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">y_start</span><span class="p">,</span>
+        <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;radius of the spiral&quot;</span><span class="p">),</span>
+        <span class="n">dr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;difference between each ring&quot;</span><span class="p">),</span>
+        <span class="n">rotate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">rotate</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Specify a Spiral equally spaced in &quot;x_key&quot; and &quot;y_key&quot; by specifying</span>
+<span class="sd">        the &quot;radius&quot; and difference between each ring of the spiral &quot;dr&quot;</span>
+
+<span class="sd">        .. example_spec::</span>
+
+<span class="sd">            from scanspec.specs import Spiral</span>
+
+<span class="sd">            spec = Spiral.spaced(&quot;x&quot;, &quot;y&quot;, 0, 0, 10, 3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># phi = sqrt(4 * pi * num)</span>
+        <span class="c1"># and: n_rings = phi / (2 * pi)</span>
+        <span class="c1"># so: n_rings * 2 * pi = sqrt(4 * pi * num)</span>
+        <span class="c1"># so: num = n_rings^2 * pi</span>
+        <span class="n">n_rings</span> <span class="o">=</span> <span class="n">radius</span> <span class="o">/</span> <span class="n">dr</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="n">n_rings</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">x_key</span><span class="p">,</span> <span class="n">y_key</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">y_start</span><span class="p">,</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">rotate</span><span class="p">)</span></div></div>
+
+
+<span class="c1">#: Can be used as a special key to indicate how long each point should be</span>
+<span class="n">TIME</span> <span class="o">=</span> <span class="s2">&quot;TIME&quot;</span>
+
+
+<span class="c1">#: Can be used as a special key to indicate repeats of a whole spec</span>
+<span class="n">REPEAT</span> <span class="o">=</span> <span class="s2">&quot;REPEAT&quot;</span>
+
+
+<div class="viewcode-block" id="fly"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.fly">[docs]</a><span class="k">def</span> <span class="nf">fly</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spec</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Flyscan, zipping TIME=duration for every position</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        spec: The source `Spec` to continuously move</span>
+<span class="sd">        duration: How long to spend at each point in the spec</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Line, fly</span>
+
+<span class="sd">        spec = fly(Line(&quot;x&quot;, 1, 2, 3), 0.1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">spec</span> <span class="o">+</span> <span class="n">Static</span><span class="p">(</span><span class="n">TIME</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="step"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.step">[docs]</a><span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Step scan, adding num x TIME=duration as an inner dimension for</span>
+<span class="sd">    every position</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        spec: The source `Spec` with positions to move to and stop</span>
+<span class="sd">        duration: The duration of each scan point</span>
+<span class="sd">        num: Number of points to produce with given duration at each of point</span>
+<span class="sd">            in the spec</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Line, step</span>
+
+<span class="sd">        spec = step(Line(&quot;x&quot;, 1, 2, 3), 0.1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">spec</span> <span class="o">*</span> <span class="n">Static</span><span class="p">(</span><span class="n">TIME</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="repeat"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.repeat">[docs]</a><span class="k">def</span> <span class="nf">repeat</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">blend</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Repeat spec num times</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        spec: The source `Spec` that will be iterated</span>
+<span class="sd">        num: The number of times to repeat it</span>
+<span class="sd">        blend: If True and the slowest dimension of spec is snaked then</span>
+<span class="sd">            the end and start of consecutive iterations of Spec will be</span>
+<span class="sd">            blended together, leaving no gap</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">blend</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Static</span><span class="p">(</span><span class="n">REPEAT</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="o">*</span> <span class="n">spec</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Line</span><span class="p">(</span><span class="n">REPEAT</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="o">*</span> <span class="n">spec</span></div>
+
+
+<span class="k">class</span> <span class="nc">_UnionModifier</span><span class="p">:</span>
+    <span class="c1"># Modifies all Spec subclasses so Spec-&gt;Union[all Spec subclasses]</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_spec_subclasses</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_all_subclasses</span><span class="p">(</span><span class="n">Spec</span><span class="p">))</span>
+        <span class="n">_region_subclasses</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_all_subclasses</span><span class="p">(</span><span class="n">Region</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_union</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">_spec_subclasses</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">region_union</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">_region_subclasses</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+
+        <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">_spec_subclasses</span> <span class="o">+</span> <span class="n">_region_subclasses</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">__fields__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">type_</span> <span class="ow">is</span> <span class="n">Spec</span><span class="p">:</span>
+                    <span class="n">field</span><span class="o">.</span><span class="n">type_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec_union</span>
+                    <span class="n">field</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="n">field</span><span class="o">.</span><span class="n">type_</span> <span class="ow">is</span> <span class="n">Region</span><span class="p">:</span>
+                    <span class="n">field</span><span class="o">.</span><span class="n">type_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">region_union</span>
+                    <span class="n">field</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_all_subclasses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">())</span><span class="o">.</span><span class="n">union</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_subclasses</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span>
+        <span class="p">)</span>
+
+
+<span class="n">_modifier</span> <span class="o">=</span> <span class="n">_UnionModifier</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="spec_from_dict"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.spec_from_dict">[docs]</a><span class="k">def</span> <span class="nf">spec_from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spec</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create a `Spec` from a dictionary representation of it</span>
+
+<span class="sd">    &gt;&gt;&gt; spec_from_dict(</span>
+<span class="sd">    ... {&#39;type&#39;: &#39;Line&#39;, &#39;key&#39;: &#39;x&#39;, &#39;start&#39;: 1.0, &#39;stop&#39;: 2.0, &#39;num&#39;: 3})</span>
+<span class="sd">    Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3)</span>
+
+<span class="sd">    .. seealso:: `serialize-a-spec`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">parse_obj_as</span><span class="p">(</span><span class="n">_modifier</span><span class="o">.</span><span class="n">spec_union</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="spec_from_json"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.spec_from_json">[docs]</a><span class="k">def</span> <span class="nf">spec_from_json</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spec</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create a `Spec` from a JSON representation of it</span>
+
+<span class="sd">    &gt;&gt;&gt; spec_from_json(</span>
+<span class="sd">    ... &#39;{&quot;type&quot;: &quot;Line&quot;, &quot;key&quot;: &quot;x&quot;, &quot;start&quot;: 1.0, &quot;stop&quot;: 2.0, &quot;num&quot;: 3}&#39;)</span>
+<span class="sd">    Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3)</span>
+
+<span class="sd">    .. seealso:: `serialize-a-spec`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">parse_raw_as</span><span class="p">(</span><span class="n">_modifier</span><span class="o">.</span><span class="n">spec_union</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Diamond Light Source
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
