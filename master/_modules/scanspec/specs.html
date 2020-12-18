@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>scanspec.specs &mdash; scanspec 0.0+untagged.g4291c53 documentation</title>
+  <title>scanspec.specs &mdash; scanspec 0.0+untagged.g3d86881 documentation</title>
   
 
   
@@ -377,12 +377,12 @@
     <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
         <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key_set</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">key_sets</span><span class="p">():</span>
-            <span class="c1"># Squash the dimensions together containing these keys</span>
+            <span class="c1"># Find the start and end index of any dimensions containing these keys</span>
             <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">&amp;</span> <span class="n">key_set</span><span class="p">]</span>
             <span class="k">assert</span> <span class="n">matches</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;No Specs match keys </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">key_set</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="n">si</span><span class="p">,</span> <span class="n">ei</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">matches</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">si</span> <span class="o">!=</span> <span class="n">ei</span><span class="p">:</span>
-                <span class="c1"># Span Specs, squash them</span>
+                <span class="c1"># The key_set spans multiple Dimensions, squash them together</span>
                 <span class="c1"># If the spec to be squashed is nested (inside the Mask or outside)</span>
                 <span class="c1"># then check the path changes if requested</span>
                 <span class="n">check_path_changes</span> <span class="o">=</span> <span class="p">(</span><span class="n">nested</span> <span class="ow">or</span> <span class="n">si</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_path_changes</span>
@@ -469,7 +469,7 @@
 
 <div class="viewcode-block" id="Squash"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Squash">[docs]</a><span class="k">class</span> <span class="nc">Squash</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Squash the Dimensions together of the scan (but not positions) into one</span>
-<span class="sd">    long line.</span>
+<span class="sd">    linear stack.</span>
 
 <span class="sd">    See Also:</span>
 <span class="sd">        `why-squash-can-change-path`</span>
@@ -502,9 +502,11 @@
     <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
+    <span class="c1"># Calc num positions (fences) from 0.5 .. num - 0.5</span>
     <span class="n">positions_calc</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">num</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">num</span><span class="p">))</span>
     <span class="n">positions</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">positions_calc</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
     <span class="k">if</span> <span class="n">bounds</span><span class="p">:</span>
+        <span class="c1"># Calc num + 1 bounds (posts) from 0 .. num</span>
         <span class="n">bounds_calc</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">lower</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">bounds_calc</span><span class="p">[</span><span class="n">k</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
         <span class="n">upper</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">bounds_calc</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">}</span>
@@ -525,7 +527,6 @@
 <span class="sd">        spec = Line(&quot;x&quot;, 1, 2, 5)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># TODO: are start and stop positions, bounds, or different for fly/step</span>
     <span class="n">key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">)</span>
     <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Centre point of the first point of the line&quot;</span><span class="p">)</span>
     <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Centre point of the last point of the line&quot;</span><span class="p">)</span>
@@ -541,7 +542,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Multiple points, stop-start gives length of num-1 points</span>
             <span class="n">step</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="p">(</span><span class="n">indexes</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">step</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">}</span>
+        <span class="c1"># self.start is the first centre point, but we need the lower bound</span>
+        <span class="c1"># of the first point as this is where the index array starts</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">step</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="n">indexes</span> <span class="o">*</span> <span class="n">step</span> <span class="o">+</span> <span class="n">first</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">_dimensions_from_indexes</span><span class="p">(</span>
@@ -689,8 +693,16 @@
 <span class="n">TIME</span> <span class="o">=</span> <span class="s2">&quot;TIME&quot;</span>
 
 
-<div class="viewcode-block" id="fly"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.fly">[docs]</a><span class="k">def</span> <span class="nf">fly</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="c1">#: Can be used as a special key to indicate repeats of a whole spec</span>
+<span class="n">REPEAT</span> <span class="o">=</span> <span class="s2">&quot;REPEAT&quot;</span>
+
+
+<div class="viewcode-block" id="fly"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.fly">[docs]</a><span class="k">def</span> <span class="nf">fly</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spec</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Flyscan, zipping TIME=duration for every position</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        spec: The source `Spec` to continuously move</span>
+<span class="sd">        duration: How long to spend at each point in the spec</span>
 
 <span class="sd">    .. example_spec::</span>
 
@@ -701,8 +713,15 @@
     <span class="k">return</span> <span class="n">spec</span> <span class="o">+</span> <span class="n">Static</span><span class="p">(</span><span class="n">TIME</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="step"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.step">[docs]</a><span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Step scan, adding TIME=duration as an inner dimension for every position</span>
+<div class="viewcode-block" id="step"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.step">[docs]</a><span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Step scan, adding num x TIME=duration as an inner dimension for</span>
+<span class="sd">    every position</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        spec: The source `Spec` with positions to move to and stop</span>
+<span class="sd">        duration: The duration of each scan point</span>
+<span class="sd">        num: Number of points to produce with given duration at each of point</span>
+<span class="sd">            in the spec</span>
 
 <span class="sd">    .. example_spec::</span>
 
@@ -710,7 +729,23 @@
 
 <span class="sd">        spec = step(Line(&quot;x&quot;, 1, 2, 3), 0.1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">spec</span> <span class="o">*</span> <span class="n">Static</span><span class="p">(</span><span class="n">TIME</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">spec</span> <span class="o">*</span> <span class="n">Static</span><span class="p">(</span><span class="n">TIME</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="repeat"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.repeat">[docs]</a><span class="k">def</span> <span class="nf">repeat</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">blend</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Repeat spec num times</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        spec: The source `Spec` that will be iterated</span>
+<span class="sd">        num: The number of times to repeat it</span>
+<span class="sd">        blend: If True and the slowest dimension of spec is snaked then</span>
+<span class="sd">            the end and start of consecutive iterations of Spec will be</span>
+<span class="sd">            blended together, leaving no gap</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">blend</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Static</span><span class="p">(</span><span class="n">REPEAT</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="o">*</span> <span class="n">spec</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Line</span><span class="p">(</span><span class="n">REPEAT</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="o">*</span> <span class="n">spec</span></div>
 
 
 <span class="k">class</span> <span class="nc">_UnionModifier</span><span class="p">:</span>
@@ -724,7 +759,6 @@
         <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">_spec_subclasses</span> <span class="o">+</span> <span class="n">_region_subclasses</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">__fields__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">type_</span> <span class="ow">is</span> <span class="n">Spec</span><span class="p">:</span>
-                    <span class="c1"># TODO: Is it better to create a new field than modify?</span>
                     <span class="n">field</span><span class="o">.</span><span class="n">type_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec_union</span>
                     <span class="n">field</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span>
                 <span class="k">elif</span> <span class="n">field</span><span class="o">.</span><span class="n">type_</span> <span class="ow">is</span> <span class="n">Region</span><span class="p">:</span>

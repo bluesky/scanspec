@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Creating a Scan Spec &mdash; scanspec 0.0+untagged.g4291c53 documentation</title>
+  <title>Creating a Scan Spec &mdash; scanspec 0.0+untagged.g3d86881 documentation</title>
   
 
   
@@ -225,7 +225,7 @@ code into an interactive Python terminal, it should plot a graph of a 1D line:</
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-1.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-1.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-1.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-1.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-1.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-1.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-1.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-1.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-1.png" src="../_images/creating-a-spec-1.png" />
 </div>
@@ -233,19 +233,6 @@ code into an interactive Python terminal, it should plot a graph of a 1D line:</
 on 2. The black dots mark the centre positions on the Path. The coloured
 lines mark the motion from the lower to upper bound of each point on the Path.
 The grey arrowhead marks the start of the scan, and the cross marks the end.</p>
-<p>You can see the points if you create the Path yourself, then consume all its points:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">path</span><span class="p">()</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">lower</span>
-<span class="go">{&#39;x&#39;: array([0.875, 1.125, 1.375, 1.625, 1.875])}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">positions</span>
-<span class="go">{&#39;x&#39;: array([1.  , 1.25, 1.5 , 1.75, 2.  ])}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">upper</span>
-<span class="go">{&#39;x&#39;: array([1.125, 1.375, 1.625, 1.875, 2.125])}</span>
-</pre></div>
-</div>
-<p>The array of positions is between the lower and upper bounds, with the upper bound
-and lower bound of adjacent points being equal. This consumable <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> object is
-what a scanning program should use to execute the scan described by a <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a>.</p>
 </div>
 <div class="section" id="plotting-from-the-commandline">
 <h2>Plotting from the commandline<a class="headerlink" href="#plotting-from-the-commandline" title="Permalink to this headline">¶</a></h2>
@@ -268,7 +255,7 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-2.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-2.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-2.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-2.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-2.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-2.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-2.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-2.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-2.png" src="../_images/creating-a-spec-2.png" />
 </div>
@@ -283,21 +270,13 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-3.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-3.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-3.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-3.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-3.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-3.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-3.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-3.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-3.png" src="../_images/creating-a-spec-3.png" />
 </div>
 <p>The plot shows grey arrowed lines marking the turnarounds. These are added by
 the plotting function as an indication of what a scanning program might do between
 two disjoint points, it is not a guarantee of the path that will be taken.</p>
-<p>Examining the spec shows that it is a <a class="reference internal" href="../reference/api.html#scanspec.specs.Product" title="scanspec.specs.Product"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Product</span></code></a>, whose length is
-the product of the lengths of the two input Specs:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span>
-<span class="go">Product(type=&#39;Product&#39;, outer=Line(type=&#39;Line&#39;, key=&#39;y&#39;, start=3.0, stop=4.0, num=3), inner=Line(type=&#39;Line&#39;, key=&#39;x&#39;, start=1.0, stop=2.0, num=5))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">path</span><span class="p">())</span>
-<span class="go">15</span>
-</pre></div>
-</div>
 </div>
 <div class="section" id="snaked-grid">
 <h2>Snaked Grid<a class="headerlink" href="#snaked-grid" title="Permalink to this headline">¶</a></h2>
@@ -310,7 +289,7 @@ our grid we get:</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-4.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-4.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-4.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-4.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-4.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-4.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-4.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-4.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-4.png" src="../_images/creating-a-spec-4.png" />
 </div>
@@ -327,7 +306,7 @@ the <code class="docutils literal notranslate"><span class="pre">&amp;</span></c
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-5.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-5.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-5.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-5.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-5.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-5.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-5.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-5.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-5.png" src="../_images/creating-a-spec-5.png" />
 </div>
@@ -350,7 +329,7 @@ the <code class="docutils literal notranslate"><span class="pre">&amp;</span></c
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-6.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-6.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-6.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpp_unuej7/4291c532252ddc0b4b408088f5bfba63fbfd18ae/docs/tutorials/creating-a-spec-6.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-6.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-6.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-6.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmp12cwye8b/3d86881b06d2a774da53c9922cee7d84677a162b/docs/tutorials/creating-a-spec-6.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-6.png" src="../_images/creating-a-spec-6.png" />
 </div>
