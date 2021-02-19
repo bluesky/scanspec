@@ -16,7 +16,6 @@ sphinx-rtd-theme = "*"
 # Without these lines lockfile isn't usable on multiple Python versions and platforms
 mypy = "*"
 atomicwrites = "*"
-matplotlib = "*"
 scipy = "*"
 # This pin no longer required after https://github.com/tholo/pytest-flake8/pull/71 merges
 pytest = "<6.1.0"
@@ -26,6 +25,8 @@ sphinx-multiversion = {editable = true,git = "https://github.com/dls-controls/sp
 [packages]
 # All other package requirements from setup.cfg
 scanspec = {editable = true, path = "."}
+apischema = "*"
+matplotlib = "*"
 
 [scripts]
 # Put coverage here so we don't interfere with debugging in the IDE
