@@ -3,8 +3,8 @@ import json
 import pytest
 from apischema.validation.errors import ValidationError
 
-from scanspec.regions import Circle
-from scanspec.specs import Line, Mask, spec_from_dict, spec_from_json
+from scanspec.regions import Circle, Rectangle, UnionOf
+from scanspec.specs import Line, Mask, Spiral, spec_from_dict, spec_from_json
 
 
 def test_line_serializes() -> None:
@@ -32,6 +32,26 @@ def test_product_lines_serializes() -> None:
         '{"Product": {"outer": {"Line": {"key": "y", "start": 2.0, "stop": 3.0, '
         '"num": 5}}, "inner": {"Line": {"key": "x", "start": 0.0, "stop": 1.0, '
         '"num": 4}}}}'
+    )
+    assert ob.serialize() == json.loads(serialized)
+    assert spec_from_json(serialized) == ob
+
+
+def test_complex_nested_serializes() -> None:
+    ob = Mask(
+        Spiral.spaced("x", "y", 0, 0, 10, 3),
+        UnionOf(
+            Circle("x", "y", x_centre=0, y_centre=1, radius=4),
+            Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30),
+        ),
+    )
+    serialized = (
+        '{"Mask": {"spec": {"Spiral": {"x_key": "x", "y_key": "y", "x_start": 0, '
+        '"y_start": 0, "x_range": 20, "y_range": 20, "num": 34, "rotate": 0.0}}, '
+        '"region": {"UnionOf": {"left": {"Circle": {"x_key": "x", "y_key": "y", '
+        '"x_centre": 0, "y_centre": 1, "radius": 4}}, "right": {"Rectangle": '
+        '{"x_key": "x", "y_key": "y", "x_min": 0, "y_min": 1.1, "x_max": 1.5, '
+        '"y_max": 2.1, "angle": 30}}}}, "check_path_changes": true}}'
     )
     assert ob.serialize() == json.loads(serialized)
     assert spec_from_json(serialized) == ob
