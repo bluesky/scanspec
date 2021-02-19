@@ -24,9 +24,12 @@ from apischema.metadata.implem import ConversionMetadata
 from apischema.metadata.keys import CONVERSIONS_METADATA
 from apischema.tagged_unions import Tagged, TaggedUnion, get_tagged
 
+#: The type of class the function will return
+T = TypeVar("T")
+
 
 # Recursive implementation of type.__subclasses__
-def rec_subclasses(cls) -> Iterator:
+def rec_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
     for sub_cls in cls.__subclasses__():
         yield sub_cls
         yield from rec_subclasses(sub_cls)
@@ -42,7 +45,9 @@ def update_serialization(parent_class: Any) -> Conversion:
     The tagged union is then used to register a a deserialization.
     It is also returned for use in dynamic conversions."""
 
-    namespace, annotations = {}, {}
+    sub_cls: Any
+    namespace: Dict[str, Any] = {}
+    annotations: Dict[str, Type[Tagged[Any]]] = {}
     for sub_cls in rec_subclasses(parent_class):
         # Add tagged field for the Spec subclass
         annotations[sub_cls.__name__] = Tagged[sub_cls]
@@ -143,9 +148,6 @@ class Serializable:
 #: Positions map {key: positions_ndarray}
 #: E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}
 Positions = Dict[Any, np.ndarray]
-
-#: The type of class the function will return
-T = TypeVar("T")
 
 
 def if_instance_do(x, cls: Type[T], func: Callable[[T], Any]):
