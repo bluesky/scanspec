@@ -1,42 +1,143 @@
-from typing import Any, Callable, Dict, Iterator, List, Type, TypeVar
+from dataclasses import fields as dataclass_fields
+from types import new_class
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Type,
+    TypeVar,
+)
 
 import numpy as np
-from pydantic import BaseModel
-from pydantic.fields import Field, FieldInfo
+from apischema import deserialize, deserializer, serialize
+from apischema.conversions import (
+    Conversion,
+    LazyConversion,
+    dataclass_input_wrapper,
+    reset_deserializers,
+)
+from apischema.metadata.implem import ConversionMetadata
+from apischema.metadata.keys import CONVERSIONS_METADATA
+from apischema.tagged_unions import Tagged, TaggedUnion, get_tagged
 
 
-# These are used in the definition of the Schema
-# It allows the class to be inferred from the serialized "type" field
-class _SerializableMetaClass(type(BaseModel)):  # type: ignore
-    def __new__(mcs, name, bases, namespace, **kwargs):
-        # Override type in namespace to be the literal value of the class name
-        namespace["type"] = Field(name, const=True)
-        return super().__new__(mcs, name, bases, namespace, **kwargs)
+# Recursive implementation of type.__subclasses__
+def rec_subclasses(cls) -> Iterator:
+    for sub_cls in cls.__subclasses__():
+        yield sub_cls
+        yield from rec_subclasses(sub_cls)
 
 
-class Serializable(BaseModel, metaclass=_SerializableMetaClass):
-    """pydantic BaseModel that adds support for positional arguments and a type
-    parameter from class name."""
+def update_serialization(parent_class: Any) -> Conversion:
+    """Performs several tasks to setup (de)serialization. First,
+    handle alternative constructors so they are added to the TaggedUnion.
+    Second, calculate a tagged_union_conversion. Sub-classes are iterated
+    over for a second time. This time each dataclass field is checked. If
+    the dataclass field is of the same type as one of the serializable classes
+    (i.e. a child of Serializable), its dynamic converion is updated.
+    The tagged union is then used to register a a deserialization.
+    It is also returned for use in dynamic conversions."""
 
-    type: str
+    namespace, annotations = {}, {}
+    for sub_cls in rec_subclasses(parent_class):
+        # Add tagged field for the Spec subclass
+        annotations[sub_cls.__name__] = Tagged[sub_cls]
+        # Add tagged fields for all its additional constructors
+        # (use class __dict__ in order to avoid inheritances of this constructors)
+        for constructor in sub_cls.__dict__.get("_additional_constructors", ()):
+            # Deref the constructor function if it is a classmethod/staticmethod
+            constructor = constructor.__get__(None, sub_cls)
+            # Build the alias of the field
+            alias = (
+                "".join(map(str.capitalize, constructor.__name__.split("_")))
+                + sub_cls.__name__
+            )
+            # dataclass_input_wrapper uses get_type_hints, but the constructor
+            # return type is stringified and the class not defined yet,
+            # so it must be assigned manually
+            constructor.__annotations__["return"] = sub_cls
+            # Wraps the constructor and rename its input class
+            wrapper, wrapper_cls = dataclass_input_wrapper(constructor)
+            wrapper_cls.__name__ = alias
+            # Add constructor tagged field with its conversion
+            annotations[alias] = Tagged[sub_cls]
+            namespace[alias] = Tagged(deserialization=wrapper)
+    # Create the tagged union class
+    namespace |= {"__annotations__": annotations}
 
-    class Config:
-        # Forbid any extra input
-        extra = "forbid"
+    tagged_union = new_class(
+        f"Tagged{parent_class.__name__}Union",
+        (TaggedUnion,),
+        exec_body=lambda ns: ns.update(namespace),
+    )
 
-    def __init__(self, *args, **kwargs):
-        # Allow positional args, but don't include type
-        keys = [x for x in self.__fields__ if x != "type"]
-        kwargs.update(zip(keys, args))
-        # Work around the fact that arg=Field(default, ...) doesn't
-        # work with validate_arguments
-        for k, v in kwargs.items():
-            if isinstance(v, FieldInfo):
-                kwargs[k] = v.default
-        super().__init__(**kwargs)
+    tagged_union_conversion = Conversion(
+        lambda obj: tagged_union(**{type(obj).__name__: obj}),
+        source=parent_class,
+        target=tagged_union,
+    )
 
-    def __repr_args__(self):
-        return [(a, v) for a, v in super().__repr_args__() if a != "type"]
+    # Add dynamic conversions for attributes which are children of Serializable
+    for sub_cls in rec_subclasses(parent_class):
+        for field in dataclass_fields(sub_cls):
+            meta = field.metadata
+            if meta and field.type in parent_class.registered_serializable:
+                if field.type == parent_class:
+                    conversion = tagged_union_conversion
+                else:
+                    conversion = field.type.conversion
+                meta = {
+                    **meta,
+                    **{
+                        CONVERSIONS_METADATA: ConversionMetadata(
+                            serialization=conversion
+                        )
+                    },
+                }
+                field.metadata = meta
+
+    # Because deserializers stack, they must be reset before being reassigned
+    reset_deserializers(parent_class)
+    # Register the deserializer using get_tagged
+    deserializer(
+        Conversion(
+            lambda obj: get_tagged(obj)[1], source=tagged_union, target=parent_class
+        )
+    )
+
+    return tagged_union_conversion
+
+
+class Serializable:
+    """Base class for registering apischema (de)serialization conversions.
+    The conversion class variable of child classes holds the necessary information to
+    (de)serialize grandchild classes. Each time a grandchild class is added
+    conversion is updated to create a full TaggedUnion for the child class."""
+
+    conversion = ClassVar[Optional[Conversion]]
+    registered_serializable: ClassVar[List[Any]] = []
+
+    def __init_subclass__(cls, **kwargs):
+        parent_cls = cls.__bases__[0]
+        if parent_cls == Serializable:
+            cls.registered_serializable.append(cls)
+        else:
+            super().__init_subclass__(**kwargs)
+            parent_cls.conversion = update_serialization(parent_cls)
+
+    def serialize(self):
+        parent_cls = self.__class__.__bases__[0]
+        return serialize(
+            self, conversions=LazyConversion(lambda: parent_cls.conversion)
+        )
+
+    @classmethod
+    def deserialize(cls, serialization):
+        return deserialize(cls, serialization)
 
 
 #: Positions map {key: positions_ndarray}
