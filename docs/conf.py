@@ -49,7 +49,7 @@ extensions = [
     "sphinx_multiversion",
     # Adds plotting directives
     "matplotlib.sphinxext.plot_directive",
-    # Add Pydantic information to autodoc entries
+    # Add apischema information to autodoc entries
     "scanspec.sphinxext",
 ]
 
