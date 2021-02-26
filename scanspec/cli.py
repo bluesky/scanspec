@@ -39,3 +39,11 @@ def plot(spec: str):
         locals()[letter] = letter
     eval_spec = eval(spec)
     plot_spec(eval_spec)
+
+
+@cli.command()
+def service():
+    """Run up a GraphQL service"""
+    from scanspec.service import run_app
+
+    run_app()
