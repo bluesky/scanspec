@@ -35,6 +35,31 @@ def rec_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
         yield from rec_subclasses(sub_cls)
 
 
+# {cls_name: [functions]}
+_alternative_constructors: Dict[str, List[Callable]] = {}
+
+
+def alternative_constructor(f: Callable):
+    """Register an alternative constructor for this class. This will be returned
+    as a staticmethod so the signature should not include self/cls.
+
+    >>> import dataclasses
+    >>> @dataclasses.dataclass
+    ... class Foo:
+    ...     a: int
+    ...     @alternative_constructor
+    ...     def doubled(b: int) -> "Foo":
+    ...         return Foo(b * 2)
+    ...
+    >>> Foo.doubled(2)
+    Foo(a=4)
+    """
+    cls_name = f.__qualname__.split(".")[0]
+    _alternative_constructors.setdefault(cls_name, []).append(f)
+    m = staticmethod(f)
+    return m
+
+
 def update_serialization(parent_class: Any) -> Conversion:
     """Performs several tasks to setup (de)serialization. First,
     handle alternative constructors so they are added to the TaggedUnion.
@@ -53,9 +78,7 @@ def update_serialization(parent_class: Any) -> Conversion:
         annotations[sub_cls.__name__] = Tagged[sub_cls]
         # Add tagged fields for all its additional constructors
         # (use class __dict__ in order to avoid inheritances of this constructors)
-        for constructor in sub_cls.__dict__.get("_additional_constructors", ()):
-            # Deref the constructor function if it is a classmethod/staticmethod
-            constructor = constructor.__get__(None, sub_cls)
+        for constructor in _alternative_constructors.get(sub_cls.__name__, []):
             # Build the alias of the field
             alias = (
                 "".join(map(str.capitalize, constructor.__name__.split("_")))

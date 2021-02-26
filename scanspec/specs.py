@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass, field
-from typing import Any, Callable, ClassVar, Collection, Dict, List, Optional, TypeVar
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import numpy as np
 from apischema import schema
@@ -11,6 +11,7 @@ from .core import (
     Path,
     Serializable,
     SpecPositions,
+    alternative_constructor,
     if_instance_do,
     squash_dimensions,
 )
@@ -28,9 +29,6 @@ class Spec(Serializable):
     - ``&``: `Mask` the Spec with a `Region`, excluding positions outside it
     - ``~``: `Snake` the Spec, reversing every other iteration of it
     """
-
-    # Will be used in in the input tagged union
-    _additional_constructors: ClassVar[Collection[Callable[..., "Spec"]]] = []
 
     def keys(self) -> List:
         """Return the list of keys that are present in the positions, from
@@ -395,7 +393,7 @@ class Line(Spec):
             self._line_from_indexes, self.keys(), self.num, bounds
         )
 
-    @staticmethod
+    @alternative_constructor
     def bounded(
         key: Annotated[Any, schema(description="An identifier for what to move")],
         lower: Annotated[
@@ -423,8 +421,6 @@ class Line(Spec):
             # Many points, stop will be produced
             stop = upper - half_step
         return Line(key, start, stop, num)
-
-    _additional_constructors = [bounded]
 
 
 @dataclass
@@ -514,7 +510,7 @@ class Spiral(Spec):
             self._spiral_from_indexes, self.keys(), self.num, bounds
         )
 
-    @staticmethod
+    @alternative_constructor
     def spaced(
         x_key: Annotated[
             Any, schema(description="An identifier for what to move for x")
@@ -551,8 +547,6 @@ class Spiral(Spec):
         return Spiral(
             x_key, y_key, x_start, y_start, radius * 2, radius * 2, num, rotate
         )
-
-    _additional_constructors = [spaced]
 
 
 #: Can be used as a special key to indicate how long each point should be
