@@ -60,7 +60,7 @@ def alternative_constructor(f: Callable):
     return m
 
 
-def update_serialization(parent_class: Any) -> Conversion:
+def _update_serialization(parent_class: Any) -> Conversion:
     """Performs several tasks to setup (de)serialization. First,
     handle alternative constructors so they are added to the TaggedUnion.
     Second, calculate a tagged_union_conversion. Sub-classes are iterated
@@ -155,7 +155,7 @@ class Serializable:
             cls.registered_serializable.append(cls)
         else:
             super().__init_subclass__(**kwargs)
-            parent_cls.conversion = update_serialization(parent_cls)
+            parent_cls.conversion = _update_serialization(parent_cls)
 
     def serialize(self):
         parent_cls = self.__class__.__bases__[0]
@@ -168,7 +168,7 @@ class Serializable:
         return deserialize(cls, serialization)
 
 
-#: Positions map {key: positions_ndarray}
+#: Map of positions keys to positions_ndarray
 #: E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}
 Positions = Dict[Any, np.ndarray]
 
