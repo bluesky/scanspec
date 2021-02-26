@@ -1,9 +1,10 @@
 from dataclasses import _FIELD_CLASSVAR, Field, is_dataclass  # type: ignore
-from typing import Annotated, Any, Dict, Optional, Tuple, get_args, get_origin
+from typing import Any, Dict, Optional, Tuple
 
 from apischema.json_schema.schema import Schema
 from apischema.metadata.keys import SCHEMA_METADATA
 from matplotlib.sphinxext.plot_directive import PlotDirective
+from typing_extensions import Annotated, get_args, get_origin
 
 
 def get_type(meta: Tuple[Any]) -> str:

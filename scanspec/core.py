@@ -72,7 +72,7 @@ def update_serialization(parent_class: Any) -> Conversion:
             annotations[alias] = Tagged[sub_cls]
             namespace[alias] = Tagged(deserialization=wrapper)
     # Create the tagged union class
-    namespace |= {"__annotations__": annotations}
+    namespace = dict(__annotations__=annotations, **namespace)
 
     tagged_union = new_class(
         f"Tagged{parent_class.__name__}Union",

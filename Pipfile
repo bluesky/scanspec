@@ -21,12 +21,12 @@ scipy = "*"
 pytest = "<6.1.0"
 # switch to main repo after PR https://github.com/Holzhaus/sphinx-multiversion/pull/60 is merged
 sphinx-multiversion = {editable = true,git = "https://github.com/dls-controls/sphinx-multiversion.git",ref = "only-arg"}
+# Matplotlib needed for cli and docs
+matplotlib = "*"
 
 [packages]
 # All other package requirements from setup.cfg
 scanspec = {editable = true, path = "."}
-apischema = "*"
-matplotlib = "*"
 
 [scripts]
 # Put coverage here so we don't interfere with debugging in the IDE

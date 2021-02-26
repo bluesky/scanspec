@@ -1,19 +1,10 @@
 import json
 from dataclasses import dataclass, field
-from typing import (
-    Annotated,
-    Any,
-    Callable,
-    ClassVar,
-    Collection,
-    Dict,
-    List,
-    Optional,
-    TypeVar,
-)
+from typing import Any, Callable, ClassVar, Collection, Dict, List, Optional, TypeVar
 
 import numpy as np
 from apischema import schema
+from typing_extensions import Annotated
 
 from .core import (
     Dimension,
