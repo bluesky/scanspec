@@ -1,3 +1,4 @@
+from typing import Any
 from aiohttp import web
 from apischema.graphql import graphql_schema
 from graphql_server.aiohttp import GraphQLView
@@ -5,9 +6,9 @@ from graphql_server.aiohttp import GraphQLView
 from scanspec.specs import Spec
 
 
-def validate_spec(spec: Spec) -> str:
+def validate_spec(spec: Spec) -> Any:
     # apischema will do all the validation for us
-    return str(spec)
+    return spec.serialize()
 
 
 def run_app():
