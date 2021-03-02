@@ -29,8 +29,3 @@ def test_snake_not_allowed_inside_odd_nested() -> None:
     with pytest.raises(ValueError) as cm:
         spec.create_dimensions()
     assert "['x'] would jump in position" in cm.value.args[0]
-
-
-def test_extra_arg_fails() -> None:
-    with pytest.raises(ValueError):
-        Line("y", 1, 2, 3, foo="bar")

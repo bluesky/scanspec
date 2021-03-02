@@ -30,8 +30,8 @@ from code:
         :no-show-inheritance:
 
         .. seealso::
-            https://pydantic-docs.helpmanual.io/usage/exporting_models/ for
-            information on the usage of the ``dict()`` and ``json()`` methods
+            https://github.com/wyfo/apischema/discussions/56#discussioncomment-336580
+            for discussion on tagged unions and alternative constructors
 
 .. automodule:: scanspec.specs
     :members:

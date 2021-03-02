@@ -1,19 +1,26 @@
-from typing import Any, Callable, Dict, List, Optional, Union
+import json
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import numpy as np
-from pydantic import Field, parse_obj_as, parse_raw_as, validate_arguments
+from apischema import schema
+from typing_extensions import Annotated
 
 from .core import (
     Dimension,
     Path,
     Serializable,
     SpecPositions,
+    alternative_constructor,
     if_instance_do,
     squash_dimensions,
 )
 from .regions import Region, get_mask
 
+T = TypeVar("T")
 
+
+@dataclass
 class Spec(Serializable):
     """Abstract baseclass for the specification of a scan. Supports operators:
 
@@ -57,6 +64,7 @@ class Spec(Serializable):
         return Snake(self)
 
 
+@dataclass
 class Product(Spec):
     """Outer product of two Specs, nesting inner within outer. This means that
     inner will run in its entirety at each point in outer.
@@ -68,8 +76,10 @@ class Product(Spec):
         spec = Line("y", 1, 2, 3) * Line("x", 3, 4, 12)
     """
 
-    outer: Spec = Field(..., description="Will be executed once")
-    inner: Spec = Field(..., description="Will be executed len(outer) times")
+    outer: Spec = field(metadata=schema(description="Will be executed once"))
+    inner: Spec = field(
+        metadata=schema(description="Will be executed len(outer) times")
+    )
 
     def keys(self) -> List:
         return self.outer.keys() + self.inner.keys()
@@ -80,6 +90,7 @@ class Product(Spec):
         return dims_outer + dims_inner
 
 
+@dataclass
 class Zip(Spec):
     """Run two Specs in parallel, merging their positions together. Typically
     formed using the ``+`` operator.
@@ -101,11 +112,15 @@ class Zip(Spec):
         spec = Line("z", 1, 2, 3) * Line("y", 3, 4, 5) + Line("x", 4, 5, 5)
     """
 
-    left: Spec = Field(
-        ..., description="The left-hand Spec to Zip, will appear earlier in keys"
+    left: Spec = field(
+        metadata=schema(
+            description="The left-hand Spec to Zip, will appear earlier in keys"
+        )
     )
-    right: Spec = Field(
-        ..., description="The right-hand Spec to Zip, will appear later in keys"
+    right: Spec = field(
+        metadata=schema(
+            description="The right-hand Spec to Zip, will appear later in keys"
+        )
     )
 
     def keys(self) -> List:
@@ -144,6 +159,7 @@ class Zip(Spec):
         return dimensions
 
 
+@dataclass
 class Mask(Spec):
     """Restrict the given Spec to only the positions that fall inside the given
     Region.
@@ -166,10 +182,17 @@ class Mask(Spec):
         spec = Line("y", 1, 3, 3) * Line("x", 3, 5, 5) & Circle("x", "y", 4, 2, 1.2)
     """
 
-    spec: Spec = Field(..., description="The Spec containing the source positions")
-    region: Region = Field(..., description="The Region that positions will be inside")
-    check_path_changes: bool = Field(
-        True, description="If True path through scan will not be modified by squash"
+    spec: Spec = field(
+        metadata=schema(description="The Spec containing the source positions")
+    )
+    region: Region = field(
+        metadata=schema(description="The Region that positions will be inside")
+    )
+    check_path_changes: bool = field(
+        default=True,
+        metadata=schema(
+            description="If True path through scan will not be modified by squash"
+        ),
     )
 
     def keys(self) -> List:
@@ -210,6 +233,7 @@ class Mask(Spec):
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
 
 
+@dataclass
 class Snake(Spec):
     """Run the Spec in reverse on every other iteration when nested inside
     another Spec. Typically created with the ``~`` operator.
@@ -221,8 +245,8 @@ class Snake(Spec):
         spec = Line("y", 1, 3, 3) * ~Line("x", 3, 5, 5)
     """
 
-    spec: Spec = Field(
-        ..., description="The Spec to run in reverse every other iteration"
+    spec: Spec = field(
+        metadata=schema(description="The Spec to run in reverse every other iteration")
     )
 
     def keys(self) -> List:
@@ -235,6 +259,7 @@ class Snake(Spec):
         return dims
 
 
+@dataclass
 class Concat(Spec):
     """Concatenate two Specs together, running one after the other. Each Dimension
     of left and right must contain the same keys.
@@ -246,11 +271,15 @@ class Concat(Spec):
         spec = Concat(Line("x", 1, 3, 3), Line("x", 4, 5, 5))
     """
 
-    left: Spec = Field(
-        ..., description="The left-hand Spec to Zip, positions will appear earlier"
+    left: Spec = field(
+        metadata=schema(
+            description="The left-hand Spec to Zip, positions will appear earlier"
+        )
     )
-    right: Spec = Field(
-        ..., description="The right-hand Spec to Zip, positions will appear later"
+    right: Spec = field(
+        metadata=schema(
+            description="The right-hand Spec to Zip, positions will appear later"
+        )
     )
 
     def keys(self) -> List:
@@ -268,6 +297,7 @@ class Concat(Spec):
         return dimensions
 
 
+@dataclass
 class Squash(Spec):
     """Squash the Dimensions together of the scan (but not positions) into one
     linear stack.
@@ -282,9 +312,14 @@ class Squash(Spec):
         spec = Squash(Line("y", 1, 2, 3) * Line("x", 0, 1, 4))
     """
 
-    spec: Spec = Field(..., description="The Spec to squash the dimensions of")
-    check_path_changes: bool = Field(
-        True, description="If True path through scan will not be modified by squash"
+    spec: Spec = field(
+        metadata=schema(description="The Spec to squash the dimensions of")
+    )
+    check_path_changes: bool = field(
+        default=True,
+        metadata=schema(
+            description="If True path through scan will not be modified by squash"
+        ),
     )
 
     def keys(self) -> List:
@@ -317,6 +352,7 @@ def _dimensions_from_indexes(
     return [dimension]
 
 
+@dataclass
 class Line(Spec):
     """Linearly spaced points in the given key, with first and last points
     centred on start and stop.
@@ -328,10 +364,14 @@ class Line(Spec):
         spec = Line("x", 1, 2, 5)
     """
 
-    key: Any = Field(..., description="An identifier for what to move")
-    start: float = Field(..., description="Centre point of the first point of the line")
-    stop: float = Field(..., description="Centre point of the last point of the line")
-    num: int = Field(..., ge=1, description="Number of points to produce")
+    key: Any = field(metadata=schema(description="An identifier for what to move"))
+    start: float = field(
+        metadata=schema(description="Centre point of the first point of the line")
+    )
+    stop: float = field(
+        metadata=schema(description="Centre point of the last point of the line")
+    )
+    num: int = field(metadata=schema(min=1, description="Number of points to produce"))
 
     def keys(self) -> List:
         return [self.key]
@@ -353,19 +393,17 @@ class Line(Spec):
             self._line_from_indexes, self.keys(), self.num, bounds
         )
 
-    @classmethod
-    @validate_arguments
+    @alternative_constructor
     def bounded(
-        cls,
-        key=key,
-        lower: float = Field(
-            ..., description="Lower bound of the first point of the line"
-        ),
-        upper: float = Field(
-            ..., description="Upper bound of the last point of the line"
-        ),
-        num: int = num,
-    ):
+        key: Annotated[Any, schema(description="An identifier for what to move")],
+        lower: Annotated[
+            float, schema(description="Lower bound of the first point of the line")
+        ],
+        upper: Annotated[
+            float, schema(description="Upper bound of the last point of the line")
+        ],
+        num: Annotated[int, schema(min=1, description="Number of points to produce")],
+    ) -> "Line":
         """Specify a Line by extreme bounds instead of centre points.
 
         .. example_spec::
@@ -382,9 +420,10 @@ class Line(Spec):
         else:
             # Many points, stop will be produced
             stop = upper - half_step
-        return cls(key, start, stop, num)
+        return Line(key, start, stop, num)
 
 
+@dataclass
 class Static(Spec):
     """A static point, repeated "num" times, with "key" at "value". Can
     be used to set key=value at every point in a scan.
@@ -396,9 +435,12 @@ class Static(Spec):
         spec = Line("y", 1, 2, 3) + Static("x", 3)
     """
 
-    key: Any = Field(..., description="An identifier for what to move")
-    value: float = Field(..., description="The value at each point")
-    num: int = Field(1, ge=1, description="How many times to repeat this point")
+    key: Any = field(metadata=schema(description="An identifier for what to move"))
+    value: float = field(metadata=schema(description="The value at each point"))
+    num: int = field(
+        default=1,
+        metadata=schema(min=1, description="How many times to repeat this point"),
+    )
 
     def keys(self) -> List:
         return [self.key]
@@ -412,6 +454,7 @@ class Static(Spec):
         )
 
 
+@dataclass
 class Spiral(Spec):
     """Archimedean spiral of "x_key" and "y_key", starting at centre point
     ("x_start", "y_start") with angle "rotate". Produces "num" points
@@ -424,15 +467,22 @@ class Spiral(Spec):
         spec = Spiral("x", "y", 1, 5, 10, 50, 30)
     """
 
-    x_key: Any = Field(..., description="An identifier for what to move for x")
-    y_key: Any = Field(..., description="An identifier for what to move for y")
+    x_key: Any = field(
+        metadata=schema(description="An identifier for what to move for x")
+    )
+    y_key: Any = field(
+        metadata=schema(description="An identifier for what to move for y")
+    )
     # TODO: do we like these names?
-    x_start: float = Field(..., description="x centre of the spiral")
-    y_start: float = Field(..., description="y centre of the spiral")
-    x_range: float = Field(..., description="x width of the spiral")
-    y_range: float = Field(..., description="y width of the spiral")
-    num: int = Field(..., description="Number of points in the spiral")
-    rotate: float = Field(0.0, description="How much to rotate the angle of the spiral")
+    x_start: float = field(metadata=schema(description="x centre of the spiral"))
+    y_start: float = field(metadata=schema(description="y centre of the spiral"))
+    x_range: float = field(metadata=schema(description="x width of the spiral"))
+    y_range: float = field(metadata=schema(description="y width of the spiral"))
+    num: int = field(metadata=schema(description="Number of points in the spiral"))
+    rotate: float = field(
+        default=0.0,
+        metadata=schema(description="How much to rotate the angle of the spiral"),
+    )
 
     def keys(self) -> List:
         # TODO: reversed from __init__ args, a good idea?
@@ -460,18 +510,25 @@ class Spiral(Spec):
             self._spiral_from_indexes, self.keys(), self.num, bounds
         )
 
-    @classmethod
-    @validate_arguments
+    @alternative_constructor
     def spaced(
-        cls,
-        x_key: Any = x_key,
-        y_key: Any = y_key,
-        x_start: float = x_start,
-        y_start: float = y_start,
-        radius: float = Field(..., description="radius of the spiral"),
-        dr: float = Field(..., description="difference between each ring"),
-        rotate: float = rotate,
-    ):
+        x_key: Annotated[
+            Any, schema(description="An identifier for what to move for x")
+        ],
+        y_key: Annotated[
+            Any, schema(description="An identifier for what to move for y")
+        ],
+        x_start: Annotated[float, schema(description="x centre of the spiral")],
+        y_start: Annotated[float, schema(description="y centre of the spiral")],
+        radius: Annotated[float, schema(description="radius of the spiral")],
+        dr: Annotated[float, schema(description="difference between each ring")],
+        rotate: Annotated[
+            float,
+            schema(
+                default=0.0, description="How much to rotate the angle of the spiral"
+            ),
+        ] = 0.0,
+    ) -> "Spiral":
         """Specify a Spiral equally spaced in "x_key" and "y_key" by specifying
         the "radius" and difference between each ring of the spiral "dr"
 
@@ -486,8 +543,10 @@ class Spiral(Spec):
         # so: n_rings * 2 * pi = sqrt(4 * pi * num)
         # so: num = n_rings^2 * pi
         n_rings = radius / dr
-        num = n_rings ** 2 * np.pi
-        return cls(x_key, y_key, x_start, y_start, radius * 2, radius * 2, num, rotate)
+        num = int(n_rings ** 2 * np.pi)
+        return Spiral(
+            x_key, y_key, x_start, y_start, radius * 2, radius * 2, num, rotate
+        )
 
 
 #: Can be used as a special key to indicate how long each point should be
@@ -549,51 +608,25 @@ def repeat(spec: Spec, num: int, blend=False):
         return Line(REPEAT, 1, num, num) * spec
 
 
-class _UnionModifier:
-    # Modifies all Spec subclasses so Spec->Union[all Spec subclasses]
-    def __init__(self):
-        _spec_subclasses = tuple(self._all_subclasses(Spec))
-        _region_subclasses = tuple(self._all_subclasses(Region))
-        self.spec_union = Union[_spec_subclasses]  # type: ignore
-        self.region_union = Union[_region_subclasses]  # type: ignore
-
-        for spec in _spec_subclasses + _region_subclasses:
-            for _, field in spec.__fields__.items():
-                if field.type_ is Spec:
-                    field.type_ = self.spec_union
-                    field.prepare()
-                elif field.type_ is Region:
-                    field.type_ = self.region_union
-                    field.prepare()
-
-    def _all_subclasses(self, cls):
-        return set(cls.__subclasses__()).union(
-            [s for c in cls.__subclasses__() for s in self._all_subclasses(c)]
-        )
-
-
-_modifier = _UnionModifier()
-
-
 def spec_from_dict(d: Dict) -> Spec:
     """Create a `Spec` from a dictionary representation of it
 
     >>> spec_from_dict(
-    ... {'type': 'Line', 'key': 'x', 'start': 1.0, 'stop': 2.0, 'num': 3})
+    ... {'Line': {'key': 'x', 'start': 1.0, 'stop': 2.0, 'num': 3}})
     Line(key='x', start=1.0, stop=2.0, num=3)
 
     .. seealso:: `serialize-a-spec`
     """
-    return parse_obj_as(_modifier.spec_union, d)  # type: ignore
+    return Spec.deserialize(d)  # type: ignore
 
 
 def spec_from_json(text: str) -> Spec:
     """Create a `Spec` from a JSON representation of it
 
     >>> spec_from_json(
-    ... '{"type": "Line", "key": "x", "start": 1.0, "stop": 2.0, "num": 3}')
+    ... '{"Line": {"key": "x", "start": 1.0, "stop": 2.0, "num": 3}}')
     Line(key='x', start=1.0, stop=2.0, num=3)
 
     .. seealso:: `serialize-a-spec`
     """
-    return parse_raw_as(_modifier.spec_union, text)  # type: ignore
+    return Spec.deserialize(json.loads(text))  # type: ignore

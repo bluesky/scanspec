@@ -1,70 +1,66 @@
 import json
 
-from pydantic.main import BaseModel
-from pydantic.typing import display_as_type
+import pytest
+from apischema.validation.errors import ValidationError
 
-from scanspec.regions import Circle
-from scanspec.specs import Line, Mask, spec_from_dict, spec_from_json
+from scanspec.regions import Circle, Rectangle, UnionOf
+from scanspec.specs import Line, Mask, Spiral, spec_from_dict, spec_from_json
 
 
 def test_line_serializes() -> None:
     ob = Line("x", 0, 1, 4)
-    serialized = '{"type": "Line", "key": "x", "start": 0.0, "stop": 1.0, "num": 4}'
-    assert ob.json() == serialized
+    serialized = '{"Line": {"key": "x", "start": 0.0, "stop": 1.0, "num": 4}}'
+    assert ob.serialize() == json.loads(serialized)
     assert spec_from_json(serialized) == ob
     assert spec_from_dict(json.loads(serialized)) == ob
 
 
 def test_masked_circle_serializes() -> None:
-    ob = Mask(Line("x", 0, 1, 4), Circle("x", "y", x_center=0, y_center=1, radius=4))
+    ob = Mask(Line("x", 0, 1, 4), Circle("x", "y", x_centre=0, y_centre=1, radius=4))
     serialized = (
-        '{"type": "Mask", '
-        '"spec": {"type": "Line", "key": "x", "start": 0.0, "stop": 1.0, "num": 4}, '
-        '"region": {"type": "Circle", "x_key": "x", "y_key": "y", "x_centre": 0.0, '
-        '"y_centre": 1.0, "radius": 4.0}, '
-        '"check_path_changes": true'
-        "}"
+        '{"Mask": {"spec": {"Line": {"key": "x", "start": 0, "stop": 1, "num": 4}}, '
+        '"region": {"Circle": {"x_key": "x", "y_key": "y", "x_centre": 0, '
+        '"y_centre": 1, "radius": 4}}, "check_path_changes": true}}'
     )
-    assert ob.json() == serialized
+    assert ob.serialize() == json.loads(serialized)
     assert spec_from_json(serialized) == ob
 
 
 def test_product_lines_serializes() -> None:
     ob = Line("y", 2, 3, 5) * Line("x", 0, 1, 4)
     serialized = (
-        '{"type": "Product", '
-        '"outer": {"type": "Line", "key": "y", "start": 2.0, "stop": 3.0, "num": 5}, '
-        '"inner": {"type": "Line", "key": "x", "start": 0.0, "stop": 1.0, "num": 4}'
-        "}"
+        '{"Product": {"outer": {"Line": {"key": "y", "start": 2.0, "stop": 3.0, '
+        '"num": 5}}, "inner": {"Line": {"key": "x", "start": 0.0, "stop": 1.0, '
+        '"num": 4}}}}'
     )
-    assert ob.json() == serialized
+    assert ob.serialize() == json.loads(serialized)
     assert spec_from_json(serialized) == ob
 
 
-def test_pydantic_inspections():
-    assert issubclass(Line, BaseModel)
-    assert list(Line.__fields__) == ["type", "key", "start", "stop", "num"]
-    type_field = Line.__fields__["type"]
-    assert type_field.field_info.const
-    assert not type_field.required
-    assert type_field.default == "Line"
-    num_field = Line.__fields__["num"]
-    assert not num_field.field_info.const
-    assert num_field.field_info.description == "Number of points to produce"
-    assert num_field.required
-    assert display_as_type(num_field.type_) == "ConstrainedIntValue"
-    assert hasattr(Line.bounded, "model") and issubclass(Line.bounded.model, BaseModel)
-    assert list(Line.bounded.model.__fields__) == [
-        "cls",
-        "key",
-        "lower",
-        "upper",
-        "num",
-        "args",
-        "kwargs",
-    ]
-    num_field = Line.__fields__["num"]
-    assert not num_field.field_info.const
-    assert num_field.field_info.description == "Number of points to produce"
-    assert num_field.required
-    assert display_as_type(num_field.type_) == "ConstrainedIntValue"
+def test_complex_nested_serializes() -> None:
+    ob = Mask(
+        Spiral.spaced("x", "y", 0, 0, 10, 3),
+        UnionOf(
+            Circle("x", "y", x_centre=0, y_centre=1, radius=4),
+            Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30),
+        ),
+    )
+    serialized = (
+        '{"Mask": {"spec": {"Spiral": {"x_key": "x", "y_key": "y", "x_start": 0, '
+        '"y_start": 0, "x_range": 20, "y_range": 20, "num": 34, "rotate": 0.0}}, '
+        '"region": {"UnionOf": {"left": {"Circle": {"x_key": "x", "y_key": "y", '
+        '"x_centre": 0, "y_centre": 1, "radius": 4}}, "right": {"Rectangle": '
+        '{"x_key": "x", "y_key": "y", "x_min": 0, "y_min": 1.1, "x_max": 1.5, '
+        '"y_max": 2.1, "angle": 30}}}}, "check_path_changes": true}}'
+    )
+    assert ob.serialize() == json.loads(serialized)
+    assert spec_from_json(serialized) == ob
+
+
+def test_extra_arg_fails() -> None:
+    with pytest.raises(ValidationError):
+        ob = Line("x", 0, 1, 4)
+        serialized = (
+            '{"Line": {"key": "x", "start": 0.0, "stop": 1.0, "num": 4, "foo": "bar"}}'
+        )
+        assert spec_from_json(serialized) == ob

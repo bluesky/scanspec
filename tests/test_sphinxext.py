@@ -19,7 +19,7 @@ def test_docstring_line():
         ":param Any key: An identifier for what to move",
         ":param float start: Centre point of the first point of the line",
         ":param float stop: Centre point of the last point of the line",
-        ":param int num: Number of points to produce. Must be >= 1",
+        ":param int num: Number of points to produce - minimum: 1",
         "",
         "And a bit",
         "more",
@@ -36,6 +36,6 @@ def test_docstring_line_bounded():
         ":param Any key: An identifier for what to move",
         ":param float lower: Lower bound of the first point of the line",
         ":param float upper: Upper bound of the last point of the line",
-        ":param int num: Number of points to produce. Must be >= 1",
+        ":param int num: Number of points to produce - minimum: 1",
         "",
     ]

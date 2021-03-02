@@ -45,7 +45,7 @@ class _Arrow3D(patches.FancyArrowPatch):
 
 def _plot_arrow(axes, arrays: List[np.ndarray]):
     if len(arrays) == 1:
-        arrays = [[0, 0]] + arrays
+        arrays = [np.array([0, 0])] + arrays
     if len(arrays) == 2:
         head = [a[-1] for a in reversed(arrays)]
         tail = [a[-1] - (a[-1] - a[-2]) * 0.1 for a in reversed(arrays)]
@@ -191,7 +191,10 @@ def plot_spec(spec: Spec):
         else:
             # First point isn't moving, put a right caret marker
             _plot_arrays(
-                axes, [[dim.lower[k][0]] for k in keys], marker=5, color="lightgrey"
+                axes,
+                [np.array([dim.lower[k][0]]) for k in keys],
+                marker=5,
+                color="lightgrey",
             )
 
     # Plot the capture points
@@ -201,7 +204,10 @@ def plot_spec(spec: Spec):
 
     # Plot the end
     _plot_arrays(
-        axes, [[dim.upper[k][-1]] for k in keys], marker="x", color="lightgrey"
+        axes,
+        [np.array([dim.upper[k][-1]]) for k in keys],
+        marker="x",
+        color="lightgrey",
     )
 
     plt.show()

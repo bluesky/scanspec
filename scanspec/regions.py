@@ -1,12 +1,13 @@
+from dataclasses import dataclass, field, is_dataclass
 from typing import Any, Dict, Iterator, List, Set
 
 import numpy as np
-from pydantic import Field
-from pydantic.main import BaseModel
+from apischema import schema
 
 from .core import Positions, Serializable, if_instance_do
 
 
+@dataclass
 class Region(Serializable):
     """Abstract baseclass for a Region that can `Mask` a `Spec`. Supports operators:
 
@@ -66,11 +67,14 @@ def _merge_key_sets(key_sets: List[Set[str]]) -> Iterator[Set[str]]:
             yield key_set
 
 
+@dataclass
 class CombinationOf(Region):
     """Abstract baseclass for a combination of two regions, left and right"""
 
-    left: Region = Field(..., description="The left-hand Region to combine")
-    right: Region = Field(..., description="The right-hand Region to combine")
+    left: Region = field(metadata=schema(description="The left-hand Region to combine"))
+    right: Region = field(
+        metadata=schema(description="The right-hand Region to combine")
+    )
 
     def key_sets(self) -> List[Set[str]]:
         key_sets = list(_merge_key_sets(self.left.key_sets() + self.right.key_sets()))
@@ -78,6 +82,7 @@ class CombinationOf(Region):
 
 
 # Naming so we don't clash with typing.Union
+@dataclass
 class UnionOf(CombinationOf):
     """A position is in UnionOf(a, b) if it is in either a or b. Typically
     created with the ``|`` operator
@@ -92,6 +97,7 @@ class UnionOf(CombinationOf):
         return mask
 
 
+@dataclass
 class IntersectionOf(CombinationOf):
     """A position is in IntersectionOf(a, b) if it is in both a and b. Typically
     created with the ``&`` operator
@@ -106,6 +112,7 @@ class IntersectionOf(CombinationOf):
         return mask
 
 
+@dataclass
 class DifferenceOf(CombinationOf):
     """A position is in DifferenceOf(a, b) if it is in a and not in b. Typically
     created with the ``-`` operator
@@ -122,6 +129,7 @@ class DifferenceOf(CombinationOf):
         return mask
 
 
+@dataclass
 class SymmetricDifferenceOf(CombinationOf):
     """A position is in SymmetricDifferenceOf(a, b) if it is in either a or b,
     but not both. Typically created with the ``^`` operator
@@ -136,6 +144,7 @@ class SymmetricDifferenceOf(CombinationOf):
         return mask
 
 
+@dataclass
 class Range(Region):
     """Mask contains positions of key >= min and <= max
 
@@ -144,9 +153,15 @@ class Range(Region):
     array([False,  True,  True, False, False])
     """
 
-    key: Any = Field(..., description="The key matching the axis to mask in the spec")
-    min: float = Field(..., description="The minimum inclusive value in the region")
-    max: float = Field(..., description="The minimum inclusive value in the region")
+    key: Any = field(
+        metadata=schema(description="The key matching the axis to mask in the spec")
+    )
+    min: float = field(
+        metadata=schema(description="The minimum inclusive value in the region")
+    )
+    max: float = field(
+        metadata=schema(description="The minimum inclusive value in the region")
+    )
 
     def key_sets(self) -> List[Set[str]]:
         return [{self.key}]
@@ -157,6 +172,7 @@ class Range(Region):
         return mask
 
 
+@dataclass
 class Rectangle(Region):
     """Mask contains positions of key within a rotated xy rectangle
 
@@ -169,13 +185,28 @@ class Rectangle(Region):
         spec = grid & Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30)
     """
 
-    x_key: Any = Field(..., description="The key matching the x axis of the spec")
-    y_key: Any = Field(..., description="The key matching the y axis of the spec")
-    x_min: float = Field(..., description="Minimum inclusive x value in the region")
-    y_min: float = Field(..., description="Minimum inclusive y value in the region")
-    x_max: float = Field(..., description="Maximum inclusive x value in the region")
-    y_max: float = Field(..., description="Maximum inclusive y value in the region")
-    angle: float = Field(0, description="Clockwise rotation angle of the rectangle")
+    x_key: Any = field(
+        metadata=schema(description="The key matching the x axis of the spec")
+    )
+    y_key: Any = field(
+        metadata=schema(description="The key matching the y axis of the spec")
+    )
+    x_min: float = field(
+        metadata=schema(description="Minimum inclusive x value in the region")
+    )
+    y_min: float = field(
+        metadata=schema(description="Minimum inclusive y value in the region")
+    )
+    x_max: float = field(
+        metadata=schema(description="Maximum inclusive x value in the region")
+    )
+    y_max: float = field(
+        metadata=schema(description="Maximum inclusive y value in the region")
+    )
+    angle: float = field(
+        default=0.0,
+        metadata=schema(description="Clockwise rotation angle of the rectangle"),
+    )
 
     def key_sets(self) -> List[Set[str]]:
         return [{self.x_key, self.y_key}]
@@ -195,6 +226,7 @@ class Rectangle(Region):
         return mask_x & mask_y
 
 
+@dataclass
 class Circle(Region):
     """Mask contains positions of key within an xy circle of given radius
 
@@ -207,19 +239,19 @@ class Circle(Region):
         spec = grid & Circle("x", "y", 1, 2, 0.9)
     """
 
-    x_key: Any = Field(..., description="The key matching the x axis of the spec")
-    y_key: Any = Field(..., description="The key matching the x axis of the spec")
-    x_centre: float = Field(
-        ..., description="Minimum inclusive x value in the region", alias="x_center"
+    x_key: Any = field(
+        metadata=schema(description="The key matching the x axis of the spec")
     )
-    y_centre: float = Field(
-        ..., description="Minimum inclusive y value in the region", alias="y_center"
+    y_key: Any = field(
+        metadata=schema(description="The key matching the x axis of the spec")
     )
-    radius: float = Field(..., description="Radius of the circle")
-
-    class Config:
-        # Allow either centre or center
-        allow_population_by_field_name = True
+    x_centre: float = field(
+        metadata=schema(description="Minimum inclusive x value in the region")
+    )
+    y_centre: float = field(
+        metadata=schema(description="Minimum inclusive y value in the region")
+    )
+    radius: float = field(metadata=schema(description="Radius of the circle"))
 
     def key_sets(self) -> List[Set[str]]:
         return [{self.x_key, self.y_key}]
@@ -234,8 +266,8 @@ class Circle(Region):
 def find_regions(obj) -> Iterator[Region]:
     """Recursively iterate over obj and its children, yielding any Region
     instances found"""
-    if isinstance(obj, BaseModel):
+    if is_dataclass(obj):
         if isinstance(obj, Region):
             yield obj
-        for name in obj.__fields__:
+        for name in obj.__dict__.keys():
             yield from find_regions(getattr(obj, name))
