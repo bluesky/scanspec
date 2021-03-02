@@ -4,11 +4,11 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>API &mdash; scanspec 0.2 documentation</title>
+  <title>API &mdash; scanspec 0.0+untagged.g6c97653 documentation</title>
   
 
   
@@ -21,7 +21,10 @@
   
     <link rel="shortcut icon" href="../_static/scanspec-logo.ico"/>
   
+
   
+  
+
   
 
   
@@ -34,7 +37,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -56,7 +58,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> scanspec
+            <a href="../index.html" class="icon icon-home"> scanspec
           
 
           
@@ -69,7 +71,7 @@
             
             
               <div class="version">
-                0.2
+                master
               </div>
             
           
@@ -185,6 +187,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -196,7 +200,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/reference/api.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -233,21 +237,15 @@ from code:</p>
 <dl class="py class">
 <dt id="scanspec.core.Serializable">
 <em class="property">class </em><code class="sig-prename descclassname">scanspec.core.</code><code class="sig-name descname">Serializable</code><a class="reference internal" href="../_modules/scanspec/core.html#Serializable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.core.Serializable" title="Permalink to this definition">¶</a></dt>
-<dd><p>pydantic BaseModel that adds support for positional arguments and a type
-parameter from class name.</p>
+<dd><p>Base class for registering apischema (de)serialization conversions.
+The conversion class variable of child classes holds the necessary information to
+(de)serialize grandchild classes. Each time a grandchild class is added
+conversion is updated to create a full TaggedUnion for the child class.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference external" href="https://pydantic-docs.helpmanual.io/usage/exporting_models/">https://pydantic-docs.helpmanual.io/usage/exporting_models/</a> for
-information on the usage of the <code class="docutils literal notranslate"><span class="pre">dict()</span></code> and <code class="docutils literal notranslate"><span class="pre">json()</span></code> methods</p>
+<p><a class="reference external" href="https://github.com/wyfo/apischema/discussions/56#discussioncomment-336580">https://github.com/wyfo/apischema/discussions/56#discussioncomment-336580</a>
+for discussion on tagged unions and alternative constructors</p>
 </div>
-</dd></dl>
-
-<dl class="py data">
-<dt id="scanspec.core.Positions">
-<code class="sig-prename descclassname">scanspec.core.</code><code class="sig-name descname">Positions</code><a class="headerlink" href="#scanspec.core.Positions" title="Permalink to this definition">¶</a></dt>
-<dd><p>Positions map {key: positions_ndarray}
-E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}</p>
-<p>alias of Dict[Any, numpy.ndarray]</p>
 </dd></dl>
 
 <dl class="py data">
@@ -255,6 +253,33 @@ E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}</p>
 <code class="sig-prename descclassname">scanspec.core.</code><code class="sig-name descname">T</code><a class="headerlink" href="#scanspec.core.T" title="Permalink to this definition">¶</a></dt>
 <dd><p>The type of class the function will return</p>
 <p>alias of TypeVar(‘T’)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="scanspec.core.alternative_constructor">
+<code class="sig-prename descclassname">scanspec.core.</code><code class="sig-name descname">alternative_constructor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">Callable</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#alternative_constructor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.core.alternative_constructor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register an alternative constructor for this class. This will be returned
+as a staticmethod so the signature should not include self/cls.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">dataclasses</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="gp">... </span><span class="k">class</span> <span class="nc">Foo</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">a</span><span class="p">:</span> <span class="nb">int</span>
+<span class="gp">... </span>    <span class="nd">@alternative_constructor</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">doubled</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Foo&quot;</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="n">Foo</span><span class="p">(</span><span class="n">b</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Foo</span><span class="o">.</span><span class="n">doubled</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">Foo(a=4)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py data">
+<dt id="scanspec.core.Positions">
+<code class="sig-prename descclassname">scanspec.core.</code><code class="sig-name descname">Positions</code><a class="headerlink" href="#scanspec.core.Positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map of positions keys to positions_ndarray
+E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}</p>
+<p>alias of Dict[Any, numpy.ndarray]</p>
 </dd></dl>
 
 <dl class="py function">
@@ -266,7 +291,7 @@ Used as a helper when implementing operator overloading</p>
 
 <dl class="py class">
 <dt id="scanspec.core.Dimension">
-<em class="property">class </em><code class="sig-prename descclassname">scanspec.core.</code><code class="sig-name descname">Dimension</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">positions</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>Any<span class="p">, </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">lower</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>Any<span class="p">, </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">upper</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>Any<span class="p">, </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">snake</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#Dimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.core.Dimension" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">scanspec.core.</code><code class="sig-name descname">Dimension</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">positions</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>Any<span class="p">, </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">lower</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">[</span>Any<span class="p">, </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">upper</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">[</span>Any<span class="p">, </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">snake</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#Dimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.core.Dimension" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Represents a linear stack of positions and bounds. A list of Dimensions
 is interpreted as nested from slowest moving to fastest moving, so each
@@ -344,7 +369,7 @@ which will move during the scan</p>
 
 <dl class="py method">
 <dt id="scanspec.core.Dimension.mask">
-<code class="sig-name descname">mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mask</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension">scanspec.core.Dimension</a><a class="reference internal" href="../_modules/scanspec/core.html#Dimension.mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.core.Dimension.mask" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mask</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension">scanspec.core.Dimension</a><a class="reference internal" href="../_modules/scanspec/core.html#Dimension.mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.core.Dimension.mask" title="Permalink to this definition">¶</a></dt>
 <dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">positions</span>
 <span class="go">{&#39;x&#39;: array([1, 3])}</span>
@@ -417,7 +442,7 @@ as nesting the input Dimension within other Dimensions</p></li>
 
 <dl class="py class">
 <dt id="scanspec.core.Path">
-<em class="property">class </em><code class="sig-prename descclassname">scanspec.core.</code><code class="sig-name descname">Path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension">scanspec.core.Dimension</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">start</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">num</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#Path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.core.Path" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">scanspec.core.</code><code class="sig-name descname">Path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension">scanspec.core.Dimension</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">start</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">num</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#Path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.core.Path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Create a consumable Path through a list of Dimensions representing a
 scan path.</p>
@@ -457,7 +482,7 @@ produced</p>
 
 <dl class="py method">
 <dt id="scanspec.core.Path.consume">
-<code class="sig-name descname">consume</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension">scanspec.core.Dimension</a><a class="reference internal" href="../_modules/scanspec/core.html#Path.consume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.core.Path.consume" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">consume</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension">scanspec.core.Dimension</a><a class="reference internal" href="../_modules/scanspec/core.html#Path.consume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.core.Path.consume" title="Permalink to this definition">¶</a></dt>
 <dd><p>Consume at most num points from the Path and return as a Dimension</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dimx</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])},</span> <span class="n">snake</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dimy</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
@@ -582,7 +607,7 @@ inner will run in its entirety at each point in outer.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-1.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-1.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-1.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-1.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-1.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-1.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-1.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-1.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-1.png" src="../_images/api-1.png" />
 </div>
@@ -620,7 +645,7 @@ Dimensions [l2, l1+r1].</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-2.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-2.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-2.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-2.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-2.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-2.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-2.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-2.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-2.png" src="../_images/api-2.png" />
 </div>
@@ -628,7 +653,7 @@ Dimensions [l2, l1+r1].</p>
 
 <dl class="py class">
 <dt id="scanspec.specs.Mask">
-<em class="property">class </em><code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">Mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">region</span></em>, <em class="sig-param"><span class="n">check_path_changes</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Mask" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">Mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">region</span></em>, <em class="sig-param"><span class="n">check_path_changes</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Mask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.specs.Spec</span></code></a></p>
 <p>Restrict the given Spec to only the positions that fall inside the given
 Region.</p>
@@ -660,7 +685,7 @@ together.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-3.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-3.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-3.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-3.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-3.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-3.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-3.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-3.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-3.png" src="../_images/api-3.png" />
 </div>
@@ -686,7 +711,7 @@ another Spec. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-4.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-4.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-4.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-4.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-4.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-4.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-4.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-4.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-4.png" src="../_images/api-4.png" />
 </div>
@@ -715,7 +740,7 @@ of left and right must contain the same keys.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-5.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-5.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-5.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-5.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-5.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-5.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-5.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-5.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-5.png" src="../_images/api-5.png" />
 </div>
@@ -723,7 +748,7 @@ of left and right must contain the same keys.</p>
 
 <dl class="py class">
 <dt id="scanspec.specs.Squash">
-<em class="property">class </em><code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">Squash</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">check_path_changes</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Squash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Squash" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">Squash</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">check_path_changes</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Squash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Squash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.specs.Spec</span></code></a></p>
 <p>Squash the Dimensions together of the scan (but not positions) into one
 linear stack.</p>
@@ -748,7 +773,7 @@ linear stack.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-6.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-6.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-6.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-6.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-6.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-6.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-6.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-6.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-6.png" src="../_images/api-6.png" />
 </div>
@@ -766,7 +791,7 @@ centred on start and stop.</p>
 <li><p><strong>key</strong> (<em>Any</em>) – An identifier for what to move</p></li>
 <li><p><strong>start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Centre point of the first point of the line</p></li>
 <li><p><strong>stop</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Centre point of the last point of the line</p></li>
-<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of points to produce. Must be &gt;= 1</p></li>
+<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of points to produce - minimum: 1</p></li>
 </ul>
 </dd>
 </dl>
@@ -779,13 +804,13 @@ centred on start and stop.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-7.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-7.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-7.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-7.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-7.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-7.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-7.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-7.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-7.png" src="../_images/api-7.png" />
 </div>
 <dl class="py method">
 <dt id="scanspec.specs.Line.bounded">
-<em class="property">classmethod </em><code class="sig-name descname">bounded</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">lower</span></em>, <em class="sig-param"><span class="n">upper</span></em>, <em class="sig-param"><span class="n">num</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Line.bounded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Line.bounded" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">bounded</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n">Any<span class="p">[</span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">lower</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">upper</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">num</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a><span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.specs.Line" title="scanspec.specs.Line">scanspec.specs.Line</a><a class="reference internal" href="../_modules/scanspec/specs.html#Line.bounded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Line.bounded" title="Permalink to this definition">¶</a></dt>
 <dd><p>Specify a Line by extreme bounds instead of centre points.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -793,7 +818,7 @@ centred on start and stop.</p>
 <li><p><strong>key</strong> (<em>Any</em>) – An identifier for what to move</p></li>
 <li><p><strong>lower</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Lower bound of the first point of the line</p></li>
 <li><p><strong>upper</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Upper bound of the last point of the line</p></li>
-<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of points to produce. Must be &gt;= 1</p></li>
+<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of points to produce - minimum: 1</p></li>
 </ul>
 </dd>
 </dl>
@@ -806,7 +831,7 @@ centred on start and stop.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-8.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-8.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-8.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-8.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-8.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-8.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-8.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-8.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-8.png" src="../_images/api-8.png" />
 </div>
@@ -816,7 +841,7 @@ centred on start and stop.</p>
 
 <dl class="py class">
 <dt id="scanspec.specs.Static">
-<em class="property">class </em><code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">Static</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">num</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Static"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Static" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">Static</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">value</span></em>, <em class="sig-param"><span class="n">num</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Static"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Static" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.specs.Spec</span></code></a></p>
 <p>A static point, repeated “num” times, with “key” at “value”. Can
 be used to set key=value at every point in a scan.</p>
@@ -825,7 +850,7 @@ be used to set key=value at every point in a scan.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>key</strong> (<em>Any</em>) – An identifier for what to move</p></li>
 <li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The value at each point</p></li>
-<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – How many times to repeat this point. Must be &gt;= 1</p></li>
+<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – How many times to repeat this point - minimum: 1</p></li>
 </ul>
 </dd>
 </dl>
@@ -838,7 +863,7 @@ be used to set key=value at every point in a scan.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-9.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-9.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-9.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-9.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-9.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-9.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-9.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-9.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-9.png" src="../_images/api-9.png" />
 </div>
@@ -846,7 +871,7 @@ be used to set key=value at every point in a scan.</p>
 
 <dl class="py class">
 <dt id="scanspec.specs.Spiral">
-<em class="property">class </em><code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">Spiral</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_key</span></em>, <em class="sig-param"><span class="n">y_key</span></em>, <em class="sig-param"><span class="n">x_start</span></em>, <em class="sig-param"><span class="n">y_start</span></em>, <em class="sig-param"><span class="n">x_range</span></em>, <em class="sig-param"><span class="n">y_range</span></em>, <em class="sig-param"><span class="n">num</span></em>, <em class="sig-param"><span class="n">rotate</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Spiral"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Spiral" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">Spiral</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_key</span></em>, <em class="sig-param"><span class="n">y_key</span></em>, <em class="sig-param"><span class="n">x_start</span></em>, <em class="sig-param"><span class="n">y_start</span></em>, <em class="sig-param"><span class="n">x_range</span></em>, <em class="sig-param"><span class="n">y_range</span></em>, <em class="sig-param"><span class="n">num</span></em>, <em class="sig-param"><span class="n">rotate</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Spiral"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Spiral" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.specs.Spec</span></code></a></p>
 <p>Archimedean spiral of “x_key” and “y_key”, starting at centre point
 (“x_start”, “y_start”) with angle “rotate”. Produces “num” points
@@ -874,13 +899,13 @@ in a spiral spanning width of “x_range” and height of “y_range”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-10.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-10.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-10.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-10.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-10.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-10.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-10.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-10.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-10.png" src="../_images/api-10.png" />
 </div>
 <dl class="py method">
 <dt id="scanspec.specs.Spiral.spaced">
-<em class="property">classmethod </em><code class="sig-name descname">spaced</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_key</span></em>, <em class="sig-param"><span class="n">y_key</span></em>, <em class="sig-param"><span class="n">x_start</span></em>, <em class="sig-param"><span class="n">y_start</span></em>, <em class="sig-param"><span class="n">radius</span></em>, <em class="sig-param"><span class="n">dr</span></em>, <em class="sig-param"><span class="n">rotate</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Spiral.spaced"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Spiral.spaced" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">spaced</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_key</span><span class="p">:</span> <span class="n">Any<span class="p">[</span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">y_key</span><span class="p">:</span> <span class="n">Any<span class="p">[</span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">x_start</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">y_start</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">radius</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dr</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">rotate</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">0.0</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.specs.Spiral" title="scanspec.specs.Spiral">scanspec.specs.Spiral</a><a class="reference internal" href="../_modules/scanspec/specs.html#Spiral.spaced"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.Spiral.spaced" title="Permalink to this definition">¶</a></dt>
 <dd><p>Specify a Spiral equally spaced in “x_key” and “y_key” by specifying
 the “radius” and difference between each ring of the spiral “dr”</p>
 <dl class="field-list simple">
@@ -892,7 +917,7 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 <li><p><strong>y_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – y centre of the spiral</p></li>
 <li><p><strong>radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – radius of the spiral</p></li>
 <li><p><strong>dr</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – difference between each ring</p></li>
-<li><p><strong>rotate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – How much to rotate the angle of the spiral</p></li>
+<li><p><strong>rotate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – How much to rotate the angle of the spiral - default: 0.0</p></li>
 </ul>
 </dd>
 </dl>
@@ -905,7 +930,7 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-11.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-11.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-11.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-11.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-11.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-11.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-11.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-11.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-111.png" src="../_images/api-111.png" />
 </div>
@@ -946,7 +971,7 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-12.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-12.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-12.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-12.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-12.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-12.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-12.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-12.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-12.png" src="../_images/api-12.png" />
 </div>
@@ -976,7 +1001,7 @@ in the spec</p></li>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-13.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-13.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-13.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-13.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-13.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-13.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-13.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-13.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-13.png" src="../_images/api-13.png" />
 </div>
@@ -1004,7 +1029,7 @@ blended together, leaving no gap</p></li>
 <code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">spec_from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec">scanspec.specs.Spec</a><a class="reference internal" href="../_modules/scanspec/specs.html#spec_from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.spec_from_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a> from a dictionary representation of it</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec_from_dict</span><span class="p">(</span>
-<span class="gp">... </span><span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Line&#39;</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>
+<span class="gp">... </span><span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}})</span>
 <span class="go">Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3)</span>
 </pre></div>
 </div>
@@ -1019,7 +1044,7 @@ blended together, leaving no gap</p></li>
 <code class="sig-prename descclassname">scanspec.specs.</code><code class="sig-name descname">spec_from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">text</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec">scanspec.specs.Spec</a><a class="reference internal" href="../_modules/scanspec/specs.html#spec_from_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.specs.spec_from_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a> from a JSON representation of it</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec_from_json</span><span class="p">(</span>
-<span class="gp">... </span><span class="s1">&#39;{&quot;type&quot;: &quot;Line&quot;, &quot;key&quot;: &quot;x&quot;, &quot;start&quot;: 1.0, &quot;stop&quot;: 2.0, &quot;num&quot;: 3}&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="s1">&#39;{&quot;Line&quot;: {&quot;key&quot;: &quot;x&quot;, &quot;start&quot;: 1.0, &quot;stop&quot;: 2.0, &quot;num&quot;: 3}}&#39;</span><span class="p">)</span>
 <span class="go">Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3)</span>
 </pre></div>
 </div>
@@ -1054,7 +1079,7 @@ this region spans</p>
 
 <dl class="py method">
 <dt id="scanspec.regions.Region.mask">
-<code class="sig-name descname">mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">positions</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>Any<span class="p">, </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a><a class="reference internal" href="../_modules/scanspec/regions.html#Region.mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.regions.Region.mask" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">positions</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>Any<span class="p">, </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a><a class="reference internal" href="../_modules/scanspec/regions.html#Region.mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.regions.Region.mask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implemented by subclasses to produce a mask of which positions are in
 the region</p>
 </dd></dl>
@@ -1063,7 +1088,7 @@ the region</p>
 
 <dl class="py function">
 <dt id="scanspec.regions.get_mask">
-<code class="sig-prename descclassname">scanspec.regions.</code><code class="sig-name descname">get_mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">region</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region">scanspec.regions.Region</a></span></em>, <em class="sig-param"><span class="n">positions</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>Any<span class="p">, </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)">numpy.ndarray</a><a class="reference internal" href="../_modules/scanspec/regions.html#get_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.regions.get_mask" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">scanspec.regions.</code><code class="sig-name descname">get_mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">region</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region">scanspec.regions.Region</a></span></em>, <em class="sig-param"><span class="n">positions</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>Any<span class="p">, </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)">numpy.ndarray</a><a class="reference internal" href="../_modules/scanspec/regions.html#get_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.regions.get_mask" title="Permalink to this definition">¶</a></dt>
 <dd><p>If there is an overlap of keys of region and positions return a
 mask of the positions in the region, otherwise return all ones</p>
 </dd></dl>
@@ -1190,7 +1215,7 @@ but not both. Typically created with the <code class="docutils literal notransla
 
 <dl class="py class">
 <dt id="scanspec.regions.Rectangle">
-<em class="property">class </em><code class="sig-prename descclassname">scanspec.regions.</code><code class="sig-name descname">Rectangle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_key</span></em>, <em class="sig-param"><span class="n">y_key</span></em>, <em class="sig-param"><span class="n">x_min</span></em>, <em class="sig-param"><span class="n">y_min</span></em>, <em class="sig-param"><span class="n">x_max</span></em>, <em class="sig-param"><span class="n">y_max</span></em>, <em class="sig-param"><span class="n">angle</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/regions.html#Rectangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.regions.Rectangle" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">scanspec.regions.</code><code class="sig-name descname">Rectangle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_key</span></em>, <em class="sig-param"><span class="n">y_key</span></em>, <em class="sig-param"><span class="n">x_min</span></em>, <em class="sig-param"><span class="n">y_min</span></em>, <em class="sig-param"><span class="n">x_max</span></em>, <em class="sig-param"><span class="n">y_max</span></em>, <em class="sig-param"><span class="n">angle</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/regions.html#Rectangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#scanspec.regions.Rectangle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.regions.Region</span></code></a></p>
 <p>Mask contains positions of key within a rotated xy rectangle</p>
 <dl class="field-list simple">
@@ -1217,7 +1242,7 @@ but not both. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-14.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-14.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-14.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-14.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-14.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-14.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-14.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-14.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-14.png" src="../_images/api-14.png" />
 </div>
@@ -1250,7 +1275,7 @@ but not both. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-15.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-15.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-15.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-15.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-15.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-15.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-15.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-15.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-15.png" src="../_images/api-15.png" />
 </div>
@@ -1284,7 +1309,7 @@ scan is 2D then 2D regions are shown in black.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-16.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-16.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-16.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpatgfh4iw/8aed8ebdfeb75062ff8cb7d5e36dd98e1e3c3da1/docs/reference/api-16.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-16.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-16.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-16.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/reference/api-16.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-16.png" src="../_images/api-16.png" />
 </div>
@@ -1299,29 +1324,21 @@ scan is 2D then 2D regions are shown in black.</p>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="changelog.html" class="btn btn-neutral float-right" title="Changelog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="../explanations/why-squash-can-change-path.html" class="btn btn-neutral float-left" title="Why Squash (and Mask) can change the Path" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="changelog.html" class="btn btn-neutral float-right" title="Changelog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../explanations/why-squash-can-change-path.html" class="btn btn-neutral float-left" title="Why Squash (and Mask) can change the Path" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Diamond Light Source
+        &#169; Copyright 2020, Diamond Light Source.
 
     </p>
   </div> 
 
 </footer>
-
         </div>
       </div>
 

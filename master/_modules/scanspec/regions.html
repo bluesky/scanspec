@@ -4,11 +4,11 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.regions &mdash; scanspec 0.2 documentation</title>
+  <title>scanspec.regions &mdash; scanspec 0.0+untagged.g6c97653 documentation</title>
   
 
   
@@ -21,7 +21,10 @@
   
     <link rel="shortcut icon" href="../../_static/scanspec-logo.ico"/>
   
+
   
+  
+
   
 
   
@@ -34,7 +37,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -54,7 +56,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> scanspec
+            <a href="../../index.html" class="icon icon-home"> scanspec
           
 
           
@@ -67,7 +69,7 @@
             
             
               <div class="version">
-                0.2
+                master
               </div>
             
           
@@ -174,6 +176,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -198,16 +202,17 @@
            <div itemprop="articleBody">
             
   <h1>Source code for scanspec.regions</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Set</span>
+<span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">is_dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Set</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">Field</span>
-<span class="kn">from</span> <span class="nn">pydantic.main</span> <span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span>
 
 <span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">Positions</span><span class="p">,</span> <span class="n">Serializable</span><span class="p">,</span> <span class="n">if_instance_do</span>
 
 
-<div class="viewcode-block" id="Region"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region">[docs]</a><span class="k">class</span> <span class="nc">Region</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
+<div class="viewcode-block" id="Region"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Region</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract baseclass for a Region that can `Mask` a `Spec`. Supports operators:</span>
 
 <span class="sd">    - ``|``: `UnionOf` two Regions, positions present in either</span>
@@ -266,11 +271,14 @@
             <span class="k">yield</span> <span class="n">key_set</span>
 
 
-<div class="viewcode-block" id="CombinationOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.CombinationOf">[docs]</a><span class="k">class</span> <span class="nc">CombinationOf</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
+<div class="viewcode-block" id="CombinationOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.CombinationOf">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">CombinationOf</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract baseclass for a combination of two regions, left and right&quot;&quot;&quot;</span>
 
-    <span class="n">left</span><span class="p">:</span> <span class="n">Region</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Region to combine&quot;</span><span class="p">)</span>
-    <span class="n">right</span><span class="p">:</span> <span class="n">Region</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Region to combine&quot;</span><span class="p">)</span>
+    <span class="n">left</span><span class="p">:</span> <span class="n">Region</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Region to combine&quot;</span><span class="p">))</span>
+    <span class="n">right</span><span class="p">:</span> <span class="n">Region</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Region to combine&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">key_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="n">key_sets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_merge_key_sets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">key_sets</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">key_sets</span><span class="p">()))</span>
@@ -278,7 +286,8 @@
 
 
 <span class="c1"># Naming so we don&#39;t clash with typing.Union</span>
-<div class="viewcode-block" id="UnionOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.UnionOf">[docs]</a><span class="k">class</span> <span class="nc">UnionOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
+<div class="viewcode-block" id="UnionOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.UnionOf">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">UnionOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A position is in UnionOf(a, b) if it is in either a or b. Typically</span>
 <span class="sd">    created with the ``|`` operator</span>
 
@@ -292,7 +301,8 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="IntersectionOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.IntersectionOf">[docs]</a><span class="k">class</span> <span class="nc">IntersectionOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
+<div class="viewcode-block" id="IntersectionOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.IntersectionOf">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">IntersectionOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A position is in IntersectionOf(a, b) if it is in both a and b. Typically</span>
 <span class="sd">    created with the ``&amp;`` operator</span>
 
@@ -306,7 +316,8 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="DifferenceOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.DifferenceOf">[docs]</a><span class="k">class</span> <span class="nc">DifferenceOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
+<div class="viewcode-block" id="DifferenceOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.DifferenceOf">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">DifferenceOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A position is in DifferenceOf(a, b) if it is in a and not in b. Typically</span>
 <span class="sd">    created with the ``-`` operator</span>
 
@@ -322,7 +333,8 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="SymmetricDifferenceOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.SymmetricDifferenceOf">[docs]</a><span class="k">class</span> <span class="nc">SymmetricDifferenceOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
+<div class="viewcode-block" id="SymmetricDifferenceOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.SymmetricDifferenceOf">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">SymmetricDifferenceOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A position is in SymmetricDifferenceOf(a, b) if it is in either a or b,</span>
 <span class="sd">    but not both. Typically created with the ``^`` operator</span>
 
@@ -336,7 +348,8 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="Range"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Range">[docs]</a><span class="k">class</span> <span class="nc">Range</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
+<div class="viewcode-block" id="Range"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Range">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Range</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Mask contains positions of key &gt;= min and &lt;= max</span>
 
 <span class="sd">    &gt;&gt;&gt; r = Range(&quot;x&quot;, 1, 2)</span>
@@ -344,9 +357,15 @@
 <span class="sd">    array([False,  True,  True, False, False])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the axis to mask in the spec&quot;</span><span class="p">)</span>
-    <span class="nb">min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)</span>
-    <span class="nb">max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)</span>
+    <span class="n">key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the axis to mask in the spec&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="nb">min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="nb">max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">key_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">}]</span>
@@ -357,7 +376,8 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="Rectangle"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Rectangle">[docs]</a><span class="k">class</span> <span class="nc">Rectangle</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
+<div class="viewcode-block" id="Rectangle"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Rectangle">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Rectangle</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Mask contains positions of key within a rotated xy rectangle</span>
 
 <span class="sd">    .. example_spec::</span>
@@ -369,13 +389,28 @@
 <span class="sd">        spec = grid &amp; Rectangle(&quot;x&quot;, &quot;y&quot;, 0, 1.1, 1.5, 2.1, 30)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">x_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the x axis of the spec&quot;</span><span class="p">)</span>
-    <span class="n">y_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the y axis of the spec&quot;</span><span class="p">)</span>
-    <span class="n">x_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive x value in the region&quot;</span><span class="p">)</span>
-    <span class="n">y_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive y value in the region&quot;</span><span class="p">)</span>
-    <span class="n">x_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum inclusive x value in the region&quot;</span><span class="p">)</span>
-    <span class="n">y_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum inclusive y value in the region&quot;</span><span class="p">)</span>
-    <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Clockwise rotation angle of the rectangle&quot;</span><span class="p">)</span>
+    <span class="n">x_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the x axis of the spec&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">y_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the y axis of the spec&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">x_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive x value in the region&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">y_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive y value in the region&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">x_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum inclusive x value in the region&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">y_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum inclusive y value in the region&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Clockwise rotation angle of the rectangle&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">key_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_key</span><span class="p">}]</span>
@@ -395,7 +430,8 @@
         <span class="k">return</span> <span class="n">mask_x</span> <span class="o">&amp;</span> <span class="n">mask_y</span></div>
 
 
-<div class="viewcode-block" id="Circle"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Circle">[docs]</a><span class="k">class</span> <span class="nc">Circle</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
+<div class="viewcode-block" id="Circle"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Circle">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Circle</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Mask contains positions of key within an xy circle of given radius</span>
 
 <span class="sd">    .. example_spec::</span>
@@ -407,19 +443,19 @@
 <span class="sd">        spec = grid &amp; Circle(&quot;x&quot;, &quot;y&quot;, 1, 2, 0.9)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">x_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the x axis of the spec&quot;</span><span class="p">)</span>
-    <span class="n">y_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the x axis of the spec&quot;</span><span class="p">)</span>
-    <span class="n">x_centre</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive x value in the region&quot;</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;x_center&quot;</span>
+    <span class="n">x_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the x axis of the spec&quot;</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">y_centre</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive y value in the region&quot;</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;y_center&quot;</span>
+    <span class="n">y_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the x axis of the spec&quot;</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radius of the circle&quot;</span><span class="p">)</span>
-
-    <span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
-        <span class="c1"># Allow either centre or center</span>
-        <span class="n">allow_population_by_field_name</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">x_centre</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive x value in the region&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">y_centre</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive y value in the region&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radius of the circle&quot;</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">key_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_key</span><span class="p">}]</span>
@@ -434,10 +470,10 @@
 <div class="viewcode-block" id="find_regions"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.find_regions">[docs]</a><span class="k">def</span> <span class="nf">find_regions</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Region</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Recursively iterate over obj and its children, yielding any Region</span>
 <span class="sd">    instances found&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">is_dataclass</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Region</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">obj</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">__fields__</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">yield from</span> <span class="n">find_regions</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span></div>
 </pre></div>
 
@@ -445,20 +481,17 @@
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Diamond Light Source
+        &#169; Copyright 2020, Diamond Light Source.
 
     </p>
   </div> 
 
 </footer>
-
         </div>
       </div>
 

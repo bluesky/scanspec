@@ -4,11 +4,11 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.specs &mdash; scanspec 0.2 documentation</title>
+  <title>scanspec.specs &mdash; scanspec 0.0+untagged.g6c97653 documentation</title>
   
 
   
@@ -21,7 +21,10 @@
   
     <link rel="shortcut icon" href="../../_static/scanspec-logo.ico"/>
   
+
   
+  
+
   
 
   
@@ -34,7 +37,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -54,7 +56,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> scanspec
+            <a href="../../index.html" class="icon icon-home"> scanspec
           
 
           
@@ -67,7 +69,7 @@
             
             
               <div class="version">
-                0.2
+                master
               </div>
             
           
@@ -174,6 +176,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -198,23 +202,30 @@
            <div itemprop="articleBody">
             
   <h1>Source code for scanspec.specs</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">Field</span><span class="p">,</span> <span class="n">parse_obj_as</span><span class="p">,</span> <span class="n">parse_raw_as</span><span class="p">,</span> <span class="n">validate_arguments</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span>
+<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Annotated</span>
 
 <span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">Dimension</span><span class="p">,</span>
     <span class="n">Path</span><span class="p">,</span>
     <span class="n">Serializable</span><span class="p">,</span>
     <span class="n">SpecPositions</span><span class="p">,</span>
+    <span class="n">alternative_constructor</span><span class="p">,</span>
     <span class="n">if_instance_do</span><span class="p">,</span>
     <span class="n">squash_dimensions</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.regions</span> <span class="kn">import</span> <span class="n">Region</span><span class="p">,</span> <span class="n">get_mask</span>
 
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Spec"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec">[docs]</a><span class="k">class</span> <span class="nc">Spec</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Spec"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Spec</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract baseclass for the specification of a scan. Supports operators:</span>
 
 <span class="sd">    - ``*``: Outer `Product` of two Specs, nesting the second within the first</span>
@@ -257,7 +268,8 @@
         <span class="k">return</span> <span class="n">Snake</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Product"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Product">[docs]</a><span class="k">class</span> <span class="nc">Product</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Product"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Product">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Product</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Outer product of two Specs, nesting inner within outer. This means that</span>
 <span class="sd">    inner will run in its entirety at each point in outer.</span>
 
@@ -268,8 +280,10 @@
 <span class="sd">        spec = Line(&quot;y&quot;, 1, 2, 3) * Line(&quot;x&quot;, 3, 4, 12)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">outer</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Will be executed once&quot;</span><span class="p">)</span>
-    <span class="n">inner</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Will be executed len(outer) times&quot;</span><span class="p">)</span>
+    <span class="n">outer</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Will be executed once&quot;</span><span class="p">))</span>
+    <span class="n">inner</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Will be executed len(outer) times&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
@@ -280,7 +294,8 @@
         <span class="k">return</span> <span class="n">dims_outer</span> <span class="o">+</span> <span class="n">dims_inner</span></div>
 
 
-<div class="viewcode-block" id="Zip"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Zip">[docs]</a><span class="k">class</span> <span class="nc">Zip</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Zip"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Zip">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Zip</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Run two Specs in parallel, merging their positions together. Typically</span>
 <span class="sd">    formed using the ``+`` operator.</span>
 
@@ -301,11 +316,15 @@
 <span class="sd">        spec = Line(&quot;z&quot;, 1, 2, 3) * Line(&quot;y&quot;, 3, 4, 5) + Line(&quot;x&quot;, 4, 5, 5)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">left</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Spec to Zip, will appear earlier in keys&quot;</span>
+    <span class="n">left</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Spec to Zip, will appear earlier in keys&quot;</span>
+        <span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">right</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Spec to Zip, will appear later in keys&quot;</span>
+    <span class="n">right</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Spec to Zip, will appear later in keys&quot;</span>
+        <span class="p">)</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
@@ -344,7 +363,8 @@
         <span class="k">return</span> <span class="n">dimensions</span></div>
 
 
-<div class="viewcode-block" id="Mask"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Mask">[docs]</a><span class="k">class</span> <span class="nc">Mask</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Mask"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Mask">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Mask</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Restrict the given Spec to only the positions that fall inside the given</span>
 <span class="sd">    Region.</span>
 
@@ -366,10 +386,17 @@
 <span class="sd">        spec = Line(&quot;y&quot;, 1, 3, 3) * Line(&quot;x&quot;, 3, 5, 5) &amp; Circle(&quot;x&quot;, &quot;y&quot;, 4, 2, 1.2)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Spec containing the source positions&quot;</span><span class="p">)</span>
-    <span class="n">region</span><span class="p">:</span> <span class="n">Region</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Region that positions will be inside&quot;</span><span class="p">)</span>
-    <span class="n">check_path_changes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="kc">True</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If True path through scan will not be modified by squash&quot;</span>
+    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Spec containing the source positions&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">region</span><span class="p">:</span> <span class="n">Region</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Region that positions will be inside&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">check_path_changes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If True path through scan will not be modified by squash&quot;</span>
+        <span class="p">),</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
@@ -410,7 +437,8 @@
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">-</span> <span class="n">o</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="Snake"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Snake">[docs]</a><span class="k">class</span> <span class="nc">Snake</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Snake"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Snake">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Snake</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Run the Spec in reverse on every other iteration when nested inside</span>
 <span class="sd">    another Spec. Typically created with the ``~`` operator.</span>
 
@@ -421,8 +449,8 @@
 <span class="sd">        spec = Line(&quot;y&quot;, 1, 3, 3) * ~Line(&quot;x&quot;, 3, 5, 5)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Spec to run in reverse every other iteration&quot;</span>
+    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Spec to run in reverse every other iteration&quot;</span><span class="p">)</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
@@ -435,7 +463,8 @@
         <span class="k">return</span> <span class="n">dims</span></div>
 
 
-<div class="viewcode-block" id="Concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Concat">[docs]</a><span class="k">class</span> <span class="nc">Concat</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Concat">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Concat</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Concatenate two Specs together, running one after the other. Each Dimension</span>
 <span class="sd">    of left and right must contain the same keys.</span>
 
@@ -446,11 +475,15 @@
 <span class="sd">        spec = Concat(Line(&quot;x&quot;, 1, 3, 3), Line(&quot;x&quot;, 4, 5, 5))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">left</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Spec to Zip, positions will appear earlier&quot;</span>
+    <span class="n">left</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Spec to Zip, positions will appear earlier&quot;</span>
+        <span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">right</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Spec to Zip, positions will appear later&quot;</span>
+    <span class="n">right</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Spec to Zip, positions will appear later&quot;</span>
+        <span class="p">)</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
@@ -468,7 +501,8 @@
         <span class="k">return</span> <span class="n">dimensions</span></div>
 
 
-<div class="viewcode-block" id="Squash"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Squash">[docs]</a><span class="k">class</span> <span class="nc">Squash</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Squash"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Squash">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Squash</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Squash the Dimensions together of the scan (but not positions) into one</span>
 <span class="sd">    linear stack.</span>
 
@@ -482,9 +516,14 @@
 <span class="sd">        spec = Squash(Line(&quot;y&quot;, 1, 2, 3) * Line(&quot;x&quot;, 0, 1, 4))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Spec to squash the dimensions of&quot;</span><span class="p">)</span>
-    <span class="n">check_path_changes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="kc">True</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If True path through scan will not be modified by squash&quot;</span>
+    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Spec to squash the dimensions of&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">check_path_changes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If True path through scan will not be modified by squash&quot;</span>
+        <span class="p">),</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
@@ -517,7 +556,8 @@
     <span class="k">return</span> <span class="p">[</span><span class="n">dimension</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="Line"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Line">[docs]</a><span class="k">class</span> <span class="nc">Line</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Line"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Line">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Line</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Linearly spaced points in the given key, with first and last points</span>
 <span class="sd">    centred on start and stop.</span>
 
@@ -528,10 +568,14 @@
 <span class="sd">        spec = Line(&quot;x&quot;, 1, 2, 5)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">)</span>
-    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Centre point of the first point of the line&quot;</span><span class="p">)</span>
-    <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Centre point of the last point of the line&quot;</span><span class="p">)</span>
-    <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of points to produce&quot;</span><span class="p">)</span>
+    <span class="n">key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">))</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Centre point of the first point of the line&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Centre point of the last point of the line&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of points to produce&quot;</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
@@ -553,19 +597,17 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_line_from_indexes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="n">bounds</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="Line.bounded"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Line.bounded">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@validate_arguments</span>
+<div class="viewcode-block" id="Line.bounded"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Line.bounded">[docs]</a>    <span class="nd">@alternative_constructor</span>
     <span class="k">def</span> <span class="nf">bounded</span><span class="p">(</span>
-        <span class="bp">cls</span><span class="p">,</span>
-        <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span>
-        <span class="n">lower</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-            <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Lower bound of the first point of the line&quot;</span>
-        <span class="p">),</span>
-        <span class="n">upper</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-            <span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Upper bound of the last point of the line&quot;</span>
-        <span class="p">),</span>
-        <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">num</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">)],</span>
+        <span class="n">lower</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span>
+            <span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Lower bound of the first point of the line&quot;</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="n">upper</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span>
+            <span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Upper bound of the last point of the line&quot;</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="n">num</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of points to produce&quot;</span><span class="p">)],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Line&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Specify a Line by extreme bounds instead of centre points.</span>
 
 <span class="sd">        .. example_spec::</span>
@@ -582,10 +624,11 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Many points, stop will be produced</span>
             <span class="n">stop</span> <span class="o">=</span> <span class="n">upper</span> <span class="o">-</span> <span class="n">half_step</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">Line</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="Static"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Static">[docs]</a><span class="k">class</span> <span class="nc">Static</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Static"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Static">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Static</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A static point, repeated &quot;num&quot; times, with &quot;key&quot; at &quot;value&quot;. Can</span>
 <span class="sd">    be used to set key=value at every point in a scan.</span>
 
@@ -596,9 +639,12 @@
 <span class="sd">        spec = Line(&quot;y&quot;, 1, 2, 3) + Static(&quot;x&quot;, 3)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">)</span>
-    <span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The value at each point&quot;</span><span class="p">)</span>
-    <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;How many times to repeat this point&quot;</span><span class="p">)</span>
+    <span class="n">key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">))</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The value at each point&quot;</span><span class="p">))</span>
+    <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;How many times to repeat this point&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
@@ -612,7 +658,8 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Spiral"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spiral">[docs]</a><span class="k">class</span> <span class="nc">Spiral</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
+<div class="viewcode-block" id="Spiral"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spiral">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Spiral</span><span class="p">(</span><span class="n">Spec</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Archimedean spiral of &quot;x_key&quot; and &quot;y_key&quot;, starting at centre point</span>
 <span class="sd">    (&quot;x_start&quot;, &quot;y_start&quot;) with angle &quot;rotate&quot;. Produces &quot;num&quot; points</span>
 <span class="sd">    in a spiral spanning width of &quot;x_range&quot; and height of &quot;y_range&quot;</span>
@@ -624,15 +671,22 @@
 <span class="sd">        spec = Spiral(&quot;x&quot;, &quot;y&quot;, 1, 5, 10, 50, 30)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">x_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for x&quot;</span><span class="p">)</span>
-    <span class="n">y_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for y&quot;</span><span class="p">)</span>
+    <span class="n">x_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for x&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">y_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for y&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="c1"># TODO: do we like these names?</span>
-    <span class="n">x_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;x centre of the spiral&quot;</span><span class="p">)</span>
-    <span class="n">y_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;y centre of the spiral&quot;</span><span class="p">)</span>
-    <span class="n">x_range</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;x width of the spiral&quot;</span><span class="p">)</span>
-    <span class="n">y_range</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;y width of the spiral&quot;</span><span class="p">)</span>
-    <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of points in the spiral&quot;</span><span class="p">)</span>
-    <span class="n">rotate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;How much to rotate the angle of the spiral&quot;</span><span class="p">)</span>
+    <span class="n">x_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;x centre of the spiral&quot;</span><span class="p">))</span>
+    <span class="n">y_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;y centre of the spiral&quot;</span><span class="p">))</span>
+    <span class="n">x_range</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;x width of the spiral&quot;</span><span class="p">))</span>
+    <span class="n">y_range</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;y width of the spiral&quot;</span><span class="p">))</span>
+    <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of points in the spiral&quot;</span><span class="p">))</span>
+    <span class="n">rotate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;How much to rotate the angle of the spiral&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
         <span class="c1"># TODO: reversed from __init__ args, a good idea?</span>
@@ -660,18 +714,25 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_spiral_from_indexes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="n">bounds</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="Spiral.spaced"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spiral.spaced">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@validate_arguments</span>
+<div class="viewcode-block" id="Spiral.spaced"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spiral.spaced">[docs]</a>    <span class="nd">@alternative_constructor</span>
     <span class="k">def</span> <span class="nf">spaced</span><span class="p">(</span>
-        <span class="bp">cls</span><span class="p">,</span>
-        <span class="n">x_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">x_key</span><span class="p">,</span>
-        <span class="n">y_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">y_key</span><span class="p">,</span>
-        <span class="n">x_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">x_start</span><span class="p">,</span>
-        <span class="n">y_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">y_start</span><span class="p">,</span>
-        <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;radius of the spiral&quot;</span><span class="p">),</span>
-        <span class="n">dr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;difference between each ring&quot;</span><span class="p">),</span>
-        <span class="n">rotate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">rotate</span><span class="p">,</span>
-    <span class="p">):</span>
+        <span class="n">x_key</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span>
+            <span class="n">Any</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for x&quot;</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="n">y_key</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span>
+            <span class="n">Any</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for y&quot;</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="n">x_start</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;x centre of the spiral&quot;</span><span class="p">)],</span>
+        <span class="n">y_start</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;y centre of the spiral&quot;</span><span class="p">)],</span>
+        <span class="n">radius</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;radius of the spiral&quot;</span><span class="p">)],</span>
+        <span class="n">dr</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;difference between each ring&quot;</span><span class="p">)],</span>
+        <span class="n">rotate</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span>
+            <span class="nb">float</span><span class="p">,</span>
+            <span class="n">schema</span><span class="p">(</span>
+                <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;How much to rotate the angle of the spiral&quot;</span>
+            <span class="p">),</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Spiral&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Specify a Spiral equally spaced in &quot;x_key&quot; and &quot;y_key&quot; by specifying</span>
 <span class="sd">        the &quot;radius&quot; and difference between each ring of the spiral &quot;dr&quot;</span>
 
@@ -686,8 +747,10 @@
         <span class="c1"># so: n_rings * 2 * pi = sqrt(4 * pi * num)</span>
         <span class="c1"># so: num = n_rings^2 * pi</span>
         <span class="n">n_rings</span> <span class="o">=</span> <span class="n">radius</span> <span class="o">/</span> <span class="n">dr</span>
-        <span class="n">num</span> <span class="o">=</span> <span class="n">n_rings</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">x_key</span><span class="p">,</span> <span class="n">y_key</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">y_start</span><span class="p">,</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">rotate</span><span class="p">)</span></div></div>
+        <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_rings</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Spiral</span><span class="p">(</span>
+            <span class="n">x_key</span><span class="p">,</span> <span class="n">y_key</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">y_start</span><span class="p">,</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">rotate</span>
+        <span class="p">)</span></div></div>
 
 
 <span class="c1">#: Can be used as a special key to indicate how long each point should be</span>
@@ -749,74 +812,45 @@
         <span class="k">return</span> <span class="n">Line</span><span class="p">(</span><span class="n">REPEAT</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span> <span class="o">*</span> <span class="n">spec</span></div>
 
 
-<span class="k">class</span> <span class="nc">_UnionModifier</span><span class="p">:</span>
-    <span class="c1"># Modifies all Spec subclasses so Spec-&gt;Union[all Spec subclasses]</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">_spec_subclasses</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_all_subclasses</span><span class="p">(</span><span class="n">Spec</span><span class="p">))</span>
-        <span class="n">_region_subclasses</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_all_subclasses</span><span class="p">(</span><span class="n">Region</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">spec_union</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">_spec_subclasses</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">region_union</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">_region_subclasses</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
-
-        <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">_spec_subclasses</span> <span class="o">+</span> <span class="n">_region_subclasses</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">__fields__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">type_</span> <span class="ow">is</span> <span class="n">Spec</span><span class="p">:</span>
-                    <span class="n">field</span><span class="o">.</span><span class="n">type_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec_union</span>
-                    <span class="n">field</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span>
-                <span class="k">elif</span> <span class="n">field</span><span class="o">.</span><span class="n">type_</span> <span class="ow">is</span> <span class="n">Region</span><span class="p">:</span>
-                    <span class="n">field</span><span class="o">.</span><span class="n">type_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">region_union</span>
-                    <span class="n">field</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_all_subclasses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">())</span><span class="o">.</span><span class="n">union</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_subclasses</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span>
-        <span class="p">)</span>
-
-
-<span class="n">_modifier</span> <span class="o">=</span> <span class="n">_UnionModifier</span><span class="p">()</span>
-
-
 <div class="viewcode-block" id="spec_from_dict"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.spec_from_dict">[docs]</a><span class="k">def</span> <span class="nf">spec_from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spec</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a `Spec` from a dictionary representation of it</span>
 
 <span class="sd">    &gt;&gt;&gt; spec_from_dict(</span>
-<span class="sd">    ... {&#39;type&#39;: &#39;Line&#39;, &#39;key&#39;: &#39;x&#39;, &#39;start&#39;: 1.0, &#39;stop&#39;: 2.0, &#39;num&#39;: 3})</span>
+<span class="sd">    ... {&#39;Line&#39;: {&#39;key&#39;: &#39;x&#39;, &#39;start&#39;: 1.0, &#39;stop&#39;: 2.0, &#39;num&#39;: 3}})</span>
 <span class="sd">    Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3)</span>
 
 <span class="sd">    .. seealso:: `serialize-a-spec`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">parse_obj_as</span><span class="p">(</span><span class="n">_modifier</span><span class="o">.</span><span class="n">spec_union</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+    <span class="k">return</span> <span class="n">Spec</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
 
 
 <div class="viewcode-block" id="spec_from_json"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.spec_from_json">[docs]</a><span class="k">def</span> <span class="nf">spec_from_json</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spec</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a `Spec` from a JSON representation of it</span>
 
 <span class="sd">    &gt;&gt;&gt; spec_from_json(</span>
-<span class="sd">    ... &#39;{&quot;type&quot;: &quot;Line&quot;, &quot;key&quot;: &quot;x&quot;, &quot;start&quot;: 1.0, &quot;stop&quot;: 2.0, &quot;num&quot;: 3}&#39;)</span>
+<span class="sd">    ... &#39;{&quot;Line&quot;: {&quot;key&quot;: &quot;x&quot;, &quot;start&quot;: 1.0, &quot;stop&quot;: 2.0, &quot;num&quot;: 3}}&#39;)</span>
 <span class="sd">    Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3)</span>
 
 <span class="sd">    .. seealso:: `serialize-a-spec`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">parse_raw_as</span><span class="p">(</span><span class="n">_modifier</span><span class="o">.</span><span class="n">spec_union</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+    <span class="k">return</span> <span class="n">Spec</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>  <span class="c1"># type: ignore</span></div>
 </pre></div>
 
            </div>
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Diamond Light Source
+        &#169; Copyright 2020, Diamond Light Source.
 
     </p>
   </div> 
 
 </footer>
-
         </div>
       </div>
 

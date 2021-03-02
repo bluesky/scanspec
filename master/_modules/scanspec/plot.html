@@ -4,11 +4,11 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.plot &mdash; scanspec 0.2 documentation</title>
+  <title>scanspec.plot &mdash; scanspec 0.0+untagged.g6c97653 documentation</title>
   
 
   
@@ -21,7 +21,10 @@
   
     <link rel="shortcut icon" href="../../_static/scanspec-logo.ico"/>
   
+
   
+  
+
   
 
   
@@ -34,7 +37,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -54,7 +56,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> scanspec
+            <a href="../../index.html" class="icon icon-home"> scanspec
           
 
           
@@ -67,7 +69,7 @@
             
             
               <div class="version">
-                0.2
+                master
               </div>
             
           
@@ -174,6 +176,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -245,7 +249,7 @@
 
 <span class="k">def</span> <span class="nf">_plot_arrow</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">arrays</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">arrays</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">arrays</span>
+        <span class="n">arrays</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])]</span> <span class="o">+</span> <span class="n">arrays</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">head</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">arrays</span><span class="p">)]</span>
         <span class="n">tail</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">arrays</span><span class="p">)]</span>
@@ -391,7 +395,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># First point isn&#39;t moving, put a right caret marker</span>
             <span class="n">_plot_arrays</span><span class="p">(</span>
-                <span class="n">axes</span><span class="p">,</span> <span class="p">[[</span><span class="n">dim</span><span class="o">.</span><span class="n">lower</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightgrey&quot;</span>
+                <span class="n">axes</span><span class="p">,</span>
+                <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dim</span><span class="o">.</span><span class="n">lower</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">],</span>
+                <span class="n">marker</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightgrey&quot;</span><span class="p">,</span>
             <span class="p">)</span>
 
     <span class="c1"># Plot the capture points</span>
@@ -401,7 +408,10 @@
 
     <span class="c1"># Plot the end</span>
     <span class="n">_plot_arrays</span><span class="p">(</span>
-        <span class="n">axes</span><span class="p">,</span> <span class="p">[[</span><span class="n">dim</span><span class="o">.</span><span class="n">upper</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightgrey&quot;</span>
+        <span class="n">axes</span><span class="p">,</span>
+        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dim</span><span class="o">.</span><span class="n">upper</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">],</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightgrey&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
@@ -411,20 +421,17 @@
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Diamond Light Source
+        &#169; Copyright 2020, Diamond Light Source.
 
     </p>
   </div> 
 
 </footer>
-
         </div>
       </div>
 
