@@ -22,6 +22,7 @@ sphinx-multiversion = {editable = true,git = "https://github.com/dls-controls/sp
 [packages]
 # All other package requirements from setup.cfg
 scanspec = {editable = true, extras = ["graphql"], path = "."}
+typing-extensions = "*"
 
 [scripts]
 # Put coverage here so we don't interfere with debugging in the IDE
