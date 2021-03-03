@@ -1,7 +1,7 @@
 scanspec
 ========
 
-|build_status| |coverage| |pypi_version| |license|
+|code_ci| |docs_ci| |coverage| |pypi_version| |license|
 
 Specify step and flyscan Paths using combinations of:
 
@@ -60,12 +60,16 @@ or create a Path from the Dimensions and consume chunks of a given length from i
     chunk.upper  # bounds are same dimensionality as positions
 
 
-.. |build_status| image:: https://github.com/dls-controls/scanspec/workflows/Python%20CI/badge.svg?branch=master
-    :target: https://github.com/dls-controls/scanspec/actions?query=workflow%3A%22Python+CI%22
-    :alt: Build Status
+.. |code_ci| image:: https://github.com/dls-controls/scanspec/workflows/Code%20CI/badge.svg?branch=master
+    :target: https://github.com/dls-controls/scanspec/actions?query=workflow%3A%22Code+CI%22
+    :alt: Code CI
 
-.. |coverage| image:: https://dls-controls.github.io/scanspec/coverage.svg
-    :target: https://github.com/dls-controls/scanspec/actions?query=workflow%3A%22Python+CI%22
+.. |docs_ci| image:: https://github.com/dls-controls/scanspec/workflows/Docs%20CI/badge.svg?branch=master
+    :target: https://github.com/dls-controls/scanspec/actions?query=workflow%3A%22Docs+CI%22
+    :alt: Docs CI
+
+.. |coverage| image:: https://codecov.io/gh/dls-controls/scanspec/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/dls-controls/scanspec
     :alt: Test Coverage
 
 .. |pypi_version| image:: https://img.shields.io/pypi/v/scanspec.svg
