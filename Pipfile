@@ -13,6 +13,7 @@ flake8-isort = "*"
 isort = ">5.0"
 pytest-mypy = "*"
 sphinx-rtd-theme = "*"
+sphinx-graphiql = "*"
 # Without these lines lockfile isn't usable on multiple Python versions and platforms
 mypy = "*"
 atomicwrites = "*"
