@@ -85,3 +85,5 @@ or create a Path from the Dimensions and consume chunks of a given length from i
     when included in index.rst
 
 .. |plot| image:: https://raw.githubusercontent.com/dls-controls/scanspec/0.1/docs/images/plot_spec.png
+
+See https://dls-controls.github.io/scanspec for more detailed documentation.

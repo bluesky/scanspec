@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "31b2486da356f5540ee21a0d220020835617f1653f241c3753200dfb244b82e2"
+            "sha256": "b70f58d28ceff608eac8f9c93a738e3b4820385527bd168bb53a2ac19e8689af"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -509,7 +509,7 @@
                 "sha256:ace61d5fc652dc280e7b6b4ff732a9c2d40db2c0f92bc6cb74e07b73d53a1771",
                 "sha256:fa5daa4477a7414ae34e95942e4dd07f62adf589143c875c133c1e53c4eff38d"
             ],
-            "markers": "python_version < '3.8' and python_version < '3.8'",
+            "markers": "python_version < '3.8'",
             "version": "==3.4.0"
         },
         "iniconfig": {
@@ -783,12 +783,8 @@
             "version": "==3.4.3"
         },
         "sphinx-graphiql": {
-            "hashes": [
-                "sha256:3ced313097a3299799d02a4864d8e1d8750ae4640aca5f58c459c467b67599dc",
-                "sha256:a0671013d4710863b6451a427d1deeb8dff4ef9ca52f977da2db9cf2afa20503"
-            ],
-            "index": "pypi",
-            "version": "==0.0.3"
+            "git": "https://github.com/seandavi/sphinx-graphiql",
+            "ref": "737c19eb617c73a2e18cfbbe354a2a18b189363b"
         },
         "sphinx-multiversion": {
             "editable": true,

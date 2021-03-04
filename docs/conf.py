@@ -49,6 +49,8 @@ extensions = [
     "sphinx_multiversion",
     # Adds plotting directives
     "matplotlib.sphinxext.plot_directive",
+    # Graphiql directive
+    "sphinx_graphiql",
     # Add apischema information to autodoc entries
     "scanspec.sphinxext",
 ]
@@ -151,3 +153,6 @@ smv_branch_whitelist = r"^master$"  # only branch to document is master
 smv_outputdir_format = "{ref.name}"
 smv_prefer_remote_refs = False
 smv_remote_whitelist = "origin|github"
+
+# Point graphiql at our localhost examples
+GRAPHIQL_DEFAULT_ENDPOINT = "http://localhost:8080/graphql"
