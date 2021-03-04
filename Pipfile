@@ -21,7 +21,8 @@ sphinx-multiversion = {editable = true,git = "https://github.com/dls-controls/sp
 
 [packages]
 # All other package requirements from setup.cfg
-scanspec = {editable = true, extras = ["graphql"], path = "."}
+scanspec = {editable = true, extras = ["plotting", "graphql"], path = "."}
+# Force pipenv to install typing-extensions always (otherwise it skips on 3.8+)
 typing-extensions = "*"
 
 [scripts]
