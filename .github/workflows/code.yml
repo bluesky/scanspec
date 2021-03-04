@@ -25,7 +25,7 @@ jobs:
         run: |
           env
           pip install pipenv
-          pipenv install --dev --skip-lock && pipenv graph
+          pipenv install --dev && pipenv graph
 
       - name: Create Sdist and Wheel
         # for reproducible builds set SOURCE_DATE_EPOCH to the date of the last commit
