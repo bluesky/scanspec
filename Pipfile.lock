@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b70f58d28ceff608eac8f9c93a738e3b4820385527bd168bb53a2ac19e8689af"
+            "sha256": "cc5615e777dbb231cd99469b9210dfceff94f68ca6c71c6aa15c30331fbd6915"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -51,6 +51,13 @@
                 "sha256:f8c583c31c6e790dc003d9d574e3ed2c5b337947722965096c4d684e4f183570"
             ],
             "version": "==3.7.2"
+        },
+        "aiohttp-cors": {
+            "hashes": [
+                "sha256:0451ba59fdf6909d0e2cd21e4c0a43752bc0703d33fc78ae94d9d9321710193e",
+                "sha256:4d39c6d7100fd9764ed1caf8cebf0eb01bf5e3f24e2e073fda6234bc48b19f5d"
+            ],
+            "version": "==0.7.0"
         },
         "apischema": {
             "hashes": [
@@ -802,10 +809,6 @@
                 "sha256:c314c857e7cd47c856d2c5adff514ac2e6495f8b8e0f886a8a37e9305dfea0d8"
             ],
             "version": "==3.4.3"
-        },
-        "sphinx-graphiql": {
-            "git": "https://github.com/seandavi/sphinx-graphiql",
-            "ref": "737c19eb617c73a2e18cfbbe354a2a18b189363b"
         },
         "sphinx-multiversion": {
             "editable": true,

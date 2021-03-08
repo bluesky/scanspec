@@ -18,8 +18,6 @@ mypy = "*"
 atomicwrites = "*"
 # switch to main repo after PR https://github.com/Holzhaus/sphinx-multiversion/pull/60 is merged
 sphinx-multiversion = {editable = true,git = "https://github.com/dls-controls/sphinx-multiversion.git",ref = "only-arg"}
-# switch to main repo after PR https://github.com/hasura/sphinx-graphiql/pull/1 is merged
-sphinx-graphiql = {git = "https://github.com/seandavi/sphinx-graphiql"}
 
 [packages]
 # All other package requirements from setup.cfg
