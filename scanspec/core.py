@@ -163,13 +163,15 @@ class Serializable:
             parent_cls.conversion = _update_serialization(parent_cls)
 
     def serialize(self):
+        """Serialize to a dictionary representation"""
         parent_cls = self.__class__.__bases__[0]
         return serialize(
             self, conversions=LazyConversion(lambda: parent_cls.conversion)
         )
 
     @classmethod
-    def deserialize(cls, serialization):
+    def deserialize(cls: T, serialization: Dict[str, Any]) -> T:
+        """Deserialize from a dictionary representation"""
         return deserialize(cls, serialization)
 
 
