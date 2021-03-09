@@ -42,8 +42,9 @@ def plot(spec: str):
 
 
 @cli.command()
-def service():
+@click.option("--cors", is_flag=True)
+def service(cors):
     """Run up a GraphQL service"""
     from scanspec.service import run_app
 
-    run_app()
+    run_app(cors)

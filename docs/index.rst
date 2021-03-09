@@ -48,6 +48,7 @@ About the documentation
 
     tutorials/installation
     tutorials/creating-a-spec
+    tutorials/graphql-service
 
 .. toctree::
     :caption: How-to Guides

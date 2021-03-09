@@ -1,4 +1,3 @@
-import json
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
@@ -606,27 +605,3 @@ def repeat(spec: Spec, num: int, blend=False):
         return Static(REPEAT, num, num) * spec
     else:
         return Line(REPEAT, 1, num, num) * spec
-
-
-def spec_from_dict(d: Dict) -> Spec:
-    """Create a `Spec` from a dictionary representation of it
-
-    >>> spec_from_dict(
-    ... {'Line': {'key': 'x', 'start': 1.0, 'stop': 2.0, 'num': 3}})
-    Line(key='x', start=1.0, stop=2.0, num=3)
-
-    .. seealso:: `serialize-a-spec`
-    """
-    return Spec.deserialize(d)  # type: ignore
-
-
-def spec_from_json(text: str) -> Spec:
-    """Create a `Spec` from a JSON representation of it
-
-    >>> spec_from_json(
-    ... '{"Line": {"key": "x", "start": 1.0, "stop": 2.0, "num": 3}}')
-    Line(key='x', start=1.0, stop=2.0, num=3)
-
-    .. seealso:: `serialize-a-spec`
-    """
-    return Spec.deserialize(json.loads(text))  # type: ignore

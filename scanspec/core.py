@@ -1,6 +1,7 @@
 from dataclasses import fields as dataclass_fields
 from types import new_class
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     ClassVar,
@@ -38,26 +39,30 @@ def rec_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
 # {cls_name: [functions]}
 _alternative_constructors: Dict[str, List[Callable]] = {}
 
+if TYPE_CHECKING:
+    # Close enough for mypy
+    alternative_constructor = staticmethod
+else:
 
-def alternative_constructor(f: Callable):
-    """Register an alternative constructor for this class. This will be returned
-    as a staticmethod so the signature should not include self/cls.
+    def alternative_constructor(f):
+        """Register an alternative constructor for this class. This will be returned
+        as a staticmethod so the signature should not include self/cls.
 
-    >>> import dataclasses
-    >>> @dataclasses.dataclass
-    ... class Foo:
-    ...     a: int
-    ...     @alternative_constructor
-    ...     def doubled(b: int) -> "Foo":
-    ...         return Foo(b * 2)
-    ...
-    >>> Foo.doubled(2)
-    Foo(a=4)
-    """
-    cls_name = f.__qualname__.split(".")[0]
-    _alternative_constructors.setdefault(cls_name, []).append(f)
-    m = staticmethod(f)
-    return m
+        >>> import dataclasses
+        >>> @dataclasses.dataclass
+        ... class Foo:
+        ...     a: int
+        ...     @alternative_constructor
+        ...     def doubled(b: int) -> "Foo":
+        ...         return Foo(b * 2)
+        ...
+        >>> Foo.doubled(2)
+        Foo(a=4)
+        """
+        cls_name = f.__qualname__.split(".")[0]
+        _alternative_constructors.setdefault(cls_name, []).append(f)
+        m = staticmethod(f)
+        return m
 
 
 def _update_serialization(parent_class: Any) -> Conversion:
@@ -158,13 +163,15 @@ class Serializable:
             parent_cls.conversion = _update_serialization(parent_cls)
 
     def serialize(self):
+        """Serialize to a dictionary representation"""
         parent_cls = self.__class__.__bases__[0]
         return serialize(
             self, conversions=LazyConversion(lambda: parent_cls.conversion)
         )
 
     @classmethod
-    def deserialize(cls, serialization):
+    def deserialize(cls: T, serialization: Dict[str, Any]) -> T:
+        """Deserialize from a dictionary representation"""
         return deserialize(cls, serialization)
 
 

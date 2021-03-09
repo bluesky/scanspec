@@ -28,6 +28,7 @@ from code:
 
     .. autoclass:: scanspec.core.Serializable
         :no-show-inheritance:
+        :members:
 
         .. seealso::
             https://github.com/wyfo/apischema/discussions/56#discussioncomment-336580
