@@ -8,13 +8,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Creating a Scan Spec &mdash; scanspec 0.0+untagged.g6c97653 documentation</title>
+  <title>Creating a Scan Spec &mdash; scanspec 0.0+untagged.g0dedb9a documentation</title>
   
 
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
 
   
@@ -37,13 +38,17 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react@16.13.1/umd/react.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.js"></script>
+        <script src="../_static/attachGraphiQL.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="How to Iterate a Spec" href="../how-to/iterate-a-spec.html" />
+    <link rel="next" title="Running a GraphQL service for generating points" href="graphql-service.html" />
     <link rel="prev" title="Installation Tutorial" href="installation.html" /> 
 </head>
 
@@ -117,6 +122,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#conclusion">Conclusion</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="graphql-service.html">Running a GraphQL service for generating points</a></li>
 </ul>
 <p class="caption"><span class="caption-text">How-to Guides</span></p>
 <ul>
@@ -216,7 +222,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="creating-a-scan-spec">
-<span id="creating-a-spec"></span><h1>Creating a Scan Spec<a class="headerlink" href="#creating-a-scan-spec" title="Permalink to this headline">¶</a></h1>
+<h1>Creating a Scan Spec<a class="headerlink" href="#creating-a-scan-spec" title="Permalink to this headline">¶</a></h1>
 <p>This tutorial shows how to create Scan Specs of increasing complexity, plotting
 the results.</p>
 <div class="section" id="line">
@@ -230,7 +236,7 @@ code into an interactive Python terminal, it should plot a graph of a 1D line:</
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-1.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-1.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-1.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-1.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-1.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-1.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-1.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-1.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-1.png" src="../_images/creating-a-spec-1.png" />
 </div>
@@ -260,7 +266,7 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-2.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-2.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-2.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-2.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-2.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-2.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-2.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-2.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-2.png" src="../_images/creating-a-spec-2.png" />
 </div>
@@ -275,7 +281,7 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-3.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-3.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-3.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-3.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-3.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-3.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-3.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-3.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-3.png" src="../_images/creating-a-spec-3.png" />
 </div>
@@ -284,7 +290,7 @@ the plotting function as an indication of what a scanning program might do betwe
 two disjoint points, it is not a guarantee of the path that will be taken.</p>
 </div>
 <div class="section" id="snaked-grid">
-<h2>Snaked Grid<a class="headerlink" href="#snaked-grid" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2>Snaked Grid<a class="headerlink" href="#snaked-grid" title="Permalink to this headline">¶</a></h2>
 <p>We can <a class="reference internal" href="../reference/api.html#scanspec.specs.Snake" title="scanspec.specs.Snake"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Snake</span></code></a> a Spec with the <code class="docutils literal notranslate"><span class="pre">~</span></code> operator. If we apply this to the inner Spec of
 our grid we get:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
@@ -294,7 +300,7 @@ our grid we get:</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-4.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-4.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-4.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-4.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-4.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-4.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-4.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-4.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-4.png" src="../_images/creating-a-spec-4.png" />
 </div>
@@ -311,7 +317,7 @@ the <code class="docutils literal notranslate"><span class="pre">&amp;</span></c
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-5.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-5.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-5.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-5.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-5.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-5.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-5.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-5.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-5.png" src="../_images/creating-a-spec-5.png" />
 </div>
@@ -334,7 +340,7 @@ the <code class="docutils literal notranslate"><span class="pre">&amp;</span></c
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-6.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-6.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-6.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmprpbbwpli/6c9765319a2d3b2bac00ae7ed4d5e1d40d0e3859/docs/tutorials/creating-a-spec-6.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-6.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-6.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-6.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpo0zzsdmq/0dedb9ae0263c88bb4ae1c699bb0d2c3b59471a4/docs/tutorials/creating-a-spec-6.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-6.png" src="../_images/creating-a-spec-6.png" />
 </div>
@@ -354,7 +360,7 @@ scanning system.</p>
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../how-to/iterate-a-spec.html" class="btn btn-neutral float-right" title="How to Iterate a Spec" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="graphql-service.html" class="btn btn-neutral float-right" title="Running a GraphQL service for generating points" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="installation.html" class="btn btn-neutral float-left" title="Installation Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

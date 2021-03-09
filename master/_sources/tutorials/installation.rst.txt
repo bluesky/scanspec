@@ -37,9 +37,14 @@ from github::
 
     python3 -m pip install git+git://github.com/dls-controls/scanspec.git
 
-If you need to do any plotting (recommended), you should also install matplotlib::
+If you need to do any plotting (recommended), you should install the ``plotting`` extra::
 
-    python3 -m install matplotlib
+    python3 -m pip install scanspec[plotting]
+
+If you need to run scanspec as a GraphQL service for generating points, you should
+install the ``graphql`` extra::
+
+    python3 -m pip install scanspec[graphql]
 
 The library should now be installed and the commandline interface on your path.
 You can check the version that has been installed by typing::

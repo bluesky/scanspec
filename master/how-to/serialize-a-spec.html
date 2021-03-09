@@ -8,13 +8,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>How to Serialize and Deserialize a Spec &mdash; scanspec 0.0+untagged.g6c97653 documentation</title>
+  <title>How to Serialize and Deserialize a Spec &mdash; scanspec 0.0+untagged.g0dedb9a documentation</title>
   
 
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
 
   
@@ -37,6 +38,10 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react@16.13.1/umd/react.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.js"></script>
+        <script src="../_static/attachGraphiQL.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -107,6 +112,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/graphql-service.html">Running a GraphQL service for generating points</a></li>
 </ul>
 <p class="caption"><span class="caption-text">How-to Guides</span></p>
 <ul class="current">
@@ -213,7 +219,7 @@
   <div class="section" id="how-to-serialize-and-deserialize-a-spec">
 <span id="serialize-a-spec"></span><h1>How to Serialize and Deserialize a Spec<a class="headerlink" href="#how-to-serialize-and-deserialize-a-spec" title="Permalink to this headline">¶</a></h1>
 <p>Lets start with an example <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a>.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Spec</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -232,11 +238,8 @@
 </div>
 <div class="section" id="how-to-deserialize">
 <h2>How to Deserialize<a class="headerlink" href="#how-to-deserialize" title="Permalink to this headline">¶</a></h2>
-<p>We can turn this back into a spec using <a class="reference internal" href="../reference/api.html#scanspec.specs.spec_from_json" title="scanspec.specs.spec_from_json"><code class="xref any py py-func docutils literal notranslate"><span class="pre">spec_from_json</span></code></a> or <a class="reference internal" href="../reference/api.html#scanspec.specs.spec_from_dict" title="scanspec.specs.spec_from_dict"><code class="xref any py py-func docutils literal notranslate"><span class="pre">spec_from_dict</span></code></a>:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">spec_from_json</span><span class="p">,</span> <span class="n">spec_from_dict</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">spec_from_json</span><span class="p">(</span><span class="s1">&#39;{&quot;Product&quot;: {&quot;outer&quot;: {&quot;Line&quot;: {&quot;key&quot;: &quot;y&quot;, &quot;start&quot;: 4, &quot;stop&quot;: 5, &quot;num&quot;: 6}}, &quot;inner&quot;: {&quot;Line&quot;: {&quot;key&quot;: &quot;x&quot;, &quot;start&quot;: 1, &quot;stop&quot;: 2, &quot;num&quot;: 3}}}}&#39;</span><span class="p">)</span>
-<span class="go">Product(outer=Line(key=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">spec_from_dict</span><span class="p">({</span><span class="s1">&#39;Product&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;outer&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">}},</span> <span class="s1">&#39;inner&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}}}})</span>
+<p>We can turn this back into a spec using <a class="reference internal" href="../reference/api.html#scanspec.core.Serializable.deserialize" title="scanspec.core.Serializable.deserialize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Serializable.deserialize</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Spec</span><span class="o">.</span><span class="n">deserialize</span><span class="p">({</span><span class="s1">&#39;Product&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;outer&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">}},</span> <span class="s1">&#39;inner&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}}}})</span>
 <span class="go">Product(outer=Line(key=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3))</span>
 </pre></div>
 </div>
@@ -244,9 +247,12 @@
 <div class="section" id="how-to-specify-json-from-the-class-definitions">
 <h2>How to Specify JSON from the class definitions<a class="headerlink" href="#how-to-specify-json-from-the-class-definitions" title="Permalink to this headline">¶</a></h2>
 <p>Every Spec lists in its documentation a list of parameters and types. The JSON
-representation is the dictionary of these parameters with one additional entry,
-<code class="docutils literal notranslate"><span class="pre">type</span></code> which must be equal to the classname. This allows the deserialization
-code to pick the correct class to deserialize to.</p>
+representation is the dictionary of these parameters, wrapped in a dictionary
+with a single element whose key is the classname. This allows the
+deserialization code to pick the correct class to deserialize to. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">}}</span>
+</pre></div>
+</div>
 </div>
 </div>
 

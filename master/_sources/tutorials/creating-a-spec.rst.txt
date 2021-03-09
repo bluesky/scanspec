@@ -1,5 +1,3 @@
-.. _creating-a-spec:
-
 Creating a Scan Spec
 ====================
 
@@ -66,6 +64,7 @@ The plot shows grey arrowed lines marking the turnarounds. These are added by
 the plotting function as an indication of what a scanning program might do between
 two disjoint points, it is not a guarantee of the path that will be taken.
 
+.. _snaked-grid:
 
 Snaked Grid
 -----------
