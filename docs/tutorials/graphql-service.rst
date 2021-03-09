@@ -12,7 +12,7 @@ plot.
 Running the server
 ------------------
 
-In a terminal, run:
+In a terminal, run::
 
     $ scanspec service --cors
     ======== Running on http://0.0.0.0:8080 ========
