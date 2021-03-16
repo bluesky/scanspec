@@ -61,11 +61,11 @@
         },
         "apischema": {
             "hashes": [
-                "sha256:8fa02fbc2706f1059755a108bb7ccb9752e81bdad5a3a5320a4a3e36349e1bdb",
-                "sha256:fe505f6bbacd5d8f15b0e3902066d355f35b6b84f9a4d9fc0bea6605d7d51b8e"
+                "sha256:01e20de70efa4885af918b9ce1ceaacc1952897624311512395a4bb379921571",
+                "sha256:047a5a84fc1a33af8b7538d1fdeaece9c049ebf6eced8a018ea77d6c6b44a415"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==0.14.6"
+            "version": "==0.14.7"
         },
         "async-timeout": {
             "hashes": [
