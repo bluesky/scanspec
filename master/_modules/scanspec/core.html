@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.core &mdash; scanspec 0.0+untagged.g412513d documentation</title>
+  <title>scanspec.core &mdash; scanspec 0.0+untagged.g192a08d documentation</title>
   
 
   
@@ -208,32 +208,31 @@
            <div itemprop="articleBody">
             
   <h1>Source code for scanspec.core</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">fields</span> <span class="k">as</span> <span class="n">dataclass_fields</span>
-<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">new_class</span>
+<span></span><span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">new_class</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">TYPE_CHECKING</span><span class="p">,</span>
     <span class="n">Any</span><span class="p">,</span>
     <span class="n">Callable</span><span class="p">,</span>
-    <span class="n">ClassVar</span><span class="p">,</span>
     <span class="n">Dict</span><span class="p">,</span>
     <span class="n">Iterator</span><span class="p">,</span>
     <span class="n">List</span><span class="p">,</span>
-    <span class="n">Optional</span><span class="p">,</span>
+    <span class="n">Mapping</span><span class="p">,</span>
     <span class="n">Type</span><span class="p">,</span>
     <span class="n">TypeVar</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">serialize</span>
+<span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">deserializer</span><span class="p">,</span> <span class="n">schema_ref</span><span class="p">,</span> <span class="n">serialize</span>
 <span class="kn">from</span> <span class="nn">apischema.conversions</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">Conversion</span><span class="p">,</span>
-    <span class="n">LazyConversion</span><span class="p">,</span>
     <span class="n">dataclass_input_wrapper</span><span class="p">,</span>
+    <span class="n">identity</span><span class="p">,</span>
     <span class="n">reset_deserializers</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">apischema.metadata.implem</span> <span class="kn">import</span> <span class="n">ConversionMetadata</span>
-<span class="kn">from</span> <span class="nn">apischema.metadata.keys</span> <span class="kn">import</span> <span class="n">CONVERSIONS_METADATA</span>
+<span class="kn">from</span> <span class="nn">apischema.conversions.converters</span> <span class="kn">import</span> <span class="n">serializer</span>
+<span class="kn">from</span> <span class="nn">apischema.metadata</span> <span class="kn">import</span> <span class="n">conversion</span>
 <span class="kn">from</span> <span class="nn">apischema.tagged_unions</span> <span class="kn">import</span> <span class="n">Tagged</span><span class="p">,</span> <span class="n">TaggedUnion</span><span class="p">,</span> <span class="n">get_tagged</span>
+<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Annotated</span>
 
 <span class="c1">#: The type of class the function will return</span>
 <span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
@@ -271,88 +270,54 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cls_name</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="vm">__qualname__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">_alternative_constructors</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">cls_name</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">m</span></div>
+        <span class="k">return</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">_update_serialization</span><span class="p">(</span><span class="n">parent_class</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Conversion</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Performs several tasks to setup (de)serialization. First,</span>
-<span class="sd">    handle alternative constructors so they are added to the TaggedUnion.</span>
-<span class="sd">    Second, calculate a tagged_union_conversion. Sub-classes are iterated</span>
-<span class="sd">    over for a second time. This time each dataclass field is checked. If</span>
-<span class="sd">    the dataclass field is of the same type as one of the serializable classes</span>
-<span class="sd">    (i.e. a child of Serializable), its dynamic converion is updated.</span>
-<span class="sd">    The tagged union is then used to register a a deserialization.</span>
-<span class="sd">    It is also returned for use in dynamic conversions.&quot;&quot;&quot;</span>
-
-    <span class="n">sub_cls</span><span class="p">:</span> <span class="n">Any</span>
-    <span class="n">namespace</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">annotations</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Type</span><span class="p">[</span><span class="n">Tagged</span><span class="p">[</span><span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">sub_cls</span> <span class="ow">in</span> <span class="n">rec_subclasses</span><span class="p">(</span><span class="n">parent_class</span><span class="p">):</span>
-        <span class="c1"># Add tagged field for the Spec subclass</span>
-        <span class="n">annotations</span><span class="p">[</span><span class="n">sub_cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">sub_cls</span><span class="p">]</span>
-        <span class="c1"># Add tagged fields for all its additional constructors</span>
-        <span class="c1"># (use class __dict__ in order to avoid inheritances of this constructors)</span>
-        <span class="k">for</span> <span class="n">constructor</span> <span class="ow">in</span> <span class="n">_alternative_constructors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sub_cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">[]):</span>
-            <span class="c1"># Build the alias of the field</span>
-            <span class="n">alias</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">capitalize</span><span class="p">,</span> <span class="n">constructor</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)))</span>
-                <span class="o">+</span> <span class="n">sub_cls</span><span class="o">.</span><span class="vm">__name__</span>
+<span class="k">def</span> <span class="nf">_make_tagged_union</span><span class="p">(</span><span class="n">base</span><span class="p">:</span> <span class="n">Type</span><span class="p">,</span> <span class="n">is_serialization</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">TaggedUnion</span><span class="p">]:</span>
+    <span class="c1"># base is a direct subclass of Serializable, like Spec or Region</span>
+    <span class="n">namespace</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="vm">__annotations__</span><span class="o">=</span><span class="p">{})</span>
+    <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">rec_subclasses</span><span class="p">(</span><span class="n">base</span><span class="p">):</span>
+        <span class="c1"># Add tagged field for the Serializable subclass</span>
+        <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;__annotations__&quot;</span><span class="p">][</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">[</span><span class="bp">cls</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+        <span class="k">if</span> <span class="n">is_serialization</span><span class="p">:</span>
+            <span class="c1"># Specify that we should use the identity serialization rather</span>
+            <span class="c1"># than our registered to_tagged_union() serializer when inside the</span>
+            <span class="c1"># tagged union</span>
+            <span class="n">serialization</span> <span class="o">=</span> <span class="n">Conversion</span><span class="p">(</span>
+                <span class="n">identity</span><span class="p">,</span>
+                <span class="n">source</span><span class="o">=</span><span class="bp">cls</span><span class="p">,</span>
+                <span class="c1"># Tagged field default serialization (to tagged union) must be</span>
+                <span class="c1"># bypassed. However, dynamic conversion discards schema_ref, so</span>
+                <span class="c1"># you must put it back manually, and do the bypass in a sub</span>
+                <span class="c1"># conversion.</span>
+                <span class="n">target</span><span class="o">=</span><span class="n">Annotated</span><span class="p">[</span><span class="bp">cls</span><span class="p">,</span> <span class="n">schema_ref</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)],</span>
+                <span class="n">sub_conversions</span><span class="o">=</span><span class="n">identity</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="c1"># dataclass_input_wrapper uses get_type_hints, but the constructor</span>
-            <span class="c1"># return type is stringified and the class not defined yet,</span>
-            <span class="c1"># so it must be assigned manually</span>
-            <span class="n">constructor</span><span class="o">.</span><span class="vm">__annotations__</span><span class="p">[</span><span class="s2">&quot;return&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sub_cls</span>
-            <span class="c1"># Wraps the constructor and rename its input class</span>
-            <span class="n">wrapper</span><span class="p">,</span> <span class="n">wrapper_cls</span> <span class="o">=</span> <span class="n">dataclass_input_wrapper</span><span class="p">(</span><span class="n">constructor</span><span class="p">)</span>
-            <span class="n">wrapper_cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">alias</span>
-            <span class="c1"># Add constructor tagged field with its conversion</span>
-            <span class="n">annotations</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">[</span><span class="n">sub_cls</span><span class="p">]</span>
-            <span class="n">namespace</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">(</span><span class="n">deserialization</span><span class="o">=</span><span class="n">wrapper</span><span class="p">)</span>
+            <span class="n">namespace</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">(</span><span class="n">conversion</span><span class="p">(</span><span class="n">serialization</span><span class="o">=</span><span class="n">serialization</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Build deserialization aliases for each alternative constructor alias</span>
+            <span class="k">for</span> <span class="n">constructor</span> <span class="ow">in</span> <span class="n">_alternative_constructors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">alias</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">capitalize</span><span class="p">,</span> <span class="n">constructor</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)))</span>
+                    <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="p">)</span>
+                <span class="c1"># dataclass_input_wrapper uses get_type_hints, but the constructor</span>
+                <span class="c1"># return type is stringified and the class not defined yet,</span>
+                <span class="c1"># so it must be assigned manually</span>
+                <span class="n">constructor</span><span class="o">.</span><span class="vm">__annotations__</span><span class="p">[</span><span class="s2">&quot;return&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">cls</span>
+                <span class="c1"># Wraps the constructor and rename its input class</span>
+                <span class="n">wrapper</span><span class="p">,</span> <span class="n">wrapper_cls</span> <span class="o">=</span> <span class="n">dataclass_input_wrapper</span><span class="p">(</span><span class="n">constructor</span><span class="p">)</span>
+                <span class="n">wrapper_cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">alias</span>
+                <span class="c1"># Add constructor tagged field with its conversion</span>
+                <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;__annotations__&quot;</span><span class="p">][</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">[</span><span class="bp">cls</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+                <span class="n">namespace</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tagged</span><span class="p">(</span><span class="n">conversion</span><span class="p">(</span><span class="n">deserialization</span><span class="o">=</span><span class="n">wrapper</span><span class="p">))</span>
     <span class="c1"># Create the tagged union class</span>
-    <span class="n">namespace</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="vm">__annotations__</span><span class="o">=</span><span class="n">annotations</span><span class="p">,</span> <span class="o">**</span><span class="n">namespace</span><span class="p">)</span>
-
-    <span class="n">tagged_union</span> <span class="o">=</span> <span class="n">new_class</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Tagged</span><span class="si">{</span><span class="n">parent_class</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">Union&quot;</span><span class="p">,</span>
+    <span class="n">union</span> <span class="o">=</span> <span class="n">new_class</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Tagged</span><span class="si">{</span><span class="n">base</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">Union&quot;</span><span class="p">,</span>
         <span class="p">(</span><span class="n">TaggedUnion</span><span class="p">,),</span>
         <span class="n">exec_body</span><span class="o">=</span><span class="k">lambda</span> <span class="n">ns</span><span class="p">:</span> <span class="n">ns</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">namespace</span><span class="p">),</span>
     <span class="p">)</span>
-
-    <span class="n">tagged_union_conversion</span> <span class="o">=</span> <span class="n">Conversion</span><span class="p">(</span>
-        <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">tagged_union</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">obj</span><span class="p">}),</span>
-        <span class="n">source</span><span class="o">=</span><span class="n">parent_class</span><span class="p">,</span>
-        <span class="n">target</span><span class="o">=</span><span class="n">tagged_union</span><span class="p">,</span>
-    <span class="p">)</span>
-
-    <span class="c1"># Add dynamic conversions for attributes which are children of Serializable</span>
-    <span class="k">for</span> <span class="n">sub_cls</span> <span class="ow">in</span> <span class="n">rec_subclasses</span><span class="p">(</span><span class="n">parent_class</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">dataclass_fields</span><span class="p">(</span><span class="n">sub_cls</span><span class="p">):</span>
-            <span class="n">meta</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">metadata</span>
-            <span class="k">if</span> <span class="n">meta</span> <span class="ow">and</span> <span class="n">field</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="n">parent_class</span><span class="o">.</span><span class="n">registered_serializable</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">field</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">parent_class</span><span class="p">:</span>
-                    <span class="n">conversion</span> <span class="o">=</span> <span class="n">tagged_union_conversion</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">conversion</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">conversion</span>
-                <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="o">**</span><span class="n">meta</span><span class="p">,</span>
-                    <span class="o">**</span><span class="p">{</span>
-                        <span class="n">CONVERSIONS_METADATA</span><span class="p">:</span> <span class="n">ConversionMetadata</span><span class="p">(</span>
-                            <span class="n">serialization</span><span class="o">=</span><span class="n">conversion</span>
-                        <span class="p">)</span>
-                    <span class="p">},</span>
-                <span class="p">}</span>
-                <span class="n">field</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">meta</span>
-
-    <span class="c1"># Because deserializers stack, they must be reset before being reassigned</span>
-    <span class="n">reset_deserializers</span><span class="p">(</span><span class="n">parent_class</span><span class="p">)</span>
-    <span class="c1"># Register the deserializer using get_tagged</span>
-    <span class="n">deserializer</span><span class="p">(</span>
-        <span class="n">Conversion</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">get_tagged</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">source</span><span class="o">=</span><span class="n">tagged_union</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">parent_class</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">tagged_union_conversion</span>
+    <span class="k">return</span> <span class="n">union</span>
 
 
 <div class="viewcode-block" id="Serializable"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Serializable">[docs]</a><span class="k">class</span> <span class="nc">Serializable</span><span class="p">:</span>
@@ -361,26 +326,39 @@
 <span class="sd">    (de)serialize grandchild classes. Each time a grandchild class is added</span>
 <span class="sd">    conversion is updated to create a full TaggedUnion for the child class.&quot;&quot;&quot;</span>
 
-    <span class="n">conversion</span> <span class="o">=</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Conversion</span><span class="p">]]</span>
-    <span class="n">registered_serializable</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-
     <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">parent_cls</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__bases__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">parent_cls</span> <span class="o">==</span> <span class="n">Serializable</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">registered_serializable</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="n">parent_cls</span><span class="o">.</span><span class="n">conversion</span> <span class="o">=</span> <span class="n">_update_serialization</span><span class="p">(</span><span class="n">parent_cls</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init_subclass__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># Retrieved the base class inheriting Serializable</span>
+        <span class="n">bases</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__mro__</span> <span class="k">if</span> <span class="n">Serializable</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="vm">__bases__</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">bases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Cannot have multiple base classes inheriting Serializable </span><span class="si">{</span><span class="n">bases</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="n">bases</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">Serializable</span><span class="p">)</span>
+        <span class="c1"># Create the serialization tagged union class</span>
+        <span class="n">serialization_union</span> <span class="o">=</span> <span class="n">_make_tagged_union</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">is_serialization</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Serializable.serialize"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Serializable.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># And a function that converts to it</span>
+        <span class="k">def</span> <span class="nf">to_tagged_union</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">serialization_union</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">obj</span><span class="p">})</span>
+
+        <span class="c1"># Register the serializer</span>
+        <span class="n">serializer</span><span class="p">(</span><span class="n">Conversion</span><span class="p">(</span><span class="n">to_tagged_union</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">base</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">serialization_union</span><span class="p">))</span>
+        <span class="c1"># Create the deserialization tagged union class</span>
+        <span class="n">deserialization_union</span> <span class="o">=</span> <span class="n">_make_tagged_union</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">is_serialization</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># Because deserializers stack, they must be reset before being reassigned</span>
+        <span class="n">reset_deserializers</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+        <span class="c1"># Register the deserializer using get_tagged</span>
+        <span class="n">deserializer</span><span class="p">(</span>
+            <span class="n">Conversion</span><span class="p">(</span><span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">get_tagged</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">deserialization_union</span><span class="p">,</span> <span class="n">base</span><span class="p">,)</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Serializable.serialize"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Serializable.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Serialize to a dictionary representation&quot;&quot;&quot;</span>
-        <span class="n">parent_cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__bases__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">serialize</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">conversions</span><span class="o">=</span><span class="n">LazyConversion</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">parent_cls</span><span class="o">.</span><span class="n">conversion</span><span class="p">)</span>
-        <span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Serializable.deserialize"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Serializable.deserialize">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">T</span><span class="p">,</span> <span class="n">serialization</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">serialization</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Deserialize from a dictionary representation&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">serialization</span><span class="p">)</span></div></div>
 
