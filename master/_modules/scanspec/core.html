@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.core &mdash; scanspec 0.0+untagged.g192a08d documentation</title>
+  <title>scanspec.core &mdash; scanspec 0.0+untagged.g3697bae documentation</title>
   
 
   
@@ -337,20 +337,25 @@
         <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">Serializable</span><span class="p">)</span>
         <span class="c1"># Create the serialization tagged union class</span>
         <span class="n">serialization_union</span> <span class="o">=</span> <span class="n">_make_tagged_union</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">is_serialization</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="c1"># And a function that converts to it</span>
-        <span class="k">def</span> <span class="nf">to_tagged_union</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">serialization_union</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">obj</span><span class="p">})</span>
-
         <span class="c1"># Register the serializer</span>
-        <span class="n">serializer</span><span class="p">(</span><span class="n">Conversion</span><span class="p">(</span><span class="n">to_tagged_union</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">base</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">serialization_union</span><span class="p">))</span>
+        <span class="n">serializer</span><span class="p">(</span>
+            <span class="n">Conversion</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">serialization_union</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">obj</span><span class="p">}),</span>
+                <span class="n">source</span><span class="o">=</span><span class="n">base</span><span class="p">,</span>
+                <span class="n">target</span><span class="o">=</span><span class="n">serialization_union</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
         <span class="c1"># Create the deserialization tagged union class</span>
         <span class="n">deserialization_union</span> <span class="o">=</span> <span class="n">_make_tagged_union</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">is_serialization</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="c1"># Because deserializers stack, they must be reset before being reassigned</span>
         <span class="n">reset_deserializers</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
         <span class="c1"># Register the deserializer using get_tagged</span>
         <span class="n">deserializer</span><span class="p">(</span>
-            <span class="n">Conversion</span><span class="p">(</span><span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">get_tagged</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">deserialization_union</span><span class="p">,</span> <span class="n">base</span><span class="p">,)</span>
+            <span class="n">Conversion</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">obj</span><span class="p">:</span> <span class="n">get_tagged</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">source</span><span class="o">=</span><span class="n">deserialization_union</span><span class="p">,</span>
+                <span class="n">target</span><span class="o">=</span><span class="n">base</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="Serializable.serialize"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Serializable.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
