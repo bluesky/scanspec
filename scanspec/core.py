@@ -127,20 +127,25 @@ class Serializable:
         assert issubclass(base, Serializable)
         # Create the serialization tagged union class
         serialization_union = _make_tagged_union(base, is_serialization=True)
-
-        # And a function that converts to it
-        def to_tagged_union(obj):
-            return serialization_union(**{obj.__class__.__name__: obj})
-
         # Register the serializer
-        serializer(Conversion(to_tagged_union, source=base, target=serialization_union))
+        serializer(
+            Conversion(
+                lambda obj: serialization_union(**{obj.__class__.__name__: obj}),
+                source=base,
+                target=serialization_union,
+            )
+        )
         # Create the deserialization tagged union class
         deserialization_union = _make_tagged_union(base, is_serialization=False)
         # Because deserializers stack, they must be reset before being reassigned
         reset_deserializers(base)
         # Register the deserializer using get_tagged
         deserializer(
-            Conversion(lambda obj: get_tagged(obj)[1], deserialization_union, base,)
+            Conversion(
+                lambda obj: get_tagged(obj)[1],
+                source=deserialization_union,
+                target=base,
+            )
         )
 
     def serialize(self) -> Mapping[str, Any]:
