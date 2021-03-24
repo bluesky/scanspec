@@ -26,7 +26,7 @@ jobs:
       - name: Install Python Dependencies
         run: |
           pip install pipenv
-          pipenv install --dev --deploy && pipenv graph
+          pipenv install --dev --deploy --python $(which python) && pipenv graph
 
       - name: Deploy index
         # We pin to the SHA, not the tag, for security reasons.
