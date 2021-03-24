@@ -1,6 +1,7 @@
-from typing import Any
+from typing import Any, Dict, List
 
 import aiohttp_cors
+import numpy as np
 from aiohttp import web
 from apischema.graphql import graphql_schema
 from graphql_server.aiohttp.graphqlview import GraphQLView, _asyncify
@@ -13,7 +14,21 @@ def validate_spec(spec: Spec) -> Any:
     return spec.serialize()
 
 
-schema = graphql_schema(query=[validate_spec])
+# TODO adjust to return a reduced set of scanPoints
+def get_points(spec: Spec) -> List[Dict[str, np.ndarray]]:
+    # apischema will do all the validation for us
+
+    # Grab positions from spec
+    dims = spec.create_dimensions()
+    # Take positions at each dimension and output as a list
+    scanPoints = []
+    for i in range(len(dims)):
+        scanPoints.append(dims[i].positions)
+
+    return scanPoints
+
+
+schema = graphql_schema(query=[validate_spec, get_points])
 
 
 def run_app(cors=False):
