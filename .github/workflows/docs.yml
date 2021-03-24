@@ -15,18 +15,13 @@ jobs:
           # require all of history to see all tagged versions' docs
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.7"
-
       - name: Install Packages
         run: sudo apt-get install graphviz
 
       - name: Install Python Dependencies
         run: |
           pip install pipenv
-          pipenv install --dev --deploy && pipenv graph
+          pipenv install --dev --deploy --python 3.7 && pipenv graph
 
       - name: Deploy index
         # We pin to the SHA, not the tag, for security reasons.
