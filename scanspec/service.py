@@ -1,6 +1,7 @@
 from typing import Any, Dict, List
 
 import aiohttp_cors
+import graphql
 import numpy as np
 from aiohttp import web
 from apischema.graphql import graphql_schema
@@ -29,6 +30,10 @@ def get_points(spec: Spec) -> List[Dict[str, np.ndarray]]:
 
 
 schema = graphql_schema(query=[validate_spec, get_points])
+
+
+def schema_text() -> str:
+    return graphql.utilities.print_schema(schema)
 
 
 def run_app(cors=False):
