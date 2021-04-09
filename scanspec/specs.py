@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import numpy as np
-from apischema import schema
+from apischema import schema as api_schema
 from typing_extensions import Annotated
 
 from .core import (
@@ -75,9 +75,9 @@ class Product(Spec):
         spec = Line("y", 1, 2, 3) * Line("x", 3, 4, 12)
     """
 
-    outer: Spec = field(metadata=schema(description="Will be executed once"))
+    outer: Spec = field(metadata=api_schema(description="Will be executed once"))
     inner: Spec = field(
-        metadata=schema(description="Will be executed len(outer) times")
+        metadata=api_schema(description="Will be executed len(outer) times")
     )
 
     def keys(self) -> List:
@@ -112,12 +112,12 @@ class Zip(Spec):
     """
 
     left: Spec = field(
-        metadata=schema(
+        metadata=api_schema(
             description="The left-hand Spec to Zip, will appear earlier in keys"
         )
     )
     right: Spec = field(
-        metadata=schema(
+        metadata=api_schema(
             description="The right-hand Spec to Zip, will appear later in keys"
         )
     )
@@ -182,14 +182,14 @@ class Mask(Spec):
     """
 
     spec: Spec = field(
-        metadata=schema(description="The Spec containing the source positions")
+        metadata=api_schema(description="The Spec containing the source positions")
     )
     region: Region = field(
-        metadata=schema(description="The Region that positions will be inside")
+        metadata=api_schema(description="The Region that positions will be inside")
     )
     check_path_changes: bool = field(
         default=True,
-        metadata=schema(
+        metadata=api_schema(
             description="If True path through scan will not be modified by squash"
         ),
     )
@@ -245,7 +245,9 @@ class Snake(Spec):
     """
 
     spec: Spec = field(
-        metadata=schema(description="The Spec to run in reverse every other iteration")
+        metadata=api_schema(
+            description="The Spec to run in reverse every other iteration"
+        )
     )
 
     def keys(self) -> List:
@@ -271,12 +273,12 @@ class Concat(Spec):
     """
 
     left: Spec = field(
-        metadata=schema(
+        metadata=api_schema(
             description="The left-hand Spec to Zip, positions will appear earlier"
         )
     )
     right: Spec = field(
-        metadata=schema(
+        metadata=api_schema(
             description="The right-hand Spec to Zip, positions will appear later"
         )
     )
@@ -312,11 +314,11 @@ class Squash(Spec):
     """
 
     spec: Spec = field(
-        metadata=schema(description="The Spec to squash the dimensions of")
+        metadata=api_schema(description="The Spec to squash the dimensions of")
     )
     check_path_changes: bool = field(
         default=True,
-        metadata=schema(
+        metadata=api_schema(
             description="If True path through scan will not be modified by squash"
         ),
     )
@@ -363,14 +365,16 @@ class Line(Spec):
         spec = Line("x", 1, 2, 5)
     """
 
-    key: Any = field(metadata=schema(description="An identifier for what to move"))
+    key: Any = field(metadata=api_schema(description="An identifier for what to move"))
     start: float = field(
-        metadata=schema(description="Centre point of the first point of the line")
+        metadata=api_schema(description="Centre point of the first point of the line")
     )
     stop: float = field(
-        metadata=schema(description="Centre point of the last point of the line")
+        metadata=api_schema(description="Centre point of the last point of the line")
     )
-    num: int = field(metadata=schema(min=1, description="Number of points to produce"))
+    num: int = field(
+        metadata=api_schema(min=1, description="Number of points to produce")
+    )
 
     def keys(self) -> List:
         return [self.key]
@@ -394,14 +398,16 @@ class Line(Spec):
 
     @alternative_constructor
     def bounded(
-        key: Annotated[Any, schema(description="An identifier for what to move")],
+        key: Annotated[Any, api_schema(description="An identifier for what to move")],
         lower: Annotated[
-            float, schema(description="Lower bound of the first point of the line")
+            float, api_schema(description="Lower bound of the first point of the line")
         ],
         upper: Annotated[
-            float, schema(description="Upper bound of the last point of the line")
+            float, api_schema(description="Upper bound of the last point of the line")
         ],
-        num: Annotated[int, schema(min=1, description="Number of points to produce")],
+        num: Annotated[
+            int, api_schema(min=1, description="Number of points to produce")
+        ],
     ) -> "Line":
         """Specify a Line by extreme bounds instead of centre points.
 
@@ -434,11 +440,11 @@ class Static(Spec):
         spec = Line("y", 1, 2, 3) + Static("x", 3)
     """
 
-    key: Any = field(metadata=schema(description="An identifier for what to move"))
-    value: float = field(metadata=schema(description="The value at each point"))
+    key: Any = field(metadata=api_schema(description="An identifier for what to move"))
+    value: float = field(metadata=api_schema(description="The value at each point"))
     num: int = field(
         default=1,
-        metadata=schema(min=1, description="How many times to repeat this point"),
+        metadata=api_schema(min=1, description="How many times to repeat this point"),
     )
 
     def keys(self) -> List:
@@ -467,20 +473,20 @@ class Spiral(Spec):
     """
 
     x_key: Any = field(
-        metadata=schema(description="An identifier for what to move for x")
+        metadata=api_schema(description="An identifier for what to move for x")
     )
     y_key: Any = field(
-        metadata=schema(description="An identifier for what to move for y")
+        metadata=api_schema(description="An identifier for what to move for y")
     )
     # TODO: do we like these names?
-    x_start: float = field(metadata=schema(description="x centre of the spiral"))
-    y_start: float = field(metadata=schema(description="y centre of the spiral"))
-    x_range: float = field(metadata=schema(description="x width of the spiral"))
-    y_range: float = field(metadata=schema(description="y width of the spiral"))
-    num: int = field(metadata=schema(description="Number of points in the spiral"))
+    x_start: float = field(metadata=api_schema(description="x centre of the spiral"))
+    y_start: float = field(metadata=api_schema(description="y centre of the spiral"))
+    x_range: float = field(metadata=api_schema(description="x width of the spiral"))
+    y_range: float = field(metadata=api_schema(description="y width of the spiral"))
+    num: int = field(metadata=api_schema(description="Number of points in the spiral"))
     rotate: float = field(
         default=0.0,
-        metadata=schema(description="How much to rotate the angle of the spiral"),
+        metadata=api_schema(description="How much to rotate the angle of the spiral"),
     )
 
     def keys(self) -> List:
@@ -512,18 +518,18 @@ class Spiral(Spec):
     @alternative_constructor
     def spaced(
         x_key: Annotated[
-            Any, schema(description="An identifier for what to move for x")
+            Any, api_schema(description="An identifier for what to move for x")
         ],
         y_key: Annotated[
-            Any, schema(description="An identifier for what to move for y")
+            Any, api_schema(description="An identifier for what to move for y")
         ],
-        x_start: Annotated[float, schema(description="x centre of the spiral")],
-        y_start: Annotated[float, schema(description="y centre of the spiral")],
-        radius: Annotated[float, schema(description="radius of the spiral")],
-        dr: Annotated[float, schema(description="difference between each ring")],
+        x_start: Annotated[float, api_schema(description="x centre of the spiral")],
+        y_start: Annotated[float, api_schema(description="y centre of the spiral")],
+        radius: Annotated[float, api_schema(description="radius of the spiral")],
+        dr: Annotated[float, api_schema(description="difference between each ring")],
         rotate: Annotated[
             float,
-            schema(
+            api_schema(
                 default=0.0, description="How much to rotate the angle of the spiral"
             ),
         ] = 0.0,

@@ -17,10 +17,28 @@ def test_validate_spec():
 def test_get_points():
     query_str = """
 {
-    getPoints(spec: {Product: {outer: {Line: {key: "x", start: 0, stop: 1, num: 5}}
-    inner: {Line: {key: "y", start: 0, stop: 1, num: 5}}}})
+  getPoints(spec: {Product: {outer: {Line: {key: "x", start: 0, stop: 1, num: 2}},
+                            inner: {Line: {key: "y", start: 0, stop: 1, num: 3}}}}){
+    key
+    upper
+    middle
+    lower
+  }
 }
     """
     assert graphql.graphql_sync(schema, query_str).data == {
-        "getPoints": [{"x": [0, 0.25, 0.5, 0.75, 1]}, {"y": [0, 0.25, 0.5, 0.75, 1]}]
+        "getPoints": [
+            {
+                "key": "x",
+                "lower": [0.0, 0.0, 0.0, 1.0, 1.0, 1.0],
+                "middle": [0.0, 0.0, 0.0, 1.0, 1.0, 1.0],
+                "upper": [0.0, 0.0, 0.0, 1.0, 1.0, 1.0],
+            },
+            {
+                "key": "y",
+                "lower": [-0.25, 0.25, 0.75, -0.25, 0.25, 0.75],
+                "middle": [0.0, 0.5, 1.0, 0.0, 0.5, 1.0],
+                "upper": [0.25, 0.75, 1.25, 0.25, 0.75, 1.25],
+            },
+        ]
     }

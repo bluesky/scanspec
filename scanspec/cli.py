@@ -51,7 +51,7 @@ def service(cors):
 
 
 @cli.command()
-def docs():
+def schema():
     """Print schema"""
     from scanspec.service import schema_text
 

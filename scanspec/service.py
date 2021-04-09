@@ -1,13 +1,23 @@
-from typing import Any, Dict, List
+from dataclasses import dataclass
+from typing import Any, List, Optional
 
 import aiohttp_cors
 import graphql
-import numpy as np
 from aiohttp import web
 from apischema.graphql import graphql_schema
 from graphql_server.aiohttp.graphqlview import GraphQLView, _asyncify
+from numpy import ndarray
 
+from scanspec.core import Path
 from scanspec.specs import Spec
+
+
+@dataclass
+class points:
+    key: str
+    lower: Optional[ndarray]
+    middle: Optional[ndarray]
+    upper: Optional[ndarray]
 
 
 def validate_spec(spec: Spec) -> Any:
@@ -15,17 +25,25 @@ def validate_spec(spec: Spec) -> Any:
     return spec.serialize()
 
 
+# Returns a full list of points for every position in the scan
 # TODO adjust to return a reduced set of scanPoints
-def get_points(spec: Spec) -> List[Dict[str, np.ndarray]]:
-    # apischema will do all the validation for us
-
+def get_points(spec: Spec) -> List[points]:
     # Grab positions from spec
     dims = spec.create_dimensions()
-    # Take positions at each dimension and output as a list
-    scanPoints = []
-    for i in range(len(dims)):
-        scanPoints.append(dims[i].positions)
+    # Take positions and convert to a list
+    path = Path(dims)
+    chunk = path.consume()
 
+    scanPoints = []
+    # For every dimension of the scan...
+    for key in chunk.positions:
+        # Assign the properties of that axis to a dataclass
+        a = points(
+            key, chunk.lower.get(key), chunk.positions.get(key), chunk.upper.get(key),
+        )
+
+        # Append the information to a list of points for that axis
+        scanPoints.append(a)
     return scanPoints
 
 

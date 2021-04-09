@@ -2,7 +2,7 @@ from dataclasses import dataclass, field, is_dataclass
 from typing import Any, Dict, Iterator, List, Set
 
 import numpy as np
-from apischema import schema
+from apischema import schema as api_schema
 
 from .core import Positions, Serializable, if_instance_do
 
@@ -71,9 +71,11 @@ def _merge_key_sets(key_sets: List[Set[str]]) -> Iterator[Set[str]]:
 class CombinationOf(Region):
     """Abstract baseclass for a combination of two regions, left and right"""
 
-    left: Region = field(metadata=schema(description="The left-hand Region to combine"))
+    left: Region = field(
+        metadata=api_schema(description="The left-hand Region to combine")
+    )
     right: Region = field(
-        metadata=schema(description="The right-hand Region to combine")
+        metadata=api_schema(description="The right-hand Region to combine")
     )
 
     def key_sets(self) -> List[Set[str]]:
@@ -154,13 +156,13 @@ class Range(Region):
     """
 
     key: Any = field(
-        metadata=schema(description="The key matching the axis to mask in the spec")
+        metadata=api_schema(description="The key matching the axis to mask in the spec")
     )
     min: float = field(
-        metadata=schema(description="The minimum inclusive value in the region")
+        metadata=api_schema(description="The minimum inclusive value in the region")
     )
     max: float = field(
-        metadata=schema(description="The minimum inclusive value in the region")
+        metadata=api_schema(description="The minimum inclusive value in the region")
     )
 
     def key_sets(self) -> List[Set[str]]:
@@ -186,26 +188,26 @@ class Rectangle(Region):
     """
 
     x_key: Any = field(
-        metadata=schema(description="The key matching the x axis of the spec")
+        metadata=api_schema(description="The key matching the x axis of the spec")
     )
     y_key: Any = field(
-        metadata=schema(description="The key matching the y axis of the spec")
+        metadata=api_schema(description="The key matching the y axis of the spec")
     )
     x_min: float = field(
-        metadata=schema(description="Minimum inclusive x value in the region")
+        metadata=api_schema(description="Minimum inclusive x value in the region")
     )
     y_min: float = field(
-        metadata=schema(description="Minimum inclusive y value in the region")
+        metadata=api_schema(description="Minimum inclusive y value in the region")
     )
     x_max: float = field(
-        metadata=schema(description="Maximum inclusive x value in the region")
+        metadata=api_schema(description="Maximum inclusive x value in the region")
     )
     y_max: float = field(
-        metadata=schema(description="Maximum inclusive y value in the region")
+        metadata=api_schema(description="Maximum inclusive y value in the region")
     )
     angle: float = field(
         default=0.0,
-        metadata=schema(description="Clockwise rotation angle of the rectangle"),
+        metadata=api_schema(description="Clockwise rotation angle of the rectangle"),
     )
 
     def key_sets(self) -> List[Set[str]]:
@@ -240,18 +242,18 @@ class Circle(Region):
     """
 
     x_key: Any = field(
-        metadata=schema(description="The key matching the x axis of the spec")
+        metadata=api_schema(description="The key matching the x axis of the spec")
     )
     y_key: Any = field(
-        metadata=schema(description="The key matching the x axis of the spec")
+        metadata=api_schema(description="The key matching the x axis of the spec")
     )
     x_centre: float = field(
-        metadata=schema(description="Minimum inclusive x value in the region")
+        metadata=api_schema(description="Minimum inclusive x value in the region")
     )
     y_centre: float = field(
-        metadata=schema(description="Minimum inclusive y value in the region")
+        metadata=api_schema(description="Minimum inclusive y value in the region")
     )
-    radius: float = field(metadata=schema(description="Radius of the circle"))
+    radius: float = field(metadata=api_schema(description="Radius of the circle"))
 
     def key_sets(self) -> List[Set[str]]:
         return [{self.x_key, self.y_key}]

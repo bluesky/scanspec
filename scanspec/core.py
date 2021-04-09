@@ -12,12 +12,14 @@ from typing import (
 )
 
 import numpy as np
-from apischema import deserialize, deserializer, schema_ref, serialize
+from apischema import deserialize, schema_ref, serialize
 from apischema.conversions import (
     Conversion,
     dataclass_input_wrapper,
+    deserializer,
     identity,
     reset_deserializers,
+    serializer,
 )
 from apischema.conversions.converters import serializer
 from apischema.metadata import conversion
@@ -26,6 +28,14 @@ from typing_extensions import Annotated
 
 #: The type of class the function will return
 T = TypeVar("T")
+
+
+# Type conversion for ndarrays
+deserializer(Conversion(np.array, source=List[float], target=np.ndarray))
+# Roughly equivalent to:
+# def decode_ndarray(source: List[float]) -> np.ndarray:
+#     return np.array(source)
+serializer(Conversion(np.ndarray.tolist, source=np.ndarray, target=List[float]))
 
 
 # Recursive implementation of type.__subclasses__
