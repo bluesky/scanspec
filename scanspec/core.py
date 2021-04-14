@@ -30,14 +30,6 @@ from typing_extensions import Annotated
 T = TypeVar("T")
 
 
-# Type conversion for ndarrays
-deserializer(Conversion(np.array, source=List[float], target=np.ndarray))
-# Roughly equivalent to:
-# def decode_ndarray(source: List[float]) -> np.ndarray:
-#     return np.array(source)
-serializer(Conversion(np.ndarray.tolist, source=np.ndarray, target=List[float]))
-
-
 # Recursive implementation of type.__subclasses__
 def rec_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
     for sub_cls in cls.__subclasses__():
