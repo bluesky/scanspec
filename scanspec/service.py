@@ -53,6 +53,13 @@ class Position:
     upper: Optional[Bound]
 
 
+# The highest query level (where requests are made by the GDA client)
+@dataclass
+class GDARequest:
+    points: List[Position]
+    num_points: int
+
+
 def validate_spec(spec: Spec) -> Any:
     # apischema will do all the validation for us
     return spec.serialize()
@@ -60,14 +67,17 @@ def validate_spec(spec: Spec) -> Any:
 
 # Returns a full list of points for every position in the scan
 # TODO adjust to return a reduced set of scanPoints
-def get_points(spec: Spec) -> List[Position]:
+def get_points(spec: Spec) -> GDARequest:
     # Grab positions from spec
     dims = spec.create_dimensions()
     # Take positions and convert to a list
     path = Path(dims)
+    num_points = len(path)
+    # WARNING: This consumes the path object so it's unusable beyond this point
     chunk = path.consume()
 
-    scanPoints = []
+    # POINTS
+    scan_points = []
     # For every dimension of the scan...
     for key in chunk.positions:
         # Assign the properties of that axis to a dataclass
@@ -78,8 +88,9 @@ def get_points(spec: Spec) -> List[Position]:
             Bound(chunk.upper.get(key)),
         )
         # Append the information to a list of points for that axis
-        scanPoints.append(a)
-    return scanPoints
+        scan_points.append(a)
+
+    return GDARequest(scan_points, num_points)
 
 
 schema = graphql_schema(query=[validate_spec, get_points])
