@@ -78,8 +78,8 @@ def validate_spec(spec: Spec) -> Any:
 def get_points(spec: Spec) -> pointsRequest:
 
     dims = spec.create_dimensions()  # Grab dimensions from spec
-    path = Path(dims)                # Convert to a path
-    num_points = len(path)           # Capture the length of the path
+    path = Path(dims)  # Convert to a path
+    num_points = len(path)  # Capture the length of the path
 
     # WARNING: path object is consumed after this line
     chunk = path.consume()

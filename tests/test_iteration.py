@@ -9,7 +9,7 @@ def test_line_view() -> None:
     path = inst.path()
     assert len(path) == 5
     dim = path.consume()
-    assert dim.positions == {x: pytest.approx([0, 0.25, 0.5, 0.75, 1.0])}
+    assert dim.middle == {x: pytest.approx([0, 0.25, 0.5, 0.75, 1.0])}
     assert len(path) == 0
 
 

@@ -39,7 +39,7 @@ into a trajectory:
 >>> chunk = path.consume()
 >>> chunk.lower
 {'x': array([0.75, 1.25, 1.75])}
->>> chunk.positions
+>>> chunk.middle
 {'x': array([1. , 1.5, 2. ])}
 >>> chunk.upper
 {'x': array([1.25, 1.75, 2.25])}

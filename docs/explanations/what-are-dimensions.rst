@@ -22,9 +22,9 @@ An Example
 6
 >>> len(dims[1])
 3
->>> dims[0].positions
+>>> dims[0].middle
 {'y': array([4. , 4.2, 4.4, 4.6, 4.8, 5. ])}
->>> dims[1].positions
+>>> dims[1].middle
 {'x': array([1. , 1.5, 2. ])}
 
 So the `Product` of two `Lines <Line>` creates a list of 2 Dimensions, the first

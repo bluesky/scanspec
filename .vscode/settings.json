@@ -10,5 +10,5 @@
     "restructuredtext.confPath": "${workspaceFolder}/docs",
     "restructuredtext.builtDocumentationPath": "${workspaceFolder}/build/html",
     "python.languageServer": "Pylance",
-    "python.pythonPath": "/home/ima16823/.local/share/virtualenvs/scanspec-SxvUB0Kw/bin/python"
+    "python.pythonPath": "/scratch/ima16823/pipenv/scanspec-br6eL1jC/bin/python"
 }
