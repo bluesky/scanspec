@@ -1,3 +1,4 @@
+import base64
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
@@ -6,57 +7,64 @@ import graphql
 from aiohttp import web
 from apischema.graphql import graphql_schema, resolver
 from graphql_server.aiohttp.graphqlview import GraphQLView, _asyncify
-from numpy import array2string, ndarray
+from numpy import array2string, dtype, float64, frombuffer, ndarray
 
 from scanspec.core import Path
 from scanspec.specs import Spec
 
 # Current naming convention:
-
-# - A position is a region in 1D space that is defined by its
-#   upper, middle and lower bounds.
-
-# - A bound defines the limitations of the region that a position encompasses. This
-#   is controlled by its upper and lower bounds and centralized by its middle bound.
-
-# - A point is the combination of two or more bounds, each from
-#   a different position, to form a single location in space.
+# https://confluence.diamond.ac.uk/display/SSCC/Data+Structure+and+Naming+Conventions
 
 
-# Allows the user to specify the return type of a bound
+# Allows the user to specify the return type of the points
 @dataclass
-class Bound:
-    def __init__(self, bound: Optional[ndarray]):
-        self._bound = bound
+class Points:
+    def __init__(self, points: Optional[ndarray]):
+        self._points = points
 
     @resolver
     def string(self) -> Optional[str]:
-        return array2string(self._bound)
+        return array2string(self._points)
 
     @resolver
     def float_list(self) -> Optional[List[float]]:
-        # Check required for mypy to detect that self._bound is able to use .tolist
-        # when populated
-        if self._bound is None:
+        if self._points is None:
             return None
         else:
-            a = self._bound.tolist()
-            return a
+            return self._points.tolist()
+
+    @resolver
+    def b64(self) -> Optional[str]:
+        if self._points is None:
+            return None
+        else:
+            # make sure the data is sent as float64
+            assert dtype(self._points[0]) == dtype(float64)
+            return base64.b64encode(self._points.tobytes()).decode("utf-8")
+
+    @resolver
+    def b64Decode(self) -> Optional[str]:
+        if self._points is None:
+            return None
+        else:
+            r = dtype(self._points[0])
+            s = base64.decodebytes(base64.b64encode(self._points.tobytes()))
+            t = frombuffer(s, dtype=r)
+            return array2string(t)
 
 
-# Defines a Position: A region in space defined by its bounds
 @dataclass
-class Position:
-    key: str
-    lower: Optional[Bound]
-    middle: Optional[Bound]
-    upper: Optional[Bound]
+class axisFrames:
+    axis: str
+    lower: Optional[Points]
+    middle: Optional[Points]
+    upper: Optional[Points]
 
 
 # The highest query level (where requests are made by the GDA client)
 @dataclass
-class GDARequest:
-    points: List[Position]
+class pointsRequest:
+    axes: List[axisFrames]
     num_points: int
 
 
@@ -65,34 +73,35 @@ def validate_spec(spec: Spec) -> Any:
     return spec.serialize()
 
 
-# Returns a full list of points for every position in the scan
+# Returns a full list of points for each axis in the scan
 # TODO adjust to return a reduced set of scanPoints
-def get_points(spec: Spec) -> GDARequest:
-    # Grab positions from spec
-    dims = spec.create_dimensions()
-    # Take positions and convert to a list
-    path = Path(dims)
-    num_points = len(path)
-    # WARNING: This consumes the path object so it's unusable beyond this point
+def get_points(spec: Spec) -> pointsRequest:
+
+    dims = spec.create_dimensions()  # Grab dimensions from spec
+    path = Path(dims)                # Convert to a path
+    num_points = len(path)           # Capture the length of the path
+
+    # WARNING: path object is consumed after this line
     chunk = path.consume()
 
     # POINTS
     scan_points = []
     # For every dimension of the scan...
-    for key in chunk.positions:
-        # Assign the properties of that axis to a dataclass
-        a = Position(
+    for key in chunk.middle:
+        # Extract the upper, lower and middle points
+        a = axisFrames(
             key,
-            Bound(chunk.lower.get(key)),
-            Bound(chunk.positions.get(key)),  # TODO: CHANGE TO MIDDLE IN CORE.PY
-            Bound(chunk.upper.get(key)),
+            Points(chunk.lower.get(key)),
+            Points(chunk.middle.get(key)),
+            Points(chunk.upper.get(key)),
         )
-        # Append the information to a list of points for that axis
+        # Append the information to a list of points per axis
         scan_points.append(a)
 
-    return GDARequest(scan_points, num_points)
+    return pointsRequest(scan_points, num_points)
 
 
+# Define the schema
 schema = graphql_schema(query=[validate_spec, get_points])
 
 

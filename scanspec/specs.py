@@ -212,7 +212,7 @@ class Mask(Spec):
                 squashed = squash_dimensions(dims[si : ei + 1], check_path_changes)
                 dims = dims[:si] + [squashed] + dims[ei + 1 :]
         # Generate masks from the positions showing what's inside
-        masked_dims = [dim.mask(get_mask(self.region, dim.positions)) for dim in dims]
+        masked_dims = [dim.mask(get_mask(self.region, dim.middle)) for dim in dims]
         return masked_dims
 
     # *+ bind more tightly than &|^ so without these overrides we

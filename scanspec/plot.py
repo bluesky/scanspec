@@ -138,7 +138,7 @@ def plot_spec(spec: Spec):
 
     # Plot the splines
     tail: Any = {k: None for k in keys}
-    ranges = [max(np.max(v) - np.min(v), 0.0001) for k, v in dim.positions.items()]
+    ranges = [max(np.max(v) - np.min(v), 0.0001) for k, v in dim.middle.items()]
     seg_col = cycle(colors.TABLEAU_COLORS)
     last_index = 0
     splines = None
@@ -147,10 +147,10 @@ def plot_spec(spec: Spec):
         arrays = []
         turnaround = []
         for k in keys:
-            # Add the lower and positions
+            # Add the lower and middle
             arr = np.empty(num_points * 2 + 1)
             arr[:-1:2] = dim.lower[k][last_index:index]
-            arr[1::2] = dim.positions[k][last_index:index]
+            arr[1::2] = dim.middle[k][last_index:index]
             arr[-1] = dim.upper[k][index - 1]
             arrays.append(arr)
             # Add the turnaround
@@ -199,7 +199,7 @@ def plot_spec(spec: Spec):
 
     # Plot the capture points
     if len(dim) < 200:
-        arrays = [dim.positions[k] for k in keys]
+        arrays = [dim.middle[k] for k in keys]
         _plot_arrays(axes, arrays, linestyle="", marker=".", color="k")
 
     # Plot the end
