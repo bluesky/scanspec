@@ -7,7 +7,7 @@ A Spec is only the specification for a scan. To execute the scan we need the
 frames. We can do this in a few ways.
 
 If you only need the middle points
-------------------------------
+----------------------------------
 
 If you are conducting a step scan, you only need the middle points of each
 scan frame. You can get these by using the `Spec.positions()` method to produce a
