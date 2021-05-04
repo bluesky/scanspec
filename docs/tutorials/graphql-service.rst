@@ -41,7 +41,7 @@ For example, on the commandline we might do::
 
     >>> from scanspec.specs import Line
     >>> Line.bounded("x", 0, 1, 5).serialize()
-    {'Line': {'key': 'x', 'start': 0.1, 'stop': 0.9, 'num': 5}}
+    {'Line': {'axis': 'x', 'start': 0.1, 'stop': 0.9, 'num': 5}}
 
 .. seealso:: `serialize-a-spec`
 
@@ -53,7 +53,7 @@ The equivalent in our service is:
         validateSpec(
           spec: {
             BoundedLine: {
-              key: "x"
+              axis: "x"
               lower: 0
               upper: 1
               num: 5
@@ -66,7 +66,7 @@ The equivalent in our service is:
         "data": {
           "validateSpec": {
             "Line": {
-              "key": "x",
+              "axis": "x",
               "start": 0.1,
               "stop": 0.9,
               "num": 5

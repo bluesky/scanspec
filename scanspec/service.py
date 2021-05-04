@@ -12,11 +12,11 @@ from numpy import array2string, dtype, float64, frombuffer, ndarray
 from scanspec.core import Path
 from scanspec.specs import Spec
 
-# Current naming convention:
+# See confluence page for clarity on naming conventions and data structure:
 # https://confluence.diamond.ac.uk/display/SSCC/Data+Structure+and+Naming+Conventions
 
 
-# Allows the user to specify the return type of the points
+# The lowest query level
 @dataclass
 class Points:
     def __init__(self, points: Optional[ndarray]):
@@ -42,6 +42,7 @@ class Points:
             assert dtype(self._points[0]) == dtype(float64)
             return base64.b64encode(self._points.tobytes()).decode("utf-8")
 
+    # Self b64 decoder for testing purposes
     @resolver
     def b64Decode(self) -> Optional[str]:
         if self._points is None:
@@ -61,13 +62,14 @@ class axisFrames:
     upper: Optional[Points]
 
 
-# The highest query level (where requests are made by the GDA client)
+# The highest query level
 @dataclass
 class pointsRequest:
     axes: List[axisFrames]
     num_points: int
 
 
+# Chacks that the spec will produce a valid scan
 def validate_spec(spec: Spec) -> Any:
     # apischema will do all the validation for us
     return spec.serialize()
@@ -84,18 +86,18 @@ def get_points(spec: Spec) -> pointsRequest:
     # WARNING: path object is consumed after this line
     chunk = path.consume()
 
-    # POINTS
+    # POINTS #
     scan_points = []
     # For every dimension of the scan...
-    for key in chunk.middle:
+    for axis in chunk.middle:
         # Extract the upper, lower and middle points
         a = axisFrames(
-            key,
-            Points(chunk.lower.get(key)),
-            Points(chunk.middle.get(key)),
-            Points(chunk.upper.get(key)),
+            axis,
+            Points(chunk.lower.get(axis)),
+            Points(chunk.middle.get(axis)),
+            Points(chunk.upper.get(axis)),
         )
-        # Append the information to a list of points per axis
+        # Append the information as a list of frames per axis
         scan_points.append(a)
 
     return pointsRequest(scan_points, num_points)

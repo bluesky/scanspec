@@ -4,14 +4,14 @@ How to Iterate a Spec
 =====================
 
 A Spec is only the specification for a scan. To execute the scan we need the
-positions. We can do this in a few ways.
+frames. We can do this in a few ways.
 
-If you only need the positions
+If you only need the middle points
 ------------------------------
 
-If you are conducting a step scan, you only need the central positions of each
-scan point. You can get these by using the `Spec.positions()` method to produce an
-`SpecPositions` iterator of scan positions:
+If you are conducting a step scan, you only need the middle points of each
+scan frame. You can get these by using the `Spec.positions()` method to produce a
+`SpecPositions` iterator of scan points:
 
 >>> from scanspec.specs import Line
 >>> spec = Line("x", 1, 2, 3)
@@ -23,7 +23,7 @@ scan point. You can get these by using the `Spec.positions()` method to produce 
 {'x': 2.0}
 
 This is simple, but not particularly performant, as the numpy arrays of
-positions are unpacked point by point into position dictionaries
+points are unpacked point by point into point dictionaries
 
 If you need to do a fly scan
 ----------------------------
