@@ -19,7 +19,7 @@ code into an interactive Python terminal, it should plot a graph of a 1D line:
     plot_spec(spec)
 
 This will create a Spec with 5 points, the first centred on 1, the last centred
-on 2. The black dots mark the middle points on the Path. The coloured
+on 2. The black dots mark the midpoints on the Path. The coloured
 lines mark the motion from the lower to upper bound of each point on the Path.
 The grey arrowhead marks the start of the scan, and the cross marks the end.
 

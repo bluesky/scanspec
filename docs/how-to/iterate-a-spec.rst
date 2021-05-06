@@ -6,16 +6,16 @@ How to Iterate a Spec
 A Spec is only the specification for a scan. To execute the scan we need the
 frames. We can do this in a few ways.
 
-If you only need the middle points
-----------------------------------
+If you only need the midpoints
+------------------------------
 
-If you are conducting a step scan, you only need the middle points of each
-scan frame. You can get these by using the `Spec.positions()` method to produce a
-`SpecPositions` iterator of scan points:
+If you are conducting a step scan, you only need the midpoints of each
+scan frame. You can get these by using the `Spec.midpoints()` method to produce a
+`Midpoints` iterator of scan points:
 
 >>> from scanspec.specs import Line
 >>> spec = Line("x", 1, 2, 3)
->>> for d in spec.positions():
+>>> for d in spec.midpoints():
 ...     print(d)
 ...
 {'x': 1.0}
@@ -39,7 +39,7 @@ into a trajectory:
 >>> chunk = path.consume()
 >>> chunk.lower
 {'x': array([0.75, 1.25, 1.75])}
->>> chunk.middle
+>>> chunk.midpoints
 {'x': array([1. , 1.5, 2. ])}
 >>> chunk.upper
 {'x': array([1.25, 1.75, 2.25])}

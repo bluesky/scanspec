@@ -55,17 +55,17 @@ class Points:
 
 
 @dataclass
-class axisFrames:
+class AxisFrames:
     axis: str
     lower: Optional[Points]
-    middle: Optional[Points]
+    midpoints: Optional[Points]
     upper: Optional[Points]
 
 
 # The highest query level
 @dataclass
-class pointsRequest:
-    axes: List[axisFrames]
+class PointsRequest:
+    axes: List[AxisFrames]
     num_points: int
 
 
@@ -77,7 +77,7 @@ def validate_spec(spec: Spec) -> Any:
 
 # Returns a full list of points for each axis in the scan
 # TODO adjust to return a reduced set of scanPoints
-def get_points(spec: Spec) -> pointsRequest:
+def get_points(spec: Spec) -> PointsRequest:
 
     dims = spec.create_dimensions()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
@@ -89,18 +89,18 @@ def get_points(spec: Spec) -> pointsRequest:
     # POINTS #
     scan_points = []
     # For every dimension of the scan...
-    for axis in chunk.middle:
-        # Extract the upper, lower and middle points
-        a = axisFrames(
+    for axis in chunk.midpoints:
+        # Extract the midpoints and the upper and lower bounds
+        a = AxisFrames(
             axis,
             Points(chunk.lower.get(axis)),
-            Points(chunk.middle.get(axis)),
+            Points(chunk.midpoints.get(axis)),
             Points(chunk.upper.get(axis)),
         )
         # Append the information as a list of frames per axis
         scan_points.append(a)
 
-    return pointsRequest(scan_points, num_points)
+    return PointsRequest(scan_points, num_points)
 
 
 # Define the schema

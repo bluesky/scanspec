@@ -7,7 +7,7 @@ If a Spec tells you the parameters of a scan, Dimensions gives you the points
 that will let you actually exectute the scan. A list of Dimensions is
 interpreted as nested from slowest moving to fastest moving, so each faster
 Dimension will iterate once per position of the slower Dimension. When
-fly-scanning the axis will traverse lower-middle-upper on the fastest
+fly-scanning the axis will traverse lower-midpoints-upper on the fastest
 Dimension for each point in the scan.
 
 An Example
@@ -22,9 +22,9 @@ An Example
 6
 >>> len(dims[1])
 3
->>> dims[0].middle
+>>> dims[0].midpoints
 {'y': array([4. , 4.2, 4.4, 4.6, 4.8, 5. ])}
->>> dims[1].middle
+>>> dims[1].midpoints
 {'x': array([1. , 1.5, 2. ])}
 
 So the `Product` of two `Lines <Line>` creates a list of 2 Dimensions, the first
@@ -37,7 +37,7 @@ Why a list of Dimensions?
 
 A list of Dimensions are created to give the most compact representation of the
 scan. Imagine a 100x2000x2000 point scan, which creates a list of 3 Dimensions.
-Considering just the middle arrays, they would take 100 + 2000 + 2000 float64
+Considering just the midpoint arrays, they would take 100 + 2000 + 2000 float64
 = 32.8kB RAM in our list form. If we squashed the list into a single Dimension
 100 * 2000 * 2000 float64 = 3.2GB of RAM. The scan itself is likely to be
 executed over a long period of time, so it makes sense to save on the memory and

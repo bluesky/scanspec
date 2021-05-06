@@ -1,8 +1,11 @@
+from unittest import mock
+
 import graphql
 import pytest
+from graphql.type.schema import assert_schema
 from numpy import array
 
-from scanspec.service import Points, schema
+from scanspec.service import Points, schema, schema_text
 
 
 # Returns a dummy 'points' dataclass for resolver testing
@@ -18,36 +21,36 @@ def points_none() -> Points:
 
 
 # GET_POINTS RESOLVER TEST(S) #
-def test_float_list(points):
+def test_float_list(points) -> None:
     assert points.float_list() == [1.5, 0.0, 0.25, 1.0, 0.0]
 
 
-def test_float_list_none(points_none):
+def test_float_list_none(points_none) -> None:
     assert points_none.float_list() is None
 
 
-def test_string(points):
+def test_string(points) -> None:
     assert points.string() == "[1.5  0.   0.25 1.   0.  ]"
 
 
-def test_b64(points):
+def test_b64(points) -> None:
     assert points.b64() == "AAAAAAAA+D8AAAAAAAAAAAAAAAAAANA/AAAAAAAA8D8AAAAAAAAAAA=="
 
 
-def test_b64_none(points_none):
+def test_b64_none(points_none) -> None:
     assert points_none.b64() is None
 
 
-def test_decodeb64(points):
+def test_decodeb64(points) -> None:
     assert points.b64Decode() == "[1.5  0.   0.25 1.   0.  ]"
 
 
-def test_decodeb64_none(points_none):
+def test_decodeb64_none(points_none) -> None:
     assert points_none.b64Decode() is None
 
 
 # VALIDATE SPEC QUERY TEST(S) #
-def test_validate_spec():
+def test_validate_spec() -> None:
     query_str = """
 {
     validateSpec(spec: {BoundedLine: {axis: "x", lower: 0, upper: 1, num: 5}})
@@ -59,7 +62,7 @@ def test_validate_spec():
 
 
 # GET POINTS QUERY TEST(S) #
-def test_get_points_axis():
+def test_get_points_axis() -> None:
     query_str = """
 {
   getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
@@ -75,7 +78,7 @@ def test_get_points_axis():
     }
 
 
-def test_get_points_lower():
+def test_get_points_lower() -> None:
     query_str = """
 {
   getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
@@ -98,13 +101,13 @@ def test_get_points_lower():
     }
 
 
-def test_get_points_middle():
+def test_get_points_midpoints() -> None:
     query_str = """
 {
   getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
   inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}) {
     axes {
-      middle{
+      midpoints{
         floatList
       }
     }
@@ -114,14 +117,14 @@ def test_get_points_middle():
     assert graphql.graphql_sync(schema, query_str).data == {
         "getPoints": {
             "axes": [
-                {"middle": {"floatList": [0, 0, 0, 1, 1, 1]}},
-                {"middle": {"floatList": [0, 0.5, 1, 0, 0.5, 1]}},
+                {"midpoints": {"floatList": [0, 0, 0, 1, 1, 1]}},
+                {"midpoints": {"floatList": [0, 0.5, 1, 0, 0.5, 1]}},
             ]
         }
     }
 
 
-def test_get_points_upper():
+def test_get_points_upper() -> None:
     query_str = """
 {
   getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
@@ -144,7 +147,7 @@ def test_get_points_upper():
     }
 
 
-def test_get_points_numPoints():
+def test_get_points_numPoints() -> None:
     query_str = """
 {
   getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}}
@@ -156,3 +159,14 @@ def test_get_points_numPoints():
     assert graphql.graphql_sync(schema, query_str).data == {
         "getPoints": {"numPoints": 6}
     }
+
+
+# SCHEMA TEST(S)
+def test_schema() -> None:
+    assert_schema(schema)
+
+
+def test_schema_text() -> None:
+    with mock.patch("graphql.utilities.print_schema") as mock_print_schema:
+        schema_text()
+        mock_print_schema.assert_called()

@@ -11,6 +11,8 @@ from .core import Dimension, Path
 from .regions import Circle, Rectangle, find_regions
 from .specs import TIME, Spec
 
+__all__ = ["plot_spec"]
+
 
 def _find_breaks(dim: Dimension):
     breaks = []
@@ -138,7 +140,7 @@ def plot_spec(spec: Spec):
 
     # Plot the splines
     tail: Any = {a: None for a in axes}
-    ranges = [max(np.max(v) - np.min(v), 0.0001) for k, v in dim.middle.items()]
+    ranges = [max(np.max(v) - np.min(v), 0.0001) for k, v in dim.midpoints.items()]
     seg_col = cycle(colors.TABLEAU_COLORS)
     last_index = 0
     splines = None
@@ -147,10 +149,10 @@ def plot_spec(spec: Spec):
         arrays = []
         turnaround = []
         for a in axes:
-            # Add the lower and middle
+            # Add the midpoints and the lower and upper bounds
             arr = np.empty(num_points * 2 + 1)
             arr[:-1:2] = dim.lower[a][last_index:index]
-            arr[1::2] = dim.middle[a][last_index:index]
+            arr[1::2] = dim.midpoints[a][last_index:index]
             arr[-1] = dim.upper[a][index - 1]
             arrays.append(arr)
             # Add the turnaround
@@ -199,7 +201,7 @@ def plot_spec(spec: Spec):
 
     # Plot the capture points
     if len(dim) < 200:
-        arrays = [dim.middle[a] for a in axes]
+        arrays = [dim.midpoints[a] for a in axes]
         _plot_arrays(plt_axes, arrays, linestyle="", marker=".", color="k")
 
     # Plot the end
