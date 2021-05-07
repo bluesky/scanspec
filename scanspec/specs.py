@@ -39,7 +39,10 @@ __all__ = [
 
 @dataclass
 class Spec(Serializable):
-    """Abstract baseclass for the specification of a scan. Supports operators:
+    """Definition: A spec is a serializable representation of the type, parameters
+    and axis names required to produce one or more dimensions.
+
+    Description: Abstract baseclass for the specification of a scan. Supports operators:
 
     - ``*``: Outer `Product` of two Specs, nesting the second within the first
     - ``+``: `Zip` two Specs together, iterating in tandem
@@ -178,7 +181,7 @@ class Zip(Spec):
 
 @dataclass
 class Mask(Spec):
-    """Restrict the given Spec to only the midpoints that fall inside the given
+    """Restrict the given Spec to only the midpoints that fall inside of the given
     Region.
 
     Typically created with the ``&`` operator. It also pushes down the

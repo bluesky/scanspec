@@ -186,7 +186,10 @@ def if_instance_do(x, cls: Type[T], func: Callable[[T], Any]):
 
 
 class Dimension:
-    """Represents a linear stack of frames. A list of Dimensions
+    """A dimension is a repeatable, possibly snaking structure of frames along a
+    number of axes.
+
+    Represents a linear stack of frames. A list of Dimensions
     is interpreted as nested from slowest moving to fastest moving, so each
     faster Dimension will iterate once per position of the slower Dimension.
     When fly-scanning the axis will traverse lower-midpoints-upper on the fastest
@@ -385,8 +388,8 @@ def squash_dimensions(
 
 
 class Path:
-    """Create a consumable Path through a list of Dimensions representing a
-    scan path.
+    """A path is a consumable route through one or more dimensions,
+    representing a scan path.
 
     Args:
         dimensions: The Dimensions describing the scan, from slowest to fastest
