@@ -84,7 +84,7 @@ our grid we get:
 Masking with Regions
 --------------------
 
-We can apply a `Mask` to only include points within a given `Region` using
+We can apply a `Mask` to only include frames where the midpoints are within a given `Region` using
 the ``&`` operator:
 
 .. plot::

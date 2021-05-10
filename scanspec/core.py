@@ -192,7 +192,7 @@ class Dimension:
     Represents a linear stack of frames. A list of Dimensions
     is interpreted as nested from slowest moving to fastest moving, so each
     faster Dimension will iterate once per position of the slower Dimension.
-    When fly-scanning the axis will traverse lower-midpoints-upper on the fastest
+    When fly-scanning the axis will traverse lower-midpoint-upper on the fastest
     Dimension for each point in the scan.
 
     Args:

@@ -7,7 +7,7 @@ If a Spec tells you the parameters of a scan, Dimensions gives you the points
 that will let you actually exectute the scan. A list of Dimensions is
 interpreted as nested from slowest moving to fastest moving, so each faster
 Dimension will iterate once per position of the slower Dimension. When
-fly-scanning the axis will traverse lower-midpoints-upper on the fastest
+fly-scanning the axis will traverse lower-midpoint-upper on the fastest
 Dimension for each point in the scan.
 
 An Example

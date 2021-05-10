@@ -90,14 +90,14 @@ one or more of the following fields:
 - axes: a list of axes present in the Spec and its associated scan points
 
 Within axes:
-- axis: a list of the axes present in the Spec
+- axis: the name of the axis present in the Spec
 - lower: a list of lower bounds that are each present in a frame
 - midpoints: a list of midpoints that are each present in a frame
 - upper: a list of upper bounds that are each present in a frame
 
 Within lower, middle and upper:
-- string: returns the requested points as a string
-- floatList: returns the requested points as a list of floatList
+- string: returns the requested points as a human readable numpy formatted string
+- floatList: returns the requested points as a list of floats
 - b64: returns the requested points encoded into base64
 
 Using the example above, we can request to return points from it:

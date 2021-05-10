@@ -37,7 +37,7 @@ How to Specify JSON from the class definitions
 
 Every Spec lists in its documentation a list of parameters and types. The JSON
 representation is the dictionary of these parameters, wrapped in a dictionary
-with a single element whose axis is the classname. This allows the
+with a single element whose key is the classname. This allows the
 deserialization code to pick the correct class to deserialize to. For example::
 
     {'Line': {'axis': 'y', 'start': 4, 'stop': 5, 'num': 6}}
