@@ -3,25 +3,24 @@
 technical terms
 ===============
 
-TODO: Update manual entries with function docstrings
-
-Axis:
+`Spec <scanspec.core.Spec.axes>`:
 An axis is a fixed reference that can be scanned. i.e. a motor, time or 
 number of repetitions.
 
-Dimension:
+`Spec <scanspec.core.Dimension>`:
 A dimension is a repeatable, possibly snaking structure of frames along a 
 number of axes.
 
-Frame:
-A frame is a vector of three points (lower, midpoints, upper) in scan space.
+`Spec <scanspec.service.AxisFrames>`:
+A frame is a vector of three points in scan space: lower, midpoints, upper
+(used for fly scanning).
 
-Path:
+`Spec <scanspec.core.Path>`:
 A path is a consumable route through one or more dimensions.
 
-Point:
+`Spec <scanspec.service.Points>`:
 A point is a single or multidimensional location in scan space.
 
-Spec:
+`Spec <scanspec.spec.Spec>`:
 A spec is a serializable representation of the type, parameters 
 and axis names required to produce one or more dimensions.
