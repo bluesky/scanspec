@@ -388,7 +388,7 @@ def squash_dimensions(
 
 
 class Path:
-    """A path is a consumable route through one or more dimensions,
+    """A consumable route through one or more dimensions,
     representing a scan path.
 
     Args:
