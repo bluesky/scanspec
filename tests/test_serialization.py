@@ -19,8 +19,8 @@ def test_masked_circle_serializes() -> None:
             "spec": {"Line": {"axis": "x", "start": 0, "stop": 1, "num": 4}},
             "region": {
                 "Circle": {
-                    "x_axis_name": "x",
-                    "y_axis_name": "y",
+                    "x_axis": "x",
+                    "y_axis": "y",
                     "x_centre": 0,
                     "y_centre": 1,
                     "radius": 4,
@@ -66,8 +66,8 @@ def test_complex_nested_serializes() -> None:
         "Mask": {
             "spec": {
                 "Spiral": {
-                    "x_axis_name": "x",
-                    "y_axis_name": "y",
+                    "x_axis": "x",
+                    "y_axis": "y",
                     "x_start": 0,
                     "y_start": 0,
                     "x_range": 20,
@@ -80,8 +80,8 @@ def test_complex_nested_serializes() -> None:
                 "UnionOf": {
                     "left": {
                         "Circle": {
-                            "x_axis_name": "x",
-                            "y_axis_name": "y",
+                            "x_axis": "x",
+                            "y_axis": "y",
                             "x_centre": 0,
                             "y_centre": 1,
                             "radius": 4,
@@ -89,8 +89,8 @@ def test_complex_nested_serializes() -> None:
                     },
                     "right": {
                         "Rectangle": {
-                            "x_axis_name": "x",
-                            "y_axis_name": "y",
+                            "x_axis": "x",
+                            "y_axis": "y",
                             "x_min": 0,
                             "y_min": 1.1,
                             "x_max": 1.5,

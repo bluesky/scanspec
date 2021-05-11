@@ -476,7 +476,7 @@ class Static(Spec):
 
 @dataclass
 class Spiral(Spec):
-    """Archimedean spiral of "x_axis_name" and "y_axis_name", starting at centre point
+    """Archimedean spiral of "x_axis" and "y_axis", starting at centre point
     ("x_start", "y_start") with angle "rotate". Produces "num" points
     in a spiral spanning width of "x_range" and height of "y_range"
 
@@ -487,10 +487,10 @@ class Spiral(Spec):
         spec = Spiral("x", "y", 1, 5, 10, 50, 30)
     """
 
-    x_axis_name: str = field(
+    x_axis: str = field(
         metadata=schema(description="An identifier for what to move for x")
     )
-    y_axis_name: str = field(
+    y_axis: str = field(
         metadata=schema(description="An identifier for what to move for y")
     )
     # TODO: do we like these names?
@@ -506,7 +506,7 @@ class Spiral(Spec):
 
     def axes(self) -> List:
         # TODO: reversed from __init__ args, a good idea?
-        return [self.y_axis_name, self.x_axis_name]
+        return [self.y_axis, self.x_axis]
 
     def _spiral_from_indexes(self, indexes: np.ndarray) -> Dict[str, np.ndarray]:
         # simplest spiral equation: r = phi
@@ -521,8 +521,8 @@ class Spiral(Spec):
         x_scale = self.x_range / diameter
         y_scale = self.y_range / diameter
         return {
-            self.y_axis_name: self.y_start + y_scale * phi * np.cos(phi + self.rotate),
-            self.x_axis_name: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
+            self.y_axis: self.y_start + y_scale * phi * np.cos(phi + self.rotate),
+            self.x_axis: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
         }
 
     def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
@@ -532,10 +532,10 @@ class Spiral(Spec):
 
     @alternative_constructor
     def spaced(
-        x_axis_name: Annotated[
+        x_axis: Annotated[
             str, schema(description="An identifier for what to move for x")
         ],
-        y_axis_name: Annotated[
+        y_axis: Annotated[
             str, schema(description="An identifier for what to move for y")
         ],
         x_start: Annotated[float, schema(description="x centre of the spiral")],
@@ -549,7 +549,7 @@ class Spiral(Spec):
             ),
         ] = 0.0,
     ) -> "Spiral":
-        """Specify a Spiral equally spaced in "x_axis_name" and "y_axis_name" by specifying
+        """Specify a Spiral equally spaced in "x_axis" and "y_axis" by specifying
         the "radius" and difference between each ring of the spiral "dr"
 
         .. example_spec::
@@ -565,14 +565,7 @@ class Spiral(Spec):
         n_rings = radius / dr
         num = int(n_rings ** 2 * np.pi)
         return Spiral(
-            x_axis_name,
-            y_axis_name,
-            x_start,
-            y_start,
-            radius * 2,
-            radius * 2,
-            num,
-            rotate,
+            x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate,
         )
 
 

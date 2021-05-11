@@ -201,10 +201,10 @@ class Rectangle(Region):
         spec = grid & Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30)
     """
 
-    x_axis_name: str = field(
+    x_axis: str = field(
         metadata=schema(description="The name matching the x axis of the spec")
     )
-    y_axis_name: str = field(
+    y_axis: str = field(
         metadata=schema(description="The name matching the y axis of the spec")
     )
     x_min: float = field(
@@ -225,11 +225,11 @@ class Rectangle(Region):
     )
 
     def axis_sets(self) -> List[Set[str]]:
-        return [{self.x_axis_name, self.y_axis_name}]
+        return [{self.x_axis, self.y_axis}]
 
     def mask(self, points: AxesPoints) -> np.ndarray:
-        x = points[self.x_axis_name] - self.x_min
-        y = points[self.y_axis_name] - self.y_min
+        x = points[self.x_axis] - self.x_min
+        y = points[self.y_axis] - self.y_min
         if self.angle != 0:
             # Rotate src points by -angle
             phi = np.radians(-self.angle)
@@ -255,10 +255,10 @@ class Circle(Region):
         spec = grid & Circle("x", "y", 1, 2, 0.9)
     """
 
-    x_axis_name: str = field(
+    x_axis: str = field(
         metadata=schema(description="The name matching the x axis of the spec")
     )
-    y_axis_name: str = field(
+    y_axis: str = field(
         metadata=schema(description="The name matching the x axis of the spec")
     )
     x_centre: float = field(
@@ -270,11 +270,11 @@ class Circle(Region):
     radius: float = field(metadata=schema(description="Radius of the circle"))
 
     def axis_sets(self) -> List[Set[str]]:
-        return [{self.x_axis_name, self.y_axis_name}]
+        return [{self.x_axis, self.y_axis}]
 
     def mask(self, points: AxesPoints) -> np.ndarray:
-        x = points[self.x_axis_name] - self.x_centre
-        y = points[self.y_axis_name] - self.y_centre
+        x = points[self.x_axis] - self.x_centre
+        y = points[self.y_axis] - self.y_centre
         mask = x * x + y * y <= (self.radius * self.radius)
         return mask
 
