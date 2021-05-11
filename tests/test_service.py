@@ -147,6 +147,29 @@ def test_get_points_upper() -> None:
     }
 
 
+def test_get_points_upper_maxed() -> None:
+    query_str = """
+{
+  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
+  inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}, maxPoints: 3) {
+    axes {
+      upper{
+        floatList
+      }
+    }
+  }
+}
+    """
+    assert graphql.graphql_sync(schema, query_str).data == {
+        "getPoints": {
+            "axes": [
+                {"upper": {"floatList": [0, 0, 0]}},
+                {"upper": {"floatList": [0.25, 0.75, 1.25]}},
+            ]
+        }
+    }
+
+
 def test_get_points_numPoints() -> None:
     query_str = """
 {
