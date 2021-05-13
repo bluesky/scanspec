@@ -170,17 +170,17 @@ def test_get_points_upper_maxed() -> None:
     }
 
 
-def test_get_points_numPoints() -> None:
+def test_get_points_totalFrames() -> None:
     query_str = """
 {
   getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}}
   inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}) {
-    numPoints
+    totalFrames
   }
 }
     """
     assert graphql.graphql_sync(schema, query_str).data == {
-        "getPoints": {"numPoints": 6}
+        "getPoints": {"totalFrames": 6}
     }
 
 

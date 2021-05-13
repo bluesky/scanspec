@@ -86,7 +86,7 @@ The 'getPoints' query makes use of this, giving users the ability to select from
 one or more of the following fields:
 
 - numFrames: the total number of frames produced by the Spec
-- returnedFrames (WIP): the number of frames returned, limited by the maxPoint arguement
+- returnedFrames (WIP): the number of frames returned, limited by the maxPoint argument
 - axes: a list of axes present in the Spec and its associated scan points
 
 Within axes:

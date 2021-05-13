@@ -77,7 +77,8 @@ class PointsRequest:
     """
 
     axes: List[AxisFrames]
-    num_points: int
+    total_frames: int
+    returned_frames: int
 
 
 # Chacks that the spec will produce a valid scan
@@ -93,7 +94,7 @@ def get_points(spec: Spec, max_points: Optional[int] = 200000) -> PointsRequest:
     """A query that takes a Spec and calculates the points present in the scan
     (for each axis) plus some metadata about the points.
 
-    Arguements:
+    Arguments:
             [spec]: [The specification of the scan]
             [max_points]: [The maximum number of points the user wishes to receive]
 
@@ -103,15 +104,19 @@ def get_points(spec: Spec, max_points: Optional[int] = 200000) -> PointsRequest:
     """
     dims = spec.create_dimensions()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
-    num_points = len(path)  # Capture the length of the path
+    total_frames = len(path)  # Capture the total length of the path
 
-    # Limit the consumed data to the max_points arguement
+    # Limit the consumed data to the max_points argument
     # # WARNING: path object is consumed after this statement
     if max_points is None:
         raise ValueError("max_points was set to None")
+
     elif max_points >= len(path):
+        returned_frames = len(path)
         chunk = path.consume(len(path))
+
     else:
+        returned_frames = max_points
         chunk = path.consume(max_points)
 
     # POINTS
@@ -125,7 +130,7 @@ def get_points(spec: Spec, max_points: Optional[int] = 200000) -> PointsRequest:
         for axis in spec.axes()
     ]
 
-    return PointsRequest(scan_points, num_points)
+    return PointsRequest(scan_points, total_frames, returned_frames)
 
 
 # Define the schema
