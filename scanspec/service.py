@@ -89,14 +89,14 @@ def validate_spec(spec: Spec) -> Any:
 
 
 # Returns a full list of points for each axis in the scan
-# TODO Update max_points with a more sophisticated method of reducing scan points
-def get_points(spec: Spec, max_points: Optional[int] = 200000) -> PointsRequest:
+# TODO Update max_frames with a more sophisticated method of reducing scan points
+def get_points(spec: Spec, max_frames: Optional[int] = 200000) -> PointsRequest:
     """A query that takes a Spec and calculates the points present in the scan
     (for each axis) plus some metadata about the points.
 
     Arguments:
             [spec]: [The specification of the scan]
-            [max_points]: [The maximum number of points the user wishes to receive]
+            [max_frames]: [The maximum number of frames the user wishes to receive]
 
     Returns:
         [PointsRequest]: [A dataclass containing information about the scan points
@@ -106,18 +106,22 @@ def get_points(spec: Spec, max_points: Optional[int] = 200000) -> PointsRequest:
     path = Path(dims)  # Convert to a path
     total_frames = len(path)  # Capture the total length of the path
 
-    # Limit the consumed data to the max_points argument
+    # Limit the consumed data to the max_frames argument
     # # WARNING: path object is consumed after this statement
-    if max_points is None:
-        raise ValueError("max_points was set to None")
+    if max_frames is None:
+        # Return as many frames as possible
+        returned_frames = len(path)
+        chunk = path.consume(len(path))
 
-    elif max_points >= len(path):
+    elif max_frames >= len(path):
+        # Return all of the frames within that selection
         returned_frames = len(path)
         chunk = path.consume(len(path))
 
     else:
-        returned_frames = max_points
-        chunk = path.consume(max_points)
+        # Cap the frames by the max limit
+        returned_frames = max_frames
+        chunk = path.consume(max_frames)
 
     # POINTS
     scan_points = [
