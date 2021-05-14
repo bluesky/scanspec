@@ -145,7 +145,7 @@ def schema_text() -> str:
     return graphql.utilities.print_schema(schema)
 
 
-def run_app(cors=False):
+def run_app(cors=False, port=8080):
     app = web.Application()
 
     view = GraphQLView(schema=schema, graphiql=True)
@@ -173,4 +173,4 @@ def run_app(cors=False):
         for route in list(app.router.routes()):
             cors_config.add(route)
 
-    web.run_app(app)
+    web.run_app(app, port=port)
