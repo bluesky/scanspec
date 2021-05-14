@@ -43,8 +43,19 @@ def plot(spec: str):
 
 @cli.command()
 @click.option("--cors", is_flag=True)
-def service(cors):
+@click.option(
+    "--port", default=8080, help="The port that the scanspec service will be hosted on."
+)
+def service(cors, port):
     """Run up a GraphQL service"""
     from scanspec.service import run_app
 
-    run_app(cors)
+    run_app(cors, port)
+
+
+@cli.command()
+def schema():
+    """Print schema"""
+    from scanspec.service import schema_text
+
+    click.echo(schema_text())
