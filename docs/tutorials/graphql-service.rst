@@ -116,7 +116,7 @@ Using the example above, we can request to return points from it:
           }
         )
         {
-          numPoints
+          numFrames
           axes {
             axis
             upper {
@@ -135,7 +135,7 @@ Using the example above, we can request to return points from it:
       {
         "data": {
           "getPoints": {
-            "numPoints": 5,
+            "numFrames": 5,
             "axes": [
               {
                 "axis": "x",

@@ -71,7 +71,7 @@ class AxisFrames:
 
 
 @dataclass
-class PointsRequest:
+class PointsResponse:
     """ The highest level of the getPoints query, allowing users to customise their
     return data from the points present in the scan to some metadata about them
     """
@@ -90,7 +90,7 @@ def validate_spec(spec: Spec) -> Any:
 
 # Returns a full list of points for each axis in the scan
 # TODO Update max_frames with a more sophisticated method of reducing scan points
-def get_points(spec: Spec, max_frames: Optional[int] = 200000) -> PointsRequest:
+def get_points(spec: Spec, max_frames: Optional[int] = 200000) -> PointsResponse:
     """A query that takes a Spec and calculates the points present in the scan
     (for each axis) plus some metadata about the points.
 
@@ -99,7 +99,7 @@ def get_points(spec: Spec, max_frames: Optional[int] = 200000) -> PointsRequest:
             [max_frames]: [The maximum number of frames the user wishes to receive]
 
     Returns:
-        [PointsRequest]: [A dataclass containing information about the scan points
+        [PointsResponse]: [A dataclass containing information about the scan points
                             present in the spec]
     """
     dims = spec.create_dimensions()  # Grab dimensions from spec
@@ -134,7 +134,7 @@ def get_points(spec: Spec, max_frames: Optional[int] = 200000) -> PointsRequest:
         for axis in spec.axes()
     ]
 
-    return PointsRequest(scan_points, total_frames, returned_frames)
+    return PointsResponse(scan_points, total_frames, returned_frames)
 
 
 # Define the schema
