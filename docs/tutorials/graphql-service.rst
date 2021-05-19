@@ -89,13 +89,15 @@ one or more of the following fields:
 - returnedFrames (WIP): the number of frames returned, limited by the maxPoint argument
 - axes: a list of axes present in the Spec and its associated scan points
 
-Within axes:
+#### Within axes:
+
 - axis: the name of the axis present in the Spec
 - lower: a list of lower bounds that are each present in a frame
 - midpoints: a list of midpoints that are each present in a frame
 - upper: a list of upper bounds that are each present in a frame
 
-Within lower, middle and upper:
+#### Within lower, middle and upper:
+
 - string: returns the requested points as a human readable numpy formatted string
 - floatList: returns the requested points as a list of floats
 - b64: returns the requested points encoded into base64
