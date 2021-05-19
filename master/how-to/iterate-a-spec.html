@@ -8,13 +8,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>How to Iterate a Spec &mdash; scanspec 0.0+untagged.gb227c46 documentation</title>
+  <title>How to Iterate a Spec &mdash; scanspec 0.0+untagged.g589f916 documentation</title>
   
 
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
 
@@ -117,7 +118,7 @@
 <p class="caption"><span class="caption-text">How-to Guides</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">How to Iterate a Spec</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#if-you-only-need-the-positions">If you only need the positions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#if-you-only-need-the-midpoints">If you only need the midpoints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#if-you-need-to-do-a-fly-scan">If you need to do a fly scan</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#if-you-need-to-do-multiple-runs-of-the-same-scan">If you need to do multiple runs of the same scan</a></li>
 </ul>
@@ -219,15 +220,15 @@
   <div class="section" id="how-to-iterate-a-spec">
 <span id="iterate-a-spec"></span><h1>How to Iterate a Spec<a class="headerlink" href="#how-to-iterate-a-spec" title="Permalink to this headline">¶</a></h1>
 <p>A Spec is only the specification for a scan. To execute the scan we need the
-positions. We can do this in a few ways.</p>
-<div class="section" id="if-you-only-need-the-positions">
-<h2>If you only need the positions<a class="headerlink" href="#if-you-only-need-the-positions" title="Permalink to this headline">¶</a></h2>
-<p>If you are conducting a step scan, you only need the central positions of each
-scan point. You can get these by using the <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.positions" title="scanspec.specs.Spec.positions"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.positions()</span></code></a> method to produce an
-<a class="reference internal" href="../reference/api.html#scanspec.core.SpecPositions" title="scanspec.core.SpecPositions"><code class="xref any py py-class docutils literal notranslate"><span class="pre">SpecPositions</span></code></a> iterator of scan positions:</p>
+frames. We can do this in a few ways.</p>
+<div class="section" id="if-you-only-need-the-midpoints">
+<h2>If you only need the midpoints<a class="headerlink" href="#if-you-only-need-the-midpoints" title="Permalink to this headline">¶</a></h2>
+<p>If you are conducting a step scan, you only need the midpoints of each
+scan frame. You can get these by using the <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.midpoints" title="scanspec.specs.Spec.midpoints"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.midpoints()</span></code></a> method to produce a
+<a class="reference internal" href="../reference/api.html#scanspec.core.Midpoints" title="scanspec.core.Midpoints"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Midpoints</span></code></a> iterator of scan points:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">positions</span><span class="p">():</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">midpoints</span><span class="p">():</span>
 <span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 <span class="gp">...</span>
 <span class="go">{&#39;x&#39;: 1.0}</span>
@@ -236,7 +237,7 @@ scan point. You can get these by using the <a class="reference internal" href=".
 </pre></div>
 </div>
 <p>This is simple, but not particularly performant, as the numpy arrays of
-positions are unpacked point by point into position dictionaries</p>
+points are unpacked point by point into point dictionaries</p>
 </div>
 <div class="section" id="if-you-need-to-do-a-fly-scan">
 <h2>If you need to do a fly scan<a class="headerlink" href="#if-you-need-to-do-a-fly-scan" title="Permalink to this headline">¶</a></h2>
@@ -250,7 +251,7 @@ into a trajectory:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">lower</span>
 <span class="go">{&#39;x&#39;: array([0.75, 1.25, 1.75])}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">positions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span>
 <span class="go">{&#39;x&#39;: array([1. , 1.5, 2. ])}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">upper</span>
 <span class="go">{&#39;x&#39;: array([1.25, 1.75, 2.25])}</span>

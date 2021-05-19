@@ -8,13 +8,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>How to Serialize and Deserialize a Spec &mdash; scanspec 0.0+untagged.gb227c46 documentation</title>
+  <title>How to Serialize and Deserialize a Spec &mdash; scanspec 0.0+untagged.g589f916 documentation</title>
   
 
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
 
@@ -225,22 +226,22 @@
 </div>
 <p>This Spec has a <a class="reference external" href="https://docs.python.org/3/library/functions.html#repr" title="(in Python v3.9)"><code class="xref any docutils literal notranslate"><span class="pre">repr</span></code></a> that shows its parameters it was instantiated with:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span>
-<span class="go">Product(outer=Line(key=&#39;y&#39;, start=4, stop=5, num=6), inner=Line(key=&#39;x&#39;, start=1, stop=2, num=3))</span>
+<span class="go">Product(outer=Line(axis=&#39;y&#39;, start=4, stop=5, num=6), inner=Line(axis=&#39;x&#39;, start=1, stop=2, num=3))</span>
 </pre></div>
 </div>
 <div class="section" id="how-to-serialize">
 <h2>How to Serialize<a class="headerlink" href="#how-to-serialize" title="Permalink to this headline">¶</a></h2>
 <p>We can recursively serialize it to a dictionary:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
-<span class="go">{&#39;Product&#39;: {&#39;outer&#39;: {&#39;Line&#39;: {&#39;key&#39;: &#39;y&#39;, &#39;start&#39;: 4, &#39;stop&#39;: 5, &#39;num&#39;: 6}}, &#39;inner&#39;: {&#39;Line&#39;: {&#39;key&#39;: &#39;x&#39;, &#39;start&#39;: 1, &#39;stop&#39;: 2, &#39;num&#39;: 3}}}}</span>
+<span class="go">{&#39;Product&#39;: {&#39;outer&#39;: {&#39;Line&#39;: {&#39;axis&#39;: &#39;y&#39;, &#39;start&#39;: 4, &#39;stop&#39;: 5, &#39;num&#39;: 6}}, &#39;inner&#39;: {&#39;Line&#39;: {&#39;axis&#39;: &#39;x&#39;, &#39;start&#39;: 1, &#39;stop&#39;: 2, &#39;num&#39;: 3}}}}</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="how-to-deserialize">
 <h2>How to Deserialize<a class="headerlink" href="#how-to-deserialize" title="Permalink to this headline">¶</a></h2>
 <p>We can turn this back into a spec using <a class="reference internal" href="../reference/api.html#scanspec.core.Serializable.deserialize" title="scanspec.core.Serializable.deserialize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Serializable.deserialize</span></code></a>:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Spec</span><span class="o">.</span><span class="n">deserialize</span><span class="p">({</span><span class="s1">&#39;Product&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;outer&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">}},</span> <span class="s1">&#39;inner&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}}}})</span>
-<span class="go">Product(outer=Line(key=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(key=&#39;x&#39;, start=1.0, stop=2.0, num=3))</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Spec</span><span class="o">.</span><span class="n">deserialize</span><span class="p">({</span><span class="s1">&#39;Product&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;outer&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">}},</span> <span class="s1">&#39;inner&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}}}})</span>
+<span class="go">Product(outer=Line(axis=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(axis=&#39;x&#39;, start=1.0, stop=2.0, num=3))</span>
 </pre></div>
 </div>
 </div>
@@ -250,7 +251,7 @@
 representation is the dictionary of these parameters, wrapped in a dictionary
 with a single element whose key is the classname. This allows the
 deserialization code to pick the correct class to deserialize to. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">}}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;Line&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">}}</span>
 </pre></div>
 </div>
 </div>

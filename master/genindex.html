@@ -8,13 +8,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Index &mdash; scanspec 0.0+untagged.gb227c46 documentation</title>
+  <title>Index &mdash; scanspec 0.0+untagged.g589f916 documentation</title>
   
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
 
@@ -219,7 +220,6 @@
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#I"><strong>I</strong></a>
- | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#P"><strong>P</strong></a>
@@ -233,7 +233,19 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.core.alternative_constructor">alternative_constructor() (in module scanspec.core)</a>
+      <li><a href="reference/api.html#scanspec.core.Dimension.axes">axes() (scanspec.core.Dimension method)</a>
+
+      <ul>
+        <li><a href="reference/api.html#scanspec.core.Midpoints.axes">(scanspec.core.Midpoints property)</a>
+</li>
+        <li><a href="reference/api.html#scanspec.specs.Spec.axes">(scanspec.specs.Spec method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.AxesPoints">AxesPoints (in module scanspec.core)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.Region.axis_sets">axis_sets() (scanspec.regions.Region method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -279,10 +291,10 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.core.Dimension">Dimension (class in scanspec.core)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.core.Path.dimensions">dimensions (scanspec.core.Path attribute)</a>
+      <li><a href="reference/api.html#scanspec.core.Midpoints.dimensions">dimensions (scanspec.core.Midpoints attribute)</a>
 
       <ul>
-        <li><a href="reference/api.html#scanspec.core.SpecPositions.dimensions">(scanspec.core.SpecPositions attribute)</a>
+        <li><a href="reference/api.html#scanspec.core.Path.dimensions">(scanspec.core.Path attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -330,22 +342,6 @@
   </ul></td>
 </tr></table>
 
-<h2 id="K">K</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.regions.Region.key_sets">key_sets() (scanspec.regions.Region method)</a>
-</li>
-      <li><a href="reference/api.html#scanspec.core.Dimension.keys">keys() (scanspec.core.Dimension method)</a>
-
-      <ul>
-        <li><a href="reference/api.html#scanspec.core.SpecPositions.keys">(scanspec.core.SpecPositions property)</a>
-</li>
-        <li><a href="reference/api.html#scanspec.specs.Spec.keys">(scanspec.specs.Spec method)</a>
-</li>
-      </ul></li>
-  </ul></td>
-</tr></table>
-
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -369,6 +365,14 @@
         <li><a href="reference/api.html#scanspec.regions.Region.mask">(scanspec.regions.Region method)</a>
 </li>
       </ul></li>
+      <li><a href="reference/api.html#scanspec.core.Midpoints">Midpoints (class in scanspec.core)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.Dimension.midpoints">midpoints (scanspec.core.Dimension attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.specs.Spec.midpoints">midpoints() (scanspec.specs.Spec method)</a>
+</li>
       <li>
     module
 
@@ -392,15 +396,9 @@
 </li>
       <li><a href="reference/api.html#scanspec.specs.Spec.path">path() (scanspec.specs.Spec method)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.plot.plot_spec">plot_spec() (in module scanspec.plot)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.core.Positions">Positions (in module scanspec.core)</a>
-</li>
-      <li><a href="reference/api.html#scanspec.core.Dimension.positions">positions (scanspec.core.Dimension attribute)</a>
-</li>
-      <li><a href="reference/api.html#scanspec.specs.Spec.positions">positions() (scanspec.specs.Spec method)</a>
+      <li><a href="reference/api.html#scanspec.plot.plot_spec">plot_spec() (in module scanspec.plot)</a>
 </li>
       <li><a href="reference/api.html#scanspec.specs.Product">Product (class in scanspec.specs)</a>
 </li>
@@ -464,10 +462,10 @@
       </ul></li>
       <li><a href="reference/api.html#scanspec.core.Serializable">Serializable (class in scanspec.core)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.core.Serializable.serialize">serialize() (scanspec.core.Serializable method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.Serializable.serialize">serialize() (scanspec.core.Serializable method)</a>
+</li>
       <li><a href="reference/api.html#scanspec.specs.Snake">Snake (class in scanspec.specs)</a>
 </li>
       <li><a href="reference/api.html#scanspec.core.Dimension.snake">snake (scanspec.core.Dimension attribute)</a>
@@ -475,8 +473,6 @@
       <li><a href="reference/api.html#scanspec.specs.Spiral.spaced">spaced() (scanspec.specs.Spiral static method)</a>
 </li>
       <li><a href="reference/api.html#scanspec.specs.Spec">Spec (class in scanspec.specs)</a>
-</li>
-      <li><a href="reference/api.html#scanspec.core.SpecPositions">SpecPositions (class in scanspec.core)</a>
 </li>
       <li><a href="reference/api.html#scanspec.specs.Spiral">Spiral (class in scanspec.specs)</a>
 </li>
