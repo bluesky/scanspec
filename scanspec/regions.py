@@ -194,6 +194,7 @@ class Range(Region):
 class Rectangle(Region):
     """Mask contains points of axis within a rotated xy rectangle
     .. example_spec::
+
         from scanspec.specs import Line
         from scanspec.regions import Rectangle
         grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
@@ -245,6 +246,7 @@ class Rectangle(Region):
 class Polygon(Region):
     """Mask contains points of axis within a rotated xy polygon
     .. example_spec::
+
         from scanspec.specs import Line
         from scanspec.regions import Polygon
         grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
@@ -258,10 +260,10 @@ class Polygon(Region):
         metadata=schema(description="The name matching the y axis of the spec")
     )
     x_verts: np.ndarray = field(
-        metadata=schema(description="The x coordinates of the polygons vertices")
+        metadata=schema(description="The Nx1 x coordinates of the polygons vertices")
     )
     y_verts: np.ndarray = field(
-        metadata=schema(description="The y coordinates of the polygons vertices")
+        metadata=schema(description="The Nx1 y coordinates of the polygons vertices")
     )
 
     def axis_sets(self) -> List[Set[str]]:
@@ -364,8 +366,12 @@ class Ellipse(Region):
         x = points[self.x_axis] - self.x_middle
         y = points[self.y_axis] - self.y_middle
         if self.angle != 0:
-            x = x * np.cos(-self.angle) - y * np.sin(-self.angle)
-            y = x * np.sin(-self.angle) + y * np.cos(-self.angle)
+            # Rotate src points by -angle
+            phi = np.radians(-self.angle)
+            tx = x * np.cos(phi) - y * np.sin(phi)
+            ty = x * np.sin(phi) + y * np.cos(phi)
+            x = tx
+            y = ty
         mask = (x / self.x_semiaxis) ** 2 + (y / self.y_semiaxis) ** 2 <= 1
         return mask
 

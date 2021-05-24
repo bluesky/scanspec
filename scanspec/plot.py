@@ -142,11 +142,13 @@ def plot_spec(spec: Spec):
                 width = region.x_semiaxis * 2
                 height = region.y_semiaxis * 2
                 angle = region.angle
-                plt_axes.add_patch(patches.Ellipse(xy, width, height, angle))
+                plt_axes.add_patch(
+                    patches.Ellipse(xy, width, height, angle, fill=False)
+                )
             elif isinstance(region, Polygon):
-                # *xy* is a numpy array with shape Nx2.
-                xy = np.concatenate((region.x_verts, region.y_verts), axis=0)
-                plt_axes.add_patch(patches.Polygon(xy))
+                # *xy_verts* is a numpy array with shape Nx2.
+                xy_verts = np.hstack((region.x_verts, region.y_verts))
+                plt_axes.add_patch(patches.Polygon(xy_verts, fill=False))
 
     # Plot the splines
     tail: Any = {a: None for a in axes}
