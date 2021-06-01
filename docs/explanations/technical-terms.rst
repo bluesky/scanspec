@@ -1,5 +1,8 @@
 .. _technical-terms:
 
+.. autoclass:: scanspec.service.Points
+.. autoclass:: scanspec.service.AxisFrames
+
 technical terms
 ===============
 
