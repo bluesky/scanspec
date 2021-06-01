@@ -1,0 +1,297 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>technical terms &mdash; scanspec 0.0+untagged.g1b404b1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/scanspec-logo.ico"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react@16.13.1/umd/react.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.js"></script>
+        <script src="../_static/attachGraphiQL.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="What are Dimensions?" href="what-are-dimensions.html" />
+    <link rel="prev" title="How to Serialize and Deserialize a Spec" href="../how-to/serialize-a-spec.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgb(7, 43, 93)" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> scanspec
+          
+
+          
+            
+            <img src="../_static/scanspec-logo.svg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    <style>
+      /* style mobile top nav to look like main nav */
+      .wy-nav-top {
+          background: rgb(7, 43, 93)
+      }
+    </style>
+    
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/graphql-service.html">Running a GraphQL service for generating points</a></li>
+</ul>
+<p class="caption"><span class="caption-text">How-to Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Explanations</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">technical terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="what-are-dimensions.html">What are Dimensions?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../reference/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+</ul>
+
+            
+          
+    <!-- Include Index in the sidebar -->
+    <!-- https://stackoverflow.com/a/37843854 -->
+    <a href="../genindex.html">Index</a>
+    <!-- Include all versions of the docs -->
+    <!-- https://holzhaus.github.io/sphinx-multiversion/master/templates.html -->
+    
+    <p class="caption"><span class="caption-text">Versions</span></p>
+    <ul>
+      <li><a href="technical-terms.html">master</a></li>
+      <li><a href="../../0.2/index.html">0.2</a></li>
+      <li><a href="../../0.1.1/index.html">0.1.1</a></li>
+      <li><a href="../../0.1/index.html">0.1</a></li>
+    </ul>
+    
+  
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">scanspec</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>technical terms</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/explanations/technical-terms.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="technical-terms"></span><dl class="py class">
+<dt id="scanspec.service.Points">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.service.</span></code><code class="sig-name descname"><span class="pre">Points</span></code><a class="reference internal" href="../_modules/scanspec/service.html#Points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.Points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A collection of singular or multidimensional locations in scan space</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="scanspec.service.AxisFrames">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.service.</span></code><code class="sig-name descname"><span class="pre">AxisFrames</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">midpoints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/service.html#AxisFrames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.AxisFrames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A collection of frames (comprising midpoints with lower and upper bounds)
+present in each axis of the Spec</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
+<li><p><strong>lower</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a>) – </p></li>
+<li><p><strong>midpoints</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a>) – </p></li>
+<li><p><strong>upper</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="section" id="id1">
+<h1>technical terms<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.axes" title="scanspec.specs.Spec.axes"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Axis</span></code></a>: A fixed reference that can be scanned.
+i.e. a motor, time or number of repetitions.</p>
+<p><a class="reference internal" href="../reference/api.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a>: A repeatable, possibly snaking
+structure of frames along a number of axes.</p>
+<p><a class="reference internal" href="#scanspec.service.AxisFrames" title="scanspec.service.AxisFrames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frame</span></code></a>: A vector of three points in scan space:
+lower, midpoint, upper (used for fly scanning).</p>
+<p><a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>: A consumable route through one or more
+dimensions.</p>
+<p><a class="reference internal" href="../reference/api.html#scanspec.core.AxesPoints" title="scanspec.core.AxesPoints"><code class="xref any py py-data docutils literal notranslate"><span class="pre">Point</span></code></a>: A single or multidimensional location
+in scan space.</p>
+<p><a class="reference internal" href="../reference/api.html#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a>: A serializable representation of the type,
+parameters and axis names required to produce one or more dimensions.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="what-are-dimensions.html" class="btn btn-neutral float-right" title="What are Dimensions?" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../how-to/serialize-a-spec.html" class="btn btn-neutral float-left" title="How to Serialize and Deserialize a Spec" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Diamond Light Source.
+
+    </p>
+  </div> 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

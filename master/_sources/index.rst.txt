@@ -63,6 +63,7 @@ About the documentation
     :name: explanations
     :maxdepth: 1
 
+    explanations/technical-terms
     explanations/what-are-dimensions
     explanations/why-squash-can-change-path
 

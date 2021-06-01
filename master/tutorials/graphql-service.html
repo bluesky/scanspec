@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Running a GraphQL service for generating points &mdash; scanspec 0.0+untagged.g589f916 documentation</title>
+  <title>Running a GraphQL service for generating points &mdash; scanspec 0.0+untagged.g1b404b1 documentation</title>
   
 
   
@@ -128,6 +128,7 @@
 </ul>
 <p class="caption"><span class="caption-text">Explanations</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../explanations/technical-terms.html">technical terms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../explanations/what-are-dimensions.html">What are Dimensions?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
 </ul>
@@ -318,15 +319,19 @@ one or more of the following fields:</p>
 <li><p>returnedFrames (WIP): the number of frames returned, limited by the maxPoint argument</p></li>
 <li><p>axes: a list of axes present in the Spec and its associated scan points</p></li>
 </ul>
-<p>Within axes:
-- axis: the name of the axis present in the Spec
-- lower: a list of lower bounds that are each present in a frame
-- midpoints: a list of midpoints that are each present in a frame
-- upper: a list of upper bounds that are each present in a frame</p>
-<p>Within lower, middle and upper:
-- string: returns the requested points as a human readable numpy formatted string
-- floatList: returns the requested points as a list of floats
-- b64: returns the requested points encoded into base64</p>
+<p>#### Within axes:</p>
+<ul class="simple">
+<li><p>axis: the name of the axis present in the Spec</p></li>
+<li><p>lower: a list of lower bounds that are each present in a frame</p></li>
+<li><p>midpoints: a list of midpoints that are each present in a frame</p></li>
+<li><p>upper: a list of upper bounds that are each present in a frame</p></li>
+</ul>
+<p>#### Within lower, middle and upper:</p>
+<ul class="simple">
+<li><p>string: returns the requested points as a human readable numpy formatted string</p></li>
+<li><p>floatList: returns the requested points as a list of floats</p></li>
+<li><p>b64: returns the requested points encoded into base64</p></li>
+</ul>
 <p>Using the example above, we can request to return points from it:</p>
 
 <style>
