@@ -10,6 +10,7 @@ from code:
 - `scanspec.specs`: `Spec` and its subclasses
 - `scanspec.regions`: `Region` and its subclasses
 - `scanspec.plot`: `plot_spec` to visualize a scan
+- `scanspec.service`: Defines queries and field structure in graphQL such as `PointsResponse`
 
 ``scanspec``
 ------------
@@ -59,3 +60,10 @@ from code:
 
     ``scanspec.plot``
     -----------------
+
+.. automodule:: scanspec.service
+    :members:
+    :exclude-members: abs_diffs
+
+    ``scanspec.service``
+    --------------------

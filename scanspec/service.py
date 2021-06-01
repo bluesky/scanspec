@@ -92,7 +92,7 @@ class PointsResponse:
     """The number of frames returned by the getPoints query
     (controlled by the max_points argument)"""
     smallest_abs_step: SmallestStep
-    """The smallest step between midpoints across all axes in the scan"""
+    """The smallest step between midpoints across ALL axes in the scan"""
 
 
 # Checks that the spec will produce a valid scan
