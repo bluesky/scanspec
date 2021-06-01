@@ -196,10 +196,9 @@ def test_get_points_total_frames() -> None:
 def test_get_points_abs_smallest_step() -> None:
     query_str = """
 {
-  getPoints(spec: {Line: {axis: "x", start: 0, stop: 2, num: 5}}) {
-    smallestAbsStep {
-      absolute
-    }
+  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 10, num: 3}},
+  inner: {Line: {axis: "y", start: 0, stop: 10, num: 3}}}}) {
+    smallestAbsStep
     axes {
       midpoints {
         floatList
@@ -210,8 +209,11 @@ def test_get_points_abs_smallest_step() -> None:
     """
     assert graphql.graphql_sync(schema, query_str).data == {
         "getPoints": {
-            "smallestAbsStep": {"absolute": 0.5},
-            "axes": [{"midpoints": {"floatList": [0, 0.5, 1, 1.5, 2]}}],
+            "smallestAbsStep": 5,
+            "axes": [
+                {"midpoints": {"floatList": [0, 0, 0, 5, 5, 5, 10, 10, 10]}},
+                {"midpoints": {"floatList": [0, 5, 10, 0, 5, 10, 0, 5, 10]}},
+            ],
         }
     }
 

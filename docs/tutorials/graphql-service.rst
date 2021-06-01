@@ -120,7 +120,7 @@ Using the example above, we can request to return points from it:
           }
         )
         {
-          totalFrames
+          returnedFrames
           axes {
             axis
             upper {
@@ -139,7 +139,7 @@ Using the example above, we can request to return points from it:
       {
         "data": {
           "getPoints": {
-            "totalFrames": 5,
+            "returnedFrames": 5,
             "axes": [
               {
                 "axis": "x",
