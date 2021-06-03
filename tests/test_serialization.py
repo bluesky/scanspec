@@ -13,7 +13,7 @@ def test_line_serializes() -> None:
 
 
 def test_masked_circle_serializes() -> None:
-    ob = Mask(Line("x", 0, 1, 4), Circle("x", "y", x_centre=0, y_centre=1, radius=4))
+    ob = Mask(Line("x", 0, 1, 4), Circle("x", "y", x_middle=0, y_middle=1, radius=4))
     serialized = {
         "Mask": {
             "spec": {"Line": {"axis": "x", "start": 0, "stop": 1, "num": 4}},
@@ -21,8 +21,8 @@ def test_masked_circle_serializes() -> None:
                 "Circle": {
                     "x_axis": "x",
                     "y_axis": "y",
-                    "x_centre": 0,
-                    "y_centre": 1,
+                    "x_middle": 0,
+                    "y_middle": 1,
                     "radius": 4,
                 }
             },
@@ -58,7 +58,7 @@ def test_complex_nested_serializes() -> None:
     ob = Mask(
         Spiral.spaced("x", "y", 0, 0, 10, 3),
         UnionOf(
-            Circle("x", "y", x_centre=0, y_centre=1, radius=4),
+            Circle("x", "y", x_middle=0, y_middle=1, radius=4),
             Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30),
         ),
     )
@@ -82,8 +82,8 @@ def test_complex_nested_serializes() -> None:
                         "Circle": {
                             "x_axis": "x",
                             "y_axis": "y",
-                            "x_centre": 0,
-                            "y_centre": 1,
+                            "x_middle": 0,
+                            "y_middle": 1,
                             "radius": 4,
                         }
                     },
