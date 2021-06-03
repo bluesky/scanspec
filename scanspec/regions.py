@@ -260,10 +260,14 @@ class Polygon(Region):
         metadata=schema(description="The name matching the y axis of the spec")
     )
     x_verts: np.ndarray = field(
-        metadata=schema(description="The Nx1 x coordinates of the polygons vertices")
+        metadata=schema(
+            description="The Nx1 x coordinates of the polygons vertices", min_len=4
+        )
     )
     y_verts: np.ndarray = field(
-        metadata=schema(description="The Nx1 y coordinates of the polygons vertices")
+        metadata=schema(
+            description="The Nx1 y coordinates of the polygons vertices", min_len=4
+        )
     )
 
     def axis_sets(self) -> List[Set[str]]:
@@ -312,7 +316,9 @@ class Circle(Region):
     y_middle: float = field(
         metadata=schema(description="The central y point of the circle")
     )
-    radius: float = field(metadata=schema(description="Radius of the circle"))
+    radius: float = field(
+        metadata=schema(description="Radius of the circle", exc_min=0)
+    )
 
     def axis_sets(self) -> List[Set[str]]:
         return [{self.x_axis, self.y_axis}]
@@ -350,13 +356,17 @@ class Ellipse(Region):
         metadata=schema(description="The central y point of the ellipse")
     )
     x_semiaxis: float = field(
-        metadata=schema(description="The semiaxis matching the x axis of the ellipse")
+        metadata=schema(
+            description="The semiaxis matching the x axis of the ellipse", exc_min=0
+        )
     )
     y_semiaxis: float = field(
-        metadata=schema(description="The semiaxis matching the y axis of the ellipse")
+        metadata=schema(
+            description="The semiaxis matching the y axis of the ellipse", exc_min=0
+        )
     )
     angle: float = field(
-        metadata=schema(description="The angle of the ellipse (degrees)")
+        default=0.0, metadata=schema(description="The angle of the ellipse (degrees)")
     )
 
     def axis_sets(self) -> List[Set[str]]:
