@@ -3,6 +3,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    ClassVar,
     Dict,
     Iterator,
     List,
@@ -12,19 +13,11 @@ from typing import (
 )
 
 import numpy as np
-from apischema import deserialize, schema_ref, serialize
-from apischema.conversions import (
-    Conversion,
-    dataclass_input_wrapper,
-    deserializer,
-    identity,
-    reset_deserializers,
-    serializer,
-)
-from apischema.conversions.converters import serializer
+from apischema import deserialize, deserializer, serialize, serializer, type_name
+from apischema.conversions import Conversion
 from apischema.metadata import conversion
+from apischema.objects import object_deserialization
 from apischema.tagged_unions import Tagged, TaggedUnion, get_tagged
-from typing_extensions import Annotated
 
 #: The type of class the function will return
 T = TypeVar("T")
@@ -41,8 +34,8 @@ __all__ = [
 ]
 
 
-# Recursive implementation of type.__subclasses__
-def rec_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
+def rec_subclasses(cls: type) -> Iterator[type]:
+    """Recursive implementation of type.__subclasses__"""
     for sub_cls in cls.__subclasses__():
         yield sub_cls
         yield from rec_subclasses(sub_cls)
@@ -76,99 +69,100 @@ else:
         return staticmethod(f)
 
 
-def _make_tagged_union(base: Type, is_serialization: bool) -> Type[TaggedUnion]:
-    # base is a direct subclass of Serializable, like Spec or Region
-    namespace: Dict[str, Any] = dict(__annotations__={})
-    for cls in rec_subclasses(base):
-        # Add tagged field for the Serializable subclass
-        namespace["__annotations__"][cls.__name__] = Tagged[cls]  # type: ignore
-        if is_serialization:
-            # Specify that we should use the identity serialization rather
-            # than our registered to_tagged_union() serializer when inside the
-            # tagged union
-            serialization = Conversion(
-                identity,
-                source=cls,
-                # Tagged field default serialization (to tagged union) must be
-                # bypassed. However, dynamic conversion discards schema_ref, so
-                # you must put it back manually, and do the bypass in a sub
-                # conversion.
-                target=Annotated[cls, schema_ref(cls.__name__)],
-                sub_conversions=identity,
-            )
-            namespace[cls.__name__] = Tagged(conversion(serialization=serialization))
-        else:
-            # Build deserialization aliases for each alternative constructor alias
-            for constructor in _alternative_constructors.get(cls.__name__, []):
+Cls = TypeVar("Cls", bound=type)
+
+
+def as_tagged_union(cls: Cls) -> Cls:
+    def serialization() -> Conversion:
+        serialization_union = new_class(
+            f"Tagged{cls.__name__}Union",
+            (TaggedUnion,),
+            exec_body=lambda ns: ns.update(
+                {
+                    "__annotations__": {
+                        sub.__name__: Tagged[sub] for sub in rec_subclasses(cls)  # type: ignore
+                    }
+                }
+            ),
+        )
+        return Conversion(
+            lambda obj: serialization_union(**{obj.__class__.__name__: obj}),
+            source=cls,
+            target=serialization_union,
+            # Conversion must not be inherited because it would lead to infinite
+            # recursion otherwise
+            inherited=False,
+        )
+
+    def deserialization() -> Conversion:
+        annotations: dict[str, Any] = {}
+        deserialization_namespace: dict[str, Any] = {"__annotations__": annotations}
+        for sub in rec_subclasses(cls):
+            annotations[sub.__name__] = Tagged[sub]  # type: ignore
+            # Add tagged fields for all its alternative constructors
+            for constructor in _alternative_constructors.get(sub.__name__, ()):
+                # Build the alias of the field
                 alias = (
                     "".join(map(str.capitalize, constructor.__name__.split("_")))
-                    + cls.__name__
+                    + sub.__name__
                 )
-                # dataclass_input_wrapper uses get_type_hints, but the constructor
+                # object_deserialization uses get_type_hints, but the constructor
                 # return type is stringified and the class not defined yet,
                 # so it must be assigned manually
-                constructor.__annotations__["return"] = cls
-                # Wraps the constructor and rename its input class
-                wrapper, wrapper_cls = dataclass_input_wrapper(constructor)
-                wrapper_cls.__name__ = alias
+                constructor.__annotations__["return"] = sub
                 # Add constructor tagged field with its conversion
-                namespace["__annotations__"][alias] = Tagged[cls]  # type: ignore
-                namespace[alias] = Tagged(conversion(deserialization=wrapper))
-    # Create the tagged union class
-    union = new_class(
-        f"Tagged{base.__name__}Union",
-        (TaggedUnion,),
-        exec_body=lambda ns: ns.update(namespace),
-    )
-    return union
+                annotations[alias] = Tagged[sub]  # type: ignore
+                deserialization_namespace[alias] = Tagged(
+                    conversion(
+                        # Use object_deserialization to wrap constructor as deserializer
+                        deserialization=object_deserialization(
+                            constructor, type_name(alias)
+                        )
+                    )
+                )
+        # Create the deserialization tagged union class
+        deserialization_union = new_class(
+            f"Tagged{cls.__name__}Union",
+            (TaggedUnion,),
+            exec_body=lambda ns: ns.update(deserialization_namespace),
+        )
+        return Conversion(
+            lambda obj: get_tagged(obj)[1], source=deserialization_union, target=cls
+        )
+
+    deserializer(lazy=deserialization, target=cls)
+    serializer(lazy=serialization, source=cls)
+    return cls
+
+
+S = TypeVar("S", bound="Serializable")
 
 
 class Serializable:
     """Base class for registering apischema (de)serialization conversions.
-    The conversion class variable of child classes holds the necessary information to
-    (de)serialize grandchild classes. Each time a grandchild class is added
-    conversion is updated to create a full TaggedUnion for the child class."""
+    Each direct subclass will be registered for (de)serialization as a tagged union
+    of its subclasses, using the pattern documented here:
+    https://wyfo.github.io/apischema/examples/subclass_tagged_union/"""
+
+    # Base class which will directly inherit from Serializable
+    _base_serializable: ClassVar[Type["Serializable"]]
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        # Retrieved the base class inheriting Serializable
-        bases = [c for c in cls.__mro__ if Serializable in c.__bases__]
-        assert (
-            len(bases) == 1
-        ), f"Cannot have multiple base classes inheriting Serializable {bases}"
-        base = bases[0]
-        assert issubclass(base, Serializable)
-        # Create the serialization tagged union class
-        serialization_union = _make_tagged_union(base, is_serialization=True)
-        # Register the serializer
-        serializer(
-            Conversion(
-                lambda obj: serialization_union(**{obj.__class__.__name__: obj}),
-                source=base,
-                target=serialization_union,
-            )
-        )
-        # Create the deserialization tagged union class
-        deserialization_union = _make_tagged_union(base, is_serialization=False)
-        # Because deserializers stack, they must be reset before being reassigned
-        reset_deserializers(base)
-        # Register the deserializer using get_tagged
-        deserializer(
-            Conversion(
-                lambda obj: get_tagged(obj)[1],
-                source=deserialization_union,
-                target=base,
-            )
-        )
+        if Serializable in cls.__bases__:
+            cls._base_serializable = cls
+            as_tagged_union(cls)
 
     def serialize(self) -> Mapping[str, Any]:
         """Serialize to a dictionary representation"""
-        return serialize(self)
+        # Base serializable class must be passed to serialize in order to use its
+        # registered conversion (which is not inherited)
+        return serialize(self._base_serializable, self)
 
     @classmethod
-    def deserialize(cls: Type[T], serialization: Mapping[str, Any]) -> T:
+    def deserialize(cls: Type[S], serialization: Mapping[str, Any]) -> S:
         """Deserialize from a dictionary representation"""
-        return deserialize(cls, serialization)
+        return deserialize(cls._base_serializable, serialization)  # type: ignore
 
 
 #: Map of axes to points_ndarray
