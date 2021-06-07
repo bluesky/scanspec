@@ -354,13 +354,13 @@ class Ellipse(Region):
         y_axis = "y"
         x_middle = 5
         y_middle = 5
-        x_semiaxis = 2
-        y_semiaxis = 3
+        x_radius = 2
+        y_radius = 3
         angle = 75
 
         grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)
-        spec = grid & Ellipse(x_axis, y_axis, x_middle, y_middle, x_semiaxis,
-        y_semiaxis, angle)
+        spec = grid & Ellipse(x_axis, y_axis, x_middle, y_middle, x_radius,
+        y_radius, angle)
         plot_spec(spec)
     """
 
@@ -376,14 +376,14 @@ class Ellipse(Region):
     y_middle: float = field(
         metadata=schema(description="The central y point of the ellipse")
     )
-    x_semiaxis: float = field(
+    x_radius: float = field(
         metadata=schema(
-            description="The semiaxis matching the x axis of the ellipse", exc_min=0
+            description="The radius along the x axis of the ellipse", exc_min=0
         )
     )
-    y_semiaxis: float = field(
+    y_radius: float = field(
         metadata=schema(
-            description="The semiaxis matching the y axis of the ellipse", exc_min=0
+            description="The radius along the y axis of the ellipse", exc_min=0
         )
     )
     angle: float = field(
@@ -403,7 +403,7 @@ class Ellipse(Region):
             ty = x * np.sin(phi) + y * np.cos(phi)
             x = tx
             y = ty
-        mask = (x / self.x_semiaxis) ** 2 + (y / self.y_semiaxis) ** 2 <= 1
+        mask = (x / self.x_radius) ** 2 + (y / self.y_radius) ** 2 <= 1
         return mask
 
 
