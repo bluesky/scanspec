@@ -1,5 +1,4 @@
 import pytest
-from numpy import array
 
 from scanspec.core import Path
 from scanspec.regions import Circle, Ellipse, Polygon, Rectangle
@@ -363,8 +362,8 @@ def test_ellipse_region() -> None:
 
 
 def test_polygon_region() -> None:
-    x_verts = array([[0], [0.5], [4.0], [2.5]])
-    y_verts = array([[0], [3.5], [3.5], [0.5]])
+    x_verts = [0, 0.5, 4.0, 2.5]
+    y_verts = [0, 3.5, 3.5, 0.5]
     inst = Line("y", 1, 3, 3) * Line("x", 0, 4, 5) & Polygon(x, y, x_verts, y_verts)
     assert inst.axes() == [y, x]
     (dim,) = inst.create_dimensions()

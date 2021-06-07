@@ -254,8 +254,8 @@ class Polygon(Region):
         #Polygon parameters
         x_axis = "x"
         y_axis = "y"
-        x_verts = np.array([[1.0], [6.0], [8.0], [2.0]])
-        y_verts = np.array([[4.0], [10.0], [6.0], [1.0]])
+        x_verts = [1.0, 6.0, 8.0, 2.0]
+        y_verts = [4.0, 10.0, 6.0, 1.0]
 
         grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)
         spec = grid & Polygon(x_axis, y_axis, x_verts, y_verts)
@@ -359,7 +359,8 @@ class Ellipse(Region):
         angle = 75
 
         grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)
-        spec = grid & Ellipse(x_axis, y_axis, x_middle, y_middle, x_semiaxis, y_semiaxis, angle)
+        spec = grid & Ellipse(x_axis, y_axis, x_middle, y_middle, x_semiaxis,
+        y_semiaxis, angle)
         plot_spec(spec)
     """
 

@@ -147,7 +147,7 @@ def plot_spec(spec: Spec):
                 )
             elif isinstance(region, Polygon):
                 # *xy_verts* is a numpy array with shape Nx2.
-                xy_verts = np.hstack((region.x_verts, region.y_verts))
+                xy_verts = np.column_stack((region.x_verts, region.y_verts))
                 plt_axes.add_patch(patches.Polygon(xy_verts, fill=False))
 
     # Plot the splines
