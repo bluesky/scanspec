@@ -247,10 +247,19 @@ class Polygon(Region):
     """Mask contains points of axis within a rotated xy polygon
     .. example_spec::
 
+        from scanspec.plot import plot_spec
         from scanspec.specs import Line
         from scanspec.regions import Polygon
-        grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
-        spec = grid & Polygon("x", "y", x_verts_array, y_verts_array)
+
+        #Polygon parameters
+        x_axis = "x"
+        y_axis = "y"
+        x_verts = np.array([[1.0], [6.0], [8.0], [2.0]])
+        y_verts = np.array([[4.0], [10.0], [6.0], [1.0]])
+
+        grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)
+        spec = grid & Polygon(x_axis, y_axis, x_verts, y_verts)
+        plot_spec(spec)
     """
 
     x_axis: str = field(
@@ -259,14 +268,14 @@ class Polygon(Region):
     y_axis: str = field(
         metadata=schema(description="The name matching the y axis of the spec")
     )
-    x_verts: np.ndarray = field(
+    x_verts: List[float] = field(
         metadata=schema(
-            description="The Nx1 x coordinates of the polygons vertices", min_len=4
+            description="The Nx1 x coordinates of the polygons vertices", min_len=3
         )
     )
-    y_verts: np.ndarray = field(
+    y_verts: List[float] = field(
         metadata=schema(
-            description="The Nx1 y coordinates of the polygons vertices", min_len=4
+            description="The Nx1 y coordinates of the polygons vertices", min_len=3
         )
     )
 
@@ -336,11 +345,22 @@ class Ellipse(Region):
 
     .. example_spec::
 
+        from scanspec.plot import plot_spec
         from scanspec.specs import Line
         from scanspec.regions import Ellipse
 
-        grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
-        spec = grid & Ellipse("x", "y", 1, 2, 0.9, 0.1, 60)
+        #Ellipse parameters
+        x_axis = "x"
+        y_axis = "y"
+        x_middle = 5
+        y_middle = 5
+        x_semiaxis = 2
+        y_semiaxis = 3
+        angle = 75
+
+        grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)
+        spec = grid & Ellipse(x_axis, y_axis, x_middle, y_middle, x_semiaxis, y_semiaxis, angle)
+        plot_spec(spec)
     """
 
     x_axis: str = field(

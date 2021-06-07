@@ -40,10 +40,6 @@ __all__ = [
     "Midpoints",
 ]
 
-# Custom numpy (de)serialization
-serializer(Conversion(np.ndarray.tolist, source=np.ndarray, target=List[float]))
-deserializer(Conversion(np.array, source=List[float], target=np.ndarray))
-
 
 # Recursive implementation of type.__subclasses__
 def rec_subclasses(cls: Type[T]) -> Iterator[Type[T]]:
