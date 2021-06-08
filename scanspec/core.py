@@ -19,12 +19,9 @@ from apischema.metadata import conversion
 from apischema.objects import object_deserialization
 from apischema.tagged_unions import Tagged, TaggedUnion, get_tagged
 
-#: The type of class the function will return
-T = TypeVar("T")
-
 __all__ = [
+    "S",
     "Serializable",
-    "T",
     "AxesPoints",
     "if_instance_do",
     "Dimension",
@@ -69,10 +66,7 @@ else:
         return staticmethod(f)
 
 
-Cls = TypeVar("Cls", bound=type)
-
-
-def as_tagged_union(cls: Cls) -> Cls:
+def as_tagged_union(cls: Type):
     def serialization() -> Conversion:
         serialization_union = new_class(
             f"Tagged{cls.__name__}Union",
@@ -133,9 +127,9 @@ def as_tagged_union(cls: Cls) -> Cls:
 
     deserializer(lazy=deserialization, target=cls)
     serializer(lazy=serialization, source=cls)
-    return cls
 
 
+#: A subclass of Serializable
 S = TypeVar("S", bound="Serializable")
 
 
@@ -163,7 +157,9 @@ class Serializable:
     @classmethod
     def deserialize(cls: Type[S], serialization: Mapping[str, Any]) -> S:
         """Deserialize from a dictionary representation"""
-        return deserialize(cls._base_serializable, serialization)  # type: ignore
+        inst = deserialize(cls._base_serializable, serialization)
+        assert isinstance(inst, cls)
+        return inst
 
 
 #: Map of axes to points_ndarray
@@ -171,7 +167,7 @@ class Serializable:
 AxesPoints = Dict[str, np.ndarray]
 
 
-def if_instance_do(x, cls: Type[T], func: Callable[[T], Any]):
+def if_instance_do(x, cls: Type, func: Callable):
     """If x is of type cls then return func(x), otherwise return NotImplemented.
     Used as a helper when implementing operator overloading"""
     if isinstance(x, cls):
