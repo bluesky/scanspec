@@ -80,7 +80,8 @@ def as_tagged_union(cls: Cls) -> Cls:
             exec_body=lambda ns: ns.update(
                 {
                     "__annotations__": {
-                        sub.__name__: Tagged[sub] for sub in rec_subclasses(cls)  # type: ignore
+                        sub.__name__: Tagged[sub]  # type: ignore
+                        for sub in rec_subclasses(cls)
                     }
                 }
             ),
@@ -95,8 +96,8 @@ def as_tagged_union(cls: Cls) -> Cls:
         )
 
     def deserialization() -> Conversion:
-        annotations: dict[str, Any] = {}
-        deserialization_namespace: dict[str, Any] = {"__annotations__": annotations}
+        annotations: Dict[str, Any] = {}
+        deserialization_namespace: Dict[str, Any] = {"__annotations__": annotations}
         for sub in rec_subclasses(cls):
             annotations[sub.__name__] = Tagged[sub]  # type: ignore
             # Add tagged fields for all its alternative constructors
