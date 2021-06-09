@@ -66,8 +66,9 @@ def get_description(meta: Any) -> str:
     additional = []
     for arg in meta[1:]:
         arg = arg.get(SCHEMA_METADATA, arg)
-        if type(arg) == Schema:
-            field_schema = arg.as_dict()
+        if isinstance(arg, Schema):
+            field_schema: Dict[str, Any] = {}
+            arg.merge_into(field_schema)
             for key, value in field_schema.items():
                 if key == "description":
                     description = value
