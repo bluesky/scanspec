@@ -16,7 +16,9 @@ __all__ = [
     "SymmetricDifferenceOf",
     "Range",
     "Rectangle",
+    "Polygon",
     "Circle",
+    "Ellipse",
     "find_regions",
 ]
 
@@ -191,12 +193,10 @@ class Range(Region):
 @dataclass
 class Rectangle(Region):
     """Mask contains points of axis within a rotated xy rectangle
-
     .. example_spec::
 
         from scanspec.specs import Line
         from scanspec.regions import Rectangle
-
         grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
         spec = grid & Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30)
     """
@@ -243,6 +243,64 @@ class Rectangle(Region):
 
 
 @dataclass
+class Polygon(Region):
+    """Mask contains points of axis within a rotated xy polygon
+    .. example_spec::
+
+        from scanspec.plot import plot_spec
+        from scanspec.specs import Line
+        from scanspec.regions import Polygon
+
+        #Polygon parameters
+        x_axis = "x"
+        y_axis = "y"
+        x_verts = [1.0, 6.0, 8.0, 2.0]
+        y_verts = [4.0, 10.0, 6.0, 1.0]
+
+        grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)
+        spec = grid & Polygon(x_axis, y_axis, x_verts, y_verts)
+        plot_spec(spec)
+    """
+
+    x_axis: str = field(
+        metadata=schema(description="The name matching the x axis of the spec")
+    )
+    y_axis: str = field(
+        metadata=schema(description="The name matching the y axis of the spec")
+    )
+    x_verts: List[float] = field(
+        metadata=schema(
+            description="The Nx1 x coordinates of the polygons vertices", min_len=3
+        )
+    )
+    y_verts: List[float] = field(
+        metadata=schema(
+            description="The Nx1 y coordinates of the polygons vertices", min_len=3
+        )
+    )
+
+    def axis_sets(self) -> List[Set[str]]:
+        return [{self.x_axis, self.y_axis}]
+
+    def mask(self, points: AxesPoints) -> np.ndarray:
+        x = points[self.x_axis]
+        y = points[self.y_axis]
+        v1x, v1y = self.x_verts[-1], self.y_verts[-1]
+        mask = np.full(len(x), False, dtype=np.int8)
+        for v2x, v2y in zip(self.x_verts, self.y_verts):
+            # skip horizontal edges
+            if v2y != v1y:
+                vmask = np.full(len(x), False, dtype=np.int8)
+                vmask |= (y < v2y) & (y >= v1y)
+                vmask |= (y < v1y) & (y >= v2y)
+                t = (y - v1y) / (v2y - v1y)
+                vmask &= x < v1x + t * (v2x - v1x)
+                mask ^= vmask
+            v1x, v1y = v2x, v2y
+        return mask
+
+
+@dataclass
 class Circle(Region):
     """Mask contains points of axis within an xy circle of given radius
 
@@ -259,23 +317,93 @@ class Circle(Region):
         metadata=schema(description="The name matching the x axis of the spec")
     )
     y_axis: str = field(
-        metadata=schema(description="The name matching the x axis of the spec")
+        metadata=schema(description="The name matching the y axis of the spec")
     )
-    x_centre: float = field(
-        metadata=schema(description="Minimum inclusive x value in the region")
+    x_middle: float = field(
+        metadata=schema(description="The central x point of the circle")
     )
-    y_centre: float = field(
-        metadata=schema(description="Minimum inclusive y value in the region")
+    y_middle: float = field(
+        metadata=schema(description="The central y point of the circle")
     )
-    radius: float = field(metadata=schema(description="Radius of the circle"))
+    radius: float = field(
+        metadata=schema(description="Radius of the circle", exc_min=0)
+    )
 
     def axis_sets(self) -> List[Set[str]]:
         return [{self.x_axis, self.y_axis}]
 
     def mask(self, points: AxesPoints) -> np.ndarray:
-        x = points[self.x_axis] - self.x_centre
-        y = points[self.y_axis] - self.y_centre
+        x = points[self.x_axis] - self.x_middle
+        y = points[self.y_axis] - self.y_middle
         mask = x * x + y * y <= (self.radius * self.radius)
+        return mask
+
+
+@dataclass
+class Ellipse(Region):
+    """Mask contains points of axis within an xy ellipse of given radius
+
+    .. example_spec::
+
+        from scanspec.plot import plot_spec
+        from scanspec.specs import Line
+        from scanspec.regions import Ellipse
+
+        #Ellipse parameters
+        x_axis = "x"
+        y_axis = "y"
+        x_middle = 5
+        y_middle = 5
+        x_radius = 2
+        y_radius = 3
+        angle = 75
+
+        grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)
+        spec = grid & Ellipse(x_axis, y_axis, x_middle, y_middle, x_radius,
+        y_radius, angle)
+        plot_spec(spec)
+    """
+
+    x_axis: str = field(
+        metadata=schema(description="The name matching the x axis of the spec")
+    )
+    y_axis: str = field(
+        metadata=schema(description="The name matching the y axis of the spec")
+    )
+    x_middle: float = field(
+        metadata=schema(description="The central x point of the ellipse")
+    )
+    y_middle: float = field(
+        metadata=schema(description="The central y point of the ellipse")
+    )
+    x_radius: float = field(
+        metadata=schema(
+            description="The radius along the x axis of the ellipse", exc_min=0
+        )
+    )
+    y_radius: float = field(
+        metadata=schema(
+            description="The radius along the y axis of the ellipse", exc_min=0
+        )
+    )
+    angle: float = field(
+        default=0.0, metadata=schema(description="The angle of the ellipse (degrees)")
+    )
+
+    def axis_sets(self) -> List[Set[str]]:
+        return [{self.x_axis, self.y_axis}]
+
+    def mask(self, points: AxesPoints) -> np.ndarray:
+        x = points[self.x_axis] - self.x_middle
+        y = points[self.y_axis] - self.y_middle
+        if self.angle != 0:
+            # Rotate src points by -angle
+            phi = np.radians(-self.angle)
+            tx = x * np.cos(phi) - y * np.sin(phi)
+            ty = x * np.sin(phi) + y * np.cos(phi)
+            x = tx
+            y = ty
+        mask = (x / self.x_radius) ** 2 + (y / self.y_radius) ** 2 <= 1
         return mask
 
 

@@ -8,7 +8,7 @@ from mpl_toolkits.mplot3d import proj3d
 from scipy import interpolate
 
 from .core import Dimension, Path
-from .regions import Circle, Rectangle, find_regions
+from .regions import Circle, Ellipse, Polygon, Rectangle, find_regions
 from .specs import TIME, Spec
 
 __all__ = ["plot_spec"]
@@ -135,8 +135,20 @@ def plot_spec(spec: Spec):
                     patches.Rectangle(xy, width, height, region.angle, fill=False)
                 )
             elif isinstance(region, Circle):
-                xy = (region.x_centre, region.y_centre)
+                xy = (region.x_middle, region.y_middle)
                 plt_axes.add_patch(patches.Circle(xy, region.radius, fill=False))
+            elif isinstance(region, Ellipse):
+                xy = (region.x_middle, region.y_middle)
+                width = region.x_radius * 2
+                height = region.y_radius * 2
+                angle = region.angle
+                plt_axes.add_patch(
+                    patches.Ellipse(xy, width, height, angle, fill=False)
+                )
+            elif isinstance(region, Polygon):
+                # *xy_verts* is a numpy array with shape Nx2.
+                xy_verts = np.column_stack((region.x_verts, region.y_verts))
+                plt_axes.add_patch(patches.Polygon(xy_verts, fill=False))
 
     # Plot the splines
     tail: Any = {a: None for a in axes}

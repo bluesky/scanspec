@@ -1,7 +1,7 @@
 import pytest
 
 from scanspec.core import Path
-from scanspec.regions import Circle, Rectangle
+from scanspec.regions import Circle, Ellipse, Polygon, Rectangle
 from scanspec.specs import (
     TIME,
     Concat,
@@ -340,6 +340,44 @@ def test_circle_snaked_region() -> None:
     assert dim.upper == {
         x: pytest.approx([1.5, 1.5, 0.5, -0.5, 1.5]),
         y: pytest.approx([1, 2, 2, 2, 3]),
+    }
+
+
+def test_ellipse_region() -> None:
+    inst = Line("y", 1, 3, 3) * Line("x", 0, 2, 3) & Ellipse(x, y, 1, 2, 2, 1, 45)
+    assert inst.axes() == [y, x]
+    (dim,) = inst.create_dimensions()
+    assert dim.midpoints == {
+        x: pytest.approx([0, 1, 0, 1, 2, 1, 2]),
+        y: pytest.approx([1, 1, 2, 2, 2, 3, 3]),
+    }
+    assert dim.lower == {
+        x: pytest.approx([-0.5, 0.5, -0.5, 0.5, 1.5, 0.5, 1.5]),
+        y: pytest.approx([1, 1, 2, 2, 2, 3, 3]),
+    }
+    assert dim.upper == {
+        x: pytest.approx([0.5, 1.5, 0.5, 1.5, 2.5, 1.5, 2.5]),
+        y: pytest.approx([1, 1, 2, 2, 2, 3, 3]),
+    }
+
+
+def test_polygon_region() -> None:
+    x_verts = [0, 0.5, 4.0, 2.5]
+    y_verts = [0, 3.5, 3.5, 0.5]
+    inst = Line("y", 1, 3, 3) * Line("x", 0, 4, 5) & Polygon(x, y, x_verts, y_verts)
+    assert inst.axes() == [y, x]
+    (dim,) = inst.create_dimensions()
+    assert dim.midpoints == {
+        x: pytest.approx([1, 2, 1, 2, 3, 1, 2, 3]),
+        y: pytest.approx([1, 1, 2, 2, 2, 3, 3, 3]),
+    }
+    assert dim.lower == {
+        x: pytest.approx([0.5, 1.5, 0.5, 1.5, 2.5, 0.5, 1.5, 2.5]),
+        y: pytest.approx([1, 1, 2, 2, 2, 3, 3, 3]),
+    }
+    assert dim.upper == {
+        x: pytest.approx([1.5, 2.5, 1.5, 2.5, 3.5, 1.5, 2.5, 3.5]),
+        y: pytest.approx([1, 1, 2, 2, 2, 3, 3, 3]),
     }
 
 
