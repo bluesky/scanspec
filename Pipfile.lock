@@ -65,10 +65,10 @@
         },
         "apischema": {
             "hashes": [
-                "sha256:07b796020fa647915c88ae82e4e8f416ed39a33d9228537f745964733f00160c",
-                "sha256:3536e82aca40846769455d5c675a72c800953516cf730dfa791fc5c12f2cd04e"
+                "sha256:01b6dab6bebd2ea1c618c3831a3723ae8b1b38139816cb9c1a8f75d7b46c9047",
+                "sha256:9e2bd77429bfc92087f58264f5689e605961acb691349f4524b28b6de8d8de83"
             ],
-            "version": "==0.15.1"
+            "version": "==0.15.2"
         },
         "async-timeout": {
             "hashes": [
