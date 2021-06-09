@@ -258,6 +258,11 @@ class Dimension:
             kwargs["upper"] = apply_func("upper")
         return Dimension(**kwargs)
 
+    def __getitem__(self, indices: np.ndarray) -> "Dimension":
+        """Return a new Dimension that produces this dimension
+        restricted to the slice"""
+        return self._dim_with(lambda a, k: getattr(self, a)[k][indices])
+
     def tile(self, reps: int) -> "Dimension":
         """Return a new Dimension that iterates self reps times
 
