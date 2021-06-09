@@ -4,10 +4,10 @@ from typing import Any, List, Optional
 
 import aiohttp_cors
 import graphql
+import numpy as np
 from aiohttp import web
 from apischema.graphql import graphql_schema, resolver
 from graphql_server.aiohttp.graphqlview import GraphQLView, _asyncify
-from numpy import array2string, dtype, float64, frombuffer, ndarray
 
 from scanspec.core import Path
 from scanspec.specs import Spec
@@ -17,12 +17,12 @@ from scanspec.specs import Spec
 class Points:
     """ A collection of singular or multidimensional locations in scan space"""
 
-    def __init__(self, points: Optional[ndarray]):
+    def __init__(self, points: Optional[np.ndarray]):
         self._points = points
 
     @resolver
     def string(self) -> Optional[str]:
-        return array2string(self._points)
+        return np.array2string(self._points)
 
     @resolver
     def float_list(self) -> Optional[List[float]]:
@@ -37,7 +37,7 @@ class Points:
             return None
         else:
             # make sure the data is sent as float64
-            assert dtype(self._points[0]) == dtype(float64)
+            assert np.dtype(self._points[0]) == np.dtype(np.float64)
             return base64.b64encode(self._points.tobytes()).decode("utf-8")
 
     # Self b64 decoder for testing purposes
@@ -46,10 +46,10 @@ class Points:
         if self._points is None:
             return None
         else:
-            r = dtype(self._points[0])
+            r = np.dtype(self._points[0])
             s = base64.decodebytes(base64.b64encode(self._points.tobytes()))
-            t = frombuffer(s, dtype=r)
-            return array2string(t)
+            t = np.frombuffer(s, dtype=r)
+            return np.array2string(t)
 
 
 @dataclass
