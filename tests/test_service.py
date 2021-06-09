@@ -150,8 +150,8 @@ def test_get_points_upper() -> None:
 def test_get_points_upper_limited() -> None:
     query_str = """
 {
-  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
-  inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}, maxFrames: 3) {
+  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 10, num: 5}},
+  inner: {Line: {axis: "y", start: 0, stop: 10, num: 5}}}}, maxFrames: 8) {
     totalFrames
     returnedFrames
     axes {
@@ -164,11 +164,11 @@ def test_get_points_upper_limited() -> None:
     """
     assert graphql.graphql_sync(schema, query_str).data == {
         "getPoints": {
-            "totalFrames": 6,
-            "returnedFrames": 3,
+            "totalFrames": 25,
+            "returnedFrames": 4,
             "axes": [
-                {"upper": {"floatList": [0, 0, 0]}},
-                {"upper": {"floatList": [0.25, 0.75, 1.25]}},
+                {"upper": {"floatList": [0, 0, 10, 10]}},
+                {"upper": {"floatList": [1.25, 11.25, 1.25, 11.25]}},
             ],
         }
     }

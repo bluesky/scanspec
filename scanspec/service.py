@@ -9,7 +9,7 @@ from aiohttp import web
 from apischema.graphql import graphql_schema, resolver
 from graphql_server.aiohttp.graphqlview import GraphQLView, _asyncify
 
-from scanspec.core import Path
+from scanspec.core import Dimension, Path
 from scanspec.specs import Spec
 
 
@@ -120,8 +120,9 @@ def get_points(spec: Spec, max_frames: Optional[int] = 200000) -> PointsResponse
 
     else:
         # Cap the frames by the max limit
-        returned_frames = max_frames
-        chunk = path.consume(max_frames)
+        path = reduce_frames(dims, max_frames)
+        returned_frames = len(path)
+        chunk = path.consume()
 
     # POINTS
     scan_points = [
@@ -139,6 +140,43 @@ def get_points(spec: Spec, max_frames: Optional[int] = 200000) -> PointsResponse
 
 # Define the schema
 schema = graphql_schema(query=[validate_spec, get_points])
+
+
+def reduce_frames(dims: List[Dimension], max_frames: int) -> Path:
+    """Removes frames from a spec such that it produces a number that is
+    closest to the max points value
+
+    Args:
+        dims (List[Dimension]): A dimension object created by a spec
+        max_frames (int): The maximum number of frames the user wishes to be returned
+
+    Returns:
+        Path: A consumable object containing the expanded dimension with reduced frames
+    """
+    # Calculate the total number of frames
+    num_frames = 1
+    for dim in dims:
+        num_frames *= len(dim)
+
+    # Need each dim to be this much smaller
+    ratio = 1 / np.power(max_frames / num_frames, 1 / len(dims))
+
+    sub_dims = [sub_sample(d, ratio) for d in dims]
+    return Path(sub_dims)
+
+
+def sub_sample(dim: Dimension, ratio: float) -> Dimension:
+    """Removes frames from a dimension whilst preserving its core structure
+
+    Args:
+        dim (Dimension): the dimension object to be reduced
+        ratio (float): the reduction ratio of the dimension
+    Returns:
+        Dimension: the reduced dimension
+    """
+    num_indexes = int(len(dim) / ratio)
+    indexes = np.linspace(0, len(dim) - 1, num_indexes).astype(np.int32)
+    return dim[indexes]
 
 
 def schema_text() -> str:
