@@ -1,9 +1,10 @@
+import base64
 from unittest import mock
 
 import graphql
+import numpy as np
 import pytest
 from graphql.type.schema import assert_schema
-from numpy import array
 
 from scanspec.service import Points, schema, schema_text
 
@@ -11,7 +12,7 @@ from scanspec.service import Points, schema, schema_text
 # Returns a dummy 'points' dataclass for resolver testing
 @pytest.fixture
 def points() -> Points:
-    return Points(array([1.5, 0.0, 0.25, 1.0, 0.0]))
+    return Points(np.array([1.5, 0.0, 0.25, 1.0, 0.0]))
 
 
 # GET_POINTS RESOLVER TEST(S) #
@@ -28,7 +29,10 @@ def test_b64(points) -> None:
 
 
 def test_decodeb64(points) -> None:
-    assert points.b64Decode() == "[1.5  0.   0.25 1.   0.  ]"
+    encoded_points = points.b64()
+    s = base64.decodebytes(encoded_points.encode())
+    t = np.frombuffer(s, dtype=np.float64)
+    assert np.array2string(t) == "[1.5  0.   0.25 1.   0.  ]"
 
 
 # VALIDATE SPEC QUERY TEST(S) #

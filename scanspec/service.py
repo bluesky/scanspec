@@ -34,14 +34,6 @@ class Points:
         assert self._points.dtype == np.dtype(np.float64)
         return base64.b64encode(self._points.tobytes()).decode()
 
-    # Self b64 decoder for testing purposes
-    @resolver
-    def b64Decode(self) -> str:
-        r = np.dtype(self._points[0])
-        s = base64.decodebytes(base64.b64encode(self._points.tobytes()))
-        t = np.frombuffer(s, dtype=r)
-        return np.array2string(t)
-
     def get_points(self) -> np.ndarray:
         return self._points
 
