@@ -4,12 +4,12 @@ from typing import Any, List, Optional
 
 import aiohttp_cors
 import graphql
+import numpy as np
 from aiohttp import web
 from apischema.graphql import graphql_schema, resolver
 from graphql_server.aiohttp.graphqlview import GraphQLView, _asyncify
-from numpy import array2string, dtype, float64, frombuffer, ndarray
 
-from scanspec.core import Path
+from scanspec.core import Dimension, Path
 from scanspec.specs import Spec
 
 
@@ -17,12 +17,12 @@ from scanspec.specs import Spec
 class Points:
     """ A collection of singular or multidimensional locations in scan space"""
 
-    def __init__(self, points: Optional[ndarray]):
+    def __init__(self, points: Optional[np.ndarray]):
         self._points = points
 
     @resolver
     def string(self) -> Optional[str]:
-        return array2string(self._points)
+        return np.array2string(self._points)
 
     @resolver
     def float_list(self) -> Optional[List[float]]:
@@ -37,7 +37,7 @@ class Points:
             return None
         else:
             # make sure the data is sent as float64
-            assert dtype(self._points[0]) == dtype(float64)
+            assert np.dtype(self._points[0]) == np.dtype(np.float64)
             return base64.b64encode(self._points.tobytes()).decode("utf-8")
 
     # Self b64 decoder for testing purposes
@@ -46,10 +46,10 @@ class Points:
         if self._points is None:
             return None
         else:
-            r = dtype(self._points[0])
+            r = np.dtype(self._points[0])
             s = base64.decodebytes(base64.b64encode(self._points.tobytes()))
-            t = frombuffer(s, dtype=r)
-            return array2string(t)
+            t = np.frombuffer(s, dtype=r)
+            return np.array2string(t)
 
 
 @dataclass
@@ -120,8 +120,9 @@ def get_points(spec: Spec, max_frames: Optional[int] = 200000) -> PointsResponse
 
     else:
         # Cap the frames by the max limit
-        returned_frames = max_frames
-        chunk = path.consume(max_frames)
+        path = reduce_frames(dims, max_frames)
+        returned_frames = len(path)
+        chunk = path.consume()
 
     # POINTS
     scan_points = [
@@ -139,6 +140,43 @@ def get_points(spec: Spec, max_frames: Optional[int] = 200000) -> PointsResponse
 
 # Define the schema
 schema = graphql_schema(query=[validate_spec, get_points])
+
+
+def reduce_frames(dims: List[Dimension], max_frames: int) -> Path:
+    """Removes frames from a spec such that it produces a number that is
+    closest to the max points value
+
+    Args:
+        dims (List[Dimension]): A dimension object created by a spec
+        max_frames (int): The maximum number of frames the user wishes to be returned
+
+    Returns:
+        Path: A consumable object containing the expanded dimension with reduced frames
+    """
+    # Calculate the total number of frames
+    num_frames = 1
+    for dim in dims:
+        num_frames *= len(dim)
+
+    # Need each dim to be this much smaller
+    ratio = 1 / np.power(max_frames / num_frames, 1 / len(dims))
+
+    sub_dims = [sub_sample(d, ratio) for d in dims]
+    return Path(sub_dims)
+
+
+def sub_sample(dim: Dimension, ratio: float) -> Dimension:
+    """Removes frames from a dimension whilst preserving its core structure
+
+    Args:
+        dim (Dimension): the dimension object to be reduced
+        ratio (float): the reduction ratio of the dimension
+    Returns:
+        Dimension: the reduced dimension
+    """
+    num_indexes = int(len(dim) / ratio)
+    indexes = np.linspace(0, len(dim) - 1, num_indexes).astype(np.int32)
+    return dim[indexes]
 
 
 def schema_text() -> str:
