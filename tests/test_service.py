@@ -156,7 +156,30 @@ def test_get_points_upper_limited() -> None:
     }
 
 
-def test_get_points_totalFrames() -> None:
+def test_get_points_smallest_step() -> None:
+    query_str = """
+{
+  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
+  inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}) {
+    axes {
+      axis
+      smallestStep
+    }
+  }
+}
+
+    """
+    assert graphql.graphql_sync(schema, query_str).data == {
+        "getPoints": {
+            "axes": [
+                {"axis": "x", "smallestStep": 0},
+                {"axis": "y", "smallestStep": 0.5},
+            ]
+        }
+    }
+
+
+def test_get_points_total_frames() -> None:
     query_str = """
 {
   getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}}
@@ -167,6 +190,29 @@ def test_get_points_totalFrames() -> None:
     """
     assert graphql.graphql_sync(schema, query_str).data == {
         "getPoints": {"totalFrames": 6}
+    }
+
+
+def test_get_points_abs_smallest_step() -> None:
+    query_str = """
+{
+  getPoints(spec: {Line: {axis: "x", start: 0, stop: 2, num: 5}}) {
+    smallestAbsStep {
+      absolute
+    }
+    axes {
+      midpoints {
+        floatList
+      }
+    }
+  }
+}
+    """
+    assert graphql.graphql_sync(schema, query_str).data == {
+        "getPoints": {
+            "smallestAbsStep": {"absolute": 0.5},
+            "axes": [{"midpoints": {"floatList": [0, 0.5, 1, 1.5, 2]}}],
+        }
     }
 
 

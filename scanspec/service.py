@@ -56,9 +56,26 @@ class AxisFrames:
     lower: Points
     """The lower bounds of each midpoint (used when fly scanning)"""
     midpoints: Points
-    """The centre points of the scan"""
+    """The middle points of the scan"""
     upper: Points
     """The upper bounds of each midpoint (used when fly scanning)"""
+    smallest_step: float
+    """The smallest step between midpoints in this axis"""
+
+
+@dataclass
+class SmallestStep:
+    """ The smallest distance between midpoints in a multidimensional scan space"""
+
+    def __init__(self, points: List[np.ndarray]):
+        # points is an mxn array where n is the number of axes present in the scan
+        self._points = points
+
+    @resolver
+    def absolute(self) -> float:
+        # Calc abs diffs of all axes and output as an array of differences
+        absolute_diffs = [abs_diffs(axis_midpoints) for axis_midpoints in self._points]
+        return np.amin(np.linalg.norm(absolute_diffs, axis=0))
 
 
 @dataclass
@@ -68,11 +85,17 @@ class PointsResponse:
     """
 
     axes: List[AxisFrames]
+    """A list of all of the points present in the spec per axis"""
     total_frames: int
+    """The number of frames present across the entire spec"""
     returned_frames: int
+    """The number of frames returned by the getPoints query
+    (controlled by the max_points argument)"""
+    smallest_abs_step: SmallestStep
+    """The smallest step between midpoints across all axes in the scan"""
 
 
-# Chacks that the spec will produce a valid scan
+# Checks that the spec will produce a valid scan
 def validate_spec(spec: Spec) -> Any:
     """ A query used to confirm whether or not the Spec will produce a viable scan"""
     # apischema will do all the validation for us
@@ -95,10 +118,13 @@ def get_points(spec: Spec, max_frames: Optional[int] = 200000) -> PointsResponse
     """
     dims = spec.create_dimensions()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
+
+    # TOTAL FRAMES
     total_frames = len(path)  # Capture the total length of the path
 
-    # Limit the consumed data to the max_frames argument
-    # # WARNING: path object is consumed after this statement
+    # MAX FRAMES | RETURNED FRAMES
+    # Limit the consumed data by the max_frames argument
+    # WARNING: path object is consumed after this statement
     if max_frames is None:
         # Return as many frames as possible
         returned_frames = len(path)
@@ -119,14 +145,35 @@ def get_points(spec: Spec, max_frames: Optional[int] = 200000) -> PointsResponse
     scan_points = [
         AxisFrames(
             axis,
-            Points(chunk.lower.get(axis)),
-            Points(chunk.midpoints.get(axis)),
-            Points(chunk.upper.get(axis)),
+            Points(chunk.lower[axis]),
+            Points(chunk.midpoints[axis]),
+            Points(chunk.upper[axis]),
+            float(np.amin(np.abs_diffs(chunk.midpoints[axis]))),
         )
         for axis in spec.axes()
     ]
 
-    return PointsResponse(scan_points, total_frames, returned_frames)
+    # ABSOLUTE SMALLEST STEP
+    smallest_abs_step = SmallestStep(list(chunk.midpoints.values()))
+
+    return PointsResponse(
+        scan_points, total_frames, returned_frames, smallest_abs_step,
+    )
+
+
+def abs_diffs(array: np.ndarray) -> np.ndarray:
+    """Calculates the absolute differences between adjacent elements in the array
+       used as part of the smallest step calculation for each axis
+
+    Args:
+        array (ndarray): A 1xN array of numerical values
+
+    Returns:
+        ndarray: A newly constucted array of absolute differences
+    """
+    # [array[1] - array[0], array[2] - array[1], ...]
+    adjacent_diffs = array[1:] - array[:-1]
+    return np.absolute(adjacent_diffs)
 
 
 # Define the schema
