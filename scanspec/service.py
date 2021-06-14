@@ -17,39 +17,30 @@ from scanspec.specs import Spec
 class Points:
     """ A collection of singular or multidimensional locations in scan space"""
 
-    def __init__(self, points: Optional[np.ndarray]):
+    def __init__(self, points: np.ndarray):
         self._points = points
 
     @resolver
-    def string(self) -> Optional[str]:
+    def string(self) -> str:
         return np.array2string(self._points)
 
     @resolver
-    def float_list(self) -> Optional[List[float]]:
-        if self._points is None:
-            return None
-        else:
-            return self._points.tolist()
+    def float_list(self) -> List[float]:
+        return self._points.tolist()
 
     @resolver
-    def b64(self) -> Optional[str]:
-        if self._points is None:
-            return None
-        else:
-            # make sure the data is sent as float64
-            assert np.dtype(self._points[0]) == np.dtype(np.float64)
-            return base64.b64encode(self._points.tobytes()).decode("utf-8")
+    def b64(self) -> str:
+        # make sure the data is sent as float64
+        assert np.dtype(self._points[0]) == np.dtype(np.float64)
+        return base64.b64encode(self._points.tobytes()).decode("utf-8")
 
     # Self b64 decoder for testing purposes
     @resolver
-    def b64Decode(self) -> Optional[str]:
-        if self._points is None:
-            return None
-        else:
-            r = np.dtype(self._points[0])
-            s = base64.decodebytes(base64.b64encode(self._points.tobytes()))
-            t = np.frombuffer(s, dtype=r)
-            return np.array2string(t)
+    def b64Decode(self) -> str:
+        r = np.dtype(self._points[0])
+        s = base64.decodebytes(base64.b64encode(self._points.tobytes()))
+        t = np.frombuffer(s, dtype=r)
+        return np.array2string(t)
 
 
 @dataclass
@@ -62,11 +53,11 @@ class AxisFrames:
     """A fixed reference that can be scanned. i.e. a motor, time or
     number of repetitions.
     """
-    lower: Optional[Points]
+    lower: Points
     """The lower bounds of each midpoint (used when fly scanning)"""
-    midpoints: Optional[Points]
+    midpoints: Points
     """The centre points of the scan"""
-    upper: Optional[Points]
+    upper: Points
     """The upper bounds of each midpoint (used when fly scanning)"""
 
 

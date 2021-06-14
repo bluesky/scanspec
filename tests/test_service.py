@@ -14,19 +14,9 @@ def points() -> Points:
     return Points(array([1.5, 0.0, 0.25, 1.0, 0.0]))
 
 
-# Returns an empty 'points' dataclass for resolver testing
-@pytest.fixture
-def points_none() -> Points:
-    return Points(None)
-
-
 # GET_POINTS RESOLVER TEST(S) #
 def test_float_list(points) -> None:
     assert points.float_list() == [1.5, 0.0, 0.25, 1.0, 0.0]
-
-
-def test_float_list_none(points_none) -> None:
-    assert points_none.float_list() is None
 
 
 def test_string(points) -> None:
@@ -37,16 +27,8 @@ def test_b64(points) -> None:
     assert points.b64() == "AAAAAAAA+D8AAAAAAAAAAAAAAAAAANA/AAAAAAAA8D8AAAAAAAAAAA=="
 
 
-def test_b64_none(points_none) -> None:
-    assert points_none.b64() is None
-
-
 def test_decodeb64(points) -> None:
     assert points.b64Decode() == "[1.5  0.   0.25 1.   0.  ]"
-
-
-def test_decodeb64_none(points_none) -> None:
-    assert points_none.b64Decode() is None
 
 
 # VALIDATE SPEC QUERY TEST(S) #
