@@ -63,7 +63,16 @@ from code:
 
 .. automodule:: scanspec.service
     :members:
-    :exclude-members: abs_diffs
+    :exclude-members: abs_diffs, Points, AxisFrames, PointsResponse
 
     ``scanspec.service``
     --------------------
+
+    .. autoclass:: scanspec.service.Points
+        :members:
+    
+    .. autoclass:: scanspec.service.AxisFrames
+        :members:
+
+    .. autoclass:: scanspec.service.PointsResponse
+        :members:
