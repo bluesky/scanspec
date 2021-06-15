@@ -85,9 +85,10 @@ allowing them to obtain data that is relevant only to their application.
 The 'getPoints' query makes use of this, giving users the ability to select from
 one or more of the following fields:
 
-- numFrames: the total number of frames produced by the Spec
-- returnedFrames (WIP): the number of frames returned, limited by the maxPoint argument
 - axes: a list of axes present in the Spec and its associated scan points
+- total_frames: the total number of frames produced by the Spec
+- returned_frames (WIP): the number of frames returned, limited by the maxPoint argument
+- smallest_abs_step: the smallest step between midpoints across ALL axes in the scan
 
 Within axes:
 
@@ -95,6 +96,7 @@ Within axes:
 - lower: a list of lower bounds that are each present in a frame
 - midpoints: a list of midpoints that are each present in a frame
 - upper: a list of upper bounds that are each present in a frame
+- smallest-step: the smallest step between midpoints in this axis of the scan
 
 Within lower, middle and upper:
 
@@ -118,7 +120,7 @@ Using the example above, we can request to return points from it:
           }
         )
         {
-          totalFrames
+          returnedFrames
           axes {
             axis
             upper {
@@ -137,7 +139,7 @@ Using the example above, we can request to return points from it:
       {
         "data": {
           "getPoints": {
-            "totalFrames": 5,
+            "returnedFrames": 5,
             "axes": [
               {
                 "axis": "x",

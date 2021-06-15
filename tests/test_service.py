@@ -1,9 +1,10 @@
+import base64
 from unittest import mock
 
 import graphql
+import numpy as np
 import pytest
 from graphql.type.schema import assert_schema
-from numpy import array
 
 from scanspec.service import Points, schema, schema_text
 
@@ -11,22 +12,12 @@ from scanspec.service import Points, schema, schema_text
 # Returns a dummy 'points' dataclass for resolver testing
 @pytest.fixture
 def points() -> Points:
-    return Points(array([1.5, 0.0, 0.25, 1.0, 0.0]))
-
-
-# Returns an empty 'points' dataclass for resolver testing
-@pytest.fixture
-def points_none() -> Points:
-    return Points(None)
+    return Points(np.array([1.5, 0.0, 0.25, 1.0, 0.0]))
 
 
 # GET_POINTS RESOLVER TEST(S) #
 def test_float_list(points) -> None:
     assert points.float_list() == [1.5, 0.0, 0.25, 1.0, 0.0]
-
-
-def test_float_list_none(points_none) -> None:
-    assert points_none.float_list() is None
 
 
 def test_string(points) -> None:
@@ -37,16 +28,11 @@ def test_b64(points) -> None:
     assert points.b64() == "AAAAAAAA+D8AAAAAAAAAAAAAAAAAANA/AAAAAAAA8D8AAAAAAAAAAA=="
 
 
-def test_b64_none(points_none) -> None:
-    assert points_none.b64() is None
-
-
 def test_decodeb64(points) -> None:
-    assert points.b64Decode() == "[1.5  0.   0.25 1.   0.  ]"
-
-
-def test_decodeb64_none(points_none) -> None:
-    assert points_none.b64Decode() is None
+    encoded_points = points.b64()
+    s = base64.decodebytes(encoded_points.encode())
+    t = np.frombuffer(s, dtype=np.float64)
+    assert np.array2string(t) == "[1.5  0.   0.25 1.   0.  ]"
 
 
 # VALIDATE SPEC QUERY TEST(S) #
@@ -174,7 +160,30 @@ def test_get_points_upper_limited() -> None:
     }
 
 
-def test_get_points_totalFrames() -> None:
+def test_get_points_smallest_step() -> None:
+    query_str = """
+{
+  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
+  inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}) {
+    axes {
+      axis
+      smallestStep
+    }
+  }
+}
+
+    """
+    assert graphql.graphql_sync(schema, query_str).data == {
+        "getPoints": {
+            "axes": [
+                {"axis": "x", "smallestStep": 0},
+                {"axis": "y", "smallestStep": 0.5},
+            ]
+        }
+    }
+
+
+def test_get_points_total_frames() -> None:
     query_str = """
 {
   getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}}
@@ -185,6 +194,31 @@ def test_get_points_totalFrames() -> None:
     """
     assert graphql.graphql_sync(schema, query_str).data == {
         "getPoints": {"totalFrames": 6}
+    }
+
+
+def test_get_points_abs_smallest_step() -> None:
+    query_str = """
+{
+  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 10, num: 3}},
+  inner: {Line: {axis: "y", start: 0, stop: 10, num: 3}}}}) {
+    smallestAbsStep
+    axes {
+      midpoints {
+        floatList
+      }
+    }
+  }
+}
+    """
+    assert graphql.graphql_sync(schema, query_str).data == {
+        "getPoints": {
+            "smallestAbsStep": 5,
+            "axes": [
+                {"midpoints": {"floatList": [0, 0, 0, 5, 5, 5, 10, 10, 10]}},
+                {"midpoints": {"floatList": [0, 5, 10, 0, 5, 10, 0, 5, 10]}},
+            ],
+        }
     }
 
 
