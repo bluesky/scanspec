@@ -175,7 +175,7 @@ def test_squashed_product() -> None:
 
 def test_squashed_multiplied_snake_scan() -> None:
     inst = Line(z, 1, 2, 2) * Squash(
-        Line(y, 1, 2, 2) * ~Line.bounded(x, 3, 7, 2) * Static(TIME, 9, 2)
+        Line(y, 1, 2, 2) * ~Line.bounded(x, 3, 7, 2) * Static.duration(9, 2)
     )
     assert inst.axes() == [z, y, x, TIME]
     dimz, dimxyt = inst.create_dimensions()

@@ -606,7 +606,7 @@ def fly(spec: Spec, duration: float) -> Spec:
 
         spec = fly(Line("x", 1, 2, 3), 0.1)
     """
-    return spec + Static(TIME, duration)
+    return spec + Static.duration(duration)
 
 
 def step(spec: Spec, duration: float, num: int = 1) -> Spec:
@@ -625,7 +625,7 @@ def step(spec: Spec, duration: float, num: int = 1) -> Spec:
 
         spec = step(Line("x", 1, 2, 3), 0.1)
     """
-    return spec * Static(TIME, duration, num)
+    return spec * Static.duration(duration, num)
 
 
 def repeat(spec: Spec, num: int, blend=False) -> Spec:
