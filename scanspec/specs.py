@@ -476,12 +476,6 @@ class Static(Spec):
         Args:
             duration: The duration of each static point
             num: Number of points to produce with given duration
-
-        .. example_spec::
-
-            from scanspec.specs import Static
-
-            spec = Static.duration(0.5, 16)
         """
 
         return cls(DURATION, duration, num)
