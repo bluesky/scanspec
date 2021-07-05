@@ -3,7 +3,7 @@ import pytest
 from scanspec.core import Path
 from scanspec.regions import Circle, Ellipse, Polygon, Rectangle
 from scanspec.specs import (
-    TIME,
+    DURATION,
     Concat,
     Line,
     Mask,
@@ -21,9 +21,9 @@ x, y, z = "x", "y", "z"
 def test_one_point_duration() -> None:
     duration = Static.duration(1.0)
     (dim,) = duration.create_dimensions()
-    assert dim.midpoints == {TIME: pytest.approx([1.0])}
-    assert dim.lower == {TIME: pytest.approx([1.0])}
-    assert dim.upper == {TIME: pytest.approx([1.0])}
+    assert dim.midpoints == {DURATION: pytest.approx([1.0])}
+    assert dim.lower == {DURATION: pytest.approx([1.0])}
+    assert dim.upper == {DURATION: pytest.approx([1.0])}
     assert dim.snake is False
 
 
@@ -48,15 +48,26 @@ def test_two_point_stepped_line() -> None:
     inst = step(Line(x, 0, 1, 2), 0.1)
     dimx, dimt = inst.create_dimensions()
     assert dimx.midpoints == dimx.lower == dimx.upper == {x: pytest.approx([0, 1])}
-    assert dimt.midpoints == dimt.lower == dimt.upper == {TIME: pytest.approx([0.1])}
+    assert (
+        dimt.midpoints == dimt.lower == dimt.upper == {DURATION: pytest.approx([0.1])}
+    )
 
 
 def test_two_point_fly_line() -> None:
     inst = fly(Line(x, 0, 1, 2), 0.1)
     (dim,) = inst.create_dimensions()
-    assert dim.midpoints == {x: pytest.approx([0, 1]), TIME: pytest.approx([0.1, 0.1])}
-    assert dim.lower == {x: pytest.approx([-0.5, 0.5]), TIME: pytest.approx([0.1, 0.1])}
-    assert dim.upper == {x: pytest.approx([0.5, 1.5]), TIME: pytest.approx([0.1, 0.1])}
+    assert dim.midpoints == {
+        x: pytest.approx([0, 1]),
+        DURATION: pytest.approx([0.1, 0.1]),
+    }
+    assert dim.lower == {
+        x: pytest.approx([-0.5, 0.5]),
+        DURATION: pytest.approx([0.1, 0.1]),
+    }
+    assert dim.upper == {
+        x: pytest.approx([0.5, 1.5]),
+        DURATION: pytest.approx([0.1, 0.1]),
+    }
 
 
 def test_many_point_line() -> None:
@@ -177,13 +188,13 @@ def test_squashed_multiplied_snake_scan() -> None:
     inst = Line(z, 1, 2, 2) * Squash(
         Line(y, 1, 2, 2) * ~Line.bounded(x, 3, 7, 2) * Static.duration(9, 2)
     )
-    assert inst.axes() == [z, y, x, TIME]
+    assert inst.axes() == [z, y, x, DURATION]
     dimz, dimxyt = inst.create_dimensions()
     for d in dimxyt.midpoints, dimxyt.lower, dimxyt.upper:
         assert d == {
             x: pytest.approx([4, 4, 6, 6, 6, 6, 4, 4]),
             y: pytest.approx([1, 1, 1, 1, 2, 2, 2, 2]),
-            TIME: pytest.approx([9, 9, 9, 9, 9, 9, 9, 9]),
+            DURATION: pytest.approx([9, 9, 9, 9, 9, 9, 9, 9]),
         }
     assert dimz.midpoints == dimz.lower == dimz.upper == {z: pytest.approx([1, 2])}
 

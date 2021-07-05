@@ -29,7 +29,7 @@ __all__ = [
     "Line",
     "Static",
     "Spiral",
-    "TIME",
+    "DURATION",
     "REPEAT",
     "fly",
     "step",
@@ -38,7 +38,7 @@ __all__ = [
 
 
 #: Can be used as a special key to indicate how long each point should be
-TIME = "TIME"
+DURATION = "DURATION"
 
 
 #: Can be used as a special key to indicate repeats of a whole spec
@@ -484,7 +484,7 @@ class Static(Spec):
             spec = Static.duration(0.5, 16)
         """
 
-        return cls(TIME, duration, num)
+        return cls(DURATION, duration, num)
 
     def axes(self) -> List:
         return [self.axis]

@@ -9,7 +9,7 @@ from scipy import interpolate
 
 from .core import Dimension, Path
 from .regions import Circle, Ellipse, Polygon, Rectangle, find_regions
-from .specs import TIME, Spec
+from .specs import DURATION, Spec
 
 __all__ = ["plot_spec"]
 
@@ -100,7 +100,7 @@ def plot_spec(spec: Spec):
     """
     dims = spec.create_dimensions()
     dim = Path(dims).consume()
-    axes = [a for a in spec.axes() if a is not TIME]
+    axes = [a for a in spec.axes() if a is not DURATION]
     ndims = len(axes)
 
     # Setup axes
