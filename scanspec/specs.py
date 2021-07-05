@@ -472,7 +472,7 @@ class Static(Spec):
 
     @classmethod
     def duration(cls, duration: float, num: int = 1) -> Spec:
-        """A static spec with no motion, only a duration repeated `num` times
+        """A static spec with no motion, only a duration repeated "num" times
         Args:
             duration: The duration of each static point
             num: Number of points to produce with given duration
