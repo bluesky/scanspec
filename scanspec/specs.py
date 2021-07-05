@@ -37,6 +37,14 @@ __all__ = [
 ]
 
 
+#: Can be used as a special key to indicate how long each point should be
+TIME = "TIME"
+
+
+#: Can be used as a special key to indicate repeats of a whole spec
+REPEAT = "REPEAT"
+
+
 @dataclass
 class Spec(Serializable):
     """Definition: A spec is a serializable representation of the type, parameters
@@ -462,6 +470,22 @@ class Static(Spec):
         metadata=schema(min=1, description="How many times to repeat this point"),
     )
 
+    @classmethod
+    def duration(cls, duration: float, num: int = 1) -> Spec:
+        """A static spec with no motion, only a duration repeated `num` times
+        Args:
+            duration: The duration of each static point
+            num: Number of points to produce with given duration
+
+        .. example_spec::
+
+            from scanspec.specs import Static
+
+            spec = Static.duration(0.5, 16)
+        """
+
+        return cls(TIME, duration, num)
+
     def axes(self) -> List:
         return [self.axis]
 
@@ -569,14 +593,6 @@ class Spiral(Spec):
         )
 
 
-#: Can be used as a special key to indicate how long each point should be
-TIME = "TIME"
-
-
-#: Can be used as a special key to indicate repeats of a whole spec
-REPEAT = "REPEAT"
-
-
 def fly(spec: Spec, duration: float) -> Spec:
     """Flyscan, zipping TIME=duration for every frame
 
@@ -593,7 +609,7 @@ def fly(spec: Spec, duration: float) -> Spec:
     return spec + Static(TIME, duration)
 
 
-def step(spec: Spec, duration: float, num: int = 1):
+def step(spec: Spec, duration: float, num: int = 1) -> Spec:
     """Step scan, adding num x TIME=duration as an inner dimension for
     every midpoint
 
@@ -612,7 +628,7 @@ def step(spec: Spec, duration: float, num: int = 1):
     return spec * Static(TIME, duration, num)
 
 
-def repeat(spec: Spec, num: int, blend=False):
+def repeat(spec: Spec, num: int, blend=False) -> Spec:
     """Repeat spec num times
 
     Args:

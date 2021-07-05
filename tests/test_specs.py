@@ -18,6 +18,15 @@ from scanspec.specs import (
 x, y, z = "x", "y", "z"
 
 
+def test_one_point_duration() -> None:
+    duration = Static.duration(1.0)
+    (dim,) = duration.create_dimensions()
+    assert dim.midpoints == {TIME: pytest.approx([1.0])}
+    assert dim.lower == {TIME: pytest.approx([1.0])}
+    assert dim.upper == {TIME: pytest.approx([1.0])}
+    assert dim.snake is False
+
+
 def test_one_point_line() -> None:
     inst = Line(x, 0, 1, 1)
     (dim,) = inst.create_dimensions()
