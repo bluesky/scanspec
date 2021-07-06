@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
@@ -8,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Running a GraphQL service for generating points &mdash; scanspec 0.0+untagged.g1b404b1 documentation</title>
+  <title>Running a GraphQL service for generating points &mdash; scanspec 0.3+30.g2714ace documentation</title>
   
 
   
@@ -97,13 +96,13 @@
         
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-    <style>
-      /* style mobile top nav to look like main nav */
-      .wy-nav-top {
-          background: rgb(7, 43, 93)
-      }
-    </style>
-    
+  <style>
+    /* style mobile top nav to look like main nav */
+    .wy-nav-top {
+        background: rgb(7, 43, 93)
+    }
+  </style>
+  
             
             
               
@@ -117,6 +116,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#running-the-server">Running the server</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#validating-a-spec">Validating a Spec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#getting-points-from-a-spec">Getting Points from a Spec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#masking-a-region-of-a-spec">Masking a region of a spec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#content-to-move">Content to move</a></li>
 </ul>
 </li>
@@ -128,7 +128,7 @@
 </ul>
 <p class="caption"><span class="caption-text">Explanations</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../explanations/technical-terms.html">technical terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanations/technical-terms.html">Technical Terms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../explanations/what-are-dimensions.html">What are Dimensions?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
 </ul>
@@ -141,21 +141,43 @@
 
             
           
-    <!-- Include Index in the sidebar -->
-    <!-- https://stackoverflow.com/a/37843854 -->
-    <a href="../genindex.html">Index</a>
-    <!-- Include all versions of the docs -->
-    <!-- https://holzhaus.github.io/sphinx-multiversion/master/templates.html -->
-    
-    <p class="caption"><span class="caption-text">Versions</span></p>
-    <ul>
-      <li><a href="graphql-service.html">master</a></li>
-      <li><a href="../../0.2/index.html">0.2</a></li>
-      <li><a href="../../0.1.1/index.html">0.1.1</a></li>
-      <li><a href="../../0.1/index.html">0.1</a></li>
-    </ul>
-    
-  
+  <!-- Include Index in the sidebar -->
+  <!-- https://stackoverflow.com/a/37843854 -->
+  <a href="../genindex.html">Index</a>
+  <!-- Add versions for selected branches + tags -->
+  <p class="caption"><span class="caption-text">Versions</span></p>
+  <ul id="versions"/>
+  <script>
+    // Add any branches to appear in the side pane here, tags will be added below
+    // Will only appear if docs are built and pushed in gh-pages
+    var versions = ['master', 'main'];
+    var dirs = new Set();
+    function addVersion(name) {
+      if (dirs.has(name)) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = 'https://dls-controls.github.io/scanspec/' + name;
+        a.innerText = name;
+        li.appendChild(a)
+        document.getElementById('versions').appendChild(li);
+      }
+    }
+    Promise.all([
+      // Find gh-pages directories and populate `dirs`
+      fetch("https://api.github.com/repos/dls-controls/scanspec/contents?ref=gh-pages")
+      .then(response => response.json())
+      .then(data => data.forEach(function(e) {
+        if (e.type == "dir") dirs.add(e.name);
+      })),
+      // Add tags to `versions`
+      fetch('https://api.github.com/repos/dls-controls/scanspec/tags')
+        .then(response => response.json())
+        .then(data => data.forEach(function(e) {
+          versions.push(e.name);
+        }))
+      ]).then(_ => versions.forEach(addVersion))
+  </script>
+
         </div>
         
       </div>
@@ -315,18 +337,20 @@ allowing them to obtain data that is relevant only to their application.</p>
 <p>The ‘getPoints’ query makes use of this, giving users the ability to select from
 one or more of the following fields:</p>
 <ul class="simple">
-<li><p>numFrames: the total number of frames produced by the Spec</p></li>
-<li><p>returnedFrames (WIP): the number of frames returned, limited by the maxPoint argument</p></li>
 <li><p>axes: a list of axes present in the Spec and its associated scan points</p></li>
+<li><p>total_frames: the total number of frames produced by the Spec</p></li>
+<li><p>returned_frames (WIP): the number of frames returned, limited by the maxPoint argument</p></li>
+<li><p>smallest_abs_step: the smallest step between midpoints across ALL axes in the scan</p></li>
 </ul>
-<p>#### Within axes:</p>
+<p>Within axes:</p>
 <ul class="simple">
 <li><p>axis: the name of the axis present in the Spec</p></li>
 <li><p>lower: a list of lower bounds that are each present in a frame</p></li>
 <li><p>midpoints: a list of midpoints that are each present in a frame</p></li>
 <li><p>upper: a list of upper bounds that are each present in a frame</p></li>
+<li><p>smallest-step: the smallest step between midpoints in this axis of the scan</p></li>
 </ul>
-<p>#### Within lower, middle and upper:</p>
+<p>Within lower, middle and upper:</p>
 <ul class="simple">
 <li><p>string: returns the requested points as a human readable numpy formatted string</p></li>
 <li><p>floatList: returns the requested points as a list of floats</p></li>
@@ -359,7 +383,7 @@ one or more of the following fields:</p>
     }
   )
   {
-    numFrames
+    returnedFrames
     axes {
       axis
       upper {
@@ -379,7 +403,7 @@ one or more of the following fields:</p>
 {
   "data": {
     "getPoints": {
-      "numFrames": 5,
+      "returnedFrames": 5,
       "axes": [
         {
           "axis": "x",
@@ -397,6 +421,117 @@ one or more of the following fields:</p>
           },
           "lower": {
             "b64": "AAAAAAAAAACamZmZmZnJP5qZmZmZmdk/NDMzMzMz4z+amZmZmZnpPw=="
+          }
+        }
+      ]
+    }
+  }
+}
+    </div>
+    <script>
+        attachGraphiQL(document.currentScript.parentNode, "http://localhost:8080/graphql");
+    </script>
+</div>
+</div>
+<div class="section" id="masking-a-region-of-a-spec">
+<h2>Masking a region of a spec<a class="headerlink" href="#masking-a-region-of-a-spec" title="Permalink to this headline">¶</a></h2>
+<p>The following fields can be used to mask a region as described in <a class="reference internal" href="creating-a-spec.html"><span class="doc">Creating a Scan Spec</span></a>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">*</span></code>: Outer <a class="reference internal" href="../reference/api.html#scanspec.specs.Product" title="scanspec.specs.Product"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Product</span></code></a> of two Specs, nesting the second within the first</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">+</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.specs.Zip" title="scanspec.specs.Zip"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Zip</span></code></a> two Specs together, iterating in tandem</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&amp;</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a> the Spec with a <a class="reference internal" href="../reference/api.html#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Region</span></code></a>, excluding midpoints outside of it</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">~</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.specs.Snake" title="scanspec.specs.Snake"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Snake</span></code></a> the Spec, reversing every other iteration of it</p></li>
+</ul>
+<p>An example query using <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a> is presented below:</p>
+
+<style>
+.graphiql {
+    height: 325px;
+    margin: 0 0 24px 0;
+}
+.graphiql-container .secondary-editor, .graphiql-container .toolbar,
+.graphiql-ro .execute-button, .graphiql-ro .docExplorerShow {
+    display: none
+}
+</style>
+<div id="graphiql" class="graphiql">
+    Loading GraphiQL...
+    <div class="query">
+{
+  getPoints(
+    spec: {
+      Mask: {
+        spec: {
+          Product: {
+            outer: {
+              Line: {
+                axis: "x",
+                start: 0,
+                stop: 10,
+                num: 5
+              }
+            },
+            inner: {
+              Line: {
+                axis: "y",
+                start: 0,
+                stop: 10,
+                num: 5
+              }
+            }
+          }
+        },
+        region: {
+          Circle: {
+            xAxis: "x",
+            yAxis: "y",
+            xMiddle: 5,
+            yMiddle: 5,
+            radius: 3
+          }
+        }
+      }
+    }
+  )
+  {
+    totalFrames
+    axes {
+      axis
+      midpoints {
+        floatList
+      }
+    }
+  }
+}
+    </div>
+    <div class="response">
+{
+  "data": {
+    "getPoints": {
+      "totalFrames": 5,
+      "axes": [
+        {
+          "axis": "x",
+          "midpoints": {
+            "floatList": [
+              2.5,
+              5,
+              5,
+              5,
+              7.5
+            ]
+          }
+        },
+        {
+          "axis": "y",
+          "midpoints": {
+            "floatList": [
+              5,
+              2.5,
+              5,
+              7.5,
+              5
+            ]
           }
         }
       ]

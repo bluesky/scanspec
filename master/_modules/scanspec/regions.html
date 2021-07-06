@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
@@ -8,13 +7,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.regions &mdash; scanspec 0.0+untagged.gb227c46 documentation</title>
+  <title>scanspec.regions &mdash; scanspec 0.3+30.g2714ace documentation</title>
   
 
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/theme_overrides.css" type="text/css" />
 
@@ -94,13 +94,13 @@
         
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-    <style>
-      /* style mobile top nav to look like main nav */
-      .wy-nav-top {
-          background: rgb(7, 43, 93)
-      }
-    </style>
-    
+  <style>
+    /* style mobile top nav to look like main nav */
+    .wy-nav-top {
+        background: rgb(7, 43, 93)
+    }
+  </style>
+  
             
             
               
@@ -119,6 +119,7 @@
 </ul>
 <p class="caption"><span class="caption-text">Explanations</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../explanations/technical-terms.html">Technical Terms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../explanations/what-are-dimensions.html">What are Dimensions?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
 </ul>
@@ -131,21 +132,43 @@
 
             
           
-    <!-- Include Index in the sidebar -->
-    <!-- https://stackoverflow.com/a/37843854 -->
-    <a href="../../genindex.html">Index</a>
-    <!-- Include all versions of the docs -->
-    <!-- https://holzhaus.github.io/sphinx-multiversion/master/templates.html -->
-    
-    <p class="caption"><span class="caption-text">Versions</span></p>
-    <ul>
-      <li><a href="regions.html">master</a></li>
-      <li><a href="../../../0.2/index.html">0.2</a></li>
-      <li><a href="../../../0.1.1/index.html">0.1.1</a></li>
-      <li><a href="../../../0.1/index.html">0.1</a></li>
-    </ul>
-    
-  
+  <!-- Include Index in the sidebar -->
+  <!-- https://stackoverflow.com/a/37843854 -->
+  <a href="../../genindex.html">Index</a>
+  <!-- Add versions for selected branches + tags -->
+  <p class="caption"><span class="caption-text">Versions</span></p>
+  <ul id="versions"/>
+  <script>
+    // Add any branches to appear in the side pane here, tags will be added below
+    // Will only appear if docs are built and pushed in gh-pages
+    var versions = ['master', 'main'];
+    var dirs = new Set();
+    function addVersion(name) {
+      if (dirs.has(name)) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = 'https://dls-controls.github.io/scanspec/' + name;
+        a.innerText = name;
+        li.appendChild(a)
+        document.getElementById('versions').appendChild(li);
+      }
+    }
+    Promise.all([
+      // Find gh-pages directories and populate `dirs`
+      fetch("https://api.github.com/repos/dls-controls/scanspec/contents?ref=gh-pages")
+      .then(response => response.json())
+      .then(data => data.forEach(function(e) {
+        if (e.type == "dir") dirs.add(e.name);
+      })),
+      // Add tags to `versions`
+      fetch('https://api.github.com/repos/dls-controls/scanspec/tags')
+        .then(response => response.json())
+        .then(data => data.forEach(function(e) {
+          versions.push(e.name);
+        }))
+      ]).then(_ => versions.forEach(addVersion))
+  </script>
+
         </div>
         
       </div>
@@ -209,31 +232,47 @@
             
   <h1>Source code for scanspec.regions</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">is_dataclass</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Set</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Set</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span>
 
-<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">Positions</span><span class="p">,</span> <span class="n">Serializable</span><span class="p">,</span> <span class="n">if_instance_do</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">AxesPoints</span><span class="p">,</span> <span class="n">Serializable</span><span class="p">,</span> <span class="n">if_instance_do</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;Region&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_mask&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CombinationOf&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;UnionOf&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;IntersectionOf&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DifferenceOf&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SymmetricDifferenceOf&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Range&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Rectangle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Polygon&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Circle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Ellipse&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;find_regions&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
 
 <div class="viewcode-block" id="Region"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Region</span><span class="p">(</span><span class="n">Serializable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract baseclass for a Region that can `Mask` a `Spec`. Supports operators:</span>
 
-<span class="sd">    - ``|``: `UnionOf` two Regions, positions present in either</span>
-<span class="sd">    - ``&amp;``: `IntersectionOf` two Regions, positions present in both</span>
-<span class="sd">    - ``-``: `DifferenceOf` two Regions, positions present in first not second</span>
-<span class="sd">    - ``^``: `SymmetricDifferenceOf` two Regions, positions present in one not both</span>
+<span class="sd">    - ``|``: `UnionOf` two Regions, midpoints present in either</span>
+<span class="sd">    - ``&amp;``: `IntersectionOf` two Regions, points present in both</span>
+<span class="sd">    - ``-``: `DifferenceOf` two Regions, points present in first not second</span>
+<span class="sd">    - ``^``: `SymmetricDifferenceOf` two Regions, points present in one not both</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Region.key_sets"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region.key_sets">[docs]</a>    <span class="k">def</span> <span class="nf">key_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;Implemented by subclasses to produce the non-overlapping sets of keys</span>
+<div class="viewcode-block" id="Region.axis_sets"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region.axis_sets">[docs]</a>    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Implemented by subclasses to produce the non-overlapping sets of axes</span>
 <span class="sd">        this region spans&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Region.mask"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region.mask">[docs]</a>    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Implemented by subclasses to produce a mask of which positions are in</span>
+<div class="viewcode-block" id="Region.mask"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region.mask">[docs]</a>    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Implemented by subclasses to produce a mask of which points are in</span>
 <span class="sd">        the region&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
@@ -250,31 +289,31 @@
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">SymmetricDifferenceOf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="get_mask"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.get_mask">[docs]</a><span class="k">def</span> <span class="nf">get_mask</span><span class="p">(</span><span class="n">region</span><span class="p">:</span> <span class="n">Region</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Positions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;If there is an overlap of keys of region and positions return a</span>
-<span class="sd">    mask of the positions in the region, otherwise return all ones</span>
+<div class="viewcode-block" id="get_mask"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.get_mask">[docs]</a><span class="k">def</span> <span class="nf">get_mask</span><span class="p">(</span><span class="n">region</span><span class="p">:</span> <span class="n">Region</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;If there is an overlap of axes of region and frames return a</span>
+<span class="sd">    mask of the frames in the region, otherwise return all ones</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
-    <span class="n">needs_mask</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">ks</span> <span class="o">&amp;</span> <span class="n">keys</span> <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">region</span><span class="o">.</span><span class="n">key_sets</span><span class="p">())</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+    <span class="n">needs_mask</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">ks</span> <span class="o">&amp;</span> <span class="n">axes</span> <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">region</span><span class="o">.</span><span class="n">axis_sets</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">needs_mask</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">region</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">region</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">positions</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]))</span></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]))</span></div>
 
 
-<span class="k">def</span> <span class="nf">_merge_key_sets</span><span class="p">(</span><span class="n">key_sets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-    <span class="c1"># Take overlapping key sets and merge any that overlap into each</span>
+<span class="k">def</span> <span class="nf">_merge_axis_sets</span><span class="p">(</span><span class="n">axis_sets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="c1"># Take overlapping axis sets and merge any that overlap into each</span>
     <span class="c1"># other</span>
-    <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">key_sets</span><span class="p">:</span>
-        <span class="n">key_set</span> <span class="o">=</span> <span class="n">ks</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="c1"># Empty matching sets into this key_set</span>
-        <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">key_sets</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">ks</span> <span class="o">&amp;</span> <span class="n">key_set</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">axis_sets</span><span class="p">:</span>  <span class="c1"># ks = key_sets - left over from a previous naming standard</span>
+        <span class="n">axis_set</span> <span class="o">=</span> <span class="n">ks</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># Empty matching sets into this axis_set</span>
+        <span class="k">for</span> <span class="n">ks</span> <span class="ow">in</span> <span class="n">axis_sets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ks</span> <span class="o">&amp;</span> <span class="n">axis_set</span><span class="p">:</span>
                 <span class="k">while</span> <span class="n">ks</span><span class="p">:</span>
-                    <span class="n">key_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ks</span><span class="o">.</span><span class="n">pop</span><span class="p">())</span>
+                    <span class="n">axis_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ks</span><span class="o">.</span><span class="n">pop</span><span class="p">())</span>
         <span class="c1"># It might be emptied already, only yield if it isn&#39;t</span>
-        <span class="k">if</span> <span class="n">key_set</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="n">key_set</span>
+        <span class="k">if</span> <span class="n">axis_set</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">axis_set</span>
 
 
 <div class="viewcode-block" id="CombinationOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.CombinationOf">[docs]</a><span class="nd">@dataclass</span>
@@ -286,15 +325,17 @@
         <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Region to combine&quot;</span><span class="p">)</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">key_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-        <span class="n">key_sets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_merge_key_sets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">key_sets</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">key_sets</span><span class="p">()))</span>
-        <span class="k">return</span> <span class="n">key_sets</span></div>
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="n">axis_sets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">_merge_axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">axis_sets</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">axis_sets</span><span class="p">())</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">axis_sets</span></div>
 
 
 <span class="c1"># Naming so we don&#39;t clash with typing.Union</span>
 <div class="viewcode-block" id="UnionOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.UnionOf">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">UnionOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A position is in UnionOf(a, b) if it is in either a or b. Typically</span>
+    <span class="sd">&quot;&quot;&quot;A point is in UnionOf(a, b) if it is in either a or b. Typically</span>
 <span class="sd">    created with the ``|`` operator</span>
 
 <span class="sd">    &gt;&gt;&gt; r = Range(&quot;x&quot;, 0.5, 2.5) | Range(&quot;x&quot;, 1.5, 3.5)</span>
@@ -302,14 +343,14 @@
 <span class="sd">    array([False,  True,  True,  True, False])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span> <span class="o">|</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="o">|</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
 <div class="viewcode-block" id="IntersectionOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.IntersectionOf">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">IntersectionOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A position is in IntersectionOf(a, b) if it is in both a and b. Typically</span>
+    <span class="sd">&quot;&quot;&quot;A point is in IntersectionOf(a, b) if it is in both a and b. Typically</span>
 <span class="sd">    created with the ``&amp;`` operator</span>
 
 <span class="sd">    &gt;&gt;&gt; r = Range(&quot;x&quot;, 0.5, 2.5) &amp; Range(&quot;x&quot;, 1.5, 3.5)</span>
@@ -317,14 +358,14 @@
 <span class="sd">    array([False, False,  True, False, False])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
 <div class="viewcode-block" id="DifferenceOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.DifferenceOf">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">DifferenceOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A position is in DifferenceOf(a, b) if it is in a and not in b. Typically</span>
+    <span class="sd">&quot;&quot;&quot;A point is in DifferenceOf(a, b) if it is in a and not in b. Typically</span>
 <span class="sd">    created with the ``-`` operator</span>
 
 <span class="sd">    &gt;&gt;&gt; r = Range(&quot;x&quot;, 0.5, 2.5) - Range(&quot;x&quot;, 1.5, 3.5)</span>
@@ -332,16 +373,16 @@
 <span class="sd">    array([False,  True, False, False, False])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="n">left_mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">left_mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
         <span class="c1"># Return the xor restricted to the left region</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">left_mask</span> <span class="o">^</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">left_mask</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">left_mask</span> <span class="o">^</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">left_mask</span>
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
 <div class="viewcode-block" id="SymmetricDifferenceOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.SymmetricDifferenceOf">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">SymmetricDifferenceOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A position is in SymmetricDifferenceOf(a, b) if it is in either a or b,</span>
+    <span class="sd">&quot;&quot;&quot;A point is in SymmetricDifferenceOf(a, b) if it is in either a or b,</span>
 <span class="sd">    but not both. Typically created with the ``^`` operator</span>
 
 <span class="sd">    &gt;&gt;&gt; r = Range(&quot;x&quot;, 0.5, 2.5) ^ Range(&quot;x&quot;, 1.5, 3.5)</span>
@@ -349,22 +390,22 @@
 <span class="sd">    array([False,  True, False,  True, False])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span> <span class="o">^</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="o">^</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
 <div class="viewcode-block" id="Range"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Range">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Range</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Mask contains positions of key &gt;= min and &lt;= max</span>
+    <span class="sd">&quot;&quot;&quot;Mask contains points of key &gt;= min and &lt;= max</span>
 
 <span class="sd">    &gt;&gt;&gt; r = Range(&quot;x&quot;, 1, 2)</span>
 <span class="sd">    &gt;&gt;&gt; r.mask({&quot;x&quot;: np.array([0, 1, 2, 3, 4])})</span>
 <span class="sd">    array([False,  True,  True, False, False])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the axis to mask in the spec&quot;</span><span class="p">)</span>
+    <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the axis to mask in spec&quot;</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="nb">min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
         <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)</span>
@@ -373,33 +414,31 @@
         <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">key_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">}]</span>
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">}]</span>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="n">v</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">]</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bitwise_and</span><span class="p">(</span><span class="n">v</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
 <div class="viewcode-block" id="Rectangle"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Rectangle">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Rectangle</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Mask contains positions of key within a rotated xy rectangle</span>
-
+    <span class="sd">&quot;&quot;&quot;Mask contains points of axis within a rotated xy rectangle</span>
 <span class="sd">    .. example_spec::</span>
 
 <span class="sd">        from scanspec.specs import Line</span>
 <span class="sd">        from scanspec.regions import Rectangle</span>
-
 <span class="sd">        grid = Line(&quot;y&quot;, 1, 3, 10) * ~Line(&quot;x&quot;, 0, 2, 10)</span>
 <span class="sd">        spec = grid &amp; Rectangle(&quot;x&quot;, &quot;y&quot;, 0, 1.1, 1.5, 2.1, 30)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">x_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the x axis of the spec&quot;</span><span class="p">)</span>
+    <span class="n">x_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">y_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the y axis of the spec&quot;</span><span class="p">)</span>
+    <span class="n">y_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">x_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
         <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive x value in the region&quot;</span><span class="p">)</span>
@@ -418,14 +457,14 @@
         <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Clockwise rotation angle of the rectangle&quot;</span><span class="p">),</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">key_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_key</span><span class="p">}]</span>
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_key</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_min</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_key</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_min</span>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_min</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_min</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># Rotate src positions by -angle</span>
+            <span class="c1"># Rotate src points by -angle</span>
             <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">angle</span><span class="p">)</span>
             <span class="n">rx</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
             <span class="n">ry</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
@@ -436,9 +475,67 @@
         <span class="k">return</span> <span class="n">mask_x</span> <span class="o">&amp;</span> <span class="n">mask_y</span></div>
 
 
+<div class="viewcode-block" id="Polygon"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Polygon">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Polygon</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Mask contains points of axis within a rotated xy polygon</span>
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.plot import plot_spec</span>
+<span class="sd">        from scanspec.specs import Line</span>
+<span class="sd">        from scanspec.regions import Polygon</span>
+
+<span class="sd">        #Polygon parameters</span>
+<span class="sd">        x_axis = &quot;x&quot;</span>
+<span class="sd">        y_axis = &quot;y&quot;</span>
+<span class="sd">        x_verts = [1.0, 6.0, 8.0, 2.0]</span>
+<span class="sd">        y_verts = [4.0, 10.0, 6.0, 1.0]</span>
+
+<span class="sd">        grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)</span>
+<span class="sd">        spec = grid &amp; Polygon(x_axis, y_axis, x_verts, y_verts)</span>
+<span class="sd">        plot_spec(spec)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">x_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">y_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">x_verts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Nx1 x coordinates of the polygons vertices&quot;</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">3</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">y_verts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Nx1 y coordinates of the polygons vertices&quot;</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">3</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
+
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">]</span>
+        <span class="n">v1x</span><span class="p">,</span> <span class="n">v1y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_verts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_verts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v2x</span><span class="p">,</span> <span class="n">v2y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_verts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_verts</span><span class="p">):</span>
+            <span class="c1"># skip horizontal edges</span>
+            <span class="k">if</span> <span class="n">v2y</span> <span class="o">!=</span> <span class="n">v1y</span><span class="p">:</span>
+                <span class="n">vmask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+                <span class="n">vmask</span> <span class="o">|=</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="n">v2y</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y</span> <span class="o">&gt;=</span> <span class="n">v1y</span><span class="p">)</span>
+                <span class="n">vmask</span> <span class="o">|=</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="n">v1y</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y</span> <span class="o">&gt;=</span> <span class="n">v2y</span><span class="p">)</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">v1y</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">v2y</span> <span class="o">-</span> <span class="n">v1y</span><span class="p">)</span>
+                <span class="n">vmask</span> <span class="o">&amp;=</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">v1x</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="n">v2x</span> <span class="o">-</span> <span class="n">v1x</span><span class="p">)</span>
+                <span class="n">mask</span> <span class="o">^=</span> <span class="n">vmask</span>
+            <span class="n">v1x</span><span class="p">,</span> <span class="n">v1y</span> <span class="o">=</span> <span class="n">v2x</span><span class="p">,</span> <span class="n">v2y</span>
+        <span class="k">return</span> <span class="n">mask</span></div>
+
+
 <div class="viewcode-block" id="Circle"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Circle">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Circle</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Mask contains positions of key within an xy circle of given radius</span>
+    <span class="sd">&quot;&quot;&quot;Mask contains points of axis within an xy circle of given radius</span>
 
 <span class="sd">    .. example_spec::</span>
 
@@ -449,27 +546,97 @@
 <span class="sd">        spec = grid &amp; Circle(&quot;x&quot;, &quot;y&quot;, 1, 2, 0.9)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">x_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the x axis of the spec&quot;</span><span class="p">)</span>
+    <span class="n">x_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">y_key</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The key matching the x axis of the spec&quot;</span><span class="p">)</span>
+    <span class="n">y_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">x_centre</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive x value in the region&quot;</span><span class="p">)</span>
+    <span class="n">x_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central x point of the circle&quot;</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">y_centre</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive y value in the region&quot;</span><span class="p">)</span>
+    <span class="n">y_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central y point of the circle&quot;</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radius of the circle&quot;</span><span class="p">))</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radius of the circle&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">key_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_key</span><span class="p">}]</span>
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_key</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_centre</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_key</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_centre</span>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_middle</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_middle</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mask</span></div>
+
+
+<div class="viewcode-block" id="Ellipse"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Ellipse">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Ellipse</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Mask contains points of axis within an xy ellipse of given radius</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.plot import plot_spec</span>
+<span class="sd">        from scanspec.specs import Line</span>
+<span class="sd">        from scanspec.regions import Ellipse</span>
+
+<span class="sd">        #Ellipse parameters</span>
+<span class="sd">        x_axis = &quot;x&quot;</span>
+<span class="sd">        y_axis = &quot;y&quot;</span>
+<span class="sd">        x_middle = 5</span>
+<span class="sd">        y_middle = 5</span>
+<span class="sd">        x_radius = 2</span>
+<span class="sd">        y_radius = 3</span>
+<span class="sd">        angle = 75</span>
+
+<span class="sd">        grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)</span>
+<span class="sd">        spec = grid &amp; Ellipse(x_axis, y_axis, x_middle, y_middle, x_radius,</span>
+<span class="sd">        y_radius, angle)</span>
+<span class="sd">        plot_spec(spec)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">x_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">y_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">x_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central x point of the ellipse&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">y_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central y point of the ellipse&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">x_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the x axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">y_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the y axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The angle of the ellipse (degrees)&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
+
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_middle</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_middle</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Rotate src points by -angle</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">angle</span><span class="p">)</span>
+            <span class="n">tx</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+            <span class="n">ty</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">tx</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">ty</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_radius</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_radius</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">mask</span></div>
 
 

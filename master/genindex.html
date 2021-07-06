@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
@@ -8,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Index &mdash; scanspec 0.0+untagged.g1b404b1 documentation</title>
+  <title>Index &mdash; scanspec 0.3+30.g2714ace documentation</title>
   
 
   
@@ -95,13 +94,13 @@
         
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-    <style>
-      /* style mobile top nav to look like main nav */
-      .wy-nav-top {
-          background: rgb(7, 43, 93)
-      }
-    </style>
-    
+  <style>
+    /* style mobile top nav to look like main nav */
+    .wy-nav-top {
+        background: rgb(7, 43, 93)
+    }
+  </style>
+  
             
             
               
@@ -120,7 +119,7 @@
 </ul>
 <p class="caption"><span class="caption-text">Explanations</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="explanations/technical-terms.html">technical terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="explanations/technical-terms.html">Technical Terms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="explanations/what-are-dimensions.html">What are Dimensions?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
 </ul>
@@ -133,21 +132,43 @@
 
             
           
-    <!-- Include Index in the sidebar -->
-    <!-- https://stackoverflow.com/a/37843854 -->
-    <a href="#">Index</a>
-    <!-- Include all versions of the docs -->
-    <!-- https://holzhaus.github.io/sphinx-multiversion/master/templates.html -->
-    
-    <p class="caption"><span class="caption-text">Versions</span></p>
-    <ul>
-      <li><a href="genindex.html">master</a></li>
-      <li><a href="../0.2/index.html">0.2</a></li>
-      <li><a href="../0.1.1/index.html">0.1.1</a></li>
-      <li><a href="../0.1/index.html">0.1</a></li>
-    </ul>
-    
-  
+  <!-- Include Index in the sidebar -->
+  <!-- https://stackoverflow.com/a/37843854 -->
+  <a href="#">Index</a>
+  <!-- Add versions for selected branches + tags -->
+  <p class="caption"><span class="caption-text">Versions</span></p>
+  <ul id="versions"/>
+  <script>
+    // Add any branches to appear in the side pane here, tags will be added below
+    // Will only appear if docs are built and pushed in gh-pages
+    var versions = ['master', 'main'];
+    var dirs = new Set();
+    function addVersion(name) {
+      if (dirs.has(name)) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = 'https://dls-controls.github.io/scanspec/' + name;
+        a.innerText = name;
+        li.appendChild(a)
+        document.getElementById('versions').appendChild(li);
+      }
+    }
+    Promise.all([
+      // Find gh-pages directories and populate `dirs`
+      fetch("https://api.github.com/repos/dls-controls/scanspec/contents?ref=gh-pages")
+      .then(response => response.json())
+      .then(data => data.forEach(function(e) {
+        if (e.type == "dir") dirs.add(e.name);
+      })),
+      // Add tags to `versions`
+      fetch('https://api.github.com/repos/dls-controls/scanspec/tags')
+        .then(response => response.json())
+        .then(data => data.forEach(function(e) {
+          versions.push(e.name);
+        }))
+      ]).then(_ => versions.forEach(addVersion))
+  </script>
+
         </div>
         
       </div>
@@ -228,6 +249,7 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  | <a href="#Z"><strong>Z</strong></a>
  
 </div>
@@ -239,6 +261,8 @@
       <ul>
         <li><a href="reference/api.html#scanspec.core.Midpoints.axes">(scanspec.core.Midpoints property)</a>
 </li>
+        <li><a href="reference/api.html#scanspec.service.PointsResponse.axes">(scanspec.service.PointsResponse method)</a>
+</li>
         <li><a href="reference/api.html#scanspec.specs.Spec.axes">(scanspec.specs.Spec method)</a>
 </li>
       </ul></li>
@@ -246,9 +270,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.core.AxesPoints">AxesPoints (in module scanspec.core)</a>
 </li>
+      <li><a href="reference/api.html#scanspec.service.AxisFrames.axis">axis (scanspec.service.AxisFrames attribute)</a>
+</li>
       <li><a href="reference/api.html#scanspec.regions.Region.axis_sets">axis_sets() (scanspec.regions.Region method)</a>
 </li>
-      <li><a href="explanations/technical-terms.html#scanspec.service.AxisFrames">AxisFrames (class in scanspec.service)</a>
+      <li><a href="reference/api.html#scanspec.service.AxisFrames">AxisFrames (class in scanspec.service)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -290,21 +316,29 @@
 </li>
       <li><a href="reference/api.html#scanspec.regions.DifferenceOf">DifferenceOf (class in scanspec.regions)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.core.Dimension">Dimension (class in scanspec.core)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.core.Midpoints.dimensions">dimensions (scanspec.core.Midpoints attribute)</a>
 
       <ul>
         <li><a href="reference/api.html#scanspec.core.Path.dimensions">(scanspec.core.Path attribute)</a>
 </li>
       </ul></li>
+      <li><a href="reference/api.html#scanspec.specs.DURATION">DURATION (in module scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Static.duration">duration() (scanspec.specs.Static class method)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.regions.Ellipse">Ellipse (class in scanspec.regions)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.core.Path.end_index">end_index (scanspec.core.Path attribute)</a>
 </li>
@@ -327,6 +361,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.regions.get_mask">get_mask() (in module scanspec.regions)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.service.get_points">get_points() (in module scanspec.service)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -353,7 +391,11 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.core.Dimension.lower">lower (scanspec.core.Dimension attribute)</a>
+
+      <ul>
+        <li><a href="reference/api.html#scanspec.service.AxisFrames.lower">(scanspec.service.AxisFrames attribute)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -371,7 +413,11 @@
       <li><a href="reference/api.html#scanspec.core.Midpoints">Midpoints (class in scanspec.core)</a>
 </li>
       <li><a href="reference/api.html#scanspec.core.Dimension.midpoints">midpoints (scanspec.core.Dimension attribute)</a>
+
+      <ul>
+        <li><a href="reference/api.html#scanspec.service.AxisFrames.midpoints">(scanspec.service.AxisFrames attribute)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.specs.Spec.midpoints">midpoints() (scanspec.specs.Spec method)</a>
@@ -386,6 +432,8 @@
 </li>
         <li><a href="reference/api.html#module-scanspec.regions">scanspec.regions</a>
 </li>
+        <li><a href="reference/api.html#module-scanspec.service">scanspec.service</a>
+</li>
         <li><a href="reference/api.html#module-scanspec.specs">scanspec.specs</a>
 </li>
       </ul></li>
@@ -399,11 +447,15 @@
 </li>
       <li><a href="reference/api.html#scanspec.specs.Spec.path">path() (scanspec.specs.Spec method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.plot.plot_spec">plot_spec() (in module scanspec.plot)</a>
 </li>
-      <li><a href="explanations/technical-terms.html#scanspec.service.Points">Points (class in scanspec.service)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.service.Points">Points (class in scanspec.service)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.PointsResponse">PointsResponse (class in scanspec.service)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.Polygon">Polygon (class in scanspec.regions)</a>
 </li>
       <li><a href="reference/api.html#scanspec.specs.Product">Product (class in scanspec.specs)</a>
 </li>
@@ -417,6 +469,8 @@
 </li>
       <li><a href="reference/api.html#scanspec.regions.Rectangle">Rectangle (class in scanspec.regions)</a>
 </li>
+      <li><a href="reference/api.html#scanspec.service.reduce_frames">reduce_frames() (in module scanspec.service)</a>
+</li>
       <li><a href="reference/api.html#scanspec.regions.Region">Region (class in scanspec.regions)</a>
 </li>
   </ul></td>
@@ -429,12 +483,16 @@
         <li><a href="reference/api.html#scanspec.core.Dimension.repeat">(scanspec.core.Dimension method)</a>
 </li>
       </ul></li>
+      <li><a href="reference/api.html#scanspec.service.PointsResponse.returned_frames">returned_frames (scanspec.service.PointsResponse attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.S">S (in module scanspec.core)</a>
+</li>
       <li><a href="reference/api.html#scanspec.__version__">scanspec.__version__ (built-in variable)</a>
 </li>
       <li>
@@ -459,6 +517,13 @@
 </li>
       </ul></li>
       <li>
+    scanspec.service
+
+      <ul>
+        <li><a href="reference/api.html#module-scanspec.service">module</a>
+</li>
+      </ul></li>
+      <li>
     scanspec.specs
 
       <ul>
@@ -470,6 +535,10 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.core.Serializable.serialize">serialize() (scanspec.core.Serializable method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.PointsResponse.smallest_abs_step">smallest_abs_step() (scanspec.service.PointsResponse method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.AxisFrames.smallest_step">smallest_step() (scanspec.service.AxisFrames method)</a>
 </li>
       <li><a href="reference/api.html#scanspec.specs.Snake">Snake (class in scanspec.specs)</a>
 </li>
@@ -489,6 +558,8 @@
 </li>
       <li><a href="reference/api.html#scanspec.specs.step">step() (in module scanspec.specs)</a>
 </li>
+      <li><a href="reference/api.html#scanspec.service.sub_sample">sub_sample() (in module scanspec.service)</a>
+</li>
       <li><a href="reference/api.html#scanspec.regions.SymmetricDifferenceOf">SymmetricDifferenceOf (class in scanspec.regions)</a>
 </li>
   </ul></td>
@@ -497,13 +568,11 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.core.T">T (in module scanspec.core)</a>
+      <li><a href="reference/api.html#scanspec.core.Dimension.tile">tile() (scanspec.core.Dimension method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.core.Dimension.tile">tile() (scanspec.core.Dimension method)</a>
-</li>
-      <li><a href="reference/api.html#scanspec.specs.TIME">TIME (in module scanspec.specs)</a>
+      <li><a href="reference/api.html#scanspec.service.PointsResponse.total_frames">total_frames (scanspec.service.PointsResponse attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -516,6 +585,18 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.core.Dimension.upper">upper (scanspec.core.Dimension attribute)</a>
+
+      <ul>
+        <li><a href="reference/api.html#scanspec.service.AxisFrames.upper">(scanspec.service.AxisFrames attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.service.validate_spec">validate_spec() (in module scanspec.service)</a>
 </li>
   </ul></td>
 </tr></table>

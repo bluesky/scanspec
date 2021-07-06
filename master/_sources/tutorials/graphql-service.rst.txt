@@ -85,18 +85,20 @@ allowing them to obtain data that is relevant only to their application.
 The 'getPoints' query makes use of this, giving users the ability to select from
 one or more of the following fields:
 
-- numFrames: the total number of frames produced by the Spec
-- returnedFrames (WIP): the number of frames returned, limited by the maxPoint argument
 - axes: a list of axes present in the Spec and its associated scan points
+- total_frames: the total number of frames produced by the Spec
+- returned_frames (WIP): the number of frames returned, limited by the maxPoint argument
+- smallest_abs_step: the smallest step between midpoints across ALL axes in the scan
 
-#### Within axes:
+Within axes:
 
 - axis: the name of the axis present in the Spec
 - lower: a list of lower bounds that are each present in a frame
 - midpoints: a list of midpoints that are each present in a frame
 - upper: a list of upper bounds that are each present in a frame
+- smallest-step: the smallest step between midpoints in this axis of the scan
 
-#### Within lower, middle and upper:
+Within lower, middle and upper:
 
 - string: returns the requested points as a human readable numpy formatted string
 - floatList: returns the requested points as a list of floats
@@ -118,7 +120,7 @@ Using the example above, we can request to return points from it:
           }
         )
         {
-          numFrames
+          returnedFrames
           axes {
             axis
             upper {
@@ -137,7 +139,7 @@ Using the example above, we can request to return points from it:
       {
         "data": {
           "getPoints": {
-            "numFrames": 5,
+            "returnedFrames": 5,
             "axes": [
               {
                 "axis": "x",
@@ -162,6 +164,100 @@ Using the example above, we can request to return points from it:
         }
       }
 
+Masking a region of a spec
+--------------------------
+
+The following fields can be used to mask a region as described in `creating-a-spec`:
+
+- ``*``: Outer `Product` of two Specs, nesting the second within the first
+- ``+``: `Zip` two Specs together, iterating in tandem
+- ``&``: `Mask` the Spec with a `Region`, excluding midpoints outside of it
+- ``~``: `Snake` the Spec, reversing every other iteration of it
+
+An example query using `Mask` is presented below:
+
+.. graphiql:: http://localhost:8080/graphql
+    :query:
+      {
+        getPoints(
+          spec: {
+            Mask: {
+              spec: {
+                Product: {
+                  outer: {
+                    Line: {
+                      axis: "x", 
+                      start: 0, 
+                      stop: 10, 
+                      num: 5
+                    }
+                  }, 
+                  inner: {
+                    Line: {
+                      axis: "y", 
+                      start: 0, 
+                      stop: 10, 
+                      num: 5
+                    }
+                  }
+                }
+              }, 
+              region: {
+                Circle: {
+                  xAxis: "x", 
+                  yAxis: "y", 
+                  xMiddle: 5, 
+                  yMiddle: 5, 
+                  radius: 3
+                }
+              }
+            }
+          }
+        ) 
+        {
+          totalFrames
+          axes {
+            axis
+            midpoints {
+              floatList
+            }
+          }
+        }
+      }
+    :response:
+      {
+        "data": {
+          "getPoints": {
+            "totalFrames": 5,
+            "axes": [
+              {
+                "axis": "x",
+                "midpoints": {
+                  "floatList": [
+                    2.5,
+                    5,
+                    5,
+                    5,
+                    7.5
+                  ]
+                }
+              },
+              {
+                "axis": "y",
+                "midpoints": {
+                  "floatList": [
+                    5,
+                    2.5,
+                    5,
+                    7.5,
+                    5
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
 
 Content to move
 ---------------

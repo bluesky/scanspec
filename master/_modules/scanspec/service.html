@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
@@ -8,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.service &mdash; scanspec 0.0+untagged.g1b404b1 documentation</title>
+  <title>scanspec.service &mdash; scanspec 0.3+30.g2714ace documentation</title>
   
 
   
@@ -95,13 +94,13 @@
         
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-    <style>
-      /* style mobile top nav to look like main nav */
-      .wy-nav-top {
-          background: rgb(7, 43, 93)
-      }
-    </style>
-    
+  <style>
+    /* style mobile top nav to look like main nav */
+    .wy-nav-top {
+        background: rgb(7, 43, 93)
+    }
+  </style>
+  
             
             
               
@@ -120,7 +119,7 @@
 </ul>
 <p class="caption"><span class="caption-text">Explanations</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../explanations/technical-terms.html">technical terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../explanations/technical-terms.html">Technical Terms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../explanations/what-are-dimensions.html">What are Dimensions?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
 </ul>
@@ -133,21 +132,43 @@
 
             
           
-    <!-- Include Index in the sidebar -->
-    <!-- https://stackoverflow.com/a/37843854 -->
-    <a href="../../genindex.html">Index</a>
-    <!-- Include all versions of the docs -->
-    <!-- https://holzhaus.github.io/sphinx-multiversion/master/templates.html -->
-    
-    <p class="caption"><span class="caption-text">Versions</span></p>
-    <ul>
-      <li><a href="service.html">master</a></li>
-      <li><a href="../../../0.2/index.html">0.2</a></li>
-      <li><a href="../../../0.1.1/index.html">0.1.1</a></li>
-      <li><a href="../../../0.1/index.html">0.1</a></li>
-    </ul>
-    
-  
+  <!-- Include Index in the sidebar -->
+  <!-- https://stackoverflow.com/a/37843854 -->
+  <a href="../../genindex.html">Index</a>
+  <!-- Add versions for selected branches + tags -->
+  <p class="caption"><span class="caption-text">Versions</span></p>
+  <ul id="versions"/>
+  <script>
+    // Add any branches to appear in the side pane here, tags will be added below
+    // Will only appear if docs are built and pushed in gh-pages
+    var versions = ['master', 'main'];
+    var dirs = new Set();
+    function addVersion(name) {
+      if (dirs.has(name)) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = 'https://dls-controls.github.io/scanspec/' + name;
+        a.innerText = name;
+        li.appendChild(a)
+        document.getElementById('versions').appendChild(li);
+      }
+    }
+    Promise.all([
+      // Find gh-pages directories and populate `dirs`
+      fetch("https://api.github.com/repos/dls-controls/scanspec/contents?ref=gh-pages")
+      .then(response => response.json())
+      .then(data => data.forEach(function(e) {
+        if (e.type == "dir") dirs.add(e.name);
+      })),
+      // Add tags to `versions`
+      fetch('https://api.github.com/repos/dls-controls/scanspec/tags')
+        .then(response => response.json())
+        .then(data => data.forEach(function(e) {
+          versions.push(e.name);
+        }))
+      ]).then(_ => versions.forEach(addVersion))
+  </script>
+
         </div>
         
       </div>
@@ -216,55 +237,41 @@
 
 <span class="kn">import</span> <span class="nn">aiohttp_cors</span>
 <span class="kn">import</span> <span class="nn">graphql</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">aiohttp</span> <span class="kn">import</span> <span class="n">web</span>
 <span class="kn">from</span> <span class="nn">apischema.graphql</span> <span class="kn">import</span> <span class="n">graphql_schema</span><span class="p">,</span> <span class="n">resolver</span>
 <span class="kn">from</span> <span class="nn">graphql_server.aiohttp.graphqlview</span> <span class="kn">import</span> <span class="n">GraphQLView</span><span class="p">,</span> <span class="n">_asyncify</span>
-<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array2string</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">float64</span><span class="p">,</span> <span class="n">frombuffer</span><span class="p">,</span> <span class="n">ndarray</span>
 
-<span class="kn">from</span> <span class="nn">scanspec.core</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">scanspec.core</span> <span class="kn">import</span> <span class="n">Dimension</span><span class="p">,</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Spec</span>
 
 
-<div class="viewcode-block" id="Points"><a class="viewcode-back" href="../../explanations/technical-terms.html#scanspec.service.Points">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Points"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.Points">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Points</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; A collection of singular or multidimensional locations in scan space&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ndarray</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="o">=</span> <span class="n">points</span>
 
     <span class="nd">@resolver</span>
-    <span class="k">def</span> <span class="nf">string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">array2string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array2string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="p">)</span>
 
     <span class="nd">@resolver</span>
-    <span class="k">def</span> <span class="nf">float_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">float_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
     <span class="nd">@resolver</span>
-    <span class="k">def</span> <span class="nf">b64</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># make sure the data is sent as float64</span>
-            <span class="k">assert</span> <span class="n">dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="n">dtype</span><span class="p">(</span><span class="n">float64</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">b64</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># make sure the data is sent as float64</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
 
-    <span class="c1"># Self b64 decoder for testing purposes</span>
-    <span class="nd">@resolver</span>
-    <span class="k">def</span> <span class="nf">b64Decode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">r</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodebytes</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()))</span>
-            <span class="n">t</span> <span class="o">=</span> <span class="n">frombuffer</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">array2string</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">get_points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span></div>
 
 
-<div class="viewcode-block" id="AxisFrames"><a class="viewcode-back" href="../../explanations/technical-terms.html#scanspec.service.AxisFrames">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="AxisFrames"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.AxisFrames">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">AxisFrames</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; A collection of frames (comprising midpoints with lower and upper bounds)</span>
 <span class="sd">    present in each axis of the Spec</span>
@@ -274,35 +281,87 @@
     <span class="sd">&quot;&quot;&quot;A fixed reference that can be scanned. i.e. a motor, time or</span>
 <span class="sd">    number of repetitions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">lower</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Points</span><span class="p">]</span>
-    <span class="sd">&quot;&quot;&quot;The lower bounds of each midpoint (used when fly scanning)&quot;&quot;&quot;</span>
-    <span class="n">midpoints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Points</span><span class="p">]</span>
-    <span class="sd">&quot;&quot;&quot;The centre points of the scan&quot;&quot;&quot;</span>
-    <span class="n">upper</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Points</span><span class="p">]</span>
-    <span class="sd">&quot;&quot;&quot;The upper bounds of each midpoint (used when fly scanning)&quot;&quot;&quot;</span></div>
+    <span class="n">lower</span><span class="p">:</span> <span class="n">Points</span>
+    <span class="sd">&quot;&quot;&quot;The lower bounds of each frame (used when fly scanning)&quot;&quot;&quot;</span>
+    <span class="n">midpoints</span><span class="p">:</span> <span class="n">Points</span>
+    <span class="sd">&quot;&quot;&quot;The midpoints of each frame&quot;&quot;&quot;</span>
+    <span class="n">upper</span><span class="p">:</span> <span class="n">Points</span>
+    <span class="sd">&quot;&quot;&quot;The upper bounds of each frame (used when fly scanning)&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AxisFrames.smallest_step"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.AxisFrames.smallest_step">[docs]</a>    <span class="nd">@resolver</span>
+    <span class="k">def</span> <span class="nf">smallest_step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The smallest step between midpoints in this axis&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">calc_smallest_step</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">get_points</span><span class="p">()])</span></div></div>
 
 
-<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="PointsResponse"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.PointsResponse">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">PointsResponse</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; The highest level of the getPoints query, allowing users to customise their</span>
 <span class="sd">    return data from the points present in the scan to some metadata about them</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">axes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">AxisFrames</span><span class="p">]</span>
     <span class="n">total_frames</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">returned_frames</span><span class="p">:</span> <span class="nb">int</span>
 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">,</span> <span class="n">total_frames</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_frames</span> <span class="o">=</span> <span class="n">total_frames</span>
+        <span class="sd">&quot;&quot;&quot;The number of frames present across the entire spec&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">returned_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;The number of frames returned by the getPoints query</span>
+<span class="sd">        (controlled by the max_points argument)&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span> <span class="o">=</span> <span class="n">chunk</span>
 
-<span class="c1"># Chacks that the spec will produce a valid scan</span>
-<span class="k">def</span> <span class="nf">validate_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<div class="viewcode-block" id="PointsResponse.axes"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.PointsResponse.axes">[docs]</a>    <span class="nd">@resolver</span>
+    <span class="k">def</span> <span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">AxisFrames</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;A list of all of the points present in the spec per axis&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">AxisFrames</span><span class="p">(</span>
+                <span class="n">axis</span><span class="p">,</span>
+                <span class="n">Points</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span><span class="o">.</span><span class="n">lower</span><span class="p">[</span><span class="n">axis</span><span class="p">]),</span>
+                <span class="n">Points</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span><span class="o">.</span><span class="n">midpoints</span><span class="p">[</span><span class="n">axis</span><span class="p">]),</span>
+                <span class="n">Points</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span><span class="o">.</span><span class="n">upper</span><span class="p">[</span><span class="n">axis</span><span class="p">]),</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span><span class="o">.</span><span class="n">midpoints</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="PointsResponse.smallest_abs_step"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.PointsResponse.smallest_abs_step">[docs]</a>    <span class="nd">@resolver</span>
+    <span class="k">def</span> <span class="nf">smallest_abs_step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The smallest step between midpoints across ALL axes in the scan&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">calc_smallest_step</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">calc_smallest_step</span><span class="p">(</span><span class="n">points</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="c1"># Calc abs diffs of all axes</span>
+    <span class="n">absolute_diffs</span> <span class="o">=</span> <span class="p">[</span><span class="n">abs_diffs</span><span class="p">(</span><span class="n">axis_midpoints</span><span class="p">)</span> <span class="k">for</span> <span class="n">axis_midpoints</span> <span class="ow">in</span> <span class="n">points</span><span class="p">]</span>
+    <span class="c1"># Return the smallest value (Aka. smallest step)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">absolute_diffs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">abs_diffs</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Calculates the absolute differences between adjacent elements in the array</span>
+<span class="sd">    used as part of the smallest step calculation for each axis</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        array (ndarray): A 1xN array of numerical values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray: A newly constucted array of absolute differences</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># [array[1] - array[0], array[2] - array[1], ...]</span>
+    <span class="n">adjacent_diffs</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">array</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">adjacent_diffs</span><span class="p">)</span>
+
+
+<span class="c1"># Checks that the spec will produce a valid scan</span>
+<div class="viewcode-block" id="validate_spec"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.validate_spec">[docs]</a><span class="k">def</span> <span class="nf">validate_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; A query used to confirm whether or not the Spec will produce a viable scan&quot;&quot;&quot;</span>
     <span class="c1"># apischema will do all the validation for us</span>
-    <span class="k">return</span> <span class="n">spec</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">spec</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span></div>
 
 
 <span class="c1"># Returns a full list of points for each axis in the scan</span>
 <span class="c1"># TODO Update max_frames with a more sophisticated method of reducing scan points</span>
-<span class="k">def</span> <span class="nf">get_points</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">,</span> <span class="n">max_frames</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">200000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PointsResponse</span><span class="p">:</span>
+<div class="viewcode-block" id="get_points"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.get_points">[docs]</a><span class="k">def</span> <span class="nf">get_points</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">,</span> <span class="n">max_frames</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PointsResponse</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;A query that takes a Spec and calculates the points present in the scan</span>
 <span class="sd">    (for each axis) plus some metadata about the points.</span>
 
@@ -316,41 +375,60 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dims</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">()</span>  <span class="c1"># Grab dimensions from spec</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>  <span class="c1"># Convert to a path</span>
+
+    <span class="c1"># TOTAL FRAMES</span>
     <span class="n">total_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>  <span class="c1"># Capture the total length of the path</span>
 
-    <span class="c1"># Limit the consumed data to the max_frames argument</span>
-    <span class="c1"># # WARNING: path object is consumed after this statement</span>
-    <span class="k">if</span> <span class="n">max_frames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># Return as many frames as possible</span>
-        <span class="n">returned_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
-
-    <span class="k">elif</span> <span class="n">max_frames</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-        <span class="c1"># Return all of the frames within that selection</span>
-        <span class="n">returned_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
-
-    <span class="k">else</span><span class="p">:</span>
+    <span class="c1"># MAX FRAMES</span>
+    <span class="c1"># Limit the consumed data by the max_frames argument</span>
+    <span class="k">if</span> <span class="n">max_frames</span> <span class="ow">and</span> <span class="p">(</span><span class="n">max_frames</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
         <span class="c1"># Cap the frames by the max limit</span>
-        <span class="n">returned_frames</span> <span class="o">=</span> <span class="n">max_frames</span>
-        <span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="n">max_frames</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">reduce_frames</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">max_frames</span><span class="p">)</span>
+    <span class="c1"># WARNING: path object is consumed after this statement</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="n">max_frames</span><span class="p">)</span>
 
-    <span class="c1"># POINTS</span>
-    <span class="n">scan_points</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">AxisFrames</span><span class="p">(</span>
-            <span class="n">axis</span><span class="p">,</span>
-            <span class="n">Points</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">lower</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">axis</span><span class="p">)),</span>
-            <span class="n">Points</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">axis</span><span class="p">)),</span>
-            <span class="n">Points</span><span class="p">(</span><span class="n">chunk</span><span class="o">.</span><span class="n">upper</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">axis</span><span class="p">)),</span>
-        <span class="p">)</span>
-        <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>
-    <span class="p">]</span>
-
-    <span class="k">return</span> <span class="n">PointsResponse</span><span class="p">(</span><span class="n">scan_points</span><span class="p">,</span> <span class="n">total_frames</span><span class="p">,</span> <span class="n">returned_frames</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">PointsResponse</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">total_frames</span><span class="p">)</span></div>
 
 
 <span class="c1"># Define the schema</span>
 <span class="n">schema</span> <span class="o">=</span> <span class="n">graphql_schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="p">[</span><span class="n">validate_spec</span><span class="p">,</span> <span class="n">get_points</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="reduce_frames"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.reduce_frames">[docs]</a><span class="k">def</span> <span class="nf">reduce_frames</span><span class="p">(</span><span class="n">dims</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">],</span> <span class="n">max_frames</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Removes frames from a spec such that it produces a number that is</span>
+<span class="sd">    closest to the max points value</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dims (List[Dimension]): A dimension object created by a spec</span>
+<span class="sd">        max_frames (int): The maximum number of frames the user wishes to be returned</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Path: A consumable object containing the expanded dimension with reduced frames</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Calculate the total number of frames</span>
+    <span class="n">num_frames</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">:</span>
+        <span class="n">num_frames</span> <span class="o">*=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+
+    <span class="c1"># Need each dim to be this much smaller</span>
+    <span class="n">ratio</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">max_frames</span> <span class="o">/</span> <span class="n">num_frames</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span>
+
+    <span class="n">sub_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">sub_sample</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">ratio</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">sub_dims</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="sub_sample"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.sub_sample">[docs]</a><span class="k">def</span> <span class="nf">sub_sample</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">,</span> <span class="n">ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dimension</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Removes frames from a dimension whilst preserving its core structure</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dim (Dimension): the dimension object to be reduced</span>
+<span class="sd">        ratio (float): the reduction ratio of the dimension</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Dimension: the reduced dimension</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_indexes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="o">/</span> <span class="n">ratio</span><span class="p">)</span>
+    <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_indexes</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dim</span><span class="p">[</span><span class="n">indexes</span><span class="p">]</span></div>
 
 
 <span class="k">def</span> <span class="nf">schema_text</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>

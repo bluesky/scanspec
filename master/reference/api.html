@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
@@ -8,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>API &mdash; scanspec 0.0+untagged.g1b404b1 documentation</title>
+  <title>API &mdash; scanspec 0.3+30.g2714ace documentation</title>
   
 
   
@@ -97,13 +96,13 @@
         
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-    <style>
-      /* style mobile top nav to look like main nav */
-      .wy-nav-top {
-          background: rgb(7, 43, 93)
-      }
-    </style>
-    
+  <style>
+    /* style mobile top nav to look like main nav */
+    .wy-nav-top {
+        background: rgb(7, 43, 93)
+    }
+  </style>
+  
             
             
               
@@ -122,7 +121,7 @@
 </ul>
 <p class="caption"><span class="caption-text">Explanations</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../explanations/technical-terms.html">technical terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanations/technical-terms.html">Technical Terms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../explanations/what-are-dimensions.html">What are Dimensions?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
 </ul>
@@ -134,6 +133,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#scanspec-specs"><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#scanspec-regions"><code class="docutils literal notranslate"><span class="pre">scanspec.regions</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#scanspec-plot"><code class="docutils literal notranslate"><span class="pre">scanspec.plot</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scanspec-service"><code class="docutils literal notranslate"><span class="pre">scanspec.service</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -144,21 +144,43 @@
 
             
           
-    <!-- Include Index in the sidebar -->
-    <!-- https://stackoverflow.com/a/37843854 -->
-    <a href="../genindex.html">Index</a>
-    <!-- Include all versions of the docs -->
-    <!-- https://holzhaus.github.io/sphinx-multiversion/master/templates.html -->
-    
-    <p class="caption"><span class="caption-text">Versions</span></p>
-    <ul>
-      <li><a href="api.html">master</a></li>
-      <li><a href="../../0.2/reference/api.html">0.2</a></li>
-      <li><a href="../../0.1.1/reference/api.html">0.1.1</a></li>
-      <li><a href="../../0.1/reference/api.html">0.1</a></li>
-    </ul>
-    
-  
+  <!-- Include Index in the sidebar -->
+  <!-- https://stackoverflow.com/a/37843854 -->
+  <a href="../genindex.html">Index</a>
+  <!-- Add versions for selected branches + tags -->
+  <p class="caption"><span class="caption-text">Versions</span></p>
+  <ul id="versions"/>
+  <script>
+    // Add any branches to appear in the side pane here, tags will be added below
+    // Will only appear if docs are built and pushed in gh-pages
+    var versions = ['master', 'main'];
+    var dirs = new Set();
+    function addVersion(name) {
+      if (dirs.has(name)) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = 'https://dls-controls.github.io/scanspec/' + name;
+        a.innerText = name;
+        li.appendChild(a)
+        document.getElementById('versions').appendChild(li);
+      }
+    }
+    Promise.all([
+      // Find gh-pages directories and populate `dirs`
+      fetch("https://api.github.com/repos/dls-controls/scanspec/contents?ref=gh-pages")
+      .then(response => response.json())
+      .then(data => data.forEach(function(e) {
+        if (e.type == "dir") dirs.add(e.name);
+      })),
+      // Add tags to `versions`
+      fetch('https://api.github.com/repos/dls-controls/scanspec/tags')
+        .then(response => response.json())
+        .then(data => data.forEach(function(e) {
+          versions.push(e.name);
+        }))
+      ]).then(_ => versions.forEach(addVersion))
+  </script>
+
         </div>
         
       </div>
@@ -231,6 +253,7 @@ from code:</p>
 <li><p><a class="reference internal" href="#module-scanspec.specs" title="scanspec.specs"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">scanspec.specs</span></code></a>: <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a> and its subclasses</p></li>
 <li><p><a class="reference internal" href="#module-scanspec.regions" title="scanspec.regions"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">scanspec.regions</span></code></a>: <a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> and its subclasses</p></li>
 <li><p><a class="reference internal" href="#module-scanspec.plot" title="scanspec.plot"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">scanspec.plot</span></code></a>: <a class="reference internal" href="#scanspec.plot.plot_spec" title="scanspec.plot.plot_spec"><code class="xref any py py-func docutils literal notranslate"><span class="pre">plot_spec</span></code></a> to visualize a scan</p></li>
+<li><p><a class="reference internal" href="#module-scanspec.service" title="scanspec.service"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">scanspec.service</span></code></a>: Defines queries and field structure in graphQL such as <a class="reference internal" href="#scanspec.service.PointsResponse" title="scanspec.service.PointsResponse"><code class="xref any py py-class docutils literal notranslate"><span class="pre">PointsResponse</span></code></a></p></li>
 </ul>
 <div class="section" id="scanspec">
 <h2><code class="docutils literal notranslate"><span class="pre">scanspec</span></code><a class="headerlink" href="#scanspec" title="Permalink to this headline">¶</a></h2>
@@ -246,9 +269,9 @@ from code:</p>
 <dt id="scanspec.core.Serializable">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.core.</span></code><code class="sig-name descname"><span class="pre">Serializable</span></code><a class="reference internal" href="../_modules/scanspec/core.html#Serializable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Serializable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base class for registering apischema (de)serialization conversions.
-The conversion class variable of child classes holds the necessary information to
-(de)serialize grandchild classes. Each time a grandchild class is added
-conversion is updated to create a full TaggedUnion for the child class.</p>
+Each direct subclass will be registered for (de)serialization as a tagged union
+of its subclasses, using the pattern documented here:
+<a class="reference external" href="https://wyfo.github.io/apischema/examples/subclass_tagged_union/">https://wyfo.github.io/apischema/examples/subclass_tagged_union/</a></p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference external" href="https://github.com/wyfo/apischema/discussions/56#discussioncomment-336580">https://github.com/wyfo/apischema/discussions/56#discussioncomment-336580</a>
@@ -262,17 +285,17 @@ for discussion on tagged unions and alternative constructors</p>
 
 <dl class="py method">
 <dt id="scanspec.core.Serializable.deserialize">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">deserialize</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serialization</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.T" title="scanspec.core.T"><span class="pre">T</span></a><a class="reference internal" href="../_modules/scanspec/core.html#Serializable.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Serializable.deserialize" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">deserialize</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serialization</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.S" title="scanspec.core.S"><span class="pre">S</span></a><a class="reference internal" href="../_modules/scanspec/core.html#Serializable.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Serializable.deserialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Deserialize from a dictionary representation</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py data">
-<dt id="scanspec.core.T">
-<code class="sig-prename descclassname"><span class="pre">scanspec.core.</span></code><code class="sig-name descname"><span class="pre">T</span></code><a class="headerlink" href="#scanspec.core.T" title="Permalink to this definition">¶</a></dt>
-<dd><p>The type of class the function will return</p>
-<p>alias of TypeVar(‘T’)</p>
+<dt id="scanspec.core.S">
+<code class="sig-prename descclassname"><span class="pre">scanspec.core.</span></code><code class="sig-name descname"><span class="pre">S</span></code><a class="headerlink" href="#scanspec.core.S" title="Permalink to this definition">¶</a></dt>
+<dd><p>A subclass of Serializable</p>
+<p>alias of TypeVar(‘S’)</p>
 </dd></dl>
 
 <dl class="py data">
@@ -285,14 +308,14 @@ E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}</p>
 
 <dl class="py function">
 <dt id="scanspec.core.if_instance_do">
-<code class="sig-prename descclassname"><span class="pre">scanspec.core.</span></code><code class="sig-name descname"><span class="pre">if_instance_do</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.T" title="scanspec.core.T"><span class="pre">T</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.T" title="scanspec.core.T"><span class="pre">T</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#if_instance_do"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.if_instance_do" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">scanspec.core.</span></code><code class="sig-name descname"><span class="pre">if_instance_do</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#if_instance_do"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.if_instance_do" title="Permalink to this definition">¶</a></dt>
 <dd><p>If x is of type cls then return func(x), otherwise return NotImplemented.
 Used as a helper when implementing operator overloading</p>
 </dd></dl>
 
 <dl class="py class">
 <dt id="scanspec.core.Dimension">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.core.</span></code><code class="sig-name descname"><span class="pre">Dimension</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">midpoints</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snake</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#Dimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.core.</span></code><code class="sig-name descname"><span class="pre">Dimension</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">midpoints</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snake</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#Dimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A dimension is a repeatable, possibly snaking structure of frames along a
 number of axes.</p>
@@ -372,7 +395,7 @@ which will move during the scan</p>
 
 <dl class="py method">
 <dt id="scanspec.core.Dimension.mask">
-<code class="sig-name descname"><span class="pre">mask</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a><a class="reference internal" href="../_modules/scanspec/core.html#Dimension.mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension.mask" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">mask</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a><a class="reference internal" href="../_modules/scanspec/core.html#Dimension.mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension.mask" title="Permalink to this definition">¶</a></dt>
 <dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">midpoints</span>
 <span class="go">{&#39;x&#39;: array([1, 3])}</span>
@@ -612,7 +635,7 @@ inner will run in its entirety at each point in outer.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-1.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-1.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-1.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-1.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-1.py">Source code</a>, <a class="reference external" href="../reference/api-1.png">png</a>, <a class="reference external" href="../reference/api-1.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-1.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-1.png" class="plot-directive" src="../_images/api-1.png" />
 </div>
@@ -650,7 +673,7 @@ Dimensions [l2, l1+r1].</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-2.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-2.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-2.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-2.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-2.py">Source code</a>, <a class="reference external" href="../reference/api-2.png">png</a>, <a class="reference external" href="../reference/api-2.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-2.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-2.png" class="plot-directive" src="../_images/api-2.png" />
 </div>
@@ -690,7 +713,7 @@ together.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-3.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-3.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-3.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-3.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-3.py">Source code</a>, <a class="reference external" href="../reference/api-3.png">png</a>, <a class="reference external" href="../reference/api-3.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-3.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-3.png" class="plot-directive" src="../_images/api-3.png" />
 </div>
@@ -716,7 +739,7 @@ another Spec. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-4.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-4.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-4.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-4.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-4.py">Source code</a>, <a class="reference external" href="../reference/api-4.png">png</a>, <a class="reference external" href="../reference/api-4.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-4.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-4.png" class="plot-directive" src="../_images/api-4.png" />
 </div>
@@ -745,7 +768,7 @@ of left and right must contain the same axes.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-5.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-5.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-5.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-5.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-5.py">Source code</a>, <a class="reference external" href="../reference/api-5.png">png</a>, <a class="reference external" href="../reference/api-5.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-5.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-5.png" class="plot-directive" src="../_images/api-5.png" />
 </div>
@@ -778,7 +801,7 @@ linear stack.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-6.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-6.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-6.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-6.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-6.py">Source code</a>, <a class="reference external" href="../reference/api-6.png">png</a>, <a class="reference external" href="../reference/api-6.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-6.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-6.png" class="plot-directive" src="../_images/api-6.png" />
 </div>
@@ -809,7 +832,7 @@ centred on start and stop.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-7.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-7.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-7.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-7.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-7.py">Source code</a>, <a class="reference external" href="../reference/api-7.png">png</a>, <a class="reference external" href="../reference/api-7.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-7.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-7.png" class="plot-directive" src="../_images/api-7.png" />
 </div>
@@ -836,7 +859,7 @@ centred on start and stop.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-8.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-8.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-8.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-8.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-8.py">Source code</a>, <a class="reference external" href="../reference/api-8.png">png</a>, <a class="reference external" href="../reference/api-8.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-8.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-8.png" class="plot-directive" src="../_images/api-8.png" />
 </div>
@@ -868,10 +891,18 @@ be used to set axis=value at every point in a scan.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-9.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-9.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-9.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-9.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-9.py">Source code</a>, <a class="reference external" href="../reference/api-9.png">png</a>, <a class="reference external" href="../reference/api-9.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-9.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-9.png" class="plot-directive" src="../_images/api-9.png" />
 </div>
+<dl class="py method">
+<dt id="scanspec.specs.Static.duration">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">duration</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">scanspec.specs.Spec</span></a><a class="reference internal" href="../_modules/scanspec/specs.html#Static.duration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Static.duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>A static spec with no motion, only a duration repeated “num” times
+:param duration: The duration of each static point
+:param num: Number of points to produce with given duration</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -904,7 +935,7 @@ in a spiral spanning width of “x_range” and height of “y_range”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-10.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-10.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-10.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-10.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-10.py">Source code</a>, <a class="reference external" href="../reference/api-10.png">png</a>, <a class="reference external" href="../reference/api-10.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-10.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-10.png" class="plot-directive" src="../_images/api-10.png" />
 </div>
@@ -935,17 +966,17 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-11.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-11.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-11.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-11.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-11.py">Source code</a>, <a class="reference external" href="../reference/api-11.png">png</a>, <a class="reference external" href="../reference/api-11.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-11.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-111.png" class="plot-directive" src="../_images/api-111.png" />
+<img alt="../_images/api-11.png" class="plot-directive" src="../_images/api-11.png" />
 </div>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py data">
-<dt id="scanspec.specs.TIME">
-<code class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></code><code class="sig-name descname"><span class="pre">TIME</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'TIME'</span></em><a class="headerlink" href="#scanspec.specs.TIME" title="Permalink to this definition">¶</a></dt>
+<dt id="scanspec.specs.DURATION">
+<code class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></code><code class="sig-name descname"><span class="pre">DURATION</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'DURATION'</span></em><a class="headerlink" href="#scanspec.specs.DURATION" title="Permalink to this definition">¶</a></dt>
 <dd><p>Can be used as a special key to indicate how long each point should be</p>
 </dd></dl>
 
@@ -976,7 +1007,7 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-12.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-12.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-12.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-12.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-12.py">Source code</a>, <a class="reference external" href="../reference/api-12.png">png</a>, <a class="reference external" href="../reference/api-12.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-12.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-12.png" class="plot-directive" src="../_images/api-12.png" />
 </div>
@@ -984,7 +1015,7 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 
 <dl class="py function">
 <dt id="scanspec.specs.step">
-<code class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></code><code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">scanspec.specs.Spec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.step" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></code><code class="sig-name descname"><span class="pre">step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">scanspec.specs.Spec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">scanspec.specs.Spec</span></a><a class="reference internal" href="../_modules/scanspec/specs.html#step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Step scan, adding num x TIME=duration as an inner dimension for
 every midpoint</p>
 <dl class="field-list simple">
@@ -1006,7 +1037,7 @@ in the spec</p></li>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-13.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-13.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-13.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-13.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-13.py">Source code</a>, <a class="reference external" href="../reference/api-13.png">png</a>, <a class="reference external" href="../reference/api-13.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-13.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-13.png" class="plot-directive" src="../_images/api-13.png" />
 </div>
@@ -1014,7 +1045,7 @@ in the spec</p></li>
 
 <dl class="py function">
 <dt id="scanspec.specs.repeat">
-<code class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></code><code class="sig-name descname"><span class="pre">repeat</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">scanspec.specs.Spec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">blend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#repeat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.repeat" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></code><code class="sig-name descname"><span class="pre">repeat</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">scanspec.specs.Spec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">blend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">scanspec.specs.Spec</span></a><a class="reference internal" href="../_modules/scanspec/specs.html#repeat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.repeat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Repeat spec num times</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1032,7 +1063,7 @@ blended together, leaving no gap</p></li>
 </div>
 <span class="target" id="module-scanspec.regions"></span><div class="section" id="scanspec-regions">
 <h3><code class="docutils literal notranslate"><span class="pre">scanspec.regions</span></code><a class="headerlink" href="#scanspec-regions" title="Permalink to this headline">¶</a></h3>
-<div class="graphviz"><object data="../_images/inheritance-6da02478d03e29395b7959abd9819bbfea7e9846.svg" type="image/svg+xml" class="inheritance graphviz">
+<div class="graphviz"><object data="../_images/inheritance-ddb337915f1e3765081b67a43f67d69e35e54171.svg" type="image/svg+xml" class="inheritance graphviz">
 <p class="warning">Inheritance diagram of scanspec.regions</p></object></div>
 <dl class="py class">
 <dt id="scanspec.regions.Region">
@@ -1054,7 +1085,7 @@ this region spans</p>
 
 <dl class="py method">
 <dt id="scanspec.regions.Region.mask">
-<code class="sig-name descname"><span class="pre">mask</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a><a class="reference internal" href="../_modules/scanspec/regions.html#Region.mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.regions.Region.mask" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">mask</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><a class="reference internal" href="../_modules/scanspec/regions.html#Region.mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.regions.Region.mask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implemented by subclasses to produce a mask of which points are in
 the region</p>
 </dd></dl>
@@ -1063,7 +1094,7 @@ the region</p>
 
 <dl class="py function">
 <dt id="scanspec.regions.get_mask">
-<code class="sig-prename descclassname"><span class="pre">scanspec.regions.</span></code><code class="sig-name descname"><span class="pre">get_mask</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><span class="pre">scanspec.regions.Region</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a><a class="reference internal" href="../_modules/scanspec/regions.html#get_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.regions.get_mask" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">scanspec.regions.</span></code><code class="sig-name descname"><span class="pre">get_mask</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><span class="pre">scanspec.regions.Region</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><a class="reference internal" href="../_modules/scanspec/regions.html#get_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.regions.get_mask" title="Permalink to this definition">¶</a></dt>
 <dd><p>If there is an overlap of axes of region and frames return a
 mask of the frames in the region, otherwise return all ones</p>
 </dd></dl>
@@ -1192,50 +1223,65 @@ but not both. Typically created with the <code class="docutils literal notransla
 <dt id="scanspec.regions.Rectangle">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.regions.</span></code><code class="sig-name descname"><span class="pre">Rectangle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/regions.html#Rectangle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.regions.Rectangle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.regions.Region</span></code></a></p>
-<p>Mask contains points of axis within a rotated xy rectangle</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>x_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name matching the x axis of the spec</p></li>
-<li><p><strong>y_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name matching the y axis of the spec</p></li>
-<li><p><strong>x_min</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Minimum inclusive x value in the region</p></li>
-<li><p><strong>y_min</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Minimum inclusive y value in the region</p></li>
-<li><p><strong>x_max</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Maximum inclusive x value in the region</p></li>
-<li><p><strong>y_max</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Maximum inclusive y value in the region</p></li>
-<li><p><strong>angle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Clockwise rotation angle of the rectangle</p></li>
-</ul>
-</dd>
-</dl>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
-
-<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
-<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Rectangle</span>
-
-<span class="n">grid</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-<span class="n">spec</span> <span class="o">=</span> <span class="n">grid</span> <span class="o">&amp;</span> <span class="n">Rectangle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
-<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+<p>Mask contains points of axis within a rotated xy rectangle
+.. example_spec:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">:</span><span class="n">param</span> <span class="nb">str</span> <span class="n">x_axis</span><span class="p">:</span> <span class="n">The</span> <span class="n">name</span> <span class="n">matching</span> <span class="n">the</span> <span class="n">x</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">the</span> <span class="n">spec</span>
+<span class="p">:</span><span class="n">param</span> <span class="nb">str</span> <span class="n">y_axis</span><span class="p">:</span> <span class="n">The</span> <span class="n">name</span> <span class="n">matching</span> <span class="n">the</span> <span class="n">y</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">the</span> <span class="n">spec</span>
+<span class="p">:</span><span class="n">param</span> <span class="nb">float</span> <span class="n">x_min</span><span class="p">:</span> <span class="n">Minimum</span> <span class="n">inclusive</span> <span class="n">x</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">region</span>
+<span class="p">:</span><span class="n">param</span> <span class="nb">float</span> <span class="n">y_min</span><span class="p">:</span> <span class="n">Minimum</span> <span class="n">inclusive</span> <span class="n">y</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">region</span>
+<span class="p">:</span><span class="n">param</span> <span class="nb">float</span> <span class="n">x_max</span><span class="p">:</span> <span class="n">Maximum</span> <span class="n">inclusive</span> <span class="n">x</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">region</span>
+<span class="p">:</span><span class="n">param</span> <span class="nb">float</span> <span class="n">y_max</span><span class="p">:</span> <span class="n">Maximum</span> <span class="n">inclusive</span> <span class="n">y</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">region</span>
+<span class="p">:</span><span class="n">param</span> <span class="nb">float</span> <span class="n">angle</span><span class="p">:</span> <span class="n">Clockwise</span> <span class="n">rotation</span> <span class="n">angle</span> <span class="n">of</span> <span class="n">the</span> <span class="n">rectangle</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-14.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-14.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-14.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-14.pdf">pdf</a>)</p>
-<div class="figure align-default">
-<img alt="../_images/api-14.png" class="plot-directive" src="../_images/api-14.png" />
+<blockquote>
+<div><p>from scanspec.specs import Line
+from scanspec.regions import Rectangle
+grid = Line(“y”, 1, 3, 10) * ~Line(“x”, 0, 2, 10)
+spec = grid &amp; Rectangle(“x”, “y”, 0, 1.1, 1.5, 2.1, 30)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py class">
+<dt id="scanspec.regions.Polygon">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.regions.</span></code><code class="sig-name descname"><span class="pre">Polygon</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_verts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_verts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/regions.html#Polygon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.regions.Polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.regions.Region</span></code></a></p>
+<p>Mask contains points of axis within a rotated xy polygon
+.. example_spec:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">:</span><span class="n">param</span> <span class="nb">str</span> <span class="n">x_axis</span><span class="p">:</span> <span class="n">The</span> <span class="n">name</span> <span class="n">matching</span> <span class="n">the</span> <span class="n">x</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">the</span> <span class="n">spec</span>
+<span class="p">:</span><span class="n">param</span> <span class="nb">str</span> <span class="n">y_axis</span><span class="p">:</span> <span class="n">The</span> <span class="n">name</span> <span class="n">matching</span> <span class="n">the</span> <span class="n">y</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">the</span> <span class="n">spec</span>
+<span class="p">:</span><span class="n">param</span> <span class="n">List</span> <span class="n">x_verts</span><span class="p">:</span> <span class="n">The</span> <span class="n">Nx1</span> <span class="n">x</span> <span class="n">coordinates</span> <span class="n">of</span> <span class="n">the</span> <span class="n">polygons</span> <span class="n">vertices</span> <span class="o">-</span> <span class="n">minLength</span><span class="p">:</span> <span class="mi">3</span>
+<span class="p">:</span><span class="n">param</span> <span class="n">List</span> <span class="n">y_verts</span><span class="p">:</span> <span class="n">The</span> <span class="n">Nx1</span> <span class="n">y</span> <span class="n">coordinates</span> <span class="n">of</span> <span class="n">the</span> <span class="n">polygons</span> <span class="n">vertices</span> <span class="o">-</span> <span class="n">minLength</span><span class="p">:</span> <span class="mi">3</span>
+</pre></div>
 </div>
+<blockquote>
+<div><p>from scanspec.plot import plot_spec
+from scanspec.specs import Line
+from scanspec.regions import Polygon</p>
+<p>#Polygon parameters
+x_axis = “x”
+y_axis = “y”
+x_verts = [1.0, 6.0, 8.0, 2.0]
+y_verts = [4.0, 10.0, 6.0, 1.0]</p>
+<p>grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)
+spec = grid &amp; Polygon(x_axis, y_axis, x_verts, y_verts)
+plot_spec(spec)</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="py class">
 <dt id="scanspec.regions.Circle">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.regions.</span></code><code class="sig-name descname"><span class="pre">Circle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_centre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_centre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/regions.html#Circle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.regions.Circle" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.regions.</span></code><code class="sig-name descname"><span class="pre">Circle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_middle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_middle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/regions.html#Circle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.regions.Circle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.regions.Region</span></code></a></p>
 <p>Mask contains points of axis within an xy circle of given radius</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name matching the x axis of the spec</p></li>
-<li><p><strong>y_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name matching the x axis of the spec</p></li>
-<li><p><strong>x_centre</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Minimum inclusive x value in the region</p></li>
-<li><p><strong>y_centre</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Minimum inclusive y value in the region</p></li>
-<li><p><strong>radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Radius of the circle</p></li>
+<li><p><strong>y_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name matching the y axis of the spec</p></li>
+<li><p><strong>x_middle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The central x point of the circle</p></li>
+<li><p><strong>y_middle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The central y point of the circle</p></li>
+<li><p><strong>radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Radius of the circle - exclusiveMinimum: 0</p></li>
 </ul>
 </dd>
 </dl>
@@ -1250,9 +1296,61 @@ but not both. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-15.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-15.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-15.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-15.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-14.py">Source code</a>, <a class="reference external" href="../reference/api-14.png">png</a>, <a class="reference external" href="../reference/api-14.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-14.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-15.png" class="plot-directive" src="../_images/api-15.png" />
+<img alt="../_images/api-14.png" class="plot-directive" src="../_images/api-14.png" />
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="scanspec.regions.Ellipse">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.regions.</span></code><code class="sig-name descname"><span class="pre">Ellipse</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_middle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_middle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/regions.html#Ellipse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.regions.Ellipse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.regions.Region</span></code></a></p>
+<p>Mask contains points of axis within an xy ellipse of given radius</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name matching the x axis of the spec</p></li>
+<li><p><strong>y_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name matching the y axis of the spec</p></li>
+<li><p><strong>x_middle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The central x point of the ellipse</p></li>
+<li><p><strong>y_middle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The central y point of the ellipse</p></li>
+<li><p><strong>x_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The radius along the x axis of the ellipse - exclusiveMinimum: 0</p></li>
+<li><p><strong>y_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The radius along the y axis of the ellipse - exclusiveMinimum: 0</p></li>
+<li><p><strong>angle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The angle of the ellipse (degrees)</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
+
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Ellipse</span>
+
+<span class="c1">#Ellipse parameters</span>
+<span class="n">x_axis</span> <span class="o">=</span> <span class="s2">&quot;x&quot;</span>
+<span class="n">y_axis</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span>
+<span class="n">x_middle</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">y_middle</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">x_radius</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">y_radius</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">angle</span> <span class="o">=</span> <span class="mi">75</span>
+
+<span class="n">grid</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">y_axis</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="n">x_axis</span><span class="p">,</span> <span class="mi">1</span> <span class="p">,</span><span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">grid</span> <span class="o">&amp;</span> <span class="n">Ellipse</span><span class="p">(</span><span class="n">x_axis</span><span class="p">,</span> <span class="n">y_axis</span><span class="p">,</span> <span class="n">x_middle</span><span class="p">,</span> <span class="n">y_middle</span><span class="p">,</span> <span class="n">x_radius</span><span class="p">,</span>
+<span class="n">y_radius</span><span class="p">,</span> <span class="n">angle</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../reference/api-15.py">Source code</a>)</p>
+<div class="figure align-default" id="id2">
+<img alt="../_images/api-15_00.png" class="plot-directive" src="../_images/api-15_00.png" />
+<p class="caption"><span class="caption-text">(<a class="reference external" href="../reference/api-15_00.png">png</a>, <a class="reference external" href="../reference/api-15_00.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-15_00.pdf">pdf</a>)</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+<div class="figure align-default" id="id3">
+<img alt="../_images/api-15_01.png" class="plot-directive" src="../_images/api-15_01.png" />
+<p class="caption"><span class="caption-text">(<a class="reference external" href="../reference/api-15_01.png">png</a>, <a class="reference external" href="../reference/api-15_01.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-15_01.pdf">pdf</a>)</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
 </dd></dl>
 
@@ -1284,10 +1382,182 @@ scan is 2D then 2D regions are shown in black.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-16.py">Source code</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-16.png">png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-16.hires.png">hires.png</a>, <a class="reference external" href="../../../../../home/runner/work/scanspec/scanspec/docs/../../../../../../tmp/tmpneelcrvb/1b404b1346bca2ea25fd5b07c1c730b1961d6357/docs/reference/api-16.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-16.py">Source code</a>, <a class="reference external" href="../reference/api-16.png">png</a>, <a class="reference external" href="../reference/api-16.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-16.pdf">pdf</a>)</p>
 <div class="figure align-default">
 <img alt="../_images/api-16.png" class="plot-directive" src="../_images/api-16.png" />
 </div>
+</dd></dl>
+
+</div>
+<span class="target" id="module-scanspec.service"></span><div class="section" id="scanspec-service">
+<h3><code class="docutils literal notranslate"><span class="pre">scanspec.service</span></code><a class="headerlink" href="#scanspec-service" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="scanspec.service.Points">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.service.</span></code><code class="sig-name descname"><span class="pre">Points</span></code><a class="reference internal" href="../_modules/scanspec/service.html#Points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.Points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A collection of singular or multidimensional locations in scan space</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="scanspec.service.AxisFrames">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.service.</span></code><code class="sig-name descname"><span class="pre">AxisFrames</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">midpoints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/service.html#AxisFrames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.AxisFrames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A collection of frames (comprising midpoints with lower and upper bounds)
+present in each axis of the Spec</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
+<li><p><strong>lower</strong> (<a class="reference internal" href="#scanspec.service.Points" title="scanspec.service.Points"><em>Points</em></a>) – </p></li>
+<li><p><strong>midpoints</strong> (<a class="reference internal" href="#scanspec.service.Points" title="scanspec.service.Points"><em>Points</em></a>) – </p></li>
+<li><p><strong>upper</strong> (<a class="reference internal" href="#scanspec.service.Points" title="scanspec.service.Points"><em>Points</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="scanspec.service.AxisFrames.axis">
+<code class="sig-name descname"><span class="pre">axis</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><a class="headerlink" href="#scanspec.service.AxisFrames.axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>A fixed reference that can be scanned. i.e. a motor, time or
+number of repetitions.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="scanspec.service.AxisFrames.lower">
+<code class="sig-name descname"><span class="pre">lower</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="#scanspec.service.Points" title="scanspec.service.Points"><span class="pre">scanspec.service.Points</span></a></em><a class="headerlink" href="#scanspec.service.AxisFrames.lower" title="Permalink to this definition">¶</a></dt>
+<dd><p>The lower bounds of each frame (used when fly scanning)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="scanspec.service.AxisFrames.midpoints">
+<code class="sig-name descname"><span class="pre">midpoints</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="#scanspec.service.Points" title="scanspec.service.Points"><span class="pre">scanspec.service.Points</span></a></em><a class="headerlink" href="#scanspec.service.AxisFrames.midpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>The midpoints of each frame</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="scanspec.service.AxisFrames.upper">
+<code class="sig-name descname"><span class="pre">upper</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="#scanspec.service.Points" title="scanspec.service.Points"><span class="pre">scanspec.service.Points</span></a></em><a class="headerlink" href="#scanspec.service.AxisFrames.upper" title="Permalink to this definition">¶</a></dt>
+<dd><p>The upper bounds of each frame (used when fly scanning)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="scanspec.service.AxisFrames.smallest_step">
+<code class="sig-name descname"><span class="pre">smallest_step</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><a class="reference internal" href="../_modules/scanspec/service.html#AxisFrames.smallest_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.AxisFrames.smallest_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>The smallest step between midpoints in this axis</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="scanspec.service.PointsResponse">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.service.</span></code><code class="sig-name descname"><span class="pre">PointsResponse</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total_frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">returned_frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/service.html#PointsResponse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.PointsResponse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>The highest level of the getPoints query, allowing users to customise their
+return data from the points present in the scan to some metadata about them</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>total_frames</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+<li><p><strong>returned_frames</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="scanspec.service.PointsResponse.total_frames">
+<code class="sig-name descname"><span class="pre">total_frames</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><a class="headerlink" href="#scanspec.service.PointsResponse.total_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of frames present across the entire spec</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="scanspec.service.PointsResponse.returned_frames">
+<code class="sig-name descname"><span class="pre">returned_frames</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><a class="headerlink" href="#scanspec.service.PointsResponse.returned_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of frames returned by the getPoints query
+(controlled by the max_points argument)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="scanspec.service.PointsResponse.axes">
+<code class="sig-name descname"><span class="pre">axes</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.service.AxisFrames" title="scanspec.service.AxisFrames"><span class="pre">scanspec.service.AxisFrames</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../_modules/scanspec/service.html#PointsResponse.axes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.PointsResponse.axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of all of the points present in the spec per axis</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="scanspec.service.PointsResponse.smallest_abs_step">
+<code class="sig-name descname"><span class="pre">smallest_abs_step</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><a class="reference internal" href="../_modules/scanspec/service.html#PointsResponse.smallest_abs_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.PointsResponse.smallest_abs_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>The smallest step between midpoints across ALL axes in the scan</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="scanspec.service.validate_spec">
+<code class="sig-prename descclassname"><span class="pre">scanspec.service.</span></code><code class="sig-name descname"><span class="pre">validate_spec</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">scanspec.specs.Spec</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Any</span><a class="reference internal" href="../_modules/scanspec/service.html#validate_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.validate_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>A query used to confirm whether or not the Spec will produce a viable scan</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="scanspec.service.get_points">
+<code class="sig-prename descclassname"><span class="pre">scanspec.service.</span></code><code class="sig-name descname"><span class="pre">get_points</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">scanspec.specs.Spec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_frames</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">100000</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.service.PointsResponse" title="scanspec.service.PointsResponse"><span class="pre">scanspec.service.PointsResponse</span></a><a class="reference internal" href="../_modules/scanspec/service.html#get_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.get_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>A query that takes a Spec and calculates the points present in the scan
+(for each axis) plus some metadata about the points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>[</strong><strong>spec</strong><strong>]</strong> – [The specification of the scan]</p></li>
+<li><p><strong>[</strong><strong>max_frames</strong><strong>]</strong> – [The maximum number of frames the user wishes to receive]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>[A dataclass containing information about the scan points</dt><dd><p>present in the spec]</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>[<a class="reference internal" href="#scanspec.service.PointsResponse" title="scanspec.service.PointsResponse">PointsResponse</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="scanspec.service.reduce_frames">
+<code class="sig-prename descclassname"><span class="pre">scanspec.service.</span></code><code class="sig-name descname"><span class="pre">reduce_frames</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_frames</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Path" title="scanspec.core.Path"><span class="pre">scanspec.core.Path</span></a><a class="reference internal" href="../_modules/scanspec/service.html#reduce_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.reduce_frames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes frames from a spec such that it produces a number that is
+closest to the max points value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dims</strong> (<em>List</em><em>[</em><a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><em>Dimension</em></a><em>]</em>) – A dimension object created by a spec</p></li>
+<li><p><strong>max_frames</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The maximum number of frames the user wishes to be returned</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A consumable object containing the expanded dimension with reduced frames</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#scanspec.core.Path" title="scanspec.core.Path">Path</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="scanspec.service.sub_sample">
+<code class="sig-prename descclassname"><span class="pre">scanspec.service.</span></code><code class="sig-name descname"><span class="pre">sub_sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a><a class="reference internal" href="../_modules/scanspec/service.html#sub_sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.sub_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes frames from a dimension whilst preserving its core structure</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dim</strong> (<a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><em>Dimension</em></a>) – the dimension object to be reduced</p></li>
+<li><p><strong>ratio</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – the reduction ratio of the dimension</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the reduced dimension</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension">Dimension</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

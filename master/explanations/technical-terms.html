@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
@@ -8,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>technical terms &mdash; scanspec 0.0+untagged.g1b404b1 documentation</title>
+  <title>Technical Terms &mdash; scanspec 0.3+30.g2714ace documentation</title>
   
 
   
@@ -97,13 +96,13 @@
         
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-    <style>
-      /* style mobile top nav to look like main nav */
-      .wy-nav-top {
-          background: rgb(7, 43, 93)
-      }
-    </style>
-    
+  <style>
+    /* style mobile top nav to look like main nav */
+    .wy-nav-top {
+        background: rgb(7, 43, 93)
+    }
+  </style>
+  
             
             
               
@@ -122,7 +121,14 @@
 </ul>
 <p class="caption"><span class="caption-text">Explanations</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">technical terms</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Technical Terms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#axis">Axis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dimension">Dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#frame">Frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#path">Path</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#point">Point</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="what-are-dimensions.html">What are Dimensions?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
 </ul>
@@ -135,21 +141,43 @@
 
             
           
-    <!-- Include Index in the sidebar -->
-    <!-- https://stackoverflow.com/a/37843854 -->
-    <a href="../genindex.html">Index</a>
-    <!-- Include all versions of the docs -->
-    <!-- https://holzhaus.github.io/sphinx-multiversion/master/templates.html -->
-    
-    <p class="caption"><span class="caption-text">Versions</span></p>
-    <ul>
-      <li><a href="technical-terms.html">master</a></li>
-      <li><a href="../../0.2/index.html">0.2</a></li>
-      <li><a href="../../0.1.1/index.html">0.1.1</a></li>
-      <li><a href="../../0.1/index.html">0.1</a></li>
-    </ul>
-    
-  
+  <!-- Include Index in the sidebar -->
+  <!-- https://stackoverflow.com/a/37843854 -->
+  <a href="../genindex.html">Index</a>
+  <!-- Add versions for selected branches + tags -->
+  <p class="caption"><span class="caption-text">Versions</span></p>
+  <ul id="versions"/>
+  <script>
+    // Add any branches to appear in the side pane here, tags will be added below
+    // Will only appear if docs are built and pushed in gh-pages
+    var versions = ['master', 'main'];
+    var dirs = new Set();
+    function addVersion(name) {
+      if (dirs.has(name)) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = 'https://dls-controls.github.io/scanspec/' + name;
+        a.innerText = name;
+        li.appendChild(a)
+        document.getElementById('versions').appendChild(li);
+      }
+    }
+    Promise.all([
+      // Find gh-pages directories and populate `dirs`
+      fetch("https://api.github.com/repos/dls-controls/scanspec/contents?ref=gh-pages")
+      .then(response => response.json())
+      .then(data => data.forEach(function(e) {
+        if (e.type == "dir") dirs.add(e.name);
+      })),
+      // Add tags to `versions`
+      fetch('https://api.github.com/repos/dls-controls/scanspec/tags')
+        .then(response => response.json())
+        .then(data => data.forEach(function(e) {
+          versions.push(e.name);
+        }))
+      ]).then(_ => versions.forEach(addVersion))
+  </script>
+
         </div>
         
       </div>
@@ -194,7 +222,7 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>technical terms</li>
+      <li>Technical Terms</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -213,45 +241,48 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <span class="target" id="technical-terms"></span><dl class="py class">
-<dt id="scanspec.service.Points">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.service.</span></code><code class="sig-name descname"><span class="pre">Points</span></code><a class="reference internal" href="../_modules/scanspec/service.html#Points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.Points" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>A collection of singular or multidimensional locations in scan space</p>
-</dd></dl>
-
-<dl class="py class">
-<dt id="scanspec.service.AxisFrames">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.service.</span></code><code class="sig-name descname"><span class="pre">AxisFrames</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">midpoints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/service.html#AxisFrames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.AxisFrames" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>A collection of frames (comprising midpoints with lower and upper bounds)
-present in each axis of the Spec</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – </p></li>
-<li><p><strong>lower</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a>) – </p></li>
-<li><p><strong>midpoints</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a>) – </p></li>
-<li><p><strong>upper</strong> (<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><em>None</em></a>) – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<div class="section" id="id1">
-<h1>technical terms<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
-<p><a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.axes" title="scanspec.specs.Spec.axes"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Axis</span></code></a>: A fixed reference that can be scanned.
-i.e. a motor, time or number of repetitions.</p>
-<p><a class="reference internal" href="../reference/api.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a>: A repeatable, possibly snaking
-structure of frames along a number of axes.</p>
-<p><a class="reference internal" href="#scanspec.service.AxisFrames" title="scanspec.service.AxisFrames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frame</span></code></a>: A vector of three points in scan space:
-lower, midpoint, upper (used for fly scanning).</p>
-<p><a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>: A consumable route through one or more
-dimensions.</p>
-<p><a class="reference internal" href="../reference/api.html#scanspec.core.AxesPoints" title="scanspec.core.AxesPoints"><code class="xref any py py-data docutils literal notranslate"><span class="pre">Point</span></code></a>: A single or multidimensional location
-in scan space.</p>
-<p><a class="reference internal" href="../reference/api.html#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a>: A serializable representation of the type,
-parameters and axis names required to produce one or more dimensions.</p>
+  <div class="section" id="technical-terms">
+<h1>Technical Terms<a class="headerlink" href="#technical-terms" title="Permalink to this headline">¶</a></h1>
+<p>This page draws together some of the technical terms used throughout
+the documentation. Consider a 1D line scan:</p>
+<img alt="../_images/definitions.png" src="../_images/definitions.png" />
+<div class="section" id="axis">
+<span id="id1"></span><h2>Axis<a class="headerlink" href="#axis" title="Permalink to this headline">¶</a></h2>
+<p>A fixed reference that can be scanned, i.e. a motor or the <a class="reference internal" href="#frame"><span class="std std-ref">Frame</span></a> duration.
+In the diagram above, the Axis is <code class="docutils literal notranslate"><span class="pre">x</span></code>. <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.axes" title="scanspec.specs.Spec.axes"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.axes</span></code></a> will return
+the Axes that should be scanned for a given Spec.</p>
+</div>
+<div class="section" id="dimension">
+<span id="id2"></span><h2>Dimension<a class="headerlink" href="#dimension" title="Permalink to this headline">¶</a></h2>
+<p>A repeatable, possibly snaking, series of <a class="reference internal" href="#frame"><span class="std std-ref">Frames</span></a> along a number of
+<a class="reference internal" href="#axis"><span class="std std-ref">Axes</span></a>. In the diagram above, the whole Line produces a single Dimension.
+A stack of <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a> instances are produced by <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.create_dimensions" title="scanspec.specs.Spec.create_dimensions"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.create_dimensions</span></code></a>.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="what-are-dimensions.html"><span class="doc">What are Dimensions?</span></a></p>
+</div>
+</div>
+<div class="section" id="frame">
+<span id="id3"></span><h2>Frame<a class="headerlink" href="#frame" title="Permalink to this headline">¶</a></h2>
+<p>A vector of three <a class="reference internal" href="#point"><span class="std std-ref">Points</span></a> in scan space: lower, midpoint, upper. They
+describe the trajectory that should be taken while a detector is active while
+fly scanning. In the diagram above each Frame is denoted by a different coloured
+section.</p>
+</div>
+<div class="section" id="path">
+<span id="id4"></span><h2>Path<a class="headerlink" href="#path" title="Permalink to this headline">¶</a></h2>
+<p>A consumable route through one or more <a class="reference internal" href="#dimension"><span class="std std-ref">Dimensions</span></a>. If the Line in
+the above diagram was stacked within another line of length 5, then the Path
+would contain 15 <a class="reference internal" href="#frame"><span class="std std-ref">Frames</span></a>. A <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> is produced from <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.path" title="scanspec.specs.Spec.path"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.path</span></code></a> or
+can be created from a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref any docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a> objects.</p>
+</div>
+<div class="section" id="point">
+<span id="id5"></span><h2>Point<a class="headerlink" href="#point" title="Permalink to this headline">¶</a></h2>
+<p>A single or multidimensional location in scan space. In the diagram above,
+each <a class="reference internal" href="#frame"><span class="std std-ref">Frame</span></a> is made up of lower, midpoint and upper Points. Arrays of
+these are available as <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension.lower" title="scanspec.core.Dimension.lower"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Dimension.lower</span></code></a>, <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension.midpoints" title="scanspec.core.Dimension.midpoints"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Dimension.midpoints</span></code></a> and
+<a class="reference internal" href="../reference/api.html#scanspec.core.Dimension.upper" title="scanspec.core.Dimension.upper"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Dimension.upper</span></code></a>.</p>
+</div>
 </div>
 
 

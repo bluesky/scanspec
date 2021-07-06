@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
@@ -8,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec &mdash; scanspec 0.0+untagged.g1b404b1 documentation</title>
+  <title>scanspec &mdash; scanspec 0.3+30.g2714ace documentation</title>
   
 
   
@@ -96,13 +95,13 @@
         
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-    <style>
-      /* style mobile top nav to look like main nav */
-      .wy-nav-top {
-          background: rgb(7, 43, 93)
-      }
-    </style>
-    
+  <style>
+    /* style mobile top nav to look like main nav */
+    .wy-nav-top {
+        background: rgb(7, 43, 93)
+    }
+  </style>
+  
             
             
               
@@ -121,7 +120,7 @@
 </ul>
 <p class="caption"><span class="caption-text">Explanations</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="explanations/technical-terms.html">technical terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="explanations/technical-terms.html">Technical Terms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="explanations/what-are-dimensions.html">What are Dimensions?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
 </ul>
@@ -134,21 +133,43 @@
 
             
           
-    <!-- Include Index in the sidebar -->
-    <!-- https://stackoverflow.com/a/37843854 -->
-    <a href="genindex.html">Index</a>
-    <!-- Include all versions of the docs -->
-    <!-- https://holzhaus.github.io/sphinx-multiversion/master/templates.html -->
-    
-    <p class="caption"><span class="caption-text">Versions</span></p>
-    <ul>
-      <li><a href="index.html">master</a></li>
-      <li><a href="../0.2/index.html">0.2</a></li>
-      <li><a href="../0.1.1/index.html">0.1.1</a></li>
-      <li><a href="../0.1/index.html">0.1</a></li>
-    </ul>
-    
-  
+  <!-- Include Index in the sidebar -->
+  <!-- https://stackoverflow.com/a/37843854 -->
+  <a href="genindex.html">Index</a>
+  <!-- Add versions for selected branches + tags -->
+  <p class="caption"><span class="caption-text">Versions</span></p>
+  <ul id="versions"/>
+  <script>
+    // Add any branches to appear in the side pane here, tags will be added below
+    // Will only appear if docs are built and pushed in gh-pages
+    var versions = ['master', 'main'];
+    var dirs = new Set();
+    function addVersion(name) {
+      if (dirs.has(name)) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = 'https://dls-controls.github.io/scanspec/' + name;
+        a.innerText = name;
+        li.appendChild(a)
+        document.getElementById('versions').appendChild(li);
+      }
+    }
+    Promise.all([
+      // Find gh-pages directories and populate `dirs`
+      fetch("https://api.github.com/repos/dls-controls/scanspec/contents?ref=gh-pages")
+      .then(response => response.json())
+      .then(data => data.forEach(function(e) {
+        if (e.type == "dir") dirs.add(e.name);
+      })),
+      // Add tags to `versions`
+      fetch('https://api.github.com/repos/dls-controls/scanspec/tags')
+        .then(response => response.json())
+        .then(data => data.forEach(function(e) {
+          versions.push(e.name);
+        }))
+      ]).then(_ => versions.forEach(addVersion))
+  </script>
+
         </div>
         
       </div>
@@ -274,59 +295,34 @@ can be produced and expanded Paths created to consume chunk by chunk.</p>
 </div>
 <div class="section" id="how-the-documentation-is-structured">
 <h2>How the documentation is structured<a class="headerlink" href="#how-the-documentation-is-structured" title="Permalink to this headline">¶</a></h2>
+<p>Documentation is split into four categories, accessible from links in the side-bar.</p>
 <div class="columns section" id="tutorials">
-<h3><a class="reference internal" href="#id1"><span class="std std-ref">Tutorials</span></a><a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h3>
+<h3>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h3>
 <p>Tutorials for installation, library and commandline usage. New users start here.</p>
+<div class="toctree-wrapper compound">
 </div>
-<div class="columns section" id="how-to">
-<h3><a class="reference internal" href="#id2"><span class="std std-ref">How-to Guides</span></a><a class="headerlink" href="#how-to" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="columns section" id="how-to-guides">
+<h3>How-to Guides<a class="headerlink" href="#how-to-guides" title="Permalink to this headline">¶</a></h3>
 <p>Practical step-by-step guides for the more experienced user.</p>
+<div class="toctree-wrapper compound">
+</div>
 </div>
 <div class="columns section" id="explanations">
-<h3><a class="reference internal" href="#id3"><span class="std std-ref">Explanations</span></a><a class="headerlink" href="#explanations" title="Permalink to this headline">¶</a></h3>
+<h3>Explanations<a class="headerlink" href="#explanations" title="Permalink to this headline">¶</a></h3>
 <p>Explanation of how the library works and why it works that way.</p>
+<div class="toctree-wrapper compound">
+</div>
 </div>
 <div class="columns section" id="reference">
-<h3><a class="reference internal" href="#id4"><span class="std std-ref">Reference</span></a><a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h3>
+<h3>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h3>
 <p>Technical reference material, for classes, methods, APIs, commands, and contributing to the project.</p>
+<div class="toctree-wrapper compound">
+</div>
 </div>
 <div class="endcolumns section" id="about-the-documentation">
 <h3>About the documentation<a class="headerlink" href="#about-the-documentation" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference external" href="https://documentation.divio.com">Why is the documentation structured this way?</a></p>
-<div class="toctree-wrapper compound" id="id1">
-<p class="caption"><span class="caption-text">Tutorials</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/installation.html">Installation Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/graphql-service.html">Running a GraphQL service for generating points</a></li>
-</ul>
-</div>
-<div class="toctree-wrapper compound" id="id2">
-<p class="caption"><span class="caption-text">How-to Guides</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
-<li class="toctree-l1"><a class="reference internal" href="how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
-</ul>
-</div>
-<div class="toctree-wrapper compound" id="id3">
-<p class="caption"><span class="caption-text">Explanations</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="explanations/technical-terms.html">technical terms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="explanations/what-are-dimensions.html">What are Dimensions?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
-</ul>
-</div>
-<div class="toctree-wrapper no-margin-after-ul compound" id="id4">
-<p class="caption"><span class="caption-text">Reference</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="reference/api.html">API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reference/changelog.html">Changelog</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reference/contributing.html">Contributing</a></li>
-</ul>
-</div>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-</ul>
 </div>
 </div>
 </div>
