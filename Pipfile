@@ -6,18 +6,21 @@ verify_ssl = true
 [dev-packages]
 # Pinning black stops us having to allow pre-releases globally
 black = "==19.10b0"
-pytest-cov = "*"
-pytest-black = "*"
-pytest-flake8 = "*"
-flake8-isort = "*"
-isort = ">5.0"
-pytest-mypy = "*"
-sphinx-rtd-theme = "*"
-# Without these lines lockfile isn't usable on multiple Python versions and platforms
+
+# Pins to make lockfile usable on multiple Python versions and platforms
 mypy = "*"
 atomicwrites = "*"
-# switch to main repo after PR https://github.com/Holzhaus/sphinx-multiversion/pull/60 is merged
-sphinx-multiversion = {editable = true,git = "https://github.com/dls-controls/sphinx-multiversion.git",ref = "only-arg"}
+typing-extensions = "*"
+importlib-metadata = "*"
+
+# Test and docs dependencies
+pytest-cov = "*"
+pytest-mypy = "*"
+pytest-flake8 = "*"
+pytest-black = "*"
+flake8-isort = "*"
+isort = ">5.0"
+sphinx-rtd-theme = "*"
 
 [packages]
 # All other package requirements from setup.cfg
@@ -26,7 +29,7 @@ scanspec = {editable = true, extras = ["plotting", "graphql"], path = "."}
 typing-extensions = "*"
 
 [scripts]
-# Put coverage here so we don't interfere with debugging in the IDE
-tests = "python -m pytest --cov=scanspec --cov-report term"
+tests = "python -m pytest"
 docs = "sphinx-build -EWT --keep-going docs build/html"
-clean = "rm -rf build prefix */__pycache__ .coverage cov.xml *.egg-info .mypy_cache .pytest_cache"
+# Delete any files that git ignore hides from us
+gitclean = "git clean -fdX"

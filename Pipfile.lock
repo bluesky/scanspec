@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "cc5615e777dbb231cd99469b9210dfceff94f68ca6c71c6aa15c30331fbd6915"
+            "sha256": "1b805149a8757cd28962fb587af93531d4b1c44630592a4f10dfe5c4a5964ed8"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -574,7 +574,7 @@
                 "sha256:4a5611fea3768d3d967c447ab4e93f567d95db92225b43b7b238dbfb855d70bb",
                 "sha256:c6513572926a96458f8c8f725bf0e00108fba0c9583ade9bd15b869c9d726e33"
             ],
-            "markers": "python_version < '3.8' and python_version < '3.8'",
+            "index": "pypi",
             "version": "==4.6.0"
         },
         "iniconfig": {
@@ -866,11 +866,6 @@
                 "sha256:2320d4e994a191f4b4be27da514e46b3d6b420f2ff895d064f52415d342461e8"
             ],
             "version": "==3.5.4"
-        },
-        "sphinx-multiversion": {
-            "editable": true,
-            "git": "https://github.com/dls-controls/sphinx-multiversion.git",
-            "ref": "3e72beb7f8f0a76b53722fb2eb3daeed3d2a3d31"
         },
         "sphinx-rtd-theme": {
             "hashes": [

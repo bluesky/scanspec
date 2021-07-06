@@ -4,14 +4,14 @@ How to Iterate a Spec
 =====================
 
 A Spec is only the specification for a scan. To execute the scan we need the
-frames. We can do this in a few ways.
+`Frames <frame_>`. We can do this in a few ways.
 
 If you only need the midpoints
 ------------------------------
 
 If you are conducting a step scan, you only need the midpoints of each
 scan frame. You can get these by using the `Spec.midpoints()` method to produce a
-`Midpoints` iterator of scan points:
+`Midpoints` iterator of scan `Points <point_>`:
 
 >>> from scanspec.specs import Line
 >>> spec = Line("x", 1, 2, 3)
@@ -28,7 +28,7 @@ points are unpacked point by point into point dictionaries
 If you need to do a fly scan
 ----------------------------
 
-If you are conducting a fly scan then you need the Path that the motor moves
+If you are conducting a fly scan then you need the `path` that the motor moves
 through. You can get that from the lower and upper bounds of each point. It is
 more efficient to consume this Path in numpy array chunks that can be processed
 into a trajectory:
@@ -57,8 +57,8 @@ If you need to do multiple runs of the same scan
 A `Path` instance is a one-shot consumable view of the list of `Dimension`
 instances created by `Spec.create_dimensions()`. Once you have consumed it you
 should create a new instance of it. For performance reasons, you can keep the
-intermediate Dimensions and create as many `Path` wrappers to them as you need.
-You can also give a maximum size to `Path.consume()`
+intermediate `Dimensions <dimension>` and create as many `Path` wrappers to them
+as you need. You can also give a maximum size to `Path.consume()`
 
 >>> from scanspec.core import Path
 >>> dims = spec.create_dimensions()

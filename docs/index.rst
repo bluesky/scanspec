@@ -6,33 +6,66 @@
 How the documentation is structured
 -----------------------------------
 
+Documentation is split into four categories, accessible from links in the side-bar.
+
 .. rst-class:: columns
 
-:ref:`tutorials`
-~~~~~~~~~~~~~~~~
+Tutorials
+~~~~~~~~~
 
 Tutorials for installation, library and commandline usage. New users start here.
 
+.. toctree::
+    :caption: Tutorials
+    :hidden:
+
+    tutorials/installation
+    tutorials/creating-a-spec
+    tutorials/graphql-service
+
 .. rst-class:: columns
 
-:ref:`how-to`
+How-to Guides
 ~~~~~~~~~~~~~
 
 Practical step-by-step guides for the more experienced user.
 
+.. toctree::
+    :caption: How-to Guides
+    :hidden:
+
+    how-to/iterate-a-spec
+    how-to/serialize-a-spec
+
 .. rst-class:: columns
 
-:ref:`explanations`
-~~~~~~~~~~~~~~~~~~~
+Explanations
+~~~~~~~~~~~~
 
 Explanation of how the library works and why it works that way.
 
+.. toctree::
+    :caption: Explanations
+    :hidden:
+
+    explanations/technical-terms
+    explanations/what-are-dimensions
+    explanations/why-squash-can-change-path
+
 .. rst-class:: columns
 
-:ref:`reference`
-~~~~~~~~~~~~~~~~
+Reference
+~~~~~~~~~
 
 Technical reference material, for classes, methods, APIs, commands, and contributing to the project.
+
+.. toctree::
+    :caption: Reference
+    :hidden:
+
+    reference/api
+    reference/changelog
+    reference/contributing
 
 .. rst-class:: endcolumns
 
@@ -40,42 +73,3 @@ About the documentation
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 `Why is the documentation structured this way? <https://documentation.divio.com>`_
-
-.. toctree::
-    :caption: Tutorials
-    :name: tutorials
-    :maxdepth: 1
-
-    tutorials/installation
-    tutorials/creating-a-spec
-    tutorials/graphql-service
-
-.. toctree::
-    :caption: How-to Guides
-    :name: how-to
-    :maxdepth: 1
-
-    how-to/iterate-a-spec
-    how-to/serialize-a-spec
-
-.. toctree::
-    :caption: Explanations
-    :name: explanations
-    :maxdepth: 1
-
-    explanations/technical-terms
-    explanations/what-are-dimensions
-    explanations/why-squash-can-change-path
-
-.. rst-class:: no-margin-after-ul
-
-.. toctree::
-    :caption: Reference
-    :name: reference
-    :maxdepth: 1
-
-    reference/api
-    reference/changelog
-    reference/contributing
-
-* :ref:`genindex`

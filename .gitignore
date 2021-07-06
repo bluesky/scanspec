@@ -41,10 +41,9 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*,cover
-*.mypy_cache
-*.pytest_cache
 cov.xml
+.pytest_cache/
+.mypy_cache/
 
 # Translations
 *.mo
@@ -64,4 +63,3 @@ target/
 /venv/
 /lightweight-venv/
 /installed.files
-
