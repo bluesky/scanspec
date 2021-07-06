@@ -12,10 +12,10 @@
 import os
 import sys
 
+import scanspec  # noqa
 
 sys.path.insert(0, os.path.abspath(os.path.join(__file__, "..", "..")))
 
-import scanspec  # noqa
 
 # -- General configuration ------------------------------------------------
 
@@ -45,8 +45,6 @@ extensions = [
     "sphinx.ext.viewcode",
     # Adds the inheritance-diagram generation directive
     "sphinx.ext.inheritance_diagram",
-    # Add multiple versions of documentation on CI
-    "sphinx_multiversion",
     # Adds plotting directives
     "matplotlib.sphinxext.plot_directive",
     # Graphiql directive
@@ -145,11 +143,3 @@ html_css_files = ["theme_overrides.css"]
 # Logo
 html_logo = "images/scanspec-logo.svg"
 html_favicon = "images/scanspec-logo.ico"
-
-# sphinx-multiversion config
-smv_rebuild_tags = False
-smv_tag_whitelist = r"^\d+\.\d+.*$"  # only document tags with form 0.9*
-smv_branch_whitelist = r"^master$"  # only branch to document is master
-smv_outputdir_format = "{ref.name}"
-smv_prefer_remote_refs = False
-smv_remote_whitelist = "origin|github"
