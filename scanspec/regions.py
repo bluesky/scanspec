@@ -1,8 +1,9 @@
-from dataclasses import dataclass, field, is_dataclass
+from dataclasses import dataclass, is_dataclass
 from typing import Iterator, List, Set
 
 import numpy as np
 from apischema import schema
+from typing_extensions import Annotated as A
 
 from .core import AxesPoints, Serializable, if_instance_do
 
@@ -87,10 +88,8 @@ def _merge_axis_sets(axis_sets: List[Set[str]]) -> Iterator[Set[str]]:
 class CombinationOf(Region):
     """Abstract baseclass for a combination of two regions, left and right"""
 
-    left: Region = field(metadata=schema(description="The left-hand Region to combine"))
-    right: Region = field(
-        metadata=schema(description="The right-hand Region to combine")
-    )
+    left: A[Region, schema(description="The left-hand Region to combine")]
+    right: A[Region, schema(description="The right-hand Region to combine")]
 
     def axis_sets(self) -> List[Set[str]]:
         axis_sets = list(
@@ -171,15 +170,9 @@ class Range(Region):
     array([False,  True,  True, False, False])
     """
 
-    axis: str = field(
-        metadata=schema(description="The name matching the axis to mask in spec")
-    )
-    min: float = field(
-        metadata=schema(description="The minimum inclusive value in the region")
-    )
-    max: float = field(
-        metadata=schema(description="The minimum inclusive value in the region")
-    )
+    axis: A[str, schema(description="The name matching the axis to mask in spec")]
+    min: A[float, schema(description="The minimum inclusive value in the region")]
+    max: A[float, schema(description="The minimum inclusive value in the region")]
 
     def axis_sets(self) -> List[Set[str]]:
         return [{self.axis}]
@@ -201,28 +194,15 @@ class Rectangle(Region):
         spec = grid & Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30)
     """
 
-    x_axis: str = field(
-        metadata=schema(description="The name matching the x axis of the spec")
-    )
-    y_axis: str = field(
-        metadata=schema(description="The name matching the y axis of the spec")
-    )
-    x_min: float = field(
-        metadata=schema(description="Minimum inclusive x value in the region")
-    )
-    y_min: float = field(
-        metadata=schema(description="Minimum inclusive y value in the region")
-    )
-    x_max: float = field(
-        metadata=schema(description="Maximum inclusive x value in the region")
-    )
-    y_max: float = field(
-        metadata=schema(description="Maximum inclusive y value in the region")
-    )
-    angle: float = field(
-        default=0.0,
-        metadata=schema(description="Clockwise rotation angle of the rectangle"),
-    )
+    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_min: A[float, schema(description="Minimum inclusive x value in the region")]
+    y_min: A[float, schema(description="Minimum inclusive y value in the region")]
+    x_max: A[float, schema(description="Maximum inclusive x value in the region")]
+    y_max: A[float, schema(description="Maximum inclusive y value in the region")]
+    angle: A[
+        float, schema(description="Clockwise rotation angle of the rectangle")
+    ] = 0.0
 
     def axis_sets(self) -> List[Set[str]]:
         return [{self.x_axis, self.y_axis}]
@@ -262,22 +242,16 @@ class Polygon(Region):
         plot_spec(spec)
     """
 
-    x_axis: str = field(
-        metadata=schema(description="The name matching the x axis of the spec")
-    )
-    y_axis: str = field(
-        metadata=schema(description="The name matching the y axis of the spec")
-    )
-    x_verts: List[float] = field(
-        metadata=schema(
-            description="The Nx1 x coordinates of the polygons vertices", min_len=3
-        )
-    )
-    y_verts: List[float] = field(
-        metadata=schema(
-            description="The Nx1 y coordinates of the polygons vertices", min_len=3
-        )
-    )
+    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_verts: A[
+        List[float],
+        schema(description="The Nx1 x coordinates of the polygons vertices", min_len=3),
+    ]
+    y_verts: A[
+        List[float],
+        schema(description="The Nx1 y coordinates of the polygons vertices", min_len=3),
+    ]
 
     def axis_sets(self) -> List[Set[str]]:
         return [{self.x_axis, self.y_axis}]
@@ -313,21 +287,11 @@ class Circle(Region):
         spec = grid & Circle("x", "y", 1, 2, 0.9)
     """
 
-    x_axis: str = field(
-        metadata=schema(description="The name matching the x axis of the spec")
-    )
-    y_axis: str = field(
-        metadata=schema(description="The name matching the y axis of the spec")
-    )
-    x_middle: float = field(
-        metadata=schema(description="The central x point of the circle")
-    )
-    y_middle: float = field(
-        metadata=schema(description="The central y point of the circle")
-    )
-    radius: float = field(
-        metadata=schema(description="Radius of the circle", exc_min=0)
-    )
+    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_middle: A[float, schema(description="The central x point of the circle")]
+    y_middle: A[float, schema(description="The central y point of the circle")]
+    radius: A[float, schema(description="Radius of the circle", exc_min=0)]
 
     def axis_sets(self) -> List[Set[str]]:
         return [{self.x_axis, self.y_axis}]
@@ -364,31 +328,19 @@ class Ellipse(Region):
         plot_spec(spec)
     """
 
-    x_axis: str = field(
-        metadata=schema(description="The name matching the x axis of the spec")
-    )
-    y_axis: str = field(
-        metadata=schema(description="The name matching the y axis of the spec")
-    )
-    x_middle: float = field(
-        metadata=schema(description="The central x point of the ellipse")
-    )
-    y_middle: float = field(
-        metadata=schema(description="The central y point of the ellipse")
-    )
-    x_radius: float = field(
-        metadata=schema(
-            description="The radius along the x axis of the ellipse", exc_min=0
-        )
-    )
-    y_radius: float = field(
-        metadata=schema(
-            description="The radius along the y axis of the ellipse", exc_min=0
-        )
-    )
-    angle: float = field(
-        default=0.0, metadata=schema(description="The angle of the ellipse (degrees)")
-    )
+    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_middle: A[float, schema(description="The central x point of the ellipse")]
+    y_middle: A[float, schema(description="The central y point of the ellipse")]
+    x_radius: A[
+        float,
+        schema(description="The radius along the x axis of the ellipse", exc_min=0),
+    ]
+    y_radius: A[
+        float,
+        schema(description="The radius along the y axis of the ellipse", exc_min=0),
+    ]
+    angle: A[float, schema(description="The angle of the ellipse (degrees)")] = 0.0
 
     def axis_sets(self) -> List[Set[str]]:
         return [{self.x_axis, self.y_axis}]

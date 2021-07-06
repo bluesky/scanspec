@@ -1,9 +1,9 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, TypeVar
 
 import numpy as np
 from apischema import schema
-from typing_extensions import Annotated
+from typing_extensions import Annotated as A
 
 from .core import (
     Dimension,
@@ -104,10 +104,8 @@ class Product(Spec):
         spec = Line("y", 1, 2, 3) * Line("x", 3, 4, 12)
     """
 
-    outer: Spec = field(metadata=schema(description="Will be executed once"))
-    inner: Spec = field(
-        metadata=schema(description="Will be executed len(outer) times")
-    )
+    outer: A[Spec, schema(description="Will be executed once")]
+    inner: A[Spec, schema(description="Will be executed len(outer) times")]
 
     def axes(self) -> List:
         return self.outer.axes() + self.inner.axes()
@@ -140,16 +138,14 @@ class Zip(Spec):
         spec = Line("z", 1, 2, 3) * Line("y", 3, 4, 5) + Line("x", 4, 5, 5)
     """
 
-    left: Spec = field(
-        metadata=schema(
-            description="The left-hand Spec to Zip, will appear earlier in axes"
-        )
-    )
-    right: Spec = field(
-        metadata=schema(
-            description="The right-hand Spec to Zip, will appear later in axes"
-        )
-    )
+    left: A[
+        Spec,
+        schema(description="The left-hand Spec to Zip, will appear earlier in axes"),
+    ]
+    right: A[
+        Spec,
+        schema(description="The right-hand Spec to Zip, will appear later in axes"),
+    ]
 
     def axes(self) -> List:
         return self.left.axes() + self.right.axes()
@@ -187,6 +183,11 @@ class Zip(Spec):
         return dimensions
 
 
+ACheckPathChanges = A[
+    bool, schema(description="If True path through scan will not be modified by squash")
+]
+
+
 @dataclass
 class Mask(Spec):
     """Restrict the given Spec to only the midpoints that fall inside of the given
@@ -210,18 +211,9 @@ class Mask(Spec):
         spec = Line("y", 1, 3, 3) * Line("x", 3, 5, 5) & Circle("x", "y", 4, 2, 1.2)
     """
 
-    spec: Spec = field(
-        metadata=schema(description="The Spec containing the source midpoints")
-    )
-    region: Region = field(
-        metadata=schema(description="The Region that midpoints will be inside")
-    )
-    check_path_changes: bool = field(
-        default=True,
-        metadata=schema(
-            description="If True path through scan will not be modified by squash"
-        ),
-    )
+    spec: A[Spec, schema(description="The Spec containing the source midpoints")]
+    region: A[Region, schema(description="The Region that midpoints will be inside")]
+    check_path_changes: ACheckPathChanges = True
 
     def axes(self) -> List:
         return self.spec.axes()
@@ -273,9 +265,9 @@ class Snake(Spec):
         spec = Line("y", 1, 3, 3) * ~Line("x", 3, 5, 5)
     """
 
-    spec: Spec = field(
-        metadata=schema(description="The Spec to run in reverse every other iteration")
-    )
+    spec: A[
+        Spec, schema(description="The Spec to run in reverse every other iteration")
+    ]
 
     def axes(self) -> List:
         return self.spec.axes()
@@ -299,16 +291,14 @@ class Concat(Spec):
         spec = Concat(Line("x", 1, 3, 3), Line("x", 4, 5, 5))
     """
 
-    left: Spec = field(
-        metadata=schema(
-            description="The left-hand Spec to Zip, midpoints will appear earlier"
-        )
-    )
-    right: Spec = field(
-        metadata=schema(
-            description="The right-hand Spec to Zip, midpoints will appear later"
-        )
-    )
+    left: A[
+        Spec,
+        schema(description="The left-hand Spec to Zip, midpoints will appear earlier"),
+    ]
+    right: A[
+        Spec,
+        schema(description="The right-hand Spec to Zip, midpoints will appear later"),
+    ]
 
     def axes(self) -> List:
         left_axes, right_axes = self.left.axes(), self.right.axes()
@@ -340,15 +330,8 @@ class Squash(Spec):
         spec = Squash(Line("y", 1, 2, 3) * Line("x", 0, 1, 4))
     """
 
-    spec: Spec = field(
-        metadata=schema(description="The Spec to squash the dimensions of")
-    )
-    check_path_changes: bool = field(
-        default=True,
-        metadata=schema(
-            description="If True path through scan will not be modified by squash"
-        ),
-    )
+    spec: A[Spec, schema(description="The Spec to squash the dimensions of")]
+    check_path_changes: ACheckPathChanges = True
 
     def axes(self) -> List:
         return self.spec.axes()
@@ -380,6 +363,10 @@ def _dimensions_from_indexes(
     return [dimension]
 
 
+AAxis = A[str, schema(description="An identifier for what to move")]
+ANum = A[int, schema(min=1, description="Number of points to produce")]
+
+
 @dataclass
 class Line(Spec):
     """Linearly spaced points in the given axis, with first and last points
@@ -392,14 +379,10 @@ class Line(Spec):
         spec = Line("x", 1, 2, 5)
     """
 
-    axis: str = field(metadata=schema(description="An identifier for what to move"))
-    start: float = field(
-        metadata=schema(description="Centre point of the first point of the line")
-    )
-    stop: float = field(
-        metadata=schema(description="Centre point of the last point of the line")
-    )
-    num: int = field(metadata=schema(min=1, description="Number of points to produce"))
+    axis: AAxis
+    start: A[float, schema(description="Midpoint of the first point of the line")]
+    stop: A[float, schema(description="Midpoint of the last point of the line")]
+    num: ANum
 
     def axes(self) -> List:
         return [self.axis]
@@ -423,14 +406,14 @@ class Line(Spec):
 
     @alternative_constructor
     def bounded(
-        axis: Annotated[str, schema(description="An identifier for what to move")],
-        lower: Annotated[
+        axis: AAxis,
+        lower: A[
             float, schema(description="Lower bound of the first point of the line")
         ],
-        upper: Annotated[
+        upper: A[
             float, schema(description="Upper bound of the last point of the line")
         ],
-        num: Annotated[int, schema(min=1, description="Number of points to produce")],
+        num: ANum,
     ) -> "Line":
         """Specify a Line by extreme bounds instead of centre points.
 
@@ -463,22 +446,25 @@ class Static(Spec):
         spec = Line("y", 1, 2, 3) + Static("x", 3)
     """
 
-    axis: str = field(metadata=schema(description="An identifier for what to move"))
-    value: float = field(metadata=schema(description="The value at each point"))
-    num: int = field(
-        default=1,
-        metadata=schema(min=1, description="How many times to repeat this point"),
-    )
+    axis: AAxis
+    value: A[float, schema(description="The value at each point")]
+    num: ANum = 1
 
-    @classmethod
-    def duration(cls, duration: float, num: int = 1) -> Spec:
+    @alternative_constructor
+    def duration(
+        duration: A[float, schema(description="The duration of each static point")],
+        num: ANum = 1,
+    ) -> "Static":
         """A static spec with no motion, only a duration repeated "num" times
-        Args:
-            duration: The duration of each static point
-            num: Number of points to produce with given duration
+
+        .. example_spec::
+
+            from scanspec.specs import Line, Static
+
+            spec = Line("y", 1, 2, 3) + Static.duration(0.1)
         """
 
-        return cls(DURATION, duration, num)
+        return Static(DURATION, duration, num)
 
     def axes(self) -> List:
         return [self.axis]
@@ -505,22 +491,16 @@ class Spiral(Spec):
         spec = Spiral("x", "y", 1, 5, 10, 50, 30)
     """
 
-    x_axis: str = field(
-        metadata=schema(description="An identifier for what to move for x")
-    )
-    y_axis: str = field(
-        metadata=schema(description="An identifier for what to move for y")
-    )
-    # TODO: do we like these names?
-    x_start: float = field(metadata=schema(description="x centre of the spiral"))
-    y_start: float = field(metadata=schema(description="y centre of the spiral"))
-    x_range: float = field(metadata=schema(description="x width of the spiral"))
-    y_range: float = field(metadata=schema(description="y width of the spiral"))
-    num: int = field(metadata=schema(description="Number of points in the spiral"))
-    rotate: float = field(
-        default=0.0,
-        metadata=schema(description="How much to rotate the angle of the spiral"),
-    )
+    x_axis: A[str, schema(description="An identifier for what to move for x")]
+    y_axis: A[str, schema(description="An identifier for what to move for y")]
+    x_start: A[float, schema(description="x centre of the spiral")]
+    y_start: A[float, schema(description="y centre of the spiral")]
+    x_range: A[float, schema(description="x width of the spiral")]
+    y_range: A[float, schema(description="y width of the spiral")]
+    num: ANum
+    rotate: A[
+        float, schema(description="How much to rotate the angle of the spiral")
+    ] = 0.0
 
     def axes(self) -> List:
         # TODO: reversed from __init__ args, a good idea?
@@ -550,21 +530,14 @@ class Spiral(Spec):
 
     @alternative_constructor
     def spaced(
-        x_axis: Annotated[
-            str, schema(description="An identifier for what to move for x")
-        ],
-        y_axis: Annotated[
-            str, schema(description="An identifier for what to move for y")
-        ],
-        x_start: Annotated[float, schema(description="x centre of the spiral")],
-        y_start: Annotated[float, schema(description="y centre of the spiral")],
-        radius: Annotated[float, schema(description="radius of the spiral")],
-        dr: Annotated[float, schema(description="difference between each ring")],
-        rotate: Annotated[
-            float,
-            schema(
-                default=0.0, description="How much to rotate the angle of the spiral"
-            ),
+        x_axis: A[str, schema(description="An identifier for what to move for x")],
+        y_axis: A[str, schema(description="An identifier for what to move for y")],
+        x_start: A[float, schema(description="x centre of the spiral")],
+        y_start: A[float, schema(description="y centre of the spiral")],
+        radius: A[float, schema(description="radius of the spiral")],
+        dr: A[float, schema(description="difference between each ring")],
+        rotate: A[
+            float, schema(description="How much to rotate the angle of the spiral"),
         ] = 0.0,
     ) -> "Spiral":
         """Specify a Spiral equally spaced in "x_axis" and "y_axis" by specifying
