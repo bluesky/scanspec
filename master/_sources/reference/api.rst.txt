@@ -3,6 +3,12 @@
 API
 ===
 
+.. automodule:: scanspec
+
+    ``scanspec``
+    ------------
+
+
 The top level scanspec module contains a number of packages that can be used
 from code:
 
@@ -11,9 +17,6 @@ from code:
 - `scanspec.regions`: `Region` and its subclasses
 - `scanspec.plot`: `plot_spec` to visualize a scan
 - `scanspec.service`: Defines queries and field structure in graphQL such as `PointsResponse`
-
-``scanspec``
-------------
 
 .. data:: scanspec.__version__
     :type: str
@@ -70,7 +73,7 @@ from code:
 
     .. autoclass:: scanspec.service.Points
         :members:
-    
+
     .. autoclass:: scanspec.service.AxisFrames
         :members:
 

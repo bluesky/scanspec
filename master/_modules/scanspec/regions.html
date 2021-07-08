@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.regions &mdash; scanspec 0.3+30.g2714ace documentation</title>
+  <title>scanspec.regions &mdash; scanspec 0.3+33.g1b1a814 documentation</title>
   
 
   
@@ -231,11 +231,12 @@
            <div itemprop="articleBody">
             
   <h1>Source code for scanspec.regions</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">is_dataclass</span>
+<span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">is_dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Set</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">apischema</span> <span class="kn">import</span> <span class="n">schema</span>
+<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Annotated</span> <span class="k">as</span> <span class="n">A</span>
 
 <span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">AxesPoints</span><span class="p">,</span> <span class="n">Serializable</span><span class="p">,</span> <span class="n">if_instance_do</span>
 
@@ -320,10 +321,8 @@
 <span class="k">class</span> <span class="nc">CombinationOf</span><span class="p">(</span><span class="n">Region</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract baseclass for a combination of two regions, left and right&quot;&quot;&quot;</span>
 
-    <span class="n">left</span><span class="p">:</span> <span class="n">Region</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Region to combine&quot;</span><span class="p">))</span>
-    <span class="n">right</span><span class="p">:</span> <span class="n">Region</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Region to combine&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
+    <span class="n">left</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="n">Region</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Region to combine&quot;</span><span class="p">)]</span>
+    <span class="n">right</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="n">Region</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Region to combine&quot;</span><span class="p">)]</span>
 
     <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="n">axis_sets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
@@ -404,15 +403,9 @@
 <span class="sd">    array([False,  True,  True, False, False])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the axis to mask in spec&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="nb">min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="nb">max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
+    <span class="n">axis</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the axis to mask in spec&quot;</span><span class="p">)]</span>
+    <span class="nb">min</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)]</span>
+    <span class="nb">max</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)]</span>
 
     <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">}]</span>
@@ -434,28 +427,15 @@
 <span class="sd">        spec = grid &amp; Rectangle(&quot;x&quot;, &quot;y&quot;, 0, 1.1, 1.5, 2.1, 30)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">x_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">y_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">x_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive x value in the region&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">y_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive y value in the region&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">x_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum inclusive x value in the region&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">y_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum inclusive y value in the region&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Clockwise rotation angle of the rectangle&quot;</span><span class="p">),</span>
-    <span class="p">)</span>
+    <span class="n">x_axis</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)]</span>
+    <span class="n">y_axis</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)]</span>
+    <span class="n">x_min</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive x value in the region&quot;</span><span class="p">)]</span>
+    <span class="n">y_min</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Minimum inclusive y value in the region&quot;</span><span class="p">)]</span>
+    <span class="n">x_max</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum inclusive x value in the region&quot;</span><span class="p">)]</span>
+    <span class="n">y_max</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum inclusive y value in the region&quot;</span><span class="p">)]</span>
+    <span class="n">angle</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
+        <span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Clockwise rotation angle of the rectangle&quot;</span><span class="p">)</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
@@ -495,22 +475,16 @@
 <span class="sd">        plot_spec(spec)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">x_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">y_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">x_verts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
-            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Nx1 x coordinates of the polygons vertices&quot;</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">3</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">y_verts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
-            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Nx1 y coordinates of the polygons vertices&quot;</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">3</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
+    <span class="n">x_axis</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)]</span>
+    <span class="n">y_axis</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)]</span>
+    <span class="n">x_verts</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
+        <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+        <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Nx1 x coordinates of the polygons vertices&quot;</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">y_verts</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
+        <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+        <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Nx1 y coordinates of the polygons vertices&quot;</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+    <span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
@@ -546,21 +520,11 @@
 <span class="sd">        spec = grid &amp; Circle(&quot;x&quot;, &quot;y&quot;, 1, 2, 0.9)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">x_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">y_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">x_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central x point of the circle&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">y_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central y point of the circle&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radius of the circle&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="p">)</span>
+    <span class="n">x_axis</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)]</span>
+    <span class="n">y_axis</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)]</span>
+    <span class="n">x_middle</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central x point of the circle&quot;</span><span class="p">)]</span>
+    <span class="n">y_middle</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central y point of the circle&quot;</span><span class="p">)]</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radius of the circle&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span>
 
     <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
@@ -597,31 +561,19 @@
 <span class="sd">        plot_spec(spec)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">x_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">y_axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">x_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central x point of the ellipse&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">y_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central y point of the ellipse&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">x_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
-            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the x axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">y_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span>
-            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the y axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The angle of the ellipse (degrees)&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
+    <span class="n">x_axis</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)]</span>
+    <span class="n">y_axis</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)]</span>
+    <span class="n">x_middle</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central x point of the ellipse&quot;</span><span class="p">)]</span>
+    <span class="n">y_middle</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central y point of the ellipse&quot;</span><span class="p">)]</span>
+    <span class="n">x_radius</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
+        <span class="nb">float</span><span class="p">,</span>
+        <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the x axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">y_radius</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
+        <span class="nb">float</span><span class="p">,</span>
+        <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the y axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">angle</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The angle of the ellipse (degrees)&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
