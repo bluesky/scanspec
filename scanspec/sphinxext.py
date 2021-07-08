@@ -1,5 +1,6 @@
 import dataclasses
-from typing import Any, Dict, Optional
+import inspect
+from typing import Any, Dict, Iterator, Tuple
 
 from apischema.json_schema.schema import Schema
 from apischema.metadata.keys import SCHEMA_METADATA
@@ -7,71 +8,73 @@ from matplotlib.sphinxext.plot_directive import PlotDirective
 from typing_extensions import Annotated, get_args, get_origin
 
 
-def get_types(what: str, obj) -> Optional[Dict[str, Any]]:
-    types = {}
+def get_type_description(typ) -> Tuple[Any, str]:
+    description = ""
+    if get_origin(typ) == Annotated:
+        typ, *args = get_args(typ)
+        additional = []
+        for arg in args:
+            arg = arg.get(SCHEMA_METADATA, arg)
+            if isinstance(arg, Schema):
+                field_schema: Dict[str, Any] = {}
+                arg.merge_into(field_schema)
+                for key, value in field_schema.items():
+                    if key == "description":
+                        description = value
+                    else:
+                        additional.append(f"{str(key)}: {str(value)}")
+        if additional:
+            description = description + " - " + ", ".join(additional)
+    return typ, description
+
+
+@dataclasses.dataclass
+class Param:
+    name: str
+    default: Any
+    type: Any
+    description: str
+
+
+def get_params(what: str, obj) -> Iterator[Param]:
     if what == "class" and dataclasses.is_dataclass(obj):
         # If we are a dataclass, use this
-        types = {field.name: field.type for field in dataclasses.fields(obj)}
+        for field in dataclasses.fields(obj):
+            yield Param(field.name, field.default, *get_type_description(field.type))
     elif what == "method":
-        # Don't include the return value
-        types = {
-            name: annotation
-            for name, annotation in obj.__annotations__.items()
-            if name != "return"
-        }
-    return types
-
-
-def get_description(args: Any) -> str:
-    description = ""
-    additional = []
-    for arg in args:
-        arg = arg.get(SCHEMA_METADATA, arg)
-        if isinstance(arg, Schema):
-            field_schema: Dict[str, Any] = {}
-            arg.merge_into(field_schema)
-            for key, value in field_schema.items():
-                if key == "description":
-                    description = value
-                else:
-                    additional.append(f"{str(key)}: {str(value)}")
-    if additional:
-        description = description + " - " + ", ".join(additional)
-    return description
+        for name, param in inspect.signature(obj).parameters.items():
+            default = param.default
+            if default is inspect.Parameter.empty:
+                default = dataclasses.MISSING
+            yield Param(name, default, *get_type_description(param.annotation))
 
 
 def process_docstring(app, what, name, obj, options, lines):
-    # Must also work for the alternative constructors such as bounded!!
-    types = get_types(what, obj)
-    if types:
+    params = list(get_params(what, obj))
+    # If we added descriptions, then add param info
+    if [p for p in params if p.description]:
         try:
             index = lines.index("") + 1
         except ValueError:
             lines.append("")
             index = len(lines)
         # Add types from each field
-        for name, typ in types.items():
-            if get_origin(typ) == Annotated:
-                typ, *args = get_args(typ)
-                description = get_description(args)
-            else:
-                description = ""
-            type_name = getattr(typ, "__name__", str(typ)).replace(" ", "")
-            lines.insert(
-                index, f":param {type_name} {name}: {description}",
-            )
+        for param in params:
+            typ = getattr(param.type, "__name__", str(param.type)).replace(" ", "")
+            lines.insert(index, f":param {typ} {param.name}: {param.description}")
             index += 1
         lines.insert(index, "")
 
 
 def process_signature(app, what, name, obj, options, signature, return_annotation):
-    # Recreate signature from the model
-    if what == "class" and dataclasses.is_dataclass(obj):
+    params = list(get_params(what, obj))
+    if [p for p in params if p.description]:
+        # Recreate signature from the Param objects
         args = []
-        for field in dataclasses.fields(obj):
-            arg = field.name
-            if field.default is not dataclasses.MISSING:
-                arg += f"={field.default!r}"
+        for param in params:
+            arg = param.name
+            if param.default is not dataclasses.MISSING:
+                arg += f"={param.default!r}"
             args.append(arg)
         signature = f'({", ".join(args)})'
         return signature, return_annotation
