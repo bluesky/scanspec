@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "1b805149a8757cd28962fb587af93531d4b1c44630592a4f10dfe5c4a5964ed8"
+            "sha256": "c9ace7b6b97e6757709aeee4ba468b0f2d60f1a5b49b225464e15951b138369d"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -862,10 +862,18 @@
         },
         "sphinx": {
             "hashes": [
-                "sha256:19010b7b9fa0dc7756a6e105b2aacd3a80f798af3c25c273be64d7beeb482cb1",
-                "sha256:2320d4e994a191f4b4be27da514e46b3d6b420f2ff895d064f52415d342461e8"
+                "sha256:5747f3c855028076fcff1e4df5e75e07c836f0ac11f7df886747231092cfe4ad",
+                "sha256:dff357e6a208eb7edb2002714733ac21a9fe597e73609ff417ab8cf0c6b4fbb8"
             ],
-            "version": "==3.5.4"
+            "version": "==4.0.3"
+        },
+        "sphinx-graphql": {
+            "hashes": [
+                "sha256:030d357552726a8ddb52b9b66ab281fc9816bf8c41145d810f9ab0f3a442e25e",
+                "sha256:c06c7ece0596e2a2d58f058b9da81b67ac12c8f702de0b81492deec10574dd34"
+            ],
+            "index": "pypi",
+            "version": "==0.1"
         },
         "sphinx-rtd-theme": {
             "hashes": [

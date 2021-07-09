@@ -21,6 +21,7 @@ pytest-black = "*"
 flake8-isort = "*"
 isort = ">5.0"
 sphinx-rtd-theme = "*"
+sphinx-graphql = "*"
 
 [packages]
 # All other package requirements from setup.cfg
