@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.specs &mdash; scanspec 0.3+35.gb041df9 documentation</title>
+  <title>scanspec.specs &mdash; scanspec 0.3+38.gc6806fe documentation</title>
   
 
   
@@ -526,11 +526,15 @@
 
     <span class="n">left</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
         <span class="n">Spec</span><span class="p">,</span>
-        <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Spec to Zip, midpoints will appear earlier&quot;</span><span class="p">),</span>
+        <span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Spec to Concat, midpoints will appear earlier&quot;</span>
+        <span class="p">),</span>
     <span class="p">]</span>
     <span class="n">right</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
         <span class="n">Spec</span><span class="p">,</span>
-        <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Spec to Zip, midpoints will appear later&quot;</span><span class="p">),</span>
+        <span class="n">schema</span><span class="p">(</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Spec to Concat, midpoints will appear later&quot;</span>
+        <span class="p">),</span>
     <span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
@@ -539,13 +543,10 @@
         <span class="k">return</span> <span class="n">left_axes</span>
 
     <span class="k">def</span> <span class="nf">create_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dimension</span><span class="p">]:</span>
-        <span class="n">dims_left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
-        <span class="n">dims_right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims_right</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
-            <span class="n">dims_left</span>
-        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Specs </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="si">}</span><span class="s2"> don&#39;t have same number of dimensions&quot;</span>
-        <span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">dl</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dr</span><span class="p">)</span> <span class="k">for</span> <span class="n">dl</span><span class="p">,</span> <span class="n">dr</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dims_left</span><span class="p">,</span> <span class="n">dims_right</span><span class="p">)]</span>
-        <span class="k">return</span> <span class="n">dimensions</span></div>
+        <span class="n">dim_left</span> <span class="o">=</span> <span class="n">squash_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">))</span>
+        <span class="n">dim_right</span> <span class="o">=</span> <span class="n">squash_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">))</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="n">dim_left</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dim_right</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">dim</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="Squash"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Squash">[docs]</a><span class="nd">@dataclass</span>
