@@ -440,3 +440,16 @@ def test_blended_repeat() -> None:
         bs: pytest.approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15]),
         "REPEAT": pytest.approx([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]),
     }
+
+
+def test_multiple_statics():
+    part_1 = Static("y", 2) * Static("z", 3) * Line("x", 0, 10, 2)
+    part_2 = Static("y", 4) * Static("z", 5) * Line("x", 0, 10, 2)
+    spec = Concat(part_1, part_2)
+
+    assert list(spec.midpoints()) == [
+        {"x": 0.0, "y": 2, "z": 3},
+        {"x": 10.0, "y": 2, "z": 3},
+        {"x": 0.0, "y": 4, "z": 5},
+        {"x": 10.0, "y": 4, "z": 5},
+    ]
