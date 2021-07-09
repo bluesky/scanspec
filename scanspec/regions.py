@@ -186,10 +186,12 @@ class Range(Region):
 @dataclass
 class Rectangle(Region):
     """Mask contains points of axis within a rotated xy rectangle
+
     .. example_spec::
 
         from scanspec.specs import Line
         from scanspec.regions import Rectangle
+
         grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
         spec = grid & Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30)
     """
@@ -225,21 +227,14 @@ class Rectangle(Region):
 @dataclass
 class Polygon(Region):
     """Mask contains points of axis within a rotated xy polygon
+
     .. example_spec::
 
-        from scanspec.plot import plot_spec
         from scanspec.specs import Line
         from scanspec.regions import Polygon
 
-        #Polygon parameters
-        x_axis = "x"
-        y_axis = "y"
-        x_verts = [1.0, 6.0, 8.0, 2.0]
-        y_verts = [4.0, 10.0, 6.0, 1.0]
-
-        grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)
-        spec = grid & Polygon(x_axis, y_axis, x_verts, y_verts)
-        plot_spec(spec)
+        grid = Line("y", 3, 8, 10) * ~Line("x", 1 ,8, 10)
+        spec = grid & Polygon("x", "y", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])
     """
 
     x_axis: A[str, schema(description="The name matching the x axis of the spec")]
@@ -309,23 +304,11 @@ class Ellipse(Region):
 
     .. example_spec::
 
-        from scanspec.plot import plot_spec
         from scanspec.specs import Line
         from scanspec.regions import Ellipse
 
-        #Ellipse parameters
-        x_axis = "x"
-        y_axis = "y"
-        x_middle = 5
-        y_middle = 5
-        x_radius = 2
-        y_radius = 3
-        angle = 75
-
-        grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)
-        spec = grid & Ellipse(x_axis, y_axis, x_middle, y_middle, x_radius,
-        y_radius, angle)
-        plot_spec(spec)
+        grid = Line("y", 3, 8, 10) * ~Line("x", 1 ,8, 10)
+        spec = grid & Ellipse("x", "y", 5, 5, 2, 3, 75)
     """
 
     x_axis: A[str, schema(description="The name matching the x axis of the spec")]
