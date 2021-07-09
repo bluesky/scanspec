@@ -440,3 +440,33 @@ def test_blended_repeat() -> None:
         bs: pytest.approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15]),
         "REPEAT": pytest.approx([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]),
     }
+
+
+def test_multiple_statics():
+    part_1 = Static("y", 2) * Static("z", 3) * Line("x", 0, 10, 2)
+    part_2 = Static("y", 4) * Static("z", 5) * Line("x", 0, 10, 2)
+    spec = Concat(part_1, part_2)
+
+    assert list(spec.midpoints()) == [
+        {"x": 0.0, "y": 2, "z": 3},
+        {"x": 10.0, "y": 2, "z": 3},
+        {"x": 0.0, "y": 4, "z": 5},
+        {"x": 10.0, "y": 4, "z": 5},
+    ]
+
+
+def test_multiple_statics_with_grid():
+    grid = Line("y", 0, 10, 2) * Line("x", 0, 10, 2)
+    part_1 = grid + Static("a", 2) + Static("b", 3)
+    part_2 = grid + Static("a", 4) + Static("b", 5)
+    spec = Concat(part_1, part_2)
+    assert list(spec.midpoints()) == [
+        {"x": 0.0, "y": 0.0, "a": 2, "b": 3},
+        {"x": 10.0, "y": 0.0, "a": 2, "b": 3},
+        {"x": 0.0, "y": 10.0, "a": 2, "b": 3},
+        {"x": 10.0, "y": 10.0, "a": 2, "b": 3},
+        {"x": 0.0, "y": 0.0, "a": 4, "b": 5},
+        {"x": 10.0, "y": 0.0, "a": 4, "b": 5},
+        {"x": 0.0, "y": 10.0, "a": 4, "b": 5},
+        {"x": 10.0, "y": 10.0, "a": 4, "b": 5},
+    ]

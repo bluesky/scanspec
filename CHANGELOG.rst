@@ -9,7 +9,9 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 Unreleased_
 -----------
 
-Nothing yet
+Fixed:
+
+- Concat now behaves correctly on stacked dimensions
 
 0.3_ - 2021-06-01
 -----------------

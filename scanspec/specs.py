@@ -293,11 +293,15 @@ class Concat(Spec):
 
     left: A[
         Spec,
-        schema(description="The left-hand Spec to Zip, midpoints will appear earlier"),
+        schema(
+            description="The left-hand Spec to Concat, midpoints will appear earlier"
+        ),
     ]
     right: A[
         Spec,
-        schema(description="The right-hand Spec to Zip, midpoints will appear later"),
+        schema(
+            description="The right-hand Spec to Concat, midpoints will appear later"
+        ),
     ]
 
     def axes(self) -> List:
@@ -306,13 +310,10 @@ class Concat(Spec):
         return left_axes
 
     def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        dims_left = self.left.create_dimensions(bounds, nested)
-        dims_right = self.right.create_dimensions(bounds, nested)
-        assert len(dims_right) == len(
-            dims_left
-        ), f"Specs {self.left} and {self.right} don't have same number of dimensions"
-        dimensions = [dl.concat(dr) for dl, dr in zip(dims_left, dims_right)]
-        return dimensions
+        dim_left = squash_dimensions(self.left.create_dimensions(bounds, nested))
+        dim_right = squash_dimensions(self.right.create_dimensions(bounds, nested))
+        dim = dim_left.concat(dim_right)
+        return [dim]
 
 
 @dataclass
