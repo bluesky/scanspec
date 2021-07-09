@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>API &mdash; scanspec 0.3+33.g1b1a814 documentation</title>
+  <title>API &mdash; scanspec 0.3+35.gb041df9 documentation</title>
   
 
   
@@ -1241,50 +1241,67 @@ but not both. Typically created with the <code class="docutils literal notransla
 <dt id="scanspec.regions.Rectangle">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.regions.</span></code><code class="sig-name descname"><span class="pre">Rectangle</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/regions.html#Rectangle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.regions.Rectangle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.regions.Region</span></code></a></p>
-<p>Mask contains points of axis within a rotated xy rectangle
-.. example_spec:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">:</span><span class="n">param</span> <span class="nb">str</span> <span class="n">x_axis</span><span class="p">:</span> <span class="n">The</span> <span class="n">name</span> <span class="n">matching</span> <span class="n">the</span> <span class="n">x</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">the</span> <span class="n">spec</span>
-<span class="p">:</span><span class="n">param</span> <span class="nb">str</span> <span class="n">y_axis</span><span class="p">:</span> <span class="n">The</span> <span class="n">name</span> <span class="n">matching</span> <span class="n">the</span> <span class="n">y</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">the</span> <span class="n">spec</span>
-<span class="p">:</span><span class="n">param</span> <span class="nb">float</span> <span class="n">x_min</span><span class="p">:</span> <span class="n">Minimum</span> <span class="n">inclusive</span> <span class="n">x</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">region</span>
-<span class="p">:</span><span class="n">param</span> <span class="nb">float</span> <span class="n">y_min</span><span class="p">:</span> <span class="n">Minimum</span> <span class="n">inclusive</span> <span class="n">y</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">region</span>
-<span class="p">:</span><span class="n">param</span> <span class="nb">float</span> <span class="n">x_max</span><span class="p">:</span> <span class="n">Maximum</span> <span class="n">inclusive</span> <span class="n">x</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">region</span>
-<span class="p">:</span><span class="n">param</span> <span class="nb">float</span> <span class="n">y_max</span><span class="p">:</span> <span class="n">Maximum</span> <span class="n">inclusive</span> <span class="n">y</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">region</span>
-<span class="p">:</span><span class="n">param</span> <span class="nb">float</span> <span class="n">angle</span><span class="p">:</span> <span class="n">Clockwise</span> <span class="n">rotation</span> <span class="n">angle</span> <span class="n">of</span> <span class="n">the</span> <span class="n">rectangle</span>
+<p>Mask contains points of axis within a rotated xy rectangle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name matching the x axis of the spec</p></li>
+<li><p><strong>y_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name matching the y axis of the spec</p></li>
+<li><p><strong>x_min</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Minimum inclusive x value in the region</p></li>
+<li><p><strong>y_min</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Minimum inclusive y value in the region</p></li>
+<li><p><strong>x_max</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Maximum inclusive x value in the region</p></li>
+<li><p><strong>y_max</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Maximum inclusive y value in the region</p></li>
+<li><p><strong>angle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Clockwise rotation angle of the rectangle</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
+
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Rectangle</span>
+
+<span class="n">grid</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">grid</span> <span class="o">&amp;</span> <span class="n">Rectangle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<blockquote>
-<div><p>from scanspec.specs import Line
-from scanspec.regions import Rectangle
-grid = Line(“y”, 1, 3, 10) * ~Line(“x”, 0, 2, 10)
-spec = grid &amp; Rectangle(“x”, “y”, 0, 1.1, 1.5, 2.1, 30)</p>
-</div></blockquote>
+<p>(<a class="reference external" href="../reference/api-15.py">Source code</a>, <a class="reference external" href="../reference/api-15.png">png</a>, <a class="reference external" href="../reference/api-15.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-15.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/api-15.png" class="plot-directive" src="../_images/api-15.png" />
+</div>
 </dd></dl>
 
 <dl class="py class">
 <dt id="scanspec.regions.Polygon">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">scanspec.regions.</span></code><code class="sig-name descname"><span class="pre">Polygon</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_verts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_verts</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/regions.html#Polygon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.regions.Polygon" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.regions.Region</span></code></a></p>
-<p>Mask contains points of axis within a rotated xy polygon
-.. example_spec:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">:</span><span class="n">param</span> <span class="nb">str</span> <span class="n">x_axis</span><span class="p">:</span> <span class="n">The</span> <span class="n">name</span> <span class="n">matching</span> <span class="n">the</span> <span class="n">x</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">the</span> <span class="n">spec</span>
-<span class="p">:</span><span class="n">param</span> <span class="nb">str</span> <span class="n">y_axis</span><span class="p">:</span> <span class="n">The</span> <span class="n">name</span> <span class="n">matching</span> <span class="n">the</span> <span class="n">y</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">the</span> <span class="n">spec</span>
-<span class="p">:</span><span class="n">param</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="n">x_verts</span><span class="p">:</span> <span class="n">The</span> <span class="n">Nx1</span> <span class="n">x</span> <span class="n">coordinates</span> <span class="n">of</span> <span class="n">the</span> <span class="n">polygons</span> <span class="n">vertices</span> <span class="o">-</span> <span class="n">minLength</span><span class="p">:</span> <span class="mi">3</span>
-<span class="p">:</span><span class="n">param</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="n">y_verts</span><span class="p">:</span> <span class="n">The</span> <span class="n">Nx1</span> <span class="n">y</span> <span class="n">coordinates</span> <span class="n">of</span> <span class="n">the</span> <span class="n">polygons</span> <span class="n">vertices</span> <span class="o">-</span> <span class="n">minLength</span><span class="p">:</span> <span class="mi">3</span>
+<p>Mask contains points of axis within a rotated xy polygon</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name matching the x axis of the spec</p></li>
+<li><p><strong>y_axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name matching the y axis of the spec</p></li>
+<li><p><strong>x_verts</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.9)"><em>typing.List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>]</em>) – The Nx1 x coordinates of the polygons vertices - minLength: 3</p></li>
+<li><p><strong>y_verts</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.9)"><em>typing.List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>]</em>) – The Nx1 y coordinates of the polygons vertices - minLength: 3</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
+
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Polygon</span>
+
+<span class="n">grid</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span> <span class="p">,</span><span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">grid</span> <span class="o">&amp;</span> <span class="n">Polygon</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<blockquote>
-<div><p>from scanspec.plot import plot_spec
-from scanspec.specs import Line
-from scanspec.regions import Polygon</p>
-<p>#Polygon parameters
-x_axis = “x”
-y_axis = “y”
-x_verts = [1.0, 6.0, 8.0, 2.0]
-y_verts = [4.0, 10.0, 6.0, 1.0]</p>
-<p>grid = Line(y_axis, 3, 8, 10) * ~Line(x_axis, 1 ,8, 10)
-spec = grid &amp; Polygon(x_axis, y_axis, x_verts, y_verts)
-plot_spec(spec)</p>
-</div></blockquote>
+<p>(<a class="reference external" href="../reference/api-16.py">Source code</a>, <a class="reference external" href="../reference/api-16.png">png</a>, <a class="reference external" href="../reference/api-16.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-16.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/api-16.png" class="plot-directive" src="../_images/api-16.png" />
+</div>
 </dd></dl>
 
 <dl class="py class">
@@ -1314,9 +1331,9 @@ plot_spec(spec)</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-15.py">Source code</a>, <a class="reference external" href="../reference/api-15.png">png</a>, <a class="reference external" href="../reference/api-15.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-15.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-17.py">Source code</a>, <a class="reference external" href="../reference/api-17.png">png</a>, <a class="reference external" href="../reference/api-17.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-17.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-15.png" class="plot-directive" src="../_images/api-15.png" />
+<img alt="../_images/api-17.png" class="plot-directive" src="../_images/api-17.png" />
 </div>
 </dd></dl>
 
@@ -1341,34 +1358,17 @@ plot_spec(spec)</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 <span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Ellipse</span>
 
-<span class="c1">#Ellipse parameters</span>
-<span class="n">x_axis</span> <span class="o">=</span> <span class="s2">&quot;x&quot;</span>
-<span class="n">y_axis</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span>
-<span class="n">x_middle</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">y_middle</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">x_radius</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="n">y_radius</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="n">angle</span> <span class="o">=</span> <span class="mi">75</span>
-
-<span class="n">grid</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">y_axis</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="n">x_axis</span><span class="p">,</span> <span class="mi">1</span> <span class="p">,</span><span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-<span class="n">spec</span> <span class="o">=</span> <span class="n">grid</span> <span class="o">&amp;</span> <span class="n">Ellipse</span><span class="p">(</span><span class="n">x_axis</span><span class="p">,</span> <span class="n">y_axis</span><span class="p">,</span> <span class="n">x_middle</span><span class="p">,</span> <span class="n">y_middle</span><span class="p">,</span> <span class="n">x_radius</span><span class="p">,</span>
-<span class="n">y_radius</span><span class="p">,</span> <span class="n">angle</span><span class="p">)</span>
-<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span> <span class="p">,</span><span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">grid</span> <span class="o">&amp;</span> <span class="n">Ellipse</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">75</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-16.py">Source code</a>)</p>
-<div class="figure align-default" id="id2">
-<img alt="../_images/api-16_00.png" class="plot-directive" src="../_images/api-16_00.png" />
-<p class="caption"><span class="caption-text">(<a class="reference external" href="../reference/api-16_00.png">png</a>, <a class="reference external" href="../reference/api-16_00.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-16_00.pdf">pdf</a>)</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
-</div>
-<div class="figure align-default" id="id3">
-<img alt="../_images/api-16_01.png" class="plot-directive" src="../_images/api-16_01.png" />
-<p class="caption"><span class="caption-text">(<a class="reference external" href="../reference/api-16_01.png">png</a>, <a class="reference external" href="../reference/api-16_01.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-16_01.pdf">pdf</a>)</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+<p>(<a class="reference external" href="../reference/api-18.py">Source code</a>, <a class="reference external" href="../reference/api-18.png">png</a>, <a class="reference external" href="../reference/api-18.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-18.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/api-18.png" class="plot-directive" src="../_images/api-18.png" />
 </div>
 </dd></dl>
 
@@ -1400,9 +1400,9 @@ scan is 2D then 2D regions are shown in black.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-17.py">Source code</a>, <a class="reference external" href="../reference/api-17.png">png</a>, <a class="reference external" href="../reference/api-17.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-17.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-19.py">Source code</a>, <a class="reference external" href="../reference/api-19.png">png</a>, <a class="reference external" href="../reference/api-19.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-19.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-17.png" class="plot-directive" src="../_images/api-17.png" />
+<img alt="../_images/api-19.png" class="plot-directive" src="../_images/api-19.png" />
 </div>
 </dd></dl>
 
