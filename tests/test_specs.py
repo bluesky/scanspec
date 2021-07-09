@@ -453,3 +453,20 @@ def test_multiple_statics():
         {"x": 0.0, "y": 4, "z": 5},
         {"x": 10.0, "y": 4, "z": 5},
     ]
+
+
+def test_multiple_statics_with_grid():
+    grid = Line("y", 0, 10, 2) * Line("x", 0, 10, 2)
+    part_1 = grid + Static("a", 2) + Static("b", 3)
+    part_2 = grid + Static("a", 4) + Static("b", 5)
+    spec = Concat(part_1, part_2)
+    assert list(spec.midpoints()) == [
+        {"x": 0.0, "y": 0.0, "a": 2, "b": 3},
+        {"x": 10.0, "y": 0.0, "a": 2, "b": 3},
+        {"x": 0.0, "y": 10.0, "a": 2, "b": 3},
+        {"x": 10.0, "y": 10.0, "a": 2, "b": 3},
+        {"x": 0.0, "y": 0.0, "a": 4, "b": 5},
+        {"x": 10.0, "y": 0.0, "a": 4, "b": 5},
+        {"x": 0.0, "y": 10.0, "a": 4, "b": 5},
+        {"x": 10.0, "y": 10.0, "a": 4, "b": 5},
+    ]
