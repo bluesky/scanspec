@@ -51,4 +51,3 @@ const renderGraphiQL = function (target, query, response, endpoint) {
     });
     ReactDOM.render(graphiQLElement, target);
 };
-
