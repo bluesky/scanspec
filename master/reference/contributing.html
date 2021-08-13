@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Contributing &mdash; scanspec 0.3+42.gb633309 documentation</title>
+  <title>Contributing &mdash; scanspec 0.3+45.g4eecaa4 documentation</title>
   
 
   
@@ -51,7 +51,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="Changelog" href="changelog.html" /> 
+    <link rel="prev" title="API" href="api.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -130,12 +130,11 @@
 <p class="caption"><span class="caption-text">Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#running-the-tests">Running the tests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#code-styling">Code Styling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#release-checklist">Release Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#release-process">Release Process</a></li>
 </ul>
 </li>
 </ul>
@@ -145,6 +144,8 @@
   <!-- Include Index in the sidebar -->
   <!-- https://stackoverflow.com/a/37843854 -->
   <a href="../genindex.html">Index</a>
+  <!-- Include link to changelog too -->
+  <a href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a>
   <!-- Add versions for selected branches + tags -->
   <p class="caption"><span class="caption-text">Versions</span></p>
   <ul id="versions"/>
@@ -297,13 +298,13 @@ $ firefox build/html/index.html
 </pre></div>
 </div>
 </div>
-<div class="section" id="release-checklist">
-<h2>Release Checklist<a class="headerlink" href="#release-checklist" title="Permalink to this headline">¶</a></h2>
-<p>Before a new release, please go through the following checklist:</p>
+<div class="section" id="release-process">
+<h2>Release Process<a class="headerlink" href="#release-process" title="Permalink to this headline">¶</a></h2>
+<p>To make a new release, please follow this checklist:</p>
 <ul class="simple">
 <li><p>Choose a new PEP440 compliant release number</p></li>
 <li><p>Add a release note in CHANGELOG.rst</p></li>
-<li><p>Git tag the version with message from CHANGELOG</p></li>
+<li><p>Git tag the version</p></li>
 <li><p>Push to github and the actions will make a release on pypi</p></li>
 <li><p>Push to internal gitlab and do a dls-release.py of the tag</p></li>
 </ul>
@@ -316,7 +317,7 @@ $ firefox build/html/index.html
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="changelog.html" class="btn btn-neutral float-left" title="Changelog" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-left" title="API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
