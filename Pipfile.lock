@@ -891,11 +891,11 @@
         },
         "sphinx-apischema": {
             "hashes": [
-                "sha256:704acfa5eb536664475a098487410e8ecdc1daca30cad37e8ddb99cf4b9ae1d6",
-                "sha256:c93436d89b2b53f8f2826d45ca574711ccf933ee1bf241fa852d1f7317cb25bd"
+                "sha256:be8b057a38e585d00bec70c9a5ab6d133bb3d933e61c5aebadd15fc0c2129d7b",
+                "sha256:d08bc8a6fde414e0569bea2bfe107af155ded1791520d3140edb2e238c31b1c2"
             ],
             "index": "pypi",
-            "version": "==0.1.2"
+            "version": "==0.1"
         },
         "sphinx-graphql": {
             "hashes": [

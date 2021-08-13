@@ -18,7 +18,7 @@ jobs:
             python: "3.7"
             publish: true
 
-    name: ${{ matrix.os }}/${{ matrix.python }}
+    name: build/${{ matrix.python }}/${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -32,7 +32,7 @@ jobs:
 
       - name: Install Python Dependencies
         run: |
-          pip install pipenv twine build
+          pip install pipenv build
           pipenv install --dev --deploy --python $(python -c 'import sys; print(sys.executable)') && pipenv graph
 
       - name: Create Sdist and Wheel
@@ -51,7 +51,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
-          name: ${{ matrix.os }}/${{ matrix.python }}
+          name: ${{ matrix.python }}/${{ matrix.os }}
           files: cov.xml
 
       - name: Upload Wheel and Sdist as artifacts
@@ -61,10 +61,29 @@ jobs:
           name: dist
           path: dist/*
 
-      - name: Publish Sdist and Wheel to PyPI
-        # Only once when on a tag
-        if: matrix.publish && startsWith(github.ref, 'refs/tags')
+  release:
+    needs: [build]
+    runs-on: ubuntu-latest
+    # upload to PyPI and make a release on every tag
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+      - name: Github Release
+        # We pin to the SHA, not the tag, for security reasons.
+        # https://docs.github.com/en/actions/learn-github-actions/security-hardening-for-github-actions#using-third-party-actions
+        uses: softprops/action-gh-release@2d72d869af3bf23602f9593a1e3fd739b80ac1eb  # v0.1.12
+        with:
+          files: dist/*
+          body: See [Changelog](CHANGELOG.rst) for more details
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.pypi_token }}
-        run: twine upload dist/*
+        run: pipx run twine upload dist/*

@@ -49,7 +49,9 @@ extensions = [
     "matplotlib.sphinxext.plot_directive",
     # Graphiql directive
     "sphinx_graphql.graphiql",
-    # Add apischema information to autodoc entries
+    # Makes autodoc understand apischema annotated classes/functions
+    "sphinx_apischema",
+    # Add example_spec directive
     "scanspec.sphinxext",
 ]
 
