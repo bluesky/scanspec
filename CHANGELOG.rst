@@ -13,6 +13,12 @@ Fixed:
 
 - Concat now behaves correctly on stacked dimensions
 
+Changed:
+
+- 'semiaxis' -> 'radius' in regions.Ellipse
+- Use sub sample method of reducing points in service
+- TIME is now DURATION
+
 0.3_ - 2021-06-01
 -----------------
 
@@ -46,7 +52,7 @@ Fixed:
 - Initial release
 
 
-.. _Unreleased: https://github.com/dls-controls/scanspec/compare/0.2...HEAD
+.. _Unreleased: https://github.com/dls-controls/scanspec/compare/0.3...HEAD
 .. _0.3: https://github.com/dls-controls/scanspec/compare/0.2...0.3
 .. _0.2: https://github.com/dls-controls/scanspec/compare/0.1.1...0.2
 .. _0.1.1: https://github.com/dls-controls/scanspec/compare/0.1...0.1.1

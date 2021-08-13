@@ -64,7 +64,6 @@ Technical reference material, for classes, methods, APIs, commands, and contribu
     :hidden:
 
     reference/api
-    reference/changelog
     reference/contributing
 
 .. rst-class:: endcolumns
