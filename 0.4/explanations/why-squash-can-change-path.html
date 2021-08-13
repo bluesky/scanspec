@@ -1,0 +1,377 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Why Squash (and Mask) can change the Path &mdash; scanspec 0.4 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../_static/scanspec-logo.ico"/>
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react@16.13.1/umd/react.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.js"></script>
+        <script src="../_static/attachGraphiQL.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API" href="../reference/api.html" />
+    <link rel="prev" title="What are Dimensions?" href="what-are-dimensions.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgb(7, 43, 93)" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> scanspec
+          
+
+          
+            
+            <img src="../_static/scanspec-logo.svg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+  <style>
+    /* style mobile top nav to look like main nav */
+    .wy-nav-top {
+        background: rgb(7, 43, 93)
+    }
+  </style>
+  
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/graphql-service.html">Running a GraphQL service for generating points</a></li>
+</ul>
+<p class="caption"><span class="caption-text">How-to Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Explanations</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="technical-terms.html">Technical Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="what-are-dimensions.html">What are Dimensions?</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Why Squash (and Mask) can change the Path</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#squash-unsnaked-axis-into-a-snaked-dimension">Squash unsnaked axis into a snaked Dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#squash-snaked-axis-into-unsnaked-odd-length-axis">Squash snaked axis into unsnaked odd length axis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-this-matters">Why this matters</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../reference/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+</ul>
+
+            
+          
+  <!-- Include Index in the sidebar -->
+  <!-- https://stackoverflow.com/a/37843854 -->
+  <a href="../genindex.html">Index</a>
+  <!-- Include link to changelog too -->
+  <a href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a>
+  <!-- Add versions for selected branches + tags -->
+  <p class="caption"><span class="caption-text">Versions</span></p>
+  <ul id="versions"/>
+  <script>
+    // Add any branches to appear in the side pane here, tags will be added below
+    // Will only appear if docs are built and pushed in gh-pages
+    var versions = ['master', 'main'];
+    var dirs = new Set();
+    function addVersion(name) {
+      if (dirs.has(name)) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = 'https://dls-controls.github.io/scanspec/' + name;
+        a.innerText = name;
+        li.appendChild(a)
+        document.getElementById('versions').appendChild(li);
+      }
+    }
+    Promise.all([
+      // Find gh-pages directories and populate `dirs`
+      fetch("https://api.github.com/repos/dls-controls/scanspec/contents?ref=gh-pages")
+      .then(response => response.json())
+      .then(data => data.forEach(function(e) {
+        if (e.type == "dir") dirs.add(e.name);
+      })),
+      // Add tags to `versions`
+      fetch('https://api.github.com/repos/dls-controls/scanspec/tags')
+        .then(response => response.json())
+        .then(data => data.forEach(function(e) {
+          versions.push(e.name);
+        }))
+      ]).then(_ => versions.forEach(addVersion))
+  </script>
+
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">scanspec</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Why Squash (and Mask) can change the Path</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/explanations/why-squash-can-change-path.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="why-squash-and-mask-can-change-the-path">
+<span id="why-squash-can-change-path"></span><h1>Why Squash (and Mask) can change the Path<a class="headerlink" href="#why-squash-and-mask-can-change-the-path" title="Permalink to this headline">¶</a></h1>
+<p>A Spec creates a number of Dimensions that can be set to snake. When snaking,
+every other run of that Dimension will run in reverse. <a class="reference internal" href="../reference/api.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Squash</span></code></a> and <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a> will
+merge Dimensions together. This may change the Path compared with the unsquashed
+version if the squashed Dimensions are nested within a slower Dimension, and so
+run more than once. This page lists the times where this is the case.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The cases illustrated below will only be produced if
+<code class="docutils literal notranslate"><span class="pre">check_path_changes=False</span></code> is passed to <a class="reference internal" href="../reference/api.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Squash</span></code></a> or <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a>, otherwise they
+will fail with <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.9)"><code class="xref any docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+</div>
+<div class="section" id="squash-unsnaked-axis-into-a-snaked-dimension">
+<h2>Squash unsnaked axis into a snaked Dimension<a class="headerlink" href="#squash-unsnaked-axis-into-a-snaked-dimension" title="Permalink to this headline">¶</a></h2>
+<p>Squashing Dimensions together will take the snake setting of the slowest moving
+Dimension in the squash. If this squashed Dimension is nested within another, on
+the second run the originally unsnaked axis will run in reverse. This would
+make a motor that the user had demanded to always run in one direction run in
+reverse, which could make the scan invalid.</p>
+<p>For example, consider a non-snaking x within a snaking y within z:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../explanations/why-squash-can-change-path-1.py">Source code</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-1.png">png</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-1.hires.png">hires.png</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-1.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/why-squash-can-change-path-1.png" class="plot-directive" src="../_images/why-squash-can-change-path-1.png" />
+</div>
+<p>If we squash the x and y dimensions then x will run in reverse on the second run:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Squash</span>
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Squash</span><span class="p">(</span>
+    <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">check_path_changes</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../explanations/why-squash-can-change-path-2.py">Source code</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-2.png">png</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-2.hires.png">hires.png</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-2.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/why-squash-can-change-path-2.png" class="plot-directive" src="../_images/why-squash-can-change-path-2.png" />
+</div>
+</div>
+<div class="section" id="squash-snaked-axis-into-unsnaked-odd-length-axis">
+<h2>Squash snaked axis into unsnaked odd length axis<a class="headerlink" href="#squash-snaked-axis-into-unsnaked-odd-length-axis" title="Permalink to this headline">¶</a></h2>
+<p>A snaked axis must repeat an even number of times within a squashed Dimension in order
+to be able to nest this Dimension within another and keep the Path of the snaked axis.
+If this is not the case, the snaked axis will “jump” after each iteration of the
+squashed dimension.</p>
+<p>For example, consider a snaking x within an odd non-snaking y within z:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../explanations/why-squash-can-change-path-3.py">Source code</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-3.png">png</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-3.hires.png">hires.png</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-3.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/why-squash-can-change-path-3.png" class="plot-directive" src="../_images/why-squash-can-change-path-3.png" />
+</div>
+<p>If we squash the x and y dimensions then x will jump between the first and second runs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Squash</span>
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Squash</span><span class="p">(</span>
+    <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">check_path_changes</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../explanations/why-squash-can-change-path-4.py">Source code</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-4.png">png</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-4.hires.png">hires.png</a>, <a class="reference external" href="../explanations/why-squash-can-change-path-4.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/why-squash-can-change-path-4.png" class="plot-directive" src="../_images/why-squash-can-change-path-4.png" />
+</div>
+</div>
+<div class="section" id="why-this-matters">
+<h2>Why this matters<a class="headerlink" href="#why-this-matters" title="Permalink to this headline">¶</a></h2>
+<p>Apart from these two cases, squashing can be considered Path invariant. This means that
+the detector could write data in a stack, then the data could be reshaped with a VDS into
+the original dimensionality. Unfortunately a negative stride is not supported in VDS, so
+the strategy is to squash snaked Dimensions into the Dimension above. If this changes the
+Path through a scan then this needs to be flagged or explicitly allowed in the Spec,
+otherwise the results for the user could be potentially surprising.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="../reference/api.html" class="btn btn-neutral float-right" title="API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="what-are-dimensions.html" class="btn btn-neutral float-left" title="What are Dimensions?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Diamond Light Source.
+
+    </p>
+  </div> 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
