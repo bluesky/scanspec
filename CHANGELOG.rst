@@ -6,8 +6,15 @@ All notable changes to this project will be documented in this file.
 The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0/>`_,
 and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
+
 Unreleased_
 -----------
+
+Nothing yet
+
+
+0.4_ - 2021-08-13
+-----------------
 
 Fixed:
 
@@ -19,6 +26,7 @@ Changed:
 - Use sub sample method of reducing points in service
 - TIME is now DURATION
 
+
 0.3_ - 2021-06-01
 -----------------
 
@@ -28,6 +36,7 @@ Added:
 - data structure 'PointsRequest' that includes multiple fields directly relating to fields within GDA
 - new naming standard
 - documentation on how to use get_points in graphiql
+
 
 0.2_ - 2020-12-18
 -----------------
@@ -52,7 +61,8 @@ Fixed:
 - Initial release
 
 
-.. _Unreleased: https://github.com/dls-controls/scanspec/compare/0.3...HEAD
+.. _Unreleased: https://github.com/dls-controls/scanspec/compare/0.4...HEAD
+.. _0.4: https://github.com/dls-controls/scanspec/compare/0.3...0.4
 .. _0.3: https://github.com/dls-controls/scanspec/compare/0.2...0.3
 .. _0.2: https://github.com/dls-controls/scanspec/compare/0.1.1...0.2
 .. _0.1.1: https://github.com/dls-controls/scanspec/compare/0.1...0.1.1
