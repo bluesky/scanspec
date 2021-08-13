@@ -22,6 +22,7 @@ flake8-isort = "*"
 isort = ">5.0"
 sphinx-rtd-theme = "*"
 sphinx-graphql = "*"
+sphinx-apischema = "*"
 
 [packages]
 # All other package requirements from setup.cfg
