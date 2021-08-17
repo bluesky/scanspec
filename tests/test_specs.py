@@ -7,15 +7,19 @@ from scanspec.specs import (
     Concat,
     Line,
     Mask,
+    Repeat,
     Spiral,
     Squash,
     Static,
     fly,
-    repeat,
     step,
 )
 
 x, y, z = "x", "y", "z"
+
+
+def ints(s):
+    return pytest.approx([int(t) for t in s])
 
 
 def test_one_point_duration() -> None:
@@ -25,6 +29,7 @@ def test_one_point_duration() -> None:
     assert dim.lower == {DURATION: pytest.approx([1.0])}
     assert dim.upper == {DURATION: pytest.approx([1.0])}
     assert dim.snake is False
+    assert dim.gap == ints("0")
 
 
 def test_one_point_line() -> None:
@@ -34,6 +39,7 @@ def test_one_point_line() -> None:
     assert dim.lower == {x: pytest.approx([-0.5])}
     assert dim.upper == {x: pytest.approx([0.5])}
     assert dim.snake is False
+    assert dim.gap == ints("1")
 
 
 def test_two_point_line() -> None:
@@ -42,6 +48,7 @@ def test_two_point_line() -> None:
     assert dim.midpoints == {x: pytest.approx([0, 1])}
     assert dim.lower == {x: pytest.approx([-0.5, 0.5])}
     assert dim.upper == {x: pytest.approx([0.5, 1.5])}
+    assert dim.gap == ints("10")
 
 
 def test_two_point_stepped_line() -> None:
@@ -401,45 +408,71 @@ def test_polygon_region() -> None:
     }
 
 
+def test_xyz_stack() -> None:
+    # Beam selector scan moves bounded between midpoints and lower and upper bounds at
+    # maximum speed. Turnaround sections are where it sends the triggers
+    spec = Line(z, 0, 1, 2) * ~Line(y, 0, 2, 3) * ~Line(x, 0, 3, 4)
+    dim = spec.path().consume()
+    assert len(dim) == 24
+    assert dim.lower == {
+        z: ints("000000000000111111111111"),
+        y: ints("000011112222222211110000"),
+        x: pytest.approx([-0.5, 0.5, 1.5, 2.5, 3.5, 2.5, 1.5, 0.5] * 3),
+    }
+    assert dim.upper == {
+        z: ints("000000000000111111111111"),
+        y: ints("000011112222222211110000"),
+        x: pytest.approx([0.5, 1.5, 2.5, 3.5, 2.5, 1.5, 0.5, -0.5] * 3),
+    }
+    assert dim.midpoints == {
+        z: ints("000000000000111111111111"),
+        y: ints("000011112222222211110000"),
+        x: ints("012332100123321001233210"),
+    }
+    assert dim.gap == ints("100010001000100010001000")
+    # Check that it still works if you consume then start on a point that should
+    # be False
+    p = spec.path()
+    assert p.consume(4).gap == ints("1000")
+    assert p.consume(4).gap == ints("1000")
+    assert p.consume(5).gap == ints("10001")
+    assert p.consume(2).gap == ints("00")
+    assert p.consume().gap == ints("010001000")
+    assert p.consume().gap == ints("")
+
+
 def test_beam_selector() -> None:
     # Beam selector scan moves bounded between midpoints and lower and upper bounds at
     # maximum speed. Turnaround sections are where it sends the triggers
-    bs = str()
-    spec = repeat(~Line.bounded(bs, 11, 19, 1), 10)
+    spec = 10 * ~Line.bounded(x, 11, 19, 1)
     dim = spec.path().consume()
     assert len(dim) == 10
-    assert dim.lower == {
-        bs: pytest.approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19]),
-        "REPEAT": pytest.approx([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-    }
-    assert dim.upper == {
-        bs: pytest.approx([19, 11, 19, 11, 19, 11, 19, 11, 19, 11]),
-        "REPEAT": pytest.approx([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-    }
-    assert dim.midpoints == {
-        bs: pytest.approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15]),
-        "REPEAT": pytest.approx([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-    }
+    assert dim.lower == {x: pytest.approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19])}
+    assert dim.upper == {x: pytest.approx([19, 11, 19, 11, 19, 11, 19, 11, 19, 11])}
+    assert dim.midpoints == {x: pytest.approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15])}
+    assert dim.gap == ints("1111111111")
 
 
-def test_blended_repeat() -> None:
-    # Check that if we blend the REPEATS don't change
-    bs = str()
-    spec = repeat(~Line.bounded(bs, 11, 19, 1), 10, blend=True)
+def test_gap_repeat() -> None:
+    # Check that no gap propogates to dim.gap for snaked axis
+    spec = Repeat(10, gap=False) * ~Line.bounded(x, 11, 19, 1)
     dim = spec.path().consume()
     assert len(dim) == 10
-    assert dim.lower == {
-        bs: pytest.approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19]),
-        "REPEAT": pytest.approx([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]),
-    }
-    assert dim.upper == {
-        bs: pytest.approx([19, 11, 19, 11, 19, 11, 19, 11, 19, 11]),
-        "REPEAT": pytest.approx([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]),
-    }
-    assert dim.midpoints == {
-        bs: pytest.approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15]),
-        "REPEAT": pytest.approx([10, 10, 10, 10, 10, 10, 10, 10, 10, 10]),
-    }
+    assert dim.lower == {x: pytest.approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19])}
+    assert dim.upper == {x: pytest.approx([19, 11, 19, 11, 19, 11, 19, 11, 19, 11])}
+    assert dim.midpoints == {x: pytest.approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15])}
+    assert dim.gap == ints("0000000000")
+
+
+def test_gap_repeat_non_snake() -> None:
+    # Check that no gap doesn't propogate to dim.gap for non-snaked axis
+    spec = Repeat(3, gap=False) * Line.bounded(x, 11, 19, 1)
+    dim = spec.path().consume()
+    assert len(dim) == 3
+    assert dim.lower == {x: pytest.approx([11, 11, 11])}
+    assert dim.upper == {x: pytest.approx([19, 19, 19])}
+    assert dim.midpoints == {x: pytest.approx([15, 15, 15])}
+    assert dim.gap == ints("111")
 
 
 def test_multiple_statics():

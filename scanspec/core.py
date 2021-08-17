@@ -190,6 +190,7 @@ class Dimension:
         midpoints: The centre points of the scan for each axis
         lower: Lower bounds if different from midpoints
         upper: Upper bounds if different from midpoints
+        gap: Whether there is a gap between this frame and the previous
         snake: If True then every other iteration of this Dimension within a
             slower moving Dimension will be reversed
 
@@ -202,6 +203,7 @@ class Dimension:
         midpoints: AxesPoints,
         lower: AxesPoints = None,
         upper: AxesPoints = None,
+        gap: np.ndarray = None,
         snake: bool = False,
     ):
         #: The centre points of the scan for each axis
@@ -210,9 +212,23 @@ class Dimension:
         self.lower = lower or midpoints
         #: The upper bounds of each scan point in each axis for fly-scanning
         self.upper = upper or midpoints
-        #: Whether every other iteration of this Dimension within a slower
-        #: moving Dimension will be reversed
-        self.snake = snake
+        # Initialize snake value
+        self._snake = snake
+        #: Whether there is a gap between this frame and the previous. First
+        #: element is whether there is a gap between the last frame and the first
+        if gap is None:
+            # We have a gap if upper[i] != lower[i+1] for any axes
+            axes_gap = [
+                u != np.roll(l, 1)
+                for u, l in zip(self.upper.values(), self.lower.values())
+            ]
+            self.gap = np.logical_or.reduce(axes_gap)
+            # If we are snaking then make sure self.gap is updated
+            if snake:
+                self.snake = True
+        else:
+            # We pre-calculated gap
+            self.gap = gap
         # Check all axes and ordering are the same
         assert list(self.midpoints) == list(self.lower) == list(self.upper), (
             f"Mismatching axes "
@@ -224,7 +240,22 @@ class Dimension:
             for d in (self.midpoints, self.lower, self.upper)
             for arr in d.values()
         )
+        lengths.add(len(self.gap))
         assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
+
+    @property
+    def snake(self) -> bool:
+        """Whether every other iteration of this Dimension within a slower
+        moving Dimension will be reversed"""
+        return self._snake
+
+    @snake.setter
+    def snake(self, snake: bool):
+        assert snake, "Can only set snake=True after init"
+        self._snake = True
+        # If we are snaking then there is never a gap between end and start
+        if len(self.gap) > 0:
+            self.gap[0] = False
 
     def axes(self) -> List:
         """The axes that are present in `midpoints`, `lower` and `upper`
@@ -234,43 +265,46 @@ class Dimension:
     def __len__(self) -> int:
         """The number of `frames` in the scan"""
         # All axespoints arrays are same length, pick the first one
-        return len(list(self.midpoints.values())[0])
+        return len(self.gap)
 
-    def _dim_with(self, func: Callable[[str, Any], np.ndarray]) -> "Dimension":
-        def apply_func(a: str):
-            return {k: func(a, k) for k in getattr(self, a)}
+    def _dim_from_indices(self, indices: np.ndarray, snake: bool) -> "Dimension":
+        def apply_to_dict(d: AxesPoints) -> AxesPoints:
+            return {k: v[indices] for k, v in d.items()}
 
-        # Apply to every array in axes
-        kwargs = dict(midpoints=apply_func("midpoints"), snake=self.snake)
-        # If lower and upper are different, apply to those too
-        if self.lower is not self.midpoints:
-            kwargs["lower"] = apply_func("lower")
-        if self.upper is not self.midpoints:
-            kwargs["upper"] = apply_func("upper")
-        return Dimension(**kwargs)
+        # If lower or upper are different, apply to those
+        kwargs = {
+            a: apply_to_dict(getattr(self, a))
+            for a in ("lower", "upper")
+            if self.midpoints is not getattr(self, a)
+        }
+
+        # Apply to midpoints, inherit snaked, force calculation of gap
+        return Dimension(
+            midpoints=apply_to_dict(self.midpoints), gap=None, snake=snake, **kwargs,
+        )
 
     def __getitem__(self, indices: np.ndarray) -> "Dimension":
         """Return a new Dimension that produces this dimension
         restricted to the slice"""
-        return self._dim_with(lambda a, k: getattr(self, a)[k][indices])
+        return self._dim_from_indices(indices, self.snake)
 
-    def tile(self, reps: int) -> "Dimension":
+    def tile(self, reps: int, snake: bool = False) -> "Dimension":
         """Return a new Dimension that iterates self reps times
 
         >>> dim = Dimension({"x": np.array([1, 2, 3])})
         >>> dim.tile(reps=2).midpoints
         {'x': array([1, 2, 3, 1, 2, 3])}
         """
-        return self._dim_with(lambda a, k: np.tile(getattr(self, a)[k], reps))
+        return self._dim_from_indices(np.tile(np.arange(len(self)), reps), snake)
 
-    def repeat(self, reps: int) -> "Dimension":
+    def repeat(self, reps: int, snake: bool = False) -> "Dimension":
         """Return a new Dimension that repeats each point in self reps times
 
         >>> dim = Dimension({"x": np.array([1, 2, 3])})
         >>> dim.repeat(reps=2).midpoints
         {'x': array([1, 1, 2, 2, 3, 3])}
         """
-        return self._dim_with(lambda a, k: np.repeat(getattr(self, a)[k], reps))
+        return self._dim_from_indices(np.repeat(np.arange(len(self)), reps), snake)
 
     def mask(self, mask: np.ndarray) -> "Dimension":
         """Return a new Dimension that produces only points from self in the
@@ -280,17 +314,30 @@ class Dimension:
         >>> dim.mask(np.array([1, 0, 1])).midpoints
         {'x': array([1, 3])}
         """
-        indices = mask.nonzero()[0]
-        return self._dim_with(lambda a, k: getattr(self, a)[k][indices])
+        return self._dim_from_indices(mask.nonzero()[0], self.snake)
 
-    def copy(self) -> "Dimension":
-        """Return a shallow copy of the current Dimension (dicts copied,
-        arrays within them are not)"""
-        return self._dim_with(lambda a, k: getattr(self, a)[k])
-
-    def _check_dim(self, other: "Dimension"):
+    def _merge_dims(
+        self,
+        other: "Dimension",
+        dict_merge: Callable[[AxesPoints, AxesPoints], AxesPoints],
+    ):
         assert isinstance(other, Dimension), f"Expected Dimension, got {other}"
         assert self.snake == other.snake, "Snake settings don't match"
+        # If lower or upper are different, apply to those
+        kwargs = {
+            a: dict_merge(getattr(self, a), getattr(other, a))
+            for a in ("lower", "upper")
+            if self.midpoints is not getattr(self, a)
+            or other.midpoints is not getattr(other, a)
+        }
+
+        # Apply to midpoints, inherit snaked, force calculation of gap
+        return Dimension(
+            midpoints=dict_merge(self.midpoints, other.midpoints),
+            gap=None,
+            snake=self.snake,
+            **kwargs,
+        )
 
     def concat(self, other: "Dimension") -> "Dimension":
         """Return a new Dimension with arrays from self and other concatenated
@@ -302,11 +349,14 @@ class Dimension:
         >>> dim.concat(dim2).midpoints
         {'x': array([1, 2, 3, 5, 6, 7])}
         """
-        self._check_dim(other)
         assert self.axes() == other.axes(), f"axes {self.axes()} != {other.axes()}"
-        return self._dim_with(
-            lambda a, k: np.concatenate((getattr(self, a)[k], getattr(other, a)[k]))
+        dim = self._merge_dims(
+            other,
+            # Concat each array in midpoints, lower, upper. E.g.
+            # lower[ax] = np.concatenate(self.lower[ax], other.lower[ax])
+            lambda d1, d2: {k: np.concatenate((v, d2[k])) for k, v in d1.items()},
         )
+        return dim
 
     def zip(self, other: "Dimension") -> "Dimension":
         """Return a new Dimension with arrays from axes of self and other
@@ -318,17 +368,14 @@ class Dimension:
         >>> dimx.zip(dimy).midpoints
         {'x': array([1, 2, 3]), 'y': array([5, 6, 7])}
         """
-        self._check_dim(other)
         overlapping = list(set(self.axes()).intersection(other.axes()))
         assert not overlapping, f"Zipping would overwrite axes {overlapping}"
-        # rely on the constructor to check lengths
-        dim = Dimension(
-            midpoints={**self.midpoints, **other.midpoints},
-            lower={**self.lower, **other.lower},
-            upper={**self.upper, **other.upper},
-            snake=self.snake,
+        return self._merge_dims(
+            other,
+            # Merge dicts for midpoints, lower, upper. E.g.
+            # lower[ax] = {**self.lower[ax], **other.lower[ax]}
+            lambda d1, d2: {**d1, **d2},
         )
-        return dim
 
 
 def squash_dimensions(
@@ -430,6 +477,7 @@ class Path:
         else:
             end_index = min(self.index + num, self.end_index)
         indices = np.arange(self.index, end_index)
+        gap = np.zeros(indices.shape, dtype=np.bool_)
         self.index = end_index
         midpoints, lower, upper = {}, {}, {}
         if len(indices) > 0:
@@ -445,6 +493,11 @@ class Path:
             # Y:000011112222000011112222
             # X:012301230123012301230123
             dim_indices = (indices // repeats) % dim_len
+            # Whether this dim contributes to the gap bit
+            # Z:000000000000100000000000
+            # Y:000010001000100010001000
+            # X:111111111111111111111111
+            in_gap = (indices % repeats) == 0
             if dim.snake:
                 # Whether this point is running backwards:
                 # Z:000000000000000000000000
@@ -458,6 +511,13 @@ class Path:
                 snake_indices = np.where(
                     backwards, dim_len - 1 - dim_indices, dim_indices
                 )
+                # Gap is the difference between subsequent elements,
+                # with True at the beginning, so the reverse dimension
+                # needs to be one more than the snake_indices
+                # Z:000000000000111111111111
+                # Y:000011112222333322221111
+                # X:012343210123432101233210
+                gap_indices = np.where(backwards, dim_len - dim_indices, dim_indices)
                 for axis in dim.axes():
                     midpoints[axis] = dim.midpoints[axis][snake_indices]
                     # If going backwards, select from the opposite bound
@@ -472,11 +532,17 @@ class Path:
                         dim.upper[axis][snake_indices],
                     )
             else:
+                gap_indices = dim_indices
                 for axis in dim.axes():
                     midpoints[axis] = dim.midpoints[axis][dim_indices]
                     lower[axis] = dim.lower[axis][dim_indices]
                     upper[axis] = dim.upper[axis][dim_indices]
-        return Dimension(midpoints, lower, upper)
+            # If in_gap, logical_or the relevant gap bit from the dim
+            # We use % as gap_indices is 1..dim_len, with dim_len rolling
+            # over to 0
+            gap |= np.where(in_gap, dim.gap[gap_indices % dim_len], False)
+
+        return Dimension(midpoints, lower, upper, gap)
 
     def __len__(self) -> int:
         """Number of points left in a scan, reduces when `consume` is called"""

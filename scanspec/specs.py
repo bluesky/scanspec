@@ -21,6 +21,7 @@ T = TypeVar("T")
 __all__ = [
     "Spec",
     "Product",
+    "Repeat",
     "Zip",
     "Mask",
     "Snake",
@@ -30,19 +31,13 @@ __all__ = [
     "Static",
     "Spiral",
     "DURATION",
-    "REPEAT",
     "fly",
     "step",
-    "repeat",
 ]
 
 
 #: Can be used as a special key to indicate how long each point should be
 DURATION = "DURATION"
-
-
-#: Can be used as a special key to indicate repeats of a whole spec
-REPEAT = "REPEAT"
 
 
 @dataclass
@@ -79,6 +74,9 @@ class Spec(Serializable):
         mp = Midpoints(self.create_dimensions(bounds=False))
         return mp
 
+    def __rmul__(self, other) -> "Product":
+        return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
+
     def __mul__(self, other) -> "Product":
         return if_instance_do(other, Spec, lambda o: Product(self, o))
 
@@ -114,6 +112,46 @@ class Product(Spec):
         dims_outer = self.outer.create_dimensions(bounds=False, nested=nested)
         dims_inner = self.inner.create_dimensions(bounds, nested=True)
         return dims_outer + dims_inner
+
+
+ANum = A[int, schema(min=1, description="Number of frames to produce")]
+
+
+@dataclass
+class Repeat(Spec):
+    """Repeat an empty frame num times. Can be used on the outside of a scan to
+    repeat the same scan many times
+
+    .. example_spec::
+
+        from scanspec.specs import Line
+
+        spec = 3 * ~Line("x", 3, 4, 1)
+
+    If you want snaked axes to have no gap between iterations you can do
+
+    .. example_spec::
+
+        from scanspec.specs import Line, Repeat
+
+        spec = Repeat(3, gap=False) * ~Line("x", 3, 4, 1)
+
+    """
+
+    num: ANum
+    gap: A[
+        bool,
+        schema(
+            description="If False and the slowest dimension of spec is snaked then the "
+            "end and start of consecutive iterations of Spec will have no gap"
+        ),
+    ] = True
+
+    def axes(self) -> List:
+        return []
+
+    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+        return [Dimension({}, gap=np.full(self.num, self.gap))]
 
 
 @dataclass
@@ -160,8 +198,9 @@ class Zip(Spec):
         # Pad and expand the right to be the same size as left
         # Special case, if only one dim with size 1, expand to the right size
         if len(dims_right) == 1 and len(dims_right[0]) == 1:
-            repeated = dims_right[0].repeat(len(dims_left[-1]))
-            repeated.snake = dims_left[-1].snake
+            repeated = dims_right[0].repeat(
+                len(dims_left[-1]), snake=dims_left[-1].snake
+            )
             dims_right = [repeated]
 
         # Left pad dims_right with Nones so they are the same size
@@ -205,8 +244,8 @@ class Mask(Spec):
 
     .. example_spec::
 
-        from scanspec.specs import Line
         from scanspec.regions import Circle
+        from scanspec.specs import Line
 
         spec = Line("y", 1, 3, 3) * Line("x", 3, 5, 5) & Circle("x", "y", 4, 2, 1.2)
     """
@@ -286,7 +325,7 @@ class Concat(Spec):
 
     .. example_spec::
 
-        from scanspec.specs import Line, Concat
+        from scanspec.specs import Concat, Line
 
         spec = Concat(Line("x", 1, 3, 3), Line("x", 4, 5, 5))
     """
@@ -358,14 +397,20 @@ def _dimensions_from_indexes(
         bounds_calc = func(np.linspace(0, num, num + 1))
         lower = {a: bounds_calc[a][:-1] for a in axes}
         upper = {a: bounds_calc[a][1:] for a in axes}
-        dimension = Dimension(midpoints, lower, upper)
+        # Points must have no gap as upper[a][i] == lower[a][i+1]
+        # because we initialized it to be that way
+        gap = np.zeros(num, dtype=np.bool_)
+        # But calc the first point as difference between first
+        # and last
+        gap[0] = any(bounds_calc[a][0] != bounds_calc[a][-1] for a in axes)
+        dimension = Dimension(midpoints, lower, upper, gap)
     else:
+        # Gap can be calculated in Dimension
         dimension = Dimension(midpoints)
     return [dimension]
 
 
 AAxis = A[str, schema(description="An identifier for what to move")]
-ANum = A[int, schema(min=1, description="Number of points to produce")]
 
 
 @dataclass
@@ -594,19 +639,3 @@ def step(spec: Spec, duration: float, num: int = 1) -> Spec:
         spec = step(Line("x", 1, 2, 3), 0.1)
     """
     return spec * Static.duration(duration, num)
-
-
-def repeat(spec: Spec, num: int, blend=False) -> Spec:
-    """Repeat spec num times
-
-    Args:
-        spec: The source `Spec` that will be iterated
-        num: The number of times to repeat it
-        blend: If True and the slowest dimension of spec is snaked then
-            the end and start of consecutive iterations of Spec will be
-            blended together, leaving no gap
-    """
-    if blend:
-        return Static(REPEAT, num, num) * spec
-    else:
-        return Line(REPEAT, 1, num, num) * spec
