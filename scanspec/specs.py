@@ -12,6 +12,7 @@ from .core import (
     Serializable,
     alternative_constructor,
     if_instance_do,
+    last_first_gap,
     squash_dimensions,
 )
 from .regions import Region, get_mask
@@ -126,7 +127,7 @@ class Repeat(Spec):
 
         from scanspec.specs import Line
 
-        spec = 3 * ~Line("x", 3, 4, 1)
+        spec = 2 * ~Line.bounded("x", 3, 4, 1)
 
     If you want snaked axes to have no gap between iterations you can do
 
@@ -134,8 +135,9 @@ class Repeat(Spec):
 
         from scanspec.specs import Line, Repeat
 
-        spec = Repeat(3, gap=False) * ~Line("x", 3, 4, 1)
+        spec = Repeat(2, gap=False) * ~Line.bounded("x", 3, 4, 1)
 
+    .. note:: There is no turnaround arrow at x=4
     """
 
     num: ANum
@@ -342,6 +344,9 @@ class Concat(Spec):
             description="The right-hand Spec to Concat, midpoints will appear later"
         ),
     ]
+    gap: A[
+        bool, schema(description="If True, force a gap in the output at the join")
+    ] = False
 
     def axes(self) -> List:
         left_axes, right_axes = self.left.axes(), self.right.axes()
@@ -351,7 +356,7 @@ class Concat(Spec):
     def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
         dim_left = squash_dimensions(self.left.create_dimensions(bounds, nested))
         dim_right = squash_dimensions(self.right.create_dimensions(bounds, nested))
-        dim = dim_left.concat(dim_right)
+        dim = dim_left.concat(dim_right, self.gap)
         return [dim]
 
 
@@ -402,7 +407,7 @@ def _dimensions_from_indexes(
         gap = np.zeros(num, dtype=np.bool_)
         # But calc the first point as difference between first
         # and last
-        gap[0] = any(bounds_calc[a][0] != bounds_calc[a][-1] for a in axes)
+        gap[0] = last_first_gap(upper, lower)
         dimension = Dimension(midpoints, lower, upper, gap)
     else:
         # Gap can be calculated in Dimension

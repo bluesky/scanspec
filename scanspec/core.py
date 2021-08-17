@@ -176,6 +176,12 @@ def if_instance_do(x, cls: Type, func: Callable):
         return NotImplemented
 
 
+def last_first_gap(upper: AxesPoints, lower: AxesPoints) -> bool:
+    """Return if there is a gap between last point of upper and first point
+    of lower"""
+    return any(upper[a][-1] != lower[a][0] for a in lower)
+
+
 class Dimension:
     """A dimension is a repeatable, possibly snaking structure of frames along a
     number of axes.
@@ -291,6 +297,10 @@ class Dimension:
     def tile(self, reps: int, snake: bool = False) -> "Dimension":
         """Return a new Dimension that iterates self reps times
 
+        Args:
+            reps: The number of times the dimension will repeat in its entirity
+            snake: Whether the output dimension will snake
+
         >>> dim = Dimension({"x": np.array([1, 2, 3])})
         >>> dim.tile(reps=2).midpoints
         {'x': array([1, 2, 3, 1, 2, 3])}
@@ -299,6 +309,10 @@ class Dimension:
 
     def repeat(self, reps: int, snake: bool = False) -> "Dimension":
         """Return a new Dimension that repeats each point in self reps times
+
+        Args:
+            reps: The number of times each point of the dimension will repeat
+            snake: Whether the output dimension will snake
 
         >>> dim = Dimension({"x": np.array([1, 2, 3])})
         >>> dim.repeat(reps=2).midpoints
@@ -320,6 +334,7 @@ class Dimension:
         self,
         other: "Dimension",
         dict_merge: Callable[[AxesPoints, AxesPoints], AxesPoints],
+        gap_merge: Callable[[np.ndarray, np.ndarray], np.ndarray],
     ):
         assert isinstance(other, Dimension), f"Expected Dimension, got {other}"
         assert self.snake == other.snake, "Snake settings don't match"
@@ -334,27 +349,42 @@ class Dimension:
         # Apply to midpoints, inherit snaked, force calculation of gap
         return Dimension(
             midpoints=dict_merge(self.midpoints, other.midpoints),
-            gap=None,
+            gap=gap_merge(self.gap, other.gap),
             snake=self.snake,
             **kwargs,
         )
 
-    def concat(self, other: "Dimension") -> "Dimension":
+    def concat(self, other: "Dimension", gap: bool = False) -> "Dimension":
         """Return a new Dimension with arrays from self and other concatenated
         together. Require both Dimensions to have the same axes and snake
         settings
+
+        Args:
+            other: The dimension to concatenate to self
+            snake: Whether to force a gap between the two dimensions
 
         >>> dim = Dimension({"x": np.array([1, 2, 3])})
         >>> dim2 = Dimension({"x": np.array([5, 6, 7])})
         >>> dim.concat(dim2).midpoints
         {'x': array([1, 2, 3, 5, 6, 7])}
         """
+
+        def concat_gap(gap1: np.ndarray, gap2: np.ndarray) -> np.ndarray:
+            g = np.concatenate((gap1, gap2))
+            # Calc the first point
+            g[0] = last_first_gap(other.upper, self.lower)
+            # And the join point
+            g[len(self)] = gap or last_first_gap(self.upper, other.lower)
+            return g
+
         assert self.axes() == other.axes(), f"axes {self.axes()} != {other.axes()}"
         dim = self._merge_dims(
             other,
             # Concat each array in midpoints, lower, upper. E.g.
             # lower[ax] = np.concatenate(self.lower[ax], other.lower[ax])
             lambda d1, d2: {k: np.concatenate((v, d2[k])) for k, v in d1.items()},
+            # Gap should be concatted, but calc the join points above
+            concat_gap,
         )
         return dim
 
@@ -375,6 +405,9 @@ class Dimension:
             # Merge dicts for midpoints, lower, upper. E.g.
             # lower[ax] = {**self.lower[ax], **other.lower[ax]}
             lambda d1, d2: {**d1, **d2},
+            # Gap if either dim has a gap. E.g.
+            # gap[i] = self.gap[i] | other.gap[i]
+            np.logical_or,
         )
 
 
