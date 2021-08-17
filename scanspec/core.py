@@ -219,7 +219,7 @@ class Dimension:
         if gap is None:
             # We have a gap if upper[i] != lower[i+1] for any axes
             axes_gap = [
-                u != np.roll(l, 1)
+                np.roll(u, 1) != l
                 for u, l in zip(self.upper.values(), self.lower.values())
             ]
             self.gap = np.logical_or.reduce(axes_gap)
