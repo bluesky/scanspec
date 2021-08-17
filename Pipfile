@@ -12,6 +12,7 @@ mypy = "*"
 atomicwrites = "*"
 typing-extensions = "*"
 importlib-metadata = "*"
+typed-ast = "*"
 
 # Test and docs dependencies
 pytest-cov = "*"
