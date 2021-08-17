@@ -186,19 +186,20 @@ class Dimension:
     """A dimension is a repeatable, possibly snaking structure of frames along a
     number of axes.
 
+    Args:
+        midpoints: The centre points of the scan for each axis
+        lower: Lower bounds if different from midpoints
+        upper: Upper bounds if different from midpoints
+        gap: If supplied, define if there is a gap between frame and previous
+            otherwise it is calculated by looking at lower and upper bounds
+        snake: If True then every other iteration of this Dimension within a
+            slower moving Dimension will be reversed
+
     Represents a linear stack of frames. A list of Dimensions
     is interpreted as nested from slowest moving to fastest moving, so each
     faster Dimension will iterate once per position of the slower Dimension.
     When fly-scanning the axis will traverse lower-midpoint-upper on the fastest
     Dimension for each point in the scan.
-
-    Args:
-        midpoints: The centre points of the scan for each axis
-        lower: Lower bounds if different from midpoints
-        upper: Upper bounds if different from midpoints
-        gap: Whether there is a gap between this frame and the previous
-        snake: If True then every other iteration of this Dimension within a
-            slower moving Dimension will be reversed
 
     See Also:
         `what-are-dimensions`
@@ -220,9 +221,12 @@ class Dimension:
         self.upper = upper or midpoints
         # Initialize snake value
         self._snake = snake
-        #: Whether there is a gap between this frame and the previous. First
-        #: element is whether there is a gap between the last frame and the first
-        if gap is None:
+        if gap is not None:
+            #: Whether there is a gap between this frame and the previous. First
+            #: element is whether there is a gap between the last frame and the first
+            self.gap = gap
+        else:
+            # Need to calculate gap as not passed one
             # We have a gap if upper[i] != lower[i+1] for any axes
             axes_gap = [
                 np.roll(u, 1) != l
@@ -232,9 +236,6 @@ class Dimension:
             # If we are snaking then make sure self.gap is updated
             if snake:
                 self.snake = True
-        else:
-            # We pre-calculated gap
-            self.gap = gap
         # Check all axes and ordering are the same
         assert list(self.midpoints) == list(self.lower) == list(self.upper), (
             f"Mismatching axes "

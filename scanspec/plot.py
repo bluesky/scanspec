@@ -60,6 +60,11 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
     t[1:] = np.sqrt(sum((arr[1:] - arr[:-1]) ** 2 for arr in scaled_arrays))
     t = np.cumsum(t)
     if t[-1] > 0:
+        # Can't make a spline that starts and ends in the same place, so add a small
+        # delta
+        for s, r in zip(scaled_arrays, ranges):
+            if s[0] == s[-1]:
+                s += np.linspace(0, r * 1e-7, len(s))
         # There are no duplicated points, plot a spline
         t /= t[-1]
         # Scale the arrays so splines don't favour larger scaled axes

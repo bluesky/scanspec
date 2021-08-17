@@ -10,7 +10,14 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 Unreleased_
 -----------
 
-Nothing yet
+Added:
+
+- `Dimension.gap` to see whether there is a gap between frames
+- `Concat.gap` to allow a gap to be explicitly inserted between sections
+
+Changed:
+
+- Removed `repeat(spec, 3)` and replaced with `Repeat(spec, 3)` and `3 * spec` shortcut
 
 
 0.4_ - 2021-08-13
