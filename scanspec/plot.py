@@ -7,20 +7,11 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import proj3d
 from scipy import interpolate
 
-from .core import Dimension, Path
+from .core import Path
 from .regions import Circle, Ellipse, Polygon, Rectangle, find_regions
 from .specs import DURATION, Spec
 
 __all__ = ["plot_spec"]
-
-
-def _find_breaks(dim: Dimension):
-    breaks = []
-    for axes in dim.axes():
-        breaks.append(dim.lower[axes][1:] != dim.upper[axes][:-1])
-    same = np.logical_or.reduce(breaks)
-    break_indices = np.nonzero(same)[0] + 1
-    return list(break_indices)
 
 
 def _plot_arrays(axes, arrays: List[np.ndarray], **kwargs):
@@ -69,6 +60,11 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
     t[1:] = np.sqrt(sum((arr[1:] - arr[:-1]) ** 2 for arr in scaled_arrays))
     t = np.cumsum(t)
     if t[-1] > 0:
+        # Can't make a spline that starts and ends in the same place, so add a small
+        # delta
+        for s, r in zip(scaled_arrays, ranges):
+            if s[0] == s[-1]:
+                s += np.linspace(0, r * 1e-7, len(s))
         # There are no duplicated points, plot a spline
         t /= t[-1]
         # Scale the arrays so splines don't favour larger scaled axes
@@ -156,7 +152,10 @@ def plot_spec(spec: Spec):
     seg_col = cycle(colors.TABLEAU_COLORS)
     last_index = 0
     splines = None
-    for index in _find_breaks(dim) + [len(dim)]:
+    # The first element of gap is undefined (as there is no previous frame)
+    # so discard it
+    gap_indices = list(np.nonzero(dim.gap[1:])[0] + 1)
+    for index in gap_indices + [len(dim)]:
         num_points = index - last_index
         arrays = []
         turnaround = []

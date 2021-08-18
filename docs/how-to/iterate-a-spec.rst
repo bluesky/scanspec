@@ -87,3 +87,30 @@ You can also use this method to only run a subset of the scan:
 >>> len(path)
 0
 
+
+If you need to know whether there is a gap between points
+---------------------------------------------------------
+
+You may need to know where there is a gap between points, so that you can do
+something in the turnaround. For example, if we take the x axis of a grid scan,
+you can see it snakes back and forth:
+
+>>> from scanspec.specs import Line, fly
+>>> grid = fly(Line("y", 0, 1, 2) * ~Line("x", 1, 2, 3), 0.1)
+>>> chunk = grid.path().consume()
+>>> chunk.midpoints["x"]
+array([1. , 1.5, 2. , 2. , 1.5, 1. ])
+
+You can check where the gaps are by using the `Dimension.gap` attribute:
+
+>>> chunk.gap
+array([ True, False, False,  True, False, False])
+
+This says whether there is a gap between this frame and the previous frame. In
+the example we see 2 gaps:
+
+- On the very first frame (as there is a gap between the last and first frames)
+- Between the 2 frames with midpoint of 2.0
+
+You could use this information to work out when to insert turnaround between
+rows for the motors

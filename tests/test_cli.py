@@ -60,6 +60,32 @@ def test_plot_1D_line() -> None:
     assert texts[0].xy == [0.5, 0]
 
 
+def test_plot_1D_line_snake_repeat() -> None:
+    runner = CliRunner()
+    spec = '2 * ~Line.bounded("x", 1, 2, 1)'
+    with patch("scanspec.plot.plt.show"):
+        result = runner.invoke(cli.cli, ["plot", spec])
+    assert result.stdout == ""
+    axes = plt.gcf().axes[0]
+    lines = axes.lines
+    assert len(lines) == 5
+    # First repeat
+    assert_min_max_2d(lines[0], 1, 2, 0, 0)
+    # Turnaround
+    assert_min_max_2d(lines[1], 2.0, 2.005585, 0, 0)
+    # Second repeat
+    assert_min_max_2d(lines[2], 1, 2, 0, 0)
+    # Capture points
+    assert_min_max_2d(lines[3], 1.5, 1.5, 0, 0, length=2)
+    # End
+    assert_min_max_2d(lines[4], 1, 1, 0, 0)
+    # Arrows
+    texts = axes.texts
+    assert len(texts) == 2
+    assert texts[0].xy == [1, 0]
+    assert texts[1].xy == pytest.approx([2, 0])
+
+
 def test_plot_1D_step() -> None:
     runner = CliRunner()
     spec = 'step(Line("x", 1, 2, 2), 0.1)'
@@ -108,7 +134,7 @@ def test_plot_2D_line() -> None:
     texts = axes.texts
     assert len(texts) == 2
     assert texts[0].xy == [0.5, 2]
-    assert texts[1].xy == [2.5, 3]
+    assert texts[1].xy == pytest.approx([2.5, 3])
 
 
 def test_plot_2D_line_rect_region() -> None:

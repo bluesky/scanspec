@@ -88,7 +88,7 @@ class PointsResponse:
                 Points(self._chunk.midpoints[axis]),
                 Points(self._chunk.upper[axis]),
             )
-            for axis in self._chunk.midpoints
+            for axis in self._chunk.axes()
         ]
 
     @resolver
@@ -194,7 +194,7 @@ def sub_sample(dim: Dimension, ratio: float) -> Dimension:
         Dimension: the reduced dimension
     """
     num_indexes = int(len(dim) / ratio)
-    indexes = np.linspace(0, len(dim) - 1, num_indexes).astype(np.int32)
+    indexes = np.linspace(0, len(dim) - 1, num_indexes, dtype=np.int32)
     return dim[indexes]
 
 
