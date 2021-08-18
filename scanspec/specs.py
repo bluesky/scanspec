@@ -200,9 +200,10 @@ class Zip(Spec):
         # Pad and expand the right to be the same size as left
         # Special case, if only one dim with size 1, expand to the right size
         if len(dims_right) == 1 and len(dims_right[0]) == 1:
-            repeated = dims_right[0].repeat(
-                len(dims_left[-1]), snake=dims_left[-1].snake
-            )
+            # Take the 0th element N times to make a repeated dimension
+            indices = np.zeros(len(dims_left[-1]), dtype=np.int8)
+            repeated = dims_right[0][indices]
+            repeated.snake = dims_left[-1].snake
             dims_right = [repeated]
 
         # Left pad dims_right with Nones so they are the same size
@@ -274,7 +275,9 @@ class Mask(Spec):
                 squashed = squash_dimensions(dims[si : ei + 1], check_path_changes)
                 dims = dims[:si] + [squashed] + dims[ei + 1 :]
         # Generate masks from the midpoints showing what's inside
-        masked_dims = [dim.mask(get_mask(self.region, dim.midpoints)) for dim in dims]
+        masked_dims = [
+            dim[get_mask(self.region, dim.midpoints).nonzero()[0]] for dim in dims
+        ]
         return masked_dims
 
     # *+ bind more tightly than &|^ so without these overrides we

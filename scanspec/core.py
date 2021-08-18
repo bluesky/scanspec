@@ -205,6 +205,8 @@ class Dimension:
         `what-are-dimensions`
     """
 
+    _snake = False
+
     def __init__(
         self,
         midpoints: AxesPoints,
@@ -219,12 +221,12 @@ class Dimension:
         self.lower = lower or midpoints
         #: The upper bounds of each scan point in each axis for fly-scanning
         self.upper = upper or midpoints
-        # Initialize snake value
-        self._snake = snake
         if gap is not None:
             #: Whether there is a gap between this frame and the previous. First
             #: element is whether there is a gap between the last frame and the first
             self.gap = gap
+            # Don't use the setter to keep the pre-calculated gap
+            self._snake = snake
         else:
             # Need to calculate gap as not passed one
             # We have a gap if upper[i] != lower[i+1] for any axes
@@ -233,9 +235,8 @@ class Dimension:
                 for u, l in zip(self.upper.values(), self.lower.values())
             ]
             self.gap = np.logical_or.reduce(axes_gap)
-            # If we are snaking then make sure self.gap is updated
-            if snake:
-                self.snake = True
+            # Use the setter to make sure self.gap is updated if snaking
+            self.snake = snake
         # Check all axes and ordering are the same
         assert list(self.midpoints) == list(self.lower) == list(self.upper), (
             f"Mismatching axes "
@@ -258,11 +259,12 @@ class Dimension:
 
     @snake.setter
     def snake(self, snake: bool):
-        assert snake, "Can only set snake=True after init"
-        self._snake = True
-        # If we are snaking then there is never a gap between end and start
-        if len(self.gap) > 0:
-            self.gap[0] = False
+        if snake != self._snake:
+            assert snake, "Can only set snake=True after init"
+            self._snake = True
+            # If we are snaking then there is never a gap between end and start
+            if len(self.gap) > 0:
+                self.gap[0] = False
 
     def axes(self) -> List:
         """The axes that are present in `midpoints`, `lower` and `upper`
@@ -274,7 +276,15 @@ class Dimension:
         # All axespoints arrays are same length, pick the first one
         return len(self.gap)
 
-    def _dim_from_indices(self, indices: np.ndarray, snake: bool) -> "Dimension":
+    def __getitem__(self, indices: np.ndarray) -> "Dimension":
+        """Return a new Dimension that produces this dimension
+        restricted to the slice
+
+        >>> dim = Dimension({"x": np.array([1, 2, 3])})
+        >>> dim[np.array([1, 0, 1])].midpoints
+        {'x': array([2, 1, 2])}
+        """
+
         def apply_to_dict(d: AxesPoints) -> AxesPoints:
             return {k: v[indices] for k, v in d.items()}
 
@@ -287,49 +297,11 @@ class Dimension:
 
         # Apply to midpoints, inherit snaked, force calculation of gap
         return Dimension(
-            midpoints=apply_to_dict(self.midpoints), gap=None, snake=snake, **kwargs,
+            midpoints=apply_to_dict(self.midpoints),
+            gap=None,
+            snake=self.snake,
+            **kwargs,
         )
-
-    def __getitem__(self, indices: np.ndarray) -> "Dimension":
-        """Return a new Dimension that produces this dimension
-        restricted to the slice"""
-        return self._dim_from_indices(indices, self.snake)
-
-    def tile(self, reps: int, snake: bool = False) -> "Dimension":
-        """Return a new Dimension that iterates self reps times
-
-        Args:
-            reps: The number of times the dimension will repeat in its entirity
-            snake: Whether the output dimension will snake
-
-        >>> dim = Dimension({"x": np.array([1, 2, 3])})
-        >>> dim.tile(reps=2).midpoints
-        {'x': array([1, 2, 3, 1, 2, 3])}
-        """
-        return self._dim_from_indices(np.tile(np.arange(len(self)), reps), snake)
-
-    def repeat(self, reps: int, snake: bool = False) -> "Dimension":
-        """Return a new Dimension that repeats each point in self reps times
-
-        Args:
-            reps: The number of times each point of the dimension will repeat
-            snake: Whether the output dimension will snake
-
-        >>> dim = Dimension({"x": np.array([1, 2, 3])})
-        >>> dim.repeat(reps=2).midpoints
-        {'x': array([1, 1, 2, 2, 3, 3])}
-        """
-        return self._dim_from_indices(np.repeat(np.arange(len(self)), reps), snake)
-
-    def mask(self, mask: np.ndarray) -> "Dimension":
-        """Return a new Dimension that produces only points from self in the
-        mask
-
-        >>> dim = Dimension({"x": np.array([1, 2, 3])})
-        >>> dim.mask(np.array([1, 0, 1])).midpoints
-        {'x': array([1, 3])}
-        """
-        return self._dim_from_indices(mask.nonzero()[0], self.snake)
 
     def _merge_dims(
         self,
