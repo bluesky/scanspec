@@ -12,7 +12,7 @@ from .core import (
     Serializable,
     alternative_constructor,
     if_instance_do,
-    last_first_gap,
+    is_gap_between,
     squash_dimensions,
 )
 from .regions import Region, get_mask
@@ -408,10 +408,10 @@ def _dimensions_from_indexes(
         # Points must have no gap as upper[a][i] == lower[a][i+1]
         # because we initialized it to be that way
         gap = np.zeros(num, dtype=np.bool_)
+        dimension = Dimension(midpoints, lower, upper, gap)
         # But calc the first point as difference between first
         # and last
-        gap[0] = last_first_gap(upper, lower)
-        dimension = Dimension(midpoints, lower, upper, gap)
+        gap[0] = is_gap_between(dimension, dimension)
     else:
         # Gap can be calculated in Dimension
         dimension = Dimension(midpoints)

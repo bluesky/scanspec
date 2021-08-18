@@ -176,12 +176,6 @@ def if_instance_do(x, cls: Type, func: Callable):
         return NotImplemented
 
 
-def last_first_gap(upper: AxesPoints, lower: AxesPoints) -> bool:
-    """Return if there is a gap between last point of upper and first point
-    of lower"""
-    return any(upper[a][-1] != lower[a][0] for a in lower)
-
-
 class Dimension:
     """A dimension is a repeatable, possibly snaking structure of frames along a
     number of axes.
@@ -345,9 +339,9 @@ class Dimension:
         def concat_gap(gap1: np.ndarray, gap2: np.ndarray) -> np.ndarray:
             g = np.concatenate((gap1, gap2))
             # Calc the first point
-            g[0] = last_first_gap(other.upper, self.lower)
+            g[0] = is_gap_between(other, self)
             # And the join point
-            g[len(self)] = gap or last_first_gap(self.upper, other.lower)
+            g[len(self)] = gap or is_gap_between(self, other)
             return g
 
         assert self.axes() == other.axes(), f"axes {self.axes()} != {other.axes()}"
@@ -382,6 +376,12 @@ class Dimension:
             # gap[i] = self.gap[i] | other.gap[i]
             np.logical_or,
         )
+
+
+def is_gap_between(dim1: Dimension, dim2: Dimension) -> bool:
+    """Return if there is a gap between last point of upper and first point
+    of lower"""
+    return any(dim1.upper[a][-1] != dim2.lower[a][0] for a in dim1.axes())
 
 
 def squash_dimensions(
