@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>How to Iterate a Spec &mdash; scanspec 0.3+46.g4405d16 documentation</title>
+  <title>How to Iterate a Spec &mdash; scanspec 0.4+9.g91dbc3c documentation</title>
   
 
   
@@ -123,6 +123,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#if-you-only-need-the-midpoints">If you only need the midpoints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#if-you-need-to-do-a-fly-scan">If you need to do a fly scan</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#if-you-need-to-do-multiple-runs-of-the-same-scan">If you need to do multiple runs of the same scan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#if-you-need-to-know-whether-there-is-a-gap-between-points">If you need to know whether there is a gap between points</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
@@ -324,6 +325,32 @@ as you need. You can also give a maximum size to <a class="reference internal" h
 <span class="go">0</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="if-you-need-to-know-whether-there-is-a-gap-between-points">
+<h2>If you need to know whether there is a gap between points<a class="headerlink" href="#if-you-need-to-know-whether-there-is-a-gap-between-points" title="Permalink to this headline">¶</a></h2>
+<p>You may need to know where there is a gap between points, so that you can do
+something in the turnaround. For example, if we take the x axis of a grid scan,
+you can see it snakes back and forth:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">fly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span> <span class="o">=</span> <span class="n">fly</span><span class="p">(</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">path</span><span class="p">()</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+<span class="go">array([1. , 1.5, 2. , 2. , 1.5, 1. ])</span>
+</pre></div>
+</div>
+<p>You can check where the gaps are by using the <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension.gap" title="scanspec.core.Dimension.gap"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Dimension.gap</span></code></a> attribute:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">gap</span>
+<span class="go">array([ True, False, False,  True, False, False])</span>
+</pre></div>
+</div>
+<p>This says whether there is a gap between this frame and the previous frame. In
+the example we see 2 gaps:</p>
+<ul class="simple">
+<li><p>On the very first frame (as there is a gap between the last and first frames)</p></li>
+<li><p>Between the 2 frames with midpoint of 2.0</p></li>
+</ul>
+<p>You could use this information to work out when to insert turnaround between
+rows for the motors</p>
 </div>
 </div>
 

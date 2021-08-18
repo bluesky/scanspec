@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.service &mdash; scanspec 0.3+46.g4405d16 documentation</title>
+  <title>scanspec.service &mdash; scanspec 0.4+9.g91dbc3c documentation</title>
   
 
   
@@ -325,7 +325,7 @@
                 <span class="n">Points</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span><span class="o">.</span><span class="n">midpoints</span><span class="p">[</span><span class="n">axis</span><span class="p">]),</span>
                 <span class="n">Points</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span><span class="o">.</span><span class="n">upper</span><span class="p">[</span><span class="n">axis</span><span class="p">]),</span>
             <span class="p">)</span>
-            <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span><span class="o">.</span><span class="n">midpoints</span>
+            <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>
         <span class="p">]</span></div>
 
 <div class="viewcode-block" id="PointsResponse.smallest_abs_step"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.PointsResponse.smallest_abs_step">[docs]</a>    <span class="nd">@resolver</span>
@@ -431,7 +431,7 @@
 <span class="sd">        Dimension: the reduced dimension</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">num_indexes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="o">/</span> <span class="n">ratio</span><span class="p">)</span>
-    <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_indexes</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_indexes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">dim</span><span class="p">[</span><span class="n">indexes</span><span class="p">]</span></div>
 
 

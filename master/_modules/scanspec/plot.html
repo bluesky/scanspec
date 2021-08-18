@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.plot &mdash; scanspec 0.3+46.g4405d16 documentation</title>
+  <title>scanspec.plot &mdash; scanspec 0.4+9.g91dbc3c documentation</title>
   
 
   
@@ -244,20 +244,11 @@
 <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">proj3d</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
 
-<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">Dimension</span><span class="p">,</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">.regions</span> <span class="kn">import</span> <span class="n">Circle</span><span class="p">,</span> <span class="n">Ellipse</span><span class="p">,</span> <span class="n">Polygon</span><span class="p">,</span> <span class="n">Rectangle</span><span class="p">,</span> <span class="n">find_regions</span>
 <span class="kn">from</span> <span class="nn">.specs</span> <span class="kn">import</span> <span class="n">DURATION</span><span class="p">,</span> <span class="n">Spec</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;plot_spec&quot;</span><span class="p">]</span>
-
-
-<span class="k">def</span> <span class="nf">_find_breaks</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">):</span>
-    <span class="n">breaks</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">axes</span> <span class="ow">in</span> <span class="n">dim</span><span class="o">.</span><span class="n">axes</span><span class="p">():</span>
-        <span class="n">breaks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dim</span><span class="o">.</span><span class="n">lower</span><span class="p">[</span><span class="n">axes</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span> <span class="o">!=</span> <span class="n">dim</span><span class="o">.</span><span class="n">upper</span><span class="p">[</span><span class="n">axes</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-    <span class="n">same</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">breaks</span><span class="p">)</span>
-    <span class="n">break_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">same</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">break_indices</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_plot_arrays</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">arrays</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -306,6 +297,11 @@
     <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">sum</span><span class="p">((</span><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">scaled_arrays</span><span class="p">))</span>
     <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># Can&#39;t make a spline that starts and ends in the same place, so add a small</span>
+        <span class="c1"># delta</span>
+        <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scaled_arrays</span><span class="p">,</span> <span class="n">ranges</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">s</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">r</span> <span class="o">*</span> <span class="mf">1e-7</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
         <span class="c1"># There are no duplicated points, plot a spline</span>
         <span class="n">t</span> <span class="o">/=</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="c1"># Scale the arrays so splines don&#39;t favour larger scaled axes</span>
@@ -393,7 +389,10 @@
     <span class="n">seg_col</span> <span class="o">=</span> <span class="n">cycle</span><span class="p">(</span><span class="n">colors</span><span class="o">.</span><span class="n">TABLEAU_COLORS</span><span class="p">)</span>
     <span class="n">last_index</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">splines</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">_find_breaks</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)]:</span>
+    <span class="c1"># The first element of gap is undefined (as there is no previous frame)</span>
+    <span class="c1"># so discard it</span>
+    <span class="n">gap_indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">dim</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="mi">1</span><span class="p">:])[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">gap_indices</span> <span class="o">+</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)]:</span>
         <span class="n">num_points</span> <span class="o">=</span> <span class="n">index</span> <span class="o">-</span> <span class="n">last_index</span>
         <span class="n">arrays</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">turnaround</span> <span class="o">=</span> <span class="p">[]</span>

@@ -1,7 +1,7 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Line, Squash
+from scanspec.specs import Line
 
-spec = Squash(Line("y", 1, 2, 3) * Line("x", 0, 1, 4))
+spec = Line("y", 1, 3, 3) * ~Line("x", 3, 5, 5)
 plot_spec(spec)

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>scanspec.core &mdash; scanspec 0.3+46.g4405d16 documentation</title>
+  <title>scanspec.core &mdash; scanspec 0.4+9.g91dbc3c documentation</title>
   
 
   
@@ -417,28 +417,33 @@
     <span class="sd">&quot;&quot;&quot;A dimension is a repeatable, possibly snaking structure of frames along a</span>
 <span class="sd">    number of axes.</span>
 
+<span class="sd">    Args:</span>
+<span class="sd">        midpoints: The centre points of the scan for each axis</span>
+<span class="sd">        lower: Lower bounds if different from midpoints</span>
+<span class="sd">        upper: Upper bounds if different from midpoints</span>
+<span class="sd">        gap: If supplied, define if there is a gap between frame and previous</span>
+<span class="sd">            otherwise it is calculated by looking at lower and upper bounds</span>
+<span class="sd">        snake: If True then every other iteration of this Dimension within a</span>
+<span class="sd">            slower moving Dimension will be reversed</span>
+
 <span class="sd">    Represents a linear stack of frames. A list of Dimensions</span>
 <span class="sd">    is interpreted as nested from slowest moving to fastest moving, so each</span>
 <span class="sd">    faster Dimension will iterate once per position of the slower Dimension.</span>
 <span class="sd">    When fly-scanning the axis will traverse lower-midpoint-upper on the fastest</span>
 <span class="sd">    Dimension for each point in the scan.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        midpoints: The centre points of the scan for each axis</span>
-<span class="sd">        lower: Lower bounds if different from midpoints</span>
-<span class="sd">        upper: Upper bounds if different from midpoints</span>
-<span class="sd">        snake: If True then every other iteration of this Dimension within a</span>
-<span class="sd">            slower moving Dimension will be reversed</span>
-
 <span class="sd">    See Also:</span>
 <span class="sd">        `what-are-dimensions`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_snake</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">midpoints</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">,</span>
         <span class="n">lower</span><span class="p">:</span> <span class="n">AxesPoints</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">upper</span><span class="p">:</span> <span class="n">AxesPoints</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">gap</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">snake</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="c1">#: The centre points of the scan for each axis</span>
@@ -447,9 +452,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">lower</span> <span class="o">=</span> <span class="n">lower</span> <span class="ow">or</span> <span class="n">midpoints</span>
         <span class="c1">#: The upper bounds of each scan point in each axis for fly-scanning</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">upper</span> <span class="o">=</span> <span class="n">upper</span> <span class="ow">or</span> <span class="n">midpoints</span>
-        <span class="c1">#: Whether every other iteration of this Dimension within a slower</span>
-        <span class="c1">#: moving Dimension will be reversed</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">snake</span> <span class="o">=</span> <span class="n">snake</span>
+        <span class="k">if</span> <span class="n">gap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1">#: Whether there is a gap between this frame and the previous. First</span>
+            <span class="c1">#: element is whether there is a gap between the last frame and the first</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gap</span> <span class="o">=</span> <span class="n">gap</span>
+            <span class="c1"># Don&#39;t use the setter to keep the pre-calculated gap</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_snake</span> <span class="o">=</span> <span class="n">snake</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Need to calculate gap as not passed one</span>
+            <span class="c1"># We have a gap if upper[i] != lower[i+1] for any axes</span>
+            <span class="n">axes_gap</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="n">l</span>
+                <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upper</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">axes_gap</span><span class="p">)</span>
+            <span class="c1"># Use the setter to make sure self.gap is updated if snaking</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">snake</span> <span class="o">=</span> <span class="n">snake</span>
         <span class="c1"># Check all axes and ordering are the same</span>
         <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lower</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upper</span><span class="p">),</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Mismatching axes &quot;</span>
@@ -461,7 +479,23 @@
             <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="p">)</span>
+        <span class="n">lengths</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">))</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Mismatching lengths </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">snake</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Whether every other iteration of this Dimension within a slower</span>
+<span class="sd">        moving Dimension will be reversed&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snake</span>
+
+    <span class="nd">@snake</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">snake</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snake</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">snake</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snake</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">snake</span><span class="p">,</span> <span class="s2">&quot;Can only set snake=True after init&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_snake</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># If we are snaking then there is never a gap between end and start</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="Dimension.axes"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Dimension.axes">[docs]</a>    <span class="k">def</span> <span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The axes that are present in `midpoints`, `lower` and `upper`</span>
@@ -471,79 +505,92 @@
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The number of `frames` in the scan&quot;&quot;&quot;</span>
         <span class="c1"># All axespoints arrays are same length, pick the first one</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
-
-    <span class="k">def</span> <span class="nf">_dim_with</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">:</span>
-        <span class="k">def</span> <span class="nf">apply_func</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">func</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">)}</span>
-
-        <span class="c1"># Apply to every array in axes</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">midpoints</span><span class="o">=</span><span class="n">apply_func</span><span class="p">(</span><span class="s2">&quot;midpoints&quot;</span><span class="p">),</span> <span class="n">snake</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">snake</span><span class="p">)</span>
-        <span class="c1"># If lower and upper are different, apply to those too</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;lower&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">apply_func</span><span class="p">(</span><span class="s2">&quot;lower&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;upper&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">apply_func</span><span class="p">(</span><span class="s2">&quot;upper&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Dimension</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a new Dimension that produces this dimension</span>
-<span class="sd">        restricted to the slice&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim_with</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">)[</span><span class="n">k</span><span class="p">][</span><span class="n">indices</span><span class="p">])</span>
-
-<div class="viewcode-block" id="Dimension.tile"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Dimension.tile">[docs]</a>    <span class="k">def</span> <span class="nf">tile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return a new Dimension that iterates self reps times</span>
+<span class="sd">        restricted to the slice</span>
 
 <span class="sd">        &gt;&gt;&gt; dim = Dimension({&quot;x&quot;: np.array([1, 2, 3])})</span>
-<span class="sd">        &gt;&gt;&gt; dim.tile(reps=2).midpoints</span>
-<span class="sd">        {&#39;x&#39;: array([1, 2, 3, 1, 2, 3])}</span>
+<span class="sd">        &gt;&gt;&gt; dim[np.array([1, 0, 1])].midpoints</span>
+<span class="sd">        {&#39;x&#39;: array([2, 1, 2])}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim_with</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">)[</span><span class="n">k</span><span class="p">],</span> <span class="n">reps</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="Dimension.repeat"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Dimension.repeat">[docs]</a>    <span class="k">def</span> <span class="nf">repeat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return a new Dimension that repeats each point in self reps times</span>
+        <span class="k">def</span> <span class="nf">apply_to_dict</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AxesPoints</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
-<span class="sd">        &gt;&gt;&gt; dim = Dimension({&quot;x&quot;: np.array([1, 2, 3])})</span>
-<span class="sd">        &gt;&gt;&gt; dim.repeat(reps=2).midpoints</span>
-<span class="sd">        {&#39;x&#39;: array([1, 1, 2, 2, 3, 3])}</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim_with</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">)[</span><span class="n">k</span><span class="p">],</span> <span class="n">reps</span><span class="p">))</span></div>
+        <span class="c1"># If lower or upper are different, apply to those</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">a</span><span class="p">:</span> <span class="n">apply_to_dict</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="s2">&quot;upper&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+        <span class="p">}</span>
 
-<div class="viewcode-block" id="Dimension.mask"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Dimension.mask">[docs]</a>    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return a new Dimension that produces only points from self in the</span>
-<span class="sd">        mask</span>
+        <span class="c1"># Apply to midpoints, inherit snaked, force calculation of gap</span>
+        <span class="k">return</span> <span class="n">Dimension</span><span class="p">(</span>
+            <span class="n">midpoints</span><span class="o">=</span><span class="n">apply_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="p">),</span>
+            <span class="n">gap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">snake</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">snake</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
 
-<span class="sd">        &gt;&gt;&gt; dim = Dimension({&quot;x&quot;: np.array([1, 2, 3])})</span>
-<span class="sd">        &gt;&gt;&gt; dim.mask(np.array([1, 0, 1])).midpoints</span>
-<span class="sd">        {&#39;x&#39;: array([1, 3])}</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">indices</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim_with</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">)[</span><span class="n">k</span><span class="p">][</span><span class="n">indices</span><span class="p">])</span></div>
-
-<div class="viewcode-block" id="Dimension.copy"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Dimension.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return a shallow copy of the current Dimension (dicts copied,</span>
-<span class="sd">        arrays within them are not)&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim_with</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">)[</span><span class="n">k</span><span class="p">])</span></div>
-
-    <span class="k">def</span> <span class="nf">_check_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_merge_dims</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">,</span>
+        <span class="n">dict_merge</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">AxesPoints</span><span class="p">,</span> <span class="n">AxesPoints</span><span class="p">],</span> <span class="n">AxesPoints</span><span class="p">],</span>
+        <span class="n">gap_merge</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="p">):</span>
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Dimension</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Expected Dimension, got </span><span class="si">{</span><span class="n">other</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">snake</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">snake</span><span class="p">,</span> <span class="s2">&quot;Snake settings don&#39;t match&quot;</span>
+        <span class="c1"># If lower or upper are different, apply to those</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">a</span><span class="p">:</span> <span class="n">dict_merge</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="s2">&quot;upper&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">midpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+        <span class="p">}</span>
 
-<div class="viewcode-block" id="Dimension.concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Dimension.concat">[docs]</a>    <span class="k">def</span> <span class="nf">concat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">:</span>
+        <span class="c1"># Apply to midpoints, inherit snaked, force calculation of gap</span>
+        <span class="k">return</span> <span class="n">Dimension</span><span class="p">(</span>
+            <span class="n">midpoints</span><span class="o">=</span><span class="n">dict_merge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">midpoints</span><span class="p">),</span>
+            <span class="n">gap</span><span class="o">=</span><span class="n">gap_merge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">gap</span><span class="p">),</span>
+            <span class="n">snake</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">snake</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Dimension.concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Dimension.concat">[docs]</a>    <span class="k">def</span> <span class="nf">concat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">,</span> <span class="n">gap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a new Dimension with arrays from self and other concatenated</span>
 <span class="sd">        together. Require both Dimensions to have the same axes and snake</span>
 <span class="sd">        settings</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: The dimension to concatenate to self</span>
+<span class="sd">            snake: Whether to force a gap between the two dimensions</span>
 
 <span class="sd">        &gt;&gt;&gt; dim = Dimension({&quot;x&quot;: np.array([1, 2, 3])})</span>
 <span class="sd">        &gt;&gt;&gt; dim2 = Dimension({&quot;x&quot;: np.array([5, 6, 7])})</span>
 <span class="sd">        &gt;&gt;&gt; dim.concat(dim2).midpoints</span>
 <span class="sd">        {&#39;x&#39;: array([1, 2, 3, 5, 6, 7])}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_check_dim</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">concat_gap</span><span class="p">(</span><span class="n">gap1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">gap2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">gap1</span><span class="p">,</span> <span class="n">gap2</span><span class="p">))</span>
+            <span class="c1"># Calc the first point</span>
+            <span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">is_gap_between</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="c1"># And the join point</span>
+            <span class="n">g</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span> <span class="o">=</span> <span class="n">gap</span> <span class="ow">or</span> <span class="n">is_gap_between</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">g</span>
+
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">axes</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">&quot;axes </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim_with</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">)[</span><span class="n">k</span><span class="p">],</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">a</span><span class="p">)[</span><span class="n">k</span><span class="p">]))</span>
-        <span class="p">)</span></div>
+        <span class="n">dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge_dims</span><span class="p">(</span>
+            <span class="n">other</span><span class="p">,</span>
+            <span class="c1"># Concat each array in midpoints, lower, upper. E.g.</span>
+            <span class="c1"># lower[ax] = np.concatenate(self.lower[ax], other.lower[ax])</span>
+            <span class="k">lambda</span> <span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">v</span><span class="p">,</span> <span class="n">d2</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d1</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+            <span class="c1"># Gap should be concatted, but calc the join points above</span>
+            <span class="n">concat_gap</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">dim</span></div>
 
 <div class="viewcode-block" id="Dimension.zip"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Dimension.zip">[docs]</a>    <span class="k">def</span> <span class="nf">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Dimension&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a new Dimension with arrays from axes of self and other</span>
@@ -555,17 +602,23 @@
 <span class="sd">        &gt;&gt;&gt; dimx.zip(dimy).midpoints</span>
 <span class="sd">        {&#39;x&#39;: array([1, 2, 3]), &#39;y&#39;: array([5, 6, 7])}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_check_dim</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="n">overlapping</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">axes</span><span class="p">()))</span>
         <span class="k">assert</span> <span class="ow">not</span> <span class="n">overlapping</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Zipping would overwrite axes </span><span class="si">{</span><span class="n">overlapping</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="c1"># rely on the constructor to check lengths</span>
-        <span class="n">dim</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">(</span>
-            <span class="n">midpoints</span><span class="o">=</span><span class="p">{</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="p">,</span> <span class="o">**</span><span class="n">other</span><span class="o">.</span><span class="n">midpoints</span><span class="p">},</span>
-            <span class="n">lower</span><span class="o">=</span><span class="p">{</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span> <span class="o">**</span><span class="n">other</span><span class="o">.</span><span class="n">lower</span><span class="p">},</span>
-            <span class="n">upper</span><span class="o">=</span><span class="p">{</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span> <span class="o">**</span><span class="n">other</span><span class="o">.</span><span class="n">upper</span><span class="p">},</span>
-            <span class="n">snake</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">snake</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="n">dim</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge_dims</span><span class="p">(</span>
+            <span class="n">other</span><span class="p">,</span>
+            <span class="c1"># Merge dicts for midpoints, lower, upper. E.g.</span>
+            <span class="c1"># lower[ax] = {**self.lower[ax], **other.lower[ax]}</span>
+            <span class="k">lambda</span> <span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">:</span> <span class="p">{</span><span class="o">**</span><span class="n">d1</span><span class="p">,</span> <span class="o">**</span><span class="n">d2</span><span class="p">},</span>
+            <span class="c1"># Gap if either dim has a gap. E.g.</span>
+            <span class="c1"># gap[i] = self.gap[i] | other.gap[i]</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">,</span>
+        <span class="p">)</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">is_gap_between</span><span class="p">(</span><span class="n">dim1</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">,</span> <span class="n">dim2</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return if there is a gap between last point of upper and first point</span>
+<span class="sd">    of lower&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">dim1</span><span class="o">.</span><span class="n">upper</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">dim2</span><span class="o">.</span><span class="n">lower</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">dim1</span><span class="o">.</span><span class="n">axes</span><span class="p">())</span>
 
 
 <div class="viewcode-block" id="squash_dimensions"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.squash_dimensions">[docs]</a><span class="k">def</span> <span class="nf">squash_dimensions</span><span class="p">(</span>
@@ -667,6 +720,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">end_index</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">+</span> <span class="n">num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span><span class="p">)</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">end_index</span><span class="p">)</span>
+        <span class="n">gap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">indices</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">end_index</span>
         <span class="n">midpoints</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{},</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -682,6 +736,11 @@
             <span class="c1"># Y:000011112222000011112222</span>
             <span class="c1"># X:012301230123012301230123</span>
             <span class="n">dim_indices</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span> <span class="o">//</span> <span class="n">repeats</span><span class="p">)</span> <span class="o">%</span> <span class="n">dim_len</span>
+            <span class="c1"># Whether this dim contributes to the gap bit</span>
+            <span class="c1"># Z:000000000000100000000000</span>
+            <span class="c1"># Y:000010001000100010001000</span>
+            <span class="c1"># X:111111111111111111111111</span>
+            <span class="n">in_gap</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span> <span class="o">%</span> <span class="n">repeats</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
             <span class="k">if</span> <span class="n">dim</span><span class="o">.</span><span class="n">snake</span><span class="p">:</span>
                 <span class="c1"># Whether this point is running backwards:</span>
                 <span class="c1"># Z:000000000000000000000000</span>
@@ -695,6 +754,13 @@
                 <span class="n">snake_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
                     <span class="n">backwards</span><span class="p">,</span> <span class="n">dim_len</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">dim_indices</span><span class="p">,</span> <span class="n">dim_indices</span>
                 <span class="p">)</span>
+                <span class="c1"># Gap is the difference between subsequent elements,</span>
+                <span class="c1"># with True at the beginning, so the reverse dimension</span>
+                <span class="c1"># needs to be one more than the snake_indices</span>
+                <span class="c1"># Z:000000000000111111111111</span>
+                <span class="c1"># Y:000011112222333322221111</span>
+                <span class="c1"># X:012343210123432101233210</span>
+                <span class="n">gap_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">backwards</span><span class="p">,</span> <span class="n">dim_len</span> <span class="o">-</span> <span class="n">dim_indices</span><span class="p">,</span> <span class="n">dim_indices</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">dim</span><span class="o">.</span><span class="n">axes</span><span class="p">():</span>
                     <span class="n">midpoints</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">dim</span><span class="o">.</span><span class="n">midpoints</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="n">snake_indices</span><span class="p">]</span>
                     <span class="c1"># If going backwards, select from the opposite bound</span>
@@ -709,11 +775,17 @@
                         <span class="n">dim</span><span class="o">.</span><span class="n">upper</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="n">snake_indices</span><span class="p">],</span>
                     <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="n">gap_indices</span> <span class="o">=</span> <span class="n">dim_indices</span>
                 <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">dim</span><span class="o">.</span><span class="n">axes</span><span class="p">():</span>
                     <span class="n">midpoints</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">dim</span><span class="o">.</span><span class="n">midpoints</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="n">dim_indices</span><span class="p">]</span>
                     <span class="n">lower</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">dim</span><span class="o">.</span><span class="n">lower</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="n">dim_indices</span><span class="p">]</span>
                     <span class="n">upper</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">dim</span><span class="o">.</span><span class="n">upper</span><span class="p">[</span><span class="n">axis</span><span class="p">][</span><span class="n">dim_indices</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">Dimension</span><span class="p">(</span><span class="n">midpoints</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+            <span class="c1"># If in_gap, logical_or the relevant gap bit from the dim</span>
+            <span class="c1"># We use % as gap_indices is 1..dim_len, with dim_len rolling</span>
+            <span class="c1"># over to 0</span>
+            <span class="n">gap</span> <span class="o">|=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">in_gap</span><span class="p">,</span> <span class="n">dim</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="n">gap_indices</span> <span class="o">%</span> <span class="n">dim_len</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Dimension</span><span class="p">(</span><span class="n">midpoints</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">gap</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Number of points left in a scan, reduces when `consume` is called&quot;&quot;&quot;</span>

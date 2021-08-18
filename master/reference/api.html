@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>API &mdash; scanspec 0.3+46.g4405d16 documentation</title>
+  <title>API &mdash; scanspec 0.4+9.g91dbc3c documentation</title>
   
 
   
@@ -318,26 +318,28 @@ Used as a helper when implementing operator overloading</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="scanspec.core.Dimension">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">Dimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">midpoints</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snake</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#Dimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">Dimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">midpoints</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">snake</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#Dimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A dimension is a repeatable, possibly snaking structure of frames along a
 number of axes.</p>
-<p>Represents a linear stack of frames. A list of Dimensions
-is interpreted as nested from slowest moving to fastest moving, so each
-faster Dimension will iterate once per position of the slower Dimension.
-When fly-scanning the axis will traverse lower-midpoint-upper on the fastest
-Dimension for each point in the scan.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>midpoints</strong> – The centre points of the scan for each axis</p></li>
 <li><p><strong>lower</strong> – Lower bounds if different from midpoints</p></li>
 <li><p><strong>upper</strong> – Upper bounds if different from midpoints</p></li>
+<li><p><strong>gap</strong> – If supplied, define if there is a gap between frame and previous
+otherwise it is calculated by looking at lower and upper bounds</p></li>
 <li><p><strong>snake</strong> – If True then every other iteration of this Dimension within a
 slower moving Dimension will be reversed</p></li>
 </ul>
 </dd>
 </dl>
+<p>Represents a linear stack of frames. A list of Dimensions
+is interpreted as nested from slowest moving to fastest moving, so each
+faster Dimension will iterate once per position of the slower Dimension.
+When fly-scanning the axis will traverse lower-midpoint-upper on the fastest
+Dimension for each point in the scan.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="../explanations/what-are-dimensions.html#what-are-dimensions"><span class="std std-ref">What are Dimensions?</span></a></p>
@@ -361,8 +363,15 @@ slower moving Dimension will be reversed</p></li>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="scanspec.core.Dimension.gap">
+<span class="sig-name descname"><span class="pre">gap</span></span><a class="headerlink" href="#scanspec.core.Dimension.gap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether there is a gap between this frame and the previous. First
+element is whether there is a gap between the last frame and the first</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="scanspec.core.Dimension.snake">
-<span class="sig-name descname"><span class="pre">snake</span></span><a class="headerlink" href="#scanspec.core.Dimension.snake" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">snake</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#scanspec.core.Dimension.snake" title="Permalink to this definition">¶</a></dt>
 <dd><p>Whether every other iteration of this Dimension within a slower
 moving Dimension will be reversed</p>
 </dd></dl>
@@ -375,52 +384,19 @@ which will move during the scan</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="scanspec.core.Dimension.tile">
-<span class="sig-name descname"><span class="pre">tile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reps</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a><a class="reference internal" href="../_modules/scanspec/core.html#Dimension.tile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension.tile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a new Dimension that iterates self reps times</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">reps</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;x&#39;: array([1, 2, 3, 1, 2, 3])}</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scanspec.core.Dimension.repeat">
-<span class="sig-name descname"><span class="pre">repeat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reps</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a><a class="reference internal" href="../_modules/scanspec/core.html#Dimension.repeat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension.repeat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a new Dimension that repeats each point in self reps times</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">reps</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;x&#39;: array([1, 1, 2, 2, 3, 3])}</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scanspec.core.Dimension.mask">
-<span class="sig-name descname"><span class="pre">mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.21)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a><a class="reference internal" href="../_modules/scanspec/core.html#Dimension.mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension.mask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a new Dimension that produces only points from self in the
-mask</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;x&#39;: array([1, 3])}</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scanspec.core.Dimension.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a><a class="reference internal" href="../_modules/scanspec/core.html#Dimension.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a shallow copy of the current Dimension (dicts copied,
-arrays within them are not)</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="scanspec.core.Dimension.concat">
-<span class="sig-name descname"><span class="pre">concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a><a class="reference internal" href="../_modules/scanspec/core.html#Dimension.concat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension.concat" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">scanspec.core.Dimension</span></a><a class="reference internal" href="../_modules/scanspec/core.html#Dimension.concat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension.concat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new Dimension with arrays from self and other concatenated
 together. Require both Dimensions to have the same axes and snake
 settings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> – The dimension to concatenate to self</p></li>
+<li><p><strong>snake</strong> – Whether to force a gap between the two dimensions</p></li>
+</ul>
+</dd>
+</dl>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dim2</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dim</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dim2</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
@@ -573,7 +549,7 @@ moving</p>
 </div>
 <span class="target" id="module-scanspec.specs"></span><div class="section" id="scanspec-specs">
 <h2><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code><a class="headerlink" href="#scanspec-specs" title="Permalink to this headline">¶</a></h2>
-<div class="graphviz"><object data="../_images/inheritance-22e6033ba1c908020b00e5f01a438edae6baa81e.svg" type="image/svg+xml" class="inheritance graphviz">
+<div class="graphviz"><object data="../_images/inheritance-3bf149d8dea954058a5219460e5d8c058359f036.svg" type="image/svg+xml" class="inheritance graphviz">
 <p class="warning">Inheritance diagram of scanspec.specs</p></object></div>
 <dl class="py class">
 <dt class="sig sig-object py" id="scanspec.specs.Spec">
@@ -647,6 +623,53 @@ inner will run in its entirety at each point in outer.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="scanspec.specs.Repeat">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></span><span class="sig-name descname"><span class="pre">Repeat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Repeat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Repeat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.specs.Spec</span></code></a></p>
+<p>Repeat an empty frame num times. Can be used on the outside of a scan to
+repeat the same scan many times</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of frames to produce - minimum: 1</p></li>
+<li><p><strong>gap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If False and the slowest dimension of spec is snaked then the end and start of consecutive iterations of Spec will have no gap</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
+
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="o">.</span><span class="n">bounded</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../reference/api-2.py">Source code</a>, <a class="reference external" href="../reference/api-2.png">png</a>, <a class="reference external" href="../reference/api-2.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-2.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/api-2.png" class="plot-directive" src="../_images/api-2.png" />
+</div>
+<p>If you want snaked axes to have no gap between iterations you can do</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
+
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Repeat</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Repeat</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">gap</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="o">.</span><span class="n">bounded</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../reference/api-3.py">Source code</a>, <a class="reference external" href="../reference/api-3.png">png</a>, <a class="reference external" href="../reference/api-3.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-3.pdf">pdf</a>)</p>
+<div class="figure align-default">
+<img alt="../_images/api-3.png" class="plot-directive" src="../_images/api-3.png" />
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is no turnaround arrow at x=4</p>
+</div>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="scanspec.specs.Zip">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></span><span class="sig-name descname"><span class="pre">Zip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Zip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Zip" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.specs.Spec</span></code></a></p>
@@ -678,9 +701,9 @@ Dimensions [l2, l1+r1].</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-2.py">Source code</a>, <a class="reference external" href="../reference/api-2.png">png</a>, <a class="reference external" href="../reference/api-2.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-2.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-4.py">Source code</a>, <a class="reference external" href="../reference/api-4.png">png</a>, <a class="reference external" href="../reference/api-4.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-4.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-2.png" class="plot-directive" src="../_images/api-2.png" />
+<img alt="../_images/api-4.png" class="plot-directive" src="../_images/api-4.png" />
 </div>
 </dd></dl>
 
@@ -711,16 +734,16 @@ together.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 <span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Circle</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 
 <span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-3.py">Source code</a>, <a class="reference external" href="../reference/api-3.png">png</a>, <a class="reference external" href="../reference/api-3.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-3.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-5.py">Source code</a>, <a class="reference external" href="../reference/api-5.png">png</a>, <a class="reference external" href="../reference/api-5.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-5.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-3.png" class="plot-directive" src="../_images/api-3.png" />
+<img alt="../_images/api-5.png" class="plot-directive" src="../_images/api-5.png" />
 </div>
 </dd></dl>
 
@@ -744,15 +767,15 @@ another Spec. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-4.py">Source code</a>, <a class="reference external" href="../reference/api-4.png">png</a>, <a class="reference external" href="../reference/api-4.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-4.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-6.py">Source code</a>, <a class="reference external" href="../reference/api-6.png">png</a>, <a class="reference external" href="../reference/api-6.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-6.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-4.png" class="plot-directive" src="../_images/api-4.png" />
+<img alt="../_images/api-6.png" class="plot-directive" src="../_images/api-6.png" />
 </div>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="scanspec.specs.Concat">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></span><span class="sig-name descname"><span class="pre">Concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Concat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Concat" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></span><span class="sig-name descname"><span class="pre">Concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/specs.html#Concat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Concat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref py py-class docutils literal notranslate"><span class="pre">scanspec.specs.Spec</span></code></a></p>
 <p>Concatenate two Specs together, running one after the other. Each Dimension
 of left and right must contain the same axes.</p>
@@ -761,21 +784,22 @@ of left and right must contain the same axes.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>left</strong> (<a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><em>Spec</em></a>) – The left-hand Spec to Concat, midpoints will appear earlier</p></li>
 <li><p><strong>right</strong> (<a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><em>Spec</em></a>) – The right-hand Spec to Concat, midpoints will appear later</p></li>
+<li><p><strong>gap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, force a gap in the output at the join</p></li>
 </ul>
 </dd>
 </dl>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Concat</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Concat</span><span class="p">,</span> <span class="n">Line</span>
 
 <span class="n">spec</span> <span class="o">=</span> <span class="n">Concat</span><span class="p">(</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-5.py">Source code</a>, <a class="reference external" href="../reference/api-5.png">png</a>, <a class="reference external" href="../reference/api-5.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-5.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-7.py">Source code</a>, <a class="reference external" href="../reference/api-7.png">png</a>, <a class="reference external" href="../reference/api-7.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-7.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-5.png" class="plot-directive" src="../_images/api-5.png" />
+<img alt="../_images/api-7.png" class="plot-directive" src="../_images/api-7.png" />
 </div>
 </dd></dl>
 
@@ -806,9 +830,9 @@ linear stack.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-6.py">Source code</a>, <a class="reference external" href="../reference/api-6.png">png</a>, <a class="reference external" href="../reference/api-6.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-6.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-8.py">Source code</a>, <a class="reference external" href="../reference/api-8.png">png</a>, <a class="reference external" href="../reference/api-8.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-8.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-6.png" class="plot-directive" src="../_images/api-6.png" />
+<img alt="../_images/api-8.png" class="plot-directive" src="../_images/api-8.png" />
 </div>
 </dd></dl>
 
@@ -824,7 +848,7 @@ centred on start and stop.</p>
 <li><p><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – An identifier for what to move</p></li>
 <li><p><strong>start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Midpoint of the first point of the line</p></li>
 <li><p><strong>stop</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Midpoint of the last point of the line</p></li>
-<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of points to produce - minimum: 1</p></li>
+<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of frames to produce - minimum: 1</p></li>
 </ul>
 </dd>
 </dl>
@@ -837,9 +861,9 @@ centred on start and stop.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-7.py">Source code</a>, <a class="reference external" href="../reference/api-7.png">png</a>, <a class="reference external" href="../reference/api-7.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-7.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-9.py">Source code</a>, <a class="reference external" href="../reference/api-9.png">png</a>, <a class="reference external" href="../reference/api-9.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-9.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-7.png" class="plot-directive" src="../_images/api-7.png" />
+<img alt="../_images/api-9.png" class="plot-directive" src="../_images/api-9.png" />
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="scanspec.specs.Line.bounded">
@@ -851,7 +875,7 @@ centred on start and stop.</p>
 <li><p><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – An identifier for what to move</p></li>
 <li><p><strong>lower</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Lower bound of the first point of the line</p></li>
 <li><p><strong>upper</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Upper bound of the last point of the line</p></li>
-<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of points to produce - minimum: 1</p></li>
+<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of frames to produce - minimum: 1</p></li>
 </ul>
 </dd>
 </dl>
@@ -864,9 +888,9 @@ centred on start and stop.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-8.py">Source code</a>, <a class="reference external" href="../reference/api-8.png">png</a>, <a class="reference external" href="../reference/api-8.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-8.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-10.py">Source code</a>, <a class="reference external" href="../reference/api-10.png">png</a>, <a class="reference external" href="../reference/api-10.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-10.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-8.png" class="plot-directive" src="../_images/api-8.png" />
+<img alt="../_images/api-10.png" class="plot-directive" src="../_images/api-10.png" />
 </div>
 </dd></dl>
 
@@ -883,7 +907,7 @@ be used to set axis=value at every point in a scan.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – An identifier for what to move</p></li>
 <li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The value at each point</p></li>
-<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of points to produce - minimum: 1</p></li>
+<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of frames to produce - minimum: 1</p></li>
 </ul>
 </dd>
 </dl>
@@ -896,9 +920,9 @@ be used to set axis=value at every point in a scan.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-9.py">Source code</a>, <a class="reference external" href="../reference/api-9.png">png</a>, <a class="reference external" href="../reference/api-9.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-9.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-11.py">Source code</a>, <a class="reference external" href="../reference/api-11.png">png</a>, <a class="reference external" href="../reference/api-11.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-11.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-9.png" class="plot-directive" src="../_images/api-9.png" />
+<img alt="../_images/api-11.png" class="plot-directive" src="../_images/api-11.png" />
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="scanspec.specs.Static.duration">
@@ -908,7 +932,7 @@ be used to set axis=value at every point in a scan.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>duration</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The duration of each static point</p></li>
-<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of points to produce - minimum: 1</p></li>
+<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of frames to produce - minimum: 1</p></li>
 </ul>
 </dd>
 </dl>
@@ -921,9 +945,9 @@ be used to set axis=value at every point in a scan.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-10.py">Source code</a>, <a class="reference external" href="../reference/api-10.png">png</a>, <a class="reference external" href="../reference/api-10.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-10.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-12.py">Source code</a>, <a class="reference external" href="../reference/api-12.png">png</a>, <a class="reference external" href="../reference/api-12.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-12.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-10.png" class="plot-directive" src="../_images/api-10.png" />
+<img alt="../_images/api-12.png" class="plot-directive" src="../_images/api-12.png" />
 </div>
 </dd></dl>
 
@@ -945,7 +969,7 @@ in a spiral spanning width of “x_range” and height of “y_range”</p>
 <li><p><strong>y_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – y centre of the spiral</p></li>
 <li><p><strong>x_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – x width of the spiral</p></li>
 <li><p><strong>y_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – y width of the spiral</p></li>
-<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of points to produce - minimum: 1</p></li>
+<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Number of frames to produce - minimum: 1</p></li>
 <li><p><strong>rotate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – How much to rotate the angle of the spiral</p></li>
 </ul>
 </dd>
@@ -959,9 +983,9 @@ in a spiral spanning width of “x_range” and height of “y_range”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-11.py">Source code</a>, <a class="reference external" href="../reference/api-11.png">png</a>, <a class="reference external" href="../reference/api-11.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-11.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-13.py">Source code</a>, <a class="reference external" href="../reference/api-13.png">png</a>, <a class="reference external" href="../reference/api-13.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-13.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-11.png" class="plot-directive" src="../_images/api-11.png" />
+<img alt="../_images/api-13.png" class="plot-directive" src="../_images/api-13.png" />
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="scanspec.specs.Spiral.spaced">
@@ -990,9 +1014,9 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-12.py">Source code</a>, <a class="reference external" href="../reference/api-12.png">png</a>, <a class="reference external" href="../reference/api-12.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-12.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-14.py">Source code</a>, <a class="reference external" href="../reference/api-14.png">png</a>, <a class="reference external" href="../reference/api-14.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-14.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-12.png" class="plot-directive" src="../_images/api-12.png" />
+<img alt="../_images/api-14.png" class="plot-directive" src="../_images/api-14.png" />
 </div>
 </dd></dl>
 
@@ -1002,12 +1026,6 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 <dt class="sig sig-object py" id="scanspec.specs.DURATION">
 <span class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></span><span class="sig-name descname"><span class="pre">DURATION</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'DURATION'</span></em><a class="headerlink" href="#scanspec.specs.DURATION" title="Permalink to this definition">¶</a></dt>
 <dd><p>Can be used as a special key to indicate how long each point should be</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="scanspec.specs.REPEAT">
-<span class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></span><span class="sig-name descname"><span class="pre">REPEAT</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'REPEAT'</span></em><a class="headerlink" href="#scanspec.specs.REPEAT" title="Permalink to this definition">¶</a></dt>
-<dd><p>Can be used as a special key to indicate repeats of a whole spec</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1031,9 +1049,9 @@ the “radius” and difference between each ring of the spiral “dr”</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-13.py">Source code</a>, <a class="reference external" href="../reference/api-13.png">png</a>, <a class="reference external" href="../reference/api-13.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-13.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-15.py">Source code</a>, <a class="reference external" href="../reference/api-15.png">png</a>, <a class="reference external" href="../reference/api-15.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-15.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-13.png" class="plot-directive" src="../_images/api-13.png" />
+<img alt="../_images/api-15.png" class="plot-directive" src="../_images/api-15.png" />
 </div>
 </dd></dl>
 
@@ -1061,27 +1079,10 @@ in the spec</p></li>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-14.py">Source code</a>, <a class="reference external" href="../reference/api-14.png">png</a>, <a class="reference external" href="../reference/api-14.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-14.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-16.py">Source code</a>, <a class="reference external" href="../reference/api-16.png">png</a>, <a class="reference external" href="../reference/api-16.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-16.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-14.png" class="plot-directive" src="../_images/api-14.png" />
+<img alt="../_images/api-16.png" class="plot-directive" src="../_images/api-16.png" />
 </div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="scanspec.specs.repeat">
-<span class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></span><span class="sig-name descname"><span class="pre">repeat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">scanspec.specs.Spec</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">blend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">scanspec.specs.Spec</span></a><a class="reference internal" href="../_modules/scanspec/specs.html#repeat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.repeat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Repeat spec num times</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>spec</strong> – The source <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a> that will be iterated</p></li>
-<li><p><strong>num</strong> – The number of times to repeat it</p></li>
-<li><p><strong>blend</strong> – If True and the slowest dimension of spec is snaked then
-the end and start of consecutive iterations of Spec will be
-blended together, leaving no gap</p></li>
-</ul>
-</dd>
-</dl>
 </dd></dl>
 
 </div>
@@ -1272,9 +1273,9 @@ but not both. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-15.py">Source code</a>, <a class="reference external" href="../reference/api-15.png">png</a>, <a class="reference external" href="../reference/api-15.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-15.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-17.py">Source code</a>, <a class="reference external" href="../reference/api-17.png">png</a>, <a class="reference external" href="../reference/api-17.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-17.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-15.png" class="plot-directive" src="../_images/api-15.png" />
+<img alt="../_images/api-17.png" class="plot-directive" src="../_images/api-17.png" />
 </div>
 </dd></dl>
 
@@ -1304,9 +1305,9 @@ but not both. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-16.py">Source code</a>, <a class="reference external" href="../reference/api-16.png">png</a>, <a class="reference external" href="../reference/api-16.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-16.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-18.py">Source code</a>, <a class="reference external" href="../reference/api-18.png">png</a>, <a class="reference external" href="../reference/api-18.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-18.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-16.png" class="plot-directive" src="../_images/api-16.png" />
+<img alt="../_images/api-18.png" class="plot-directive" src="../_images/api-18.png" />
 </div>
 </dd></dl>
 
@@ -1337,9 +1338,9 @@ but not both. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-17.py">Source code</a>, <a class="reference external" href="../reference/api-17.png">png</a>, <a class="reference external" href="../reference/api-17.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-17.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-19.py">Source code</a>, <a class="reference external" href="../reference/api-19.png">png</a>, <a class="reference external" href="../reference/api-19.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-19.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-17.png" class="plot-directive" src="../_images/api-17.png" />
+<img alt="../_images/api-19.png" class="plot-directive" src="../_images/api-19.png" />
 </div>
 </dd></dl>
 
@@ -1372,9 +1373,9 @@ but not both. Typically created with the <code class="docutils literal notransla
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-18.py">Source code</a>, <a class="reference external" href="../reference/api-18.png">png</a>, <a class="reference external" href="../reference/api-18.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-18.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-20.py">Source code</a>, <a class="reference external" href="../reference/api-20.png">png</a>, <a class="reference external" href="../reference/api-20.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-20.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-18.png" class="plot-directive" src="../_images/api-18.png" />
+<img alt="../_images/api-20.png" class="plot-directive" src="../_images/api-20.png" />
 </div>
 </dd></dl>
 
@@ -1406,9 +1407,9 @@ scan is 2D then 2D regions are shown in black.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference external" href="../reference/api-19.py">Source code</a>, <a class="reference external" href="../reference/api-19.png">png</a>, <a class="reference external" href="../reference/api-19.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-19.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../reference/api-21.py">Source code</a>, <a class="reference external" href="../reference/api-21.png">png</a>, <a class="reference external" href="../reference/api-21.hires.png">hires.png</a>, <a class="reference external" href="../reference/api-21.pdf">pdf</a>)</p>
 <div class="figure align-default">
-<img alt="../_images/api-19.png" class="plot-directive" src="../_images/api-19.png" />
+<img alt="../_images/api-21.png" class="plot-directive" src="../_images/api-21.png" />
 </div>
 </dd></dl>
 
