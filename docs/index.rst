@@ -65,6 +65,8 @@ Technical reference material, for classes, methods, APIs, commands, and contribu
 
     reference/api
     reference/contributing
+    Changelog <https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst>
+    Index <genindex.html#http://>
 
 .. rst-class:: endcolumns
 

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b8fed9e5557c4dfc194394e6afdb5570cc8d49f6a0b8dedd8339eb08bfc6b733"
+            "sha256": "cd3e94ee4c2163e762fc79bd3aa11315c4acfbc4b92b944a0a0b719a1e94c4e9"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -756,6 +756,13 @@
             ],
             "version": "==2.7.0"
         },
+        "pydocstyle": {
+            "hashes": [
+                "sha256:1d41b7c459ba0ee6c345f2eb9ae827cab14a7533a88c5c6f7e94923f72df92dc",
+                "sha256:6987826d6775056839940041beef5c08cc7e3d71d63149b48e36727f70144dc4"
+            ],
+            "version": "==6.1.1"
+        },
         "pyflakes": {
             "hashes": [
                 "sha256:7893783d01b8a89811dd72d7dfd4d84ff098e5eed95cfa8905b22bbffe52efc3",
@@ -814,6 +821,13 @@
             ],
             "index": "pypi",
             "version": "==0.8.1"
+        },
+        "pytest-pydocstyle": {
+            "hashes": [
+                "sha256:b4e7eee47252fbb7495f4a0126e547a25f5f114f3096c504e738db49a5034333"
+            ],
+            "index": "pypi",
+            "version": "==2.2.0"
         },
         "pytz": {
             "hashes": [
@@ -884,10 +898,10 @@
         },
         "sphinx": {
             "hashes": [
-                "sha256:5747f3c855028076fcff1e4df5e75e07c836f0ac11f7df886747231092cfe4ad",
-                "sha256:dff357e6a208eb7edb2002714733ac21a9fe597e73609ff417ab8cf0c6b4fbb8"
+                "sha256:3092d929cd807926d846018f2ace47ba2f3b671b309c7a89cd3306e80c826b13",
+                "sha256:46d52c6cee13fec44744b8c01ed692c18a640f6910a725cbb938bc36e8d64544"
             ],
-            "version": "==4.0.3"
+            "version": "==4.1.2"
         },
         "sphinx-apischema": {
             "hashes": [
@@ -910,8 +924,15 @@
                 "sha256:32bd3b5d13dc8186d7a42fc816a23d32e83a4827d7d9882948e7b837c232da5a",
                 "sha256:4a05bdbe8b1446d77a01e20a23ebc6777c74f43237035e76be89699308987d6f"
             ],
-            "index": "pypi",
             "version": "==0.5.2"
+        },
+        "sphinx-rtd-theme-github-versions": {
+            "hashes": [
+                "sha256:ad2822c08b0f075c051e25b9d291152d846c21ed052db3b458d5ef30efac59b3",
+                "sha256:f84b45baf536c01c2e62f26e8206dd69f0375d9c9b3769d56295292e6e00f43b"
+            ],
+            "index": "pypi",
+            "version": "==0.2"
         },
         "sphinxcontrib-applehelp": {
             "hashes": [
@@ -929,10 +950,10 @@
         },
         "sphinxcontrib-htmlhelp": {
             "hashes": [
-                "sha256:3c0bc24a2c41e340ac37c85ced6dafc879ab485c095b1d65d2461ac2f7cca86f",
-                "sha256:e8f5bb7e31b2dbb25b9cc435c8ab7a79787ebf7f906155729338f3156d93659b"
+                "sha256:d412243dfb797ae3ec2b59eca0e52dac12e75a241bf0e4eb861e450d06c6ed07",
+                "sha256:f5f8bb2d0d629f398bf47d0d69c07bc13b65f75a81ad9e2f71a63d4b7a2f6db2"
             ],
-            "version": "==1.0.3"
+            "version": "==2.0.0"
         },
         "sphinxcontrib-jsmath": {
             "hashes": [
@@ -950,10 +971,10 @@
         },
         "sphinxcontrib-serializinghtml": {
             "hashes": [
-                "sha256:eaa0eccc86e982a9b939b2b82d12cc5d013385ba5eadcc7e4fed23f4405f77bc",
-                "sha256:f242a81d423f59617a8e5cf16f5d4d74e28ee9a66f9e5b637a18082991db5a9a"
+                "sha256:352a9a00ae864471d3a7ead8d7d79f5fc0b57e8b3f95e9867eb9eb28999b92fd",
+                "sha256:aa5f6de5dfdf809ef505c4895e51ef5c9eac17d0f287933eb49ec495280b6952"
             ],
-            "version": "==1.1.4"
+            "version": "==1.1.5"
         },
         "testfixtures": {
             "hashes": [
