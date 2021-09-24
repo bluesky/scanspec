@@ -9,7 +9,7 @@ from aiohttp import web
 from apischema.graphql import graphql_schema, resolver
 from graphql_server.aiohttp.graphqlview import GraphQLView, _asyncify
 
-from scanspec.core import Dimension, Path
+from scanspec.core import Frames, Path
 from scanspec.specs import Spec
 
 
@@ -70,7 +70,7 @@ class PointsResponse:
     total_frames: int
     returned_frames: int
 
-    def __init__(self, chunk: Dimension, total_frames: int):
+    def __init__(self, chunk: Frames, total_frames: int):
         self.total_frames = total_frames
         """The number of frames present across the entire spec"""
         self.returned_frames = len(chunk)
@@ -140,7 +140,7 @@ def get_points(spec: Spec, max_frames: Optional[int] = 100000) -> PointsResponse
         [PointsResponse]: [A dataclass containing information about the scan points
                             present in the spec]
     """
-    dims = spec.create_dimensions()  # Grab dimensions from spec
+    dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
 
     # TOTAL FRAMES
@@ -161,7 +161,7 @@ def get_points(spec: Spec, max_frames: Optional[int] = 100000) -> PointsResponse
 schema = graphql_schema(query=[validate_spec, get_points])
 
 
-def reduce_frames(dims: List[Dimension], max_frames: int) -> Path:
+def reduce_frames(dims: List[Frames], max_frames: int) -> Path:
     """Removes frames from a spec such that it produces a number that is
     closest to the max points value
 
@@ -184,7 +184,7 @@ def reduce_frames(dims: List[Dimension], max_frames: int) -> Path:
     return Path(sub_dims)
 
 
-def sub_sample(dim: Dimension, ratio: float) -> Dimension:
+def sub_sample(dim: Frames, ratio: float) -> Frames:
     """Removes frames from a dimension whilst preserving its core structure
 
     Args:
@@ -195,7 +195,7 @@ def sub_sample(dim: Dimension, ratio: float) -> Dimension:
     """
     num_indexes = int(len(dim) / ratio)
     indexes = np.linspace(0, len(dim) - 1, num_indexes, dtype=np.int32)
-    return dim[indexes]
+    return dim.extract(indexes, for_path=True)
 
 
 def schema_text() -> str:

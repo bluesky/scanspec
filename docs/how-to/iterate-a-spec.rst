@@ -28,40 +28,33 @@ points are unpacked point by point into point dictionaries
 If you need to do a fly scan
 ----------------------------
 
-If you are conducting a fly scan then you need the `path` that the motor moves
-through. You can get that from the lower and upper bounds of each point. It is
-more efficient to consume this Path in numpy array chunks that can be processed
-into a trajectory:
+If you are conducting a fly scan then you need the frames that the motor moves
+through. You can get that from the lower and upper bounds of each point. If the
+scan is small enough to fit in memory on the machine you can use the `Spec.frames()`
+method to produce a `Segment` of frames.
 
->>> path = spec.path()
->>> len(path)
+>>> segment = spec.frames()
+>>> len(segment)
 3
->>> chunk = path.consume()
->>> chunk.lower
+>>> segment.lower
 {'x': array([0.75, 1.25, 1.75])}
->>> chunk.midpoints
+>>> segment.midpoints
 {'x': array([1. , 1.5, 2. ])}
->>> chunk.upper
+>>> segment.upper
 {'x': array([1.25, 1.75, 2.25])}
->>> len(path)
-0
-
-If ``upper[i] == lower[i+1]`` then we say that two scan points are joined, and
-will be blended together in a motion trajectory, otherwise the scanning system
-should insert a gap where the motors move between segments
 
 
 If you need to do multiple runs of the same scan
 ------------------------------------------------
 
 A `Path` instance is a one-shot consumable view of the list of `Dimension`
-instances created by `Spec.create_dimensions()`. Once you have consumed it you
+instances created by `Spec.frames()`. Once you have consumed it you
 should create a new instance of it. For performance reasons, you can keep the
 intermediate `Dimensions <dimension>` and create as many `Path` wrappers to them
 as you need. You can also give a maximum size to `Path.consume()`
 
 >>> from scanspec.core import Path
->>> dims = spec.create_dimensions()
+>>> dims = spec.calculate()
 >>> path = Path(dims)
 >>> len(path)
 3
@@ -97,7 +90,7 @@ you can see it snakes back and forth:
 
 >>> from scanspec.specs import Line, fly
 >>> grid = fly(Line("y", 0, 1, 2) * ~Line("x", 1, 2, 3), 0.1)
->>> chunk = grid.path().consume()
+>>> chunk = grid.frames()
 >>> chunk.midpoints["x"]
 array([1. , 1.5, 2. , 2. , 1.5, 1. ])
 

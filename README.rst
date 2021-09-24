@@ -51,7 +51,7 @@ or create a Path from the Dimensions and consume chunks of a given length from i
 
     from scanspec.core import Path
 
-    dims = spec.create_dimensions()
+    dims = spec.frames()
     len(dims[0].shape)  # 44
     dims[0].keys()  # (ymotor, xmotor, "TIME")
 

@@ -15,7 +15,7 @@ An Example
 
 >>> from scanspec.specs import Line
 >>> spec = Line("y", 4, 5, 6) * Line("x", 1, 2, 3)
->>> dims = spec.create_dimensions()
+>>> dims = spec.calculate()
 >>> len(dims)
 2
 >>> len(dims[0])

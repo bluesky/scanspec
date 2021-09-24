@@ -94,7 +94,7 @@ def plot_spec(spec: Spec):
         cube = Line("z", 1, 3, 3) * Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
         spec = cube & Circle("x", "y", 1, 2, 0.9)
     """
-    dims = spec.create_dimensions()
+    dims = spec.calculate()
     dim = Path(dims).consume()
     axes = [a for a in spec.axes() if a is not DURATION]
     ndims = len(axes)

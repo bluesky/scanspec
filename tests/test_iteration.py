@@ -1,12 +1,14 @@
 import pytest
 
+from scanspec.core import Path
 from scanspec.specs import Line
 
 
-def test_line_view() -> None:
+def test_line_path() -> None:
     x = "x"
     inst = Line(x, 0, 1, 5)
-    path = inst.path()
+    dims = inst.calculate()
+    path = Path(dims)
     assert len(path) == 5
     dim = path.consume()
     assert dim.midpoints == {x: pytest.approx([0, 0.25, 0.5, 0.75, 1.0])}

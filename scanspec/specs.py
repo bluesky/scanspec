@@ -6,14 +6,15 @@ from apischema import schema
 from typing_extensions import Annotated as A
 
 from .core import (
-    Dimension,
+    Frames,
     Midpoints,
     Path,
     Serializable,
+    SnakedFrames,
     alternative_constructor,
+    gap_between_frames,
     if_instance_do,
-    is_gap_between,
-    squash_dimensions,
+    squash_frames,
 )
 from .regions import Region, get_mask
 
@@ -43,12 +44,13 @@ DURATION = "DURATION"
 
 @dataclass
 class Spec(Serializable):
-    """Definition: A spec is a serializable representation of the type, parameters
-    and axis names required to produce one or more dimensions.
+    """A serializable representation of the type, parameters and axis names
+    required to produce scan Frames
 
-    Description: Abstract baseclass for the specification of a scan. Supports operators:
+    Abstract baseclass for the specification of a scan. Supports operators:
 
-    - ``*``: Outer `Product` of two Specs, nesting the second within the first
+    - ``*``: Outer `Product` of two Specs, nesting the second within the first.
+      If the first operand is an integer, wrap it in a `Repeat`
     - ``+``: `Zip` two Specs together, iterating in tandem
     - ``&``: `Mask` the Spec with a `Region`, excluding midpoints outside of it
     - ``~``: `Snake` the Spec, reversing every other iteration of it
@@ -59,21 +61,18 @@ class Spec(Serializable):
         slowest moving to fastest moving"""
         raise NotImplementedError(self)
 
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        """Implemented by subclasses to produce the `Dimension` list that
+    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+        """Implemented by subclasses to produce a stack of nested `Frames` that
         contribute to midpoints, from slowest moving to fastest moving"""
         raise NotImplementedError(self)
 
-    def path(self) -> Path:
-        """Return a `Path` through the scan that can be consumed in chunks
-        to give midpoints and bounds"""
-        path = Path(self.create_dimensions())
-        return path
+    def frames(self) -> Frames:
+        """Expand all the scan `Frames` and return it"""
+        return Path(self.calculate()).consume()
 
     def midpoints(self) -> Midpoints:
         """Return `Midpoints` that can be iterated point by point"""
-        mp = Midpoints(self.create_dimensions(bounds=False))
-        return mp
+        return Midpoints(self.calculate(bounds=False))
 
     def __rmul__(self, other) -> "Product":
         return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
@@ -109,10 +108,10 @@ class Product(Spec):
     def axes(self) -> List:
         return self.outer.axes() + self.inner.axes()
 
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        dims_outer = self.outer.create_dimensions(bounds=False, nested=nested)
-        dims_inner = self.inner.create_dimensions(bounds, nested=True)
-        return dims_outer + dims_inner
+    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+        frames_outer = self.outer.calculate(bounds=False, nested=nested)
+        frames_inner = self.inner.calculate(bounds, nested=True)
+        return frames_outer + frames_inner
 
 
 ANum = A[int, schema(min=1, description="Number of frames to produce")]
@@ -144,16 +143,16 @@ class Repeat(Spec):
     gap: A[
         bool,
         schema(
-            description="If False and the slowest dimension of spec is snaked then the "
-            "end and start of consecutive iterations of Spec will have no gap"
+            description="If False and the slowest of the stack of Frames is snaked "
+            "then the end and start of consecutive iterations of Spec will have no gap"
         ),
     ] = True
 
     def axes(self) -> List:
         return []
 
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        return [Dimension({}, gap=np.full(self.num, self.gap))]
+    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+        return [Frames({}, gap=np.full(self.num, self.gap))]
 
 
 @dataclass
@@ -161,15 +160,15 @@ class Zip(Spec):
     """Run two Specs in parallel, merging their midpoints together. Typically
     formed using the ``+`` operator.
 
-    Dimensions are merged by:
+    Stacks of Frames are merged by:
 
-    - If right creates a single Dimension of size 1, expand it to the size of
-      the fastest Dimension created by left
-    - Merge individual dimensions together from fastest to slowest
+    - If right creates a stack of a single Frames object of size 1, expand it to
+      the size of the fastest Frames object created by left
+    - Merge individual Frames objects together from fastest to slowest
 
-    This means that Zipping a Spec producing Dimensions [l2, l1] with a
-    Spec producing Dimension [r1] will assert len(l1)==len(r1), and produce
-    Dimensions [l2, l1+r1].
+    This means that Zipping a Spec producing stack [l2, l1] with a Spec
+    producing stack [r1] will assert len(l1)==len(r1), and produce
+    stack [l2, l1.zip(r1)].
 
     .. example_spec::
 
@@ -190,39 +189,40 @@ class Zip(Spec):
     def axes(self) -> List:
         return self.left.axes() + self.right.axes()
 
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        dims_left = self.left.create_dimensions(bounds, nested)
-        dims_right = self.right.create_dimensions(bounds, nested)
-        assert len(dims_left) >= len(
-            dims_right
+    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+        frames_left = self.left.calculate(bounds, nested)
+        frames_right = self.right.calculate(bounds, nested)
+        assert len(frames_left) >= len(
+            frames_right
         ), f"Zip requires len({self.left}) >= len({self.right})"
 
-        # Pad and expand the right to be the same size as left
-        # Special case, if only one dim with size 1, expand to the right size
-        if len(dims_right) == 1 and len(dims_right[0]) == 1:
-            # Take the 0th element N times to make a repeated dimension
-            indices = np.zeros(len(dims_left[-1]), dtype=np.int8)
-            repeated = dims_right[0][indices]
-            repeated.snake = dims_left[-1].snake
-            dims_right = [repeated]
+        # Pad and expand the right to be the same size as left. Special case, if
+        # only one Frames object with size 1, expand to the right size
+        if len(frames_right) == 1 and len(frames_right[0]) == 1:
+            # Take the 0th element N times to make a repeated Frames object
+            indices = np.zeros(len(frames_left[-1]), dtype=np.int8)
+            repeated = frames_right[0].extract(indices)
+            if isinstance(frames_left[-1], SnakedFrames):
+                repeated = SnakedFrames.from_frames(repeated)
+            frames_right = [repeated]
 
-        # Left pad dims_right with Nones so they are the same size
-        npad = len(dims_left) - len(dims_right)
-        padded_right: List[Optional[Dimension]] = [None] * npad
-        padded_right += dims_right
+        # Left pad frames_right with Nones so they are the same size
+        npad = len(frames_left) - len(frames_right)
+        padded_right: List[Optional[Frames]] = [None] * npad
+        padded_right += frames_right
 
         # Work through, zipping them together one by one
-        dimensions = []
-        for dim_left, dim_right in zip(dims_left, padded_right):
-            if dim_right is None:
-                dim = dim_left
+        frames = []
+        for left, right in zip(frames_left, padded_right):
+            if right is None:
+                combined = left
             else:
-                dim = dim_left.zip(dim_right)
+                combined = left.zip(right)
             assert isinstance(
-                dim, Dimension
-            ), f"Padding went wrong {dims_left} {padded_right}"
-            dimensions.append(dim)
-        return dimensions
+                combined, Frames
+            ), f"Padding went wrong {frames_left} {padded_right}"
+            frames.append(combined)
+        return frames
 
 
 ACheckPathChanges = A[
@@ -232,18 +232,16 @@ ACheckPathChanges = A[
 
 @dataclass
 class Mask(Spec):
-    """Restrict the given Spec to only the midpoints that fall inside of the given
-    Region.
+    """Restrict the given Spec to only the midpoints that fall inside of the
+    given Region.
 
     Typically created with the ``&`` operator. It also pushes down the
     ``& | ^ -`` operators to its `Region` to avoid the need for brackets on
     combinations of Regions.
 
-    If a Region spans multiple Dimensions, these Dimensions will be squashed
-    together.
+    If a Region spans multiple Frames objects, they will be squashed together.
 
-    See Also:
-        `why-squash-can-change-path`
+    See Also: `why-squash-can-change-path`
 
     .. example_spec::
 
@@ -260,11 +258,11 @@ class Mask(Spec):
     def axes(self) -> List:
         return self.spec.axes()
 
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        dims = self.spec.create_dimensions(bounds, nested)
+    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+        frames = self.spec.calculate(bounds, nested)
         for axis_set in self.region.axis_sets():
             # Find the start and end index of any dimensions containing these axes
-            matches = [i for i, d in enumerate(dims) if set(d.axes()) & axis_set]
+            matches = [i for i, d in enumerate(frames) if set(d.axes()) & axis_set]
             assert matches, f"No Specs match axes {list(axis_set)}"
             si, ei = matches[0], matches[-1]
             if si != ei:
@@ -272,13 +270,14 @@ class Mask(Spec):
                 # If the spec to be squashed is nested (inside the Mask or outside)
                 # then check the path changes if requested
                 check_path_changes = (nested or si) and self.check_path_changes
-                squashed = squash_dimensions(dims[si : ei + 1], check_path_changes)
-                dims = dims[:si] + [squashed] + dims[ei + 1 :]
+                squashed = squash_frames(frames[si : ei + 1], check_path_changes)
+                frames = frames[:si] + [squashed] + frames[ei + 1 :]
         # Generate masks from the midpoints showing what's inside
-        masked_dims = [
-            dim[get_mask(self.region, dim.midpoints).nonzero()[0]] for dim in dims
-        ]
-        return masked_dims
+        masked_frames = []
+        for f in frames:
+            indices = get_mask(self.region, f.midpoints).nonzero()[0]
+            masked_frames.append(f.extract(indices))
+        return masked_frames
 
     # *+ bind more tightly than &|^ so without these overrides we
     # would need to add brackets to all combinations of Regions
@@ -316,11 +315,11 @@ class Snake(Spec):
     def axes(self) -> List:
         return self.spec.axes()
 
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        dims = self.spec.create_dimensions(bounds, nested)
-        for dim in dims:
-            dim.snake = True
-        return dims
+    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+        return [
+            SnakedFrames.from_frames(segment)
+            for segment in self.spec.calculate(bounds, nested)
+        ]
 
 
 @dataclass
@@ -356,9 +355,9 @@ class Concat(Spec):
         assert left_axes == right_axes, f"axes {left_axes} != {right_axes}"
         return left_axes
 
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
-        dim_left = squash_dimensions(self.left.create_dimensions(bounds, nested))
-        dim_right = squash_dimensions(self.right.create_dimensions(bounds, nested))
+    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+        dim_left = squash_frames(self.left.calculate(bounds, nested))
+        dim_right = squash_frames(self.right.calculate(bounds, nested))
         dim = dim_left.concat(dim_right, self.gap)
         return [dim]
 
@@ -384,10 +383,10 @@ class Squash(Spec):
     def axes(self) -> List:
         return self.spec.axes()
 
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames]:
         # TODO: if we squash we explode the size, can we avoid this?
-        dims = self.spec.create_dimensions(bounds, nested)
-        dim = squash_dimensions(dims, nested and self.check_path_changes)
+        dims = self.spec.calculate(bounds, nested)
+        dim = squash_frames(dims, nested and self.check_path_changes)
         return [dim]
 
 
@@ -396,7 +395,7 @@ def _dimensions_from_indexes(
     axes: List,
     num: int,
     bounds: bool,
-) -> List[Dimension]:
+) -> List[Frames]:
     # Calc num midpoints (fences) from 0.5 .. num - 0.5
     midpoints_calc = func(np.linspace(0.5, num - 0.5, num))
     midpoints = {a: midpoints_calc[a] for a in axes}
@@ -408,13 +407,13 @@ def _dimensions_from_indexes(
         # Points must have no gap as upper[a][i] == lower[a][i+1]
         # because we initialized it to be that way
         gap = np.zeros(num, dtype=np.bool_)
-        dimension = Dimension(midpoints, lower, upper, gap)
+        dimension = Frames(midpoints, lower, upper, gap)
         # But calc the first point as difference between first
         # and last
-        gap[0] = is_gap_between(dimension, dimension)
+        gap[0] = gap_between_frames(dimension, dimension)
     else:
         # Gap can be calculated in Dimension
-        dimension = Dimension(midpoints)
+        dimension = Frames(midpoints)
     return [dimension]
 
 
@@ -453,7 +452,7 @@ class Line(Spec):
         first = self.start - step / 2
         return {self.axis: indexes * step + first}
 
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames]:
         return _dimensions_from_indexes(
             self._line_from_indexes, self.axes(), self.num, bounds
         )
@@ -526,7 +525,7 @@ class Static(Spec):
     def _repeats_from_indexes(self, indexes: np.ndarray) -> Dict[str, np.ndarray]:
         return {self.axis: np.full(len(indexes), self.value)}
 
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames]:
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
         )
@@ -577,7 +576,7 @@ class Spiral(Spec):
             self.x_axis: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
         }
 
-    def create_dimensions(self, bounds=True, nested=False) -> List[Dimension]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames]:
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self.num, bounds
         )

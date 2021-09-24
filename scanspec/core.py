@@ -5,9 +5,12 @@ from typing import (
     Callable,
     ClassVar,
     Dict,
+    Iterable,
     Iterator,
     List,
     Mapping,
+    Optional,
+    Sequence,
     Type,
     TypeVar,
 )
@@ -20,22 +23,23 @@ from apischema.objects import object_deserialization
 from apischema.tagged_unions import Tagged, TaggedUnion, get_tagged
 
 __all__ = [
-    "S",
+    "alternative_constructor",
     "Serializable",
     "AxesPoints",
     "if_instance_do",
-    "Dimension",
-    "squash_dimensions",
+    "Frames",
+    "gap_between_frames",
+    "squash_frames",
     "Path",
     "Midpoints",
 ]
 
 
-def rec_subclasses(cls: type) -> Iterator[type]:
+def _rec_subclasses(cls: type) -> Iterator[type]:
     """Recursive implementation of type.__subclasses__"""
     for sub_cls in cls.__subclasses__():
         yield sub_cls
-        yield from rec_subclasses(sub_cls)
+        yield from _rec_subclasses(sub_cls)
 
 
 # {cls_name: [functions]}
@@ -66,7 +70,7 @@ else:
         return staticmethod(f)
 
 
-def as_tagged_union(cls: Type):
+def _as_tagged_union(cls: Type):
     def serialization() -> Conversion:
         serialization_union = new_class(
             f"Tagged{cls.__name__}Union",
@@ -75,7 +79,7 @@ def as_tagged_union(cls: Type):
                 {
                     "__annotations__": {
                         sub.__name__: Tagged[sub]  # type: ignore
-                        for sub in rec_subclasses(cls)
+                        for sub in _rec_subclasses(cls)
                     }
                 }
             ),
@@ -92,7 +96,7 @@ def as_tagged_union(cls: Type):
     def deserialization() -> Conversion:
         annotations: Dict[str, Any] = {}
         deserialization_namespace: Dict[str, Any] = {"__annotations__": annotations}
-        for sub in rec_subclasses(cls):
+        for sub in _rec_subclasses(cls):
             annotations[sub.__name__] = Tagged[sub]  # type: ignore
             # Add tagged fields for all its alternative constructors
             for constructor in _alternative_constructors.get(sub.__name__, ()):
@@ -129,7 +133,7 @@ def as_tagged_union(cls: Type):
     serializer(lazy=serialization, source=cls)
 
 
-#: A subclass of Serializable
+#: A subclass of `Serializable`
 S = TypeVar("S", bound="Serializable")
 
 
@@ -146,7 +150,7 @@ class Serializable:
         super().__init_subclass__(**kwargs)
         if Serializable in cls.__bases__:
             cls._base_serializable = cls
-            as_tagged_union(cls)
+            _as_tagged_union(cls)
 
     def serialize(self) -> Mapping[str, Any]:
         """Serialize to a dictionary representation"""
@@ -176,30 +180,35 @@ def if_instance_do(x, cls: Type, func: Callable):
         return NotImplemented
 
 
-class Dimension:
-    """A dimension is a repeatable, possibly snaking structure of frames along a
-    number of axes.
+#: A subclass of `Frames`
+F = TypeVar("F", bound="Frames")
+
+
+class Frames:
+    """Represents a series of scan frames along a number of axes. During a scan
+    each axis will traverse lower-midpoint-upper for each frame.
 
     Args:
-        midpoints: The centre points of the scan for each axis
+        midpoints: The centre points of the frames for each axis
         lower: Lower bounds if different from midpoints
         upper: Upper bounds if different from midpoints
         gap: If supplied, define if there is a gap between frame and previous
             otherwise it is calculated by looking at lower and upper bounds
-        snake: If True then every other iteration of this Dimension within a
-            slower moving Dimension will be reversed
 
-    Represents a linear stack of frames. A list of Dimensions
-    is interpreted as nested from slowest moving to fastest moving, so each
-    faster Dimension will iterate once per position of the slower Dimension.
-    When fly-scanning the axis will traverse lower-midpoint-upper on the fastest
-    Dimension for each point in the scan.
+    Typically used in two ways:
+
+    - A list of Frames returned from `Spec.calculate` represents a scan as a
+      linear stack of frames. Interpreted as nested from slowest moving to
+      fastest moving, so each faster Frames object will iterate once per
+      position of the slower Frames. It is passed to a `Path` for calculation
+      of the actual scan path.
+    - A single Frames object returned from `Path.consume` represents a chunk
+      of frames forming part of a scan path, for interpretation by the code
+      that will actually perform the scan.
 
     See Also:
-        `what-are-dimensions`
+        `technical-terms`
     """
-
-    _snake = False
 
     def __init__(
         self,
@@ -207,7 +216,6 @@ class Dimension:
         lower: AxesPoints = None,
         upper: AxesPoints = None,
         gap: np.ndarray = None,
-        snake: bool = False,
     ):
         #: The centre points of the scan for each axis
         self.midpoints = midpoints
@@ -219,8 +227,6 @@ class Dimension:
             #: Whether there is a gap between this frame and the previous. First
             #: element is whether there is a gap between the last frame and the first
             self.gap = gap
-            # Don't use the setter to keep the pre-calculated gap
-            self._snake = snake
         else:
             # Need to calculate gap as not passed one
             # We have a gap if upper[i] != lower[i+1] for any axes
@@ -229,8 +235,6 @@ class Dimension:
                 for u, l in zip(self.upper.values(), self.lower.values())
             ]
             self.gap = np.logical_or.reduce(axes_gap)
-            # Use the setter to make sure self.gap is updated if snaking
-            self.snake = snake
         # Check all axes and ordering are the same
         assert list(self.midpoints) == list(self.lower) == list(self.upper), (
             f"Mismatching axes "
@@ -245,191 +249,232 @@ class Dimension:
         lengths.add(len(self.gap))
         assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
 
-    @property
-    def snake(self) -> bool:
-        """Whether every other iteration of this Dimension within a slower
-        moving Dimension will be reversed"""
-        return self._snake
-
-    @snake.setter
-    def snake(self, snake: bool):
-        if snake != self._snake:
-            assert snake, "Can only set snake=True after init"
-            self._snake = True
-            # If we are snaking then there is never a gap between end and start
-            if len(self.gap) > 0:
-                self.gap[0] = False
-
-    def axes(self) -> List:
+    def axes(self) -> List[str]:
         """The axes that are present in `midpoints`, `lower` and `upper`
         which will move during the scan"""
         return list(self.midpoints.keys())
 
     def __len__(self) -> int:
-        """The number of `frames` in the scan"""
+        """The number of `stack` in the scan"""
         # All axespoints arrays are same length, pick the first one
         return len(self.gap)
 
-    def __getitem__(self, indices: np.ndarray) -> "Dimension":
-        """Return a new Dimension that produces this dimension
-        restricted to the slice
+    def extract(self: F, indices: np.ndarray, for_path=False) -> "Frames":
+        """Return a new Frames that produces this dimension
+        restricted to the indices provided
 
-        >>> dim = Dimension({"x": np.array([1, 2, 3])})
-        >>> dim[np.array([1, 0, 1])].midpoints
+        >>> dim = Frames({"x": np.array([1, 2, 3])})
+        >>> dim.extract(np.array([1, 0, 1])).midpoints
         {'x': array([2, 1, 2])}
         """
+        dim_indices = indices % len(self)
 
-        def apply_to_dict(d: AxesPoints) -> AxesPoints:
-            return {k: v[indices] for k, v in d.items()}
+        def extract_dict(ds: Iterable[AxesPoints]) -> AxesPoints:
+            for d in ds:
+                return {k: v[dim_indices] for k, v in d.items()}
+            return {}
 
-        # If lower or upper are different, apply to those
-        kwargs = {
-            a: apply_to_dict(getattr(self, a))
-            for a in ("lower", "upper")
-            if self.midpoints is not getattr(self, a)
-        }
+        def extract_gap(gaps: Iterable[np.ndarray]) -> Optional[np.ndarray]:
+            for gap in gaps:
+                if for_path:
+                    return gap[dim_indices]
+            return None
 
-        # Apply to midpoints, inherit snaked, force calculation of gap
-        return Dimension(
-            midpoints=apply_to_dict(self.midpoints),
-            gap=None,
-            snake=self.snake,
-            **kwargs,
-        )
+        return _merge_frames(self, dict_merge=extract_dict, gap_merge=extract_gap)
 
-    def _merge_dims(
-        self,
-        other: "Dimension",
-        dict_merge: Callable[[AxesPoints, AxesPoints], AxesPoints],
-        gap_merge: Callable[[np.ndarray, np.ndarray], np.ndarray],
-    ):
-        assert isinstance(other, Dimension), f"Expected Dimension, got {other}"
-        assert self.snake == other.snake, "Snake settings don't match"
-        # If lower or upper are different, apply to those
-        kwargs = {
-            a: dict_merge(getattr(self, a), getattr(other, a))
-            for a in ("lower", "upper")
-            if self.midpoints is not getattr(self, a)
-            or other.midpoints is not getattr(other, a)
-        }
-
-        # Apply to midpoints, inherit snaked, force calculation of gap
-        return Dimension(
-            midpoints=dict_merge(self.midpoints, other.midpoints),
-            gap=gap_merge(self.gap, other.gap),
-            snake=self.snake,
-            **kwargs,
-        )
-
-    def concat(self, other: "Dimension", gap: bool = False) -> "Dimension":
-        """Return a new Dimension with arrays from self and other concatenated
-        together. Require both Dimensions to have the same axes and snake
+    def concat(self: F, other: F, gap: bool = False) -> F:
+        """Return a new Frames with arrays from self and other concatenated
+        together. Require both Frames to have the same axes and snake
         settings
 
         Args:
             other: The dimension to concatenate to self
             snake: Whether to force a gap between the two dimensions
 
-        >>> dim = Dimension({"x": np.array([1, 2, 3])})
-        >>> dim2 = Dimension({"x": np.array([5, 6, 7])})
+        >>> dim = Frames({"x": np.array([1, 2, 3])})
+        >>> dim2 = Frames({"x": np.array([5, 6, 7])})
         >>> dim.concat(dim2).midpoints
         {'x': array([1, 2, 3, 5, 6, 7])}
         """
-
-        def concat_gap(gap1: np.ndarray, gap2: np.ndarray) -> np.ndarray:
-            g = np.concatenate((gap1, gap2))
-            # Calc the first point
-            g[0] = is_gap_between(other, self)
-            # And the join point
-            g[len(self)] = gap or is_gap_between(self, other)
-            return g
-
         assert self.axes() == other.axes(), f"axes {self.axes()} != {other.axes()}"
-        dim = self._merge_dims(
-            other,
+
+        def concat_dict(ds: Sequence[AxesPoints]) -> AxesPoints:
             # Concat each array in midpoints, lower, upper. E.g.
             # lower[ax] = np.concatenate(self.lower[ax], other.lower[ax])
-            lambda d1, d2: {k: np.concatenate((v, d2[k])) for k, v in d1.items()},
-            # Gap should be concatted, but calc the join points above
-            concat_gap,
-        )
-        return dim
+            return {a: np.concatenate([d[a] for d in ds]) for a in self.axes()}
 
-    def zip(self, other: "Dimension") -> "Dimension":
-        """Return a new Dimension with arrays from axes of self and other
-        merged together. Require both Dimensions to not share axes, and
+        def concat_gap(gaps: Sequence[np.ndarray]) -> np.ndarray:
+            g = np.concatenate(gaps)
+            # Calc the first point
+            g[0] = gap_between_frames(other, self)
+            # And the join point
+            g[len(self)] = gap or gap_between_frames(self, other)
+            return g
+
+        return _merge_frames(self, other, dict_merge=concat_dict, gap_merge=concat_gap)
+
+    def zip(self: F, other: F) -> F:
+        """Return a new Frames with arrays from axes of self and other
+        merged together. Require both Frames to not share axes, and
         to have the snake settings
 
-        >>> dimx = Dimension({"x": np.array([1, 2, 3])})
-        >>> dimy = Dimension({"y": np.array([5, 6, 7])})
+        >>> dimx = Frames({"x": np.array([1, 2, 3])})
+        >>> dimy = Frames({"y": np.array([5, 6, 7])})
         >>> dimx.zip(dimy).midpoints
         {'x': array([1, 2, 3]), 'y': array([5, 6, 7])}
         """
         overlapping = list(set(self.axes()).intersection(other.axes()))
         assert not overlapping, f"Zipping would overwrite axes {overlapping}"
-        return self._merge_dims(
-            other,
+
+        def zip_dict(ds: Sequence[AxesPoints]) -> AxesPoints:
             # Merge dicts for midpoints, lower, upper. E.g.
             # lower[ax] = {**self.lower[ax], **other.lower[ax]}
-            lambda d1, d2: {**d1, **d2},
+            return dict(kv for d in ds for kv in d.items())
+
+        def zip_gap(gaps: Sequence[np.ndarray]) -> np.ndarray:
             # Gap if either dim has a gap. E.g.
             # gap[i] = self.gap[i] | other.gap[i]
-            np.logical_or,
+            return np.logical_or.reduce(gaps)
+
+        return _merge_frames(self, other, dict_merge=zip_dict, gap_merge=zip_gap)
+
+
+def _merge_frames(
+    *stack: F,
+    dict_merge=Callable[[Sequence[AxesPoints]], AxesPoints],
+    gap_merge=Callable[[Sequence[np.ndarray]], Optional[np.ndarray]],
+) -> F:
+    types = set(type(fs) for fs in stack)
+    assert len(types) == 1, f"Mismatching types for {stack}"
+    cls = types.pop()
+
+    # If any lower or upper are different, apply to those
+    kwargs = {}
+    for a in ("lower", "upper"):
+        if any(fs.midpoints is not getattr(fs, a) for fs in stack):
+            kwargs[a] = dict_merge([getattr(fs, a) for fs in stack])
+
+    # Apply to midpoints, force calculation of gap
+    return cls(
+        midpoints=dict_merge([fs.midpoints for fs in stack]),
+        gap=gap_merge([fs.gap for fs in stack]),
+        **kwargs,
+    )
+
+
+class SnakedFrames(Frames):
+    def __init__(
+        self,
+        midpoints: AxesPoints,
+        lower: AxesPoints = None,
+        upper: AxesPoints = None,
+        gap: np.ndarray = None,
+    ):
+        super().__init__(midpoints, lower=lower, upper=upper, gap=gap)
+        # Override first element of gap to be True, as subsequent runs
+        # of snake scans are always joined end -> start
+        self.gap[0] = False
+
+    @classmethod
+    def from_frames(cls: Type[F], stack: Frames) -> F:
+        return cls(stack.midpoints, stack.lower, stack.upper, stack.gap)
+
+    def extract(self: F, indices: np.ndarray, for_path=False) -> Frames:
+        """Return a new Frames that produces this dimension
+        restricted to the indices provided
+
+        >>> dim = Frames({"x": np.array([1, 2, 3])})
+        >>> dim.extract(np.array([1, 0, 1])).midpoints
+        {'x': array([2, 1, 2])}
+        """
+        # Calculate the indices
+        # E.g for len = 4
+        # indices:       0123456789
+        # backwards:     0000111100
+        # snake_indices: 0123321001
+        # gap_indices:   0123032101
+        length = len(self)
+        backwards = (indices // length) % 2
+        snake_indices = np.where(backwards, (length - 1) - indices, indices) % length
+        if for_path:
+            cls = Frames
+            gap = self.gap[np.where(backwards, length - indices, indices) % length]
+        else:
+            cls = type(self)
+            gap = None
+
+        # If lower or upper are different, apply to those
+        kwargs = {}
+        if self.midpoints is not self.lower:
+            # If going backwards select from the opposite bound
+            kwargs["lower"] = {
+                k: np.where(backwards, self.upper[k][snake_indices], v[snake_indices])
+                for k, v in self.lower.items()
+            }
+        if self.midpoints is not self.upper:
+            kwargs["upper"] = {
+                k: np.where(backwards, self.lower[k][snake_indices], v[snake_indices],)
+                for k, v in self.upper.items()
+            }
+
+        # Apply to midpoints
+        return cls(
+            {k: v[snake_indices] for k, v in self.midpoints.items()}, gap=gap, **kwargs
         )
 
 
-def is_gap_between(dim1: Dimension, dim2: Dimension) -> bool:
-    """Return if there is a gap between last point of upper and first point
-    of lower"""
-    return any(dim1.upper[a][-1] != dim2.lower[a][0] for a in dim1.axes())
+def gap_between_frames(frames1: Frames, frames2: Frames) -> bool:
+    """Return if there is a gap between last point of frames1 and first point
+    of frames2"""
+    return any(frames1.upper[a][-1] != frames2.lower[a][0] for a in frames1.axes())
 
 
-def squash_dimensions(
-    dimensions: List[Dimension], check_path_changes=True
-) -> Dimension:
-    """Squash a list of nested Dimensions into a single one.
+def squash_frames(stack: List[Frames], check_path_changes=True) -> Frames:
+    """Squash a stack of nested Frames into a single one.
 
     Args:
-        dimensions: The Dimensions to squash, from slowest to fastest moving
+        stack: The Frames stack to squash, from slowest to fastest moving
         check_path_changes: If True then check that nesting the output
-            Dimension within other Dimensions will provide the same path
-            as nesting the input Dimension within other Dimensions
+            Frames object within others will provide the same path
+            as nesting the input Frames stack within others
 
     See Also:
         `why-squash-can-change-path`
 
-    >>> dimx = Dimension({"x": np.array([1, 2])}, snake=True)
-    >>> dimy = Dimension({"y": np.array([3, 4])})
-    >>> squash_dimensions([dimy, dimx]).midpoints
+    >>> dimx = SnakedFrames({"x": np.array([1, 2])})
+    >>> dimy = Frames({"y": np.array([3, 4])})
+    >>> squash_frames([dimy, dimx]).midpoints
     {'y': array([3, 3, 4, 4]), 'x': array([1, 2, 2, 1])}
     """
-    path = Path(dimensions)
+    path = Path(stack)
     # Comsuming a Path of these dimensions performs the squash
     # TODO: dim.tile might give better performance but is much longer
     squashed = path.consume()
     # Check that the squash is the same as the original
-    if dimensions and dimensions[0].snake:
-        squashed.snake = True
+    if stack and isinstance(stack[0], SnakedFrames):
+        squashed = SnakedFrames.from_frames(squashed)
         # The top level is snaking, so this dimension will run backwards
         # This means any non-snaking axes will run backwards, which is
         # surprising, so don't allow it
         if check_path_changes:
-            non_snaking = [k for d in dimensions for k in d.axes() if not d.snake]
+            non_snaking = [
+                k for d in stack for k in d.axes() if not isinstance(d, SnakedFrames)
+            ]
             if non_snaking:
                 raise ValueError(
-                    f"Cannot squash non-snaking Specs in a snaking Dimension "
+                    f"Cannot squash non-snaking Specs in a snaking Frames "
                     f"otherwise {non_snaking} would run backwards"
                 )
     elif check_path_changes:
         # The top level is not snaking, so make sure there is an even
         # number of iterations of any snaking axis within it so it
         # doesn't jump when this dimension is iterated a second time
-        for i, dim in enumerate(dimensions):
+        for i, dim in enumerate(stack):
             # A snaking dimension within a non-snaking top level must repeat
             # an even number of times
-            if dim.snake and np.product(path._lengths[:i]) % 2:
+            if isinstance(dim, SnakedFrames) and np.product(path.lengths[:i]) % 2:
                 raise ValueError(
-                    f"Cannot squash snaking Specs in a non-snaking Dimension "
+                    f"Cannot squash snaking Specs in a non-snaking Frames "
                     f"when they do not repeat an even number of times "
                     f"otherwise {dim.axes()} would jump in position"
                 )
@@ -441,7 +486,7 @@ class Path:
     representing a scan path.
 
     Args:
-        dimensions: The Dimensions describing the scan, from slowest to fastest
+        stack: The Frames stack describing the scan, from slowest to fastest
             moving
         start: The index of where in the Path to start
         num: The number of scan points to produce after start. None means up to
@@ -451,25 +496,24 @@ class Path:
         `iterate-a-spec`
     """
 
-    def __init__(
-        self, dimensions: List[Dimension], start: int = 0, num: int = None,
-    ):
-        #: The Dimensions describing the scan, from slowest to fastest moving
-        self.dimensions = dimensions
+    def __init__(self, stack: List[Frames], start: int = 0, num: int = None):
+        #: The Frames stack describing the scan, from slowest to fastest moving
+        self.stack = stack
         #: Index that is next to be consumed
         self.index = start
-        self._lengths = np.array([len(dim) for dim in dimensions])
+        #: The lengths of all the stack
+        self.lengths = np.array([len(f) for f in stack])
         #: Index of the end point, one more than the last index that will be
         #: produced
-        self.end_index = np.product(self._lengths)
+        self.end_index = np.product(self.lengths)
         if num is not None and start + num < self.end_index:
             self.end_index = start + num
 
-    def consume(self, num: int = None) -> Dimension:
-        """Consume at most num points from the Path and return as a Dimension
+    def consume(self, num: int = None) -> Frames:
+        """Consume at most num points from the Path and return as a Frames
 
-        >>> dimx = Dimension({"x": np.array([1, 2])}, snake=True)
-        >>> dimy = Dimension({"y": np.array([3, 4])})
+        >>> dimx = SnakedFrames({"x": np.array([1, 2])})
+        >>> dimy = Frames({"y": np.array([3, 4])})
         >>> path = Path([dimy, dimx])
         >>> path.consume(3).midpoints
         {'y': array([3, 3, 4]), 'x': array([1, 2, 2])}
@@ -483,72 +527,33 @@ class Path:
         else:
             end_index = min(self.index + num, self.end_index)
         indices = np.arange(self.index, end_index)
-        gap = np.zeros(indices.shape, dtype=np.bool_)
         self.index = end_index
-        midpoints, lower, upper = {}, {}, {}
-        if len(indices) > 0:
-            self.index = indices[-1] + 1
+        stack = Frames({}, {}, {}, np.zeros(indices.shape, dtype=np.bool_))
         # Example numbers below from a 2x3x4 ZxYxX scan
-        for i, dim in enumerate(self.dimensions):
+        for i, dim in enumerate(self.stack):
             # Number of times each point will repeat: Z:12, Y:4, X:1
-            repeats = np.product(self._lengths[i + 1 :])
-            # How big is this dim: Z:2, Y:3, X:4
-            dim_len = self._lengths[i]
+            repeats = np.product(self.lengths[i + 1 :])
             # Scan indices mapped to indices within dimension:
             # Z:000000000000111111111111
             # Y:000011112222000011112222
             # X:012301230123012301230123
-            dim_indices = (indices // repeats) % dim_len
-            # Whether this dim contributes to the gap bit
-            # Z:000000000000100000000000
-            # Y:000010001000100010001000
-            # X:111111111111111111111111
-            in_gap = (indices % repeats) == 0
-            if dim.snake:
-                # Whether this point is running backwards:
-                # Z:000000000000000000000000
-                # Y:000000000000111111111111
-                # X:000011110000111100001111
-                backwards = (indices // (repeats * dim_len)) % 2
-                # The scan indices mapped to snaking ones:
-                # Z:000000000000111111111111
-                # Y:000011112222222211110000
-                # X:012332100123321001233210
-                snake_indices = np.where(
-                    backwards, dim_len - 1 - dim_indices, dim_indices
-                )
-                # Gap is the difference between subsequent elements,
-                # with True at the beginning, so the reverse dimension
-                # needs to be one more than the snake_indices
-                # Z:000000000000111111111111
-                # Y:000011112222333322221111
-                # X:012343210123432101233210
-                gap_indices = np.where(backwards, dim_len - dim_indices, dim_indices)
-                for axis in dim.axes():
-                    midpoints[axis] = dim.midpoints[axis][snake_indices]
-                    # If going backwards, select from the opposite bound
-                    lower[axis] = np.where(
-                        backwards,
-                        dim.upper[axis][snake_indices],
-                        dim.lower[axis][snake_indices],
-                    )
-                    upper[axis] = np.where(
-                        backwards,
-                        dim.lower[axis][snake_indices],
-                        dim.upper[axis][snake_indices],
-                    )
+            if repeats > 1:
+                dim_indices = indices // repeats
             else:
-                gap_indices = dim_indices
-                for axis in dim.axes():
-                    midpoints[axis] = dim.midpoints[axis][dim_indices]
-                    lower[axis] = dim.lower[axis][dim_indices]
-                    upper[axis] = dim.upper[axis][dim_indices]
-            # If in_gap, logical_or the relevant gap bit from the dim
-            # We use % as gap_indices is 1..dim_len, with dim_len rolling
-            # over to 0
-            gap |= np.where(in_gap, dim.gap[gap_indices % dim_len], False)
-
-        return Dimension(midpoints, lower, upper, gap)
+                dim_indices = indices
+            # Create the sliced dim
+            sliced = dim.extract(dim_indices, for_path=True)
+            if repeats > 1:
+                # Whether this dim contributes to the gap bit
+                # Z:000000000000100000000000
+                # Y:000010001000100010001000
+                # X:111111111111111111111111
+                in_gap = (indices % repeats) == 0
+                # If in_gap, then keep the relevant gap bit
+                sliced.gap &= in_gap
+            # Zip it with the output dimension
+            stack = stack.zip(sliced)
+        return stack
 
     def __len__(self) -> int:
         """Number of points left in a scan, reduces when `consume` is called"""
@@ -560,14 +565,14 @@ class Midpoints:
     better performance, consume from a `Path` instead.
 
     Args:
-        dimensions: The Dimensions describing the scan, from slowest to fastest
+        stack: The stack of Frames describing the scan, from slowest to fastest
             moving
 
     See Also:
         `iterate-a-spec`
 
-    >>> dimx = Dimension({"x": np.array([1, 2])}, snake=True)
-    >>> dimy = Dimension({"y": np.array([3, 4])})
+    >>> dimx = SnakedFrames({"x": np.array([1, 2])})
+    >>> dimy = Frames({"y": np.array([3, 4])})
     >>> mp = Midpoints([dimy, dimx])
     >>> for p in mp: print(p)
     {'y': 3, 'x': 1}
@@ -576,24 +581,24 @@ class Midpoints:
     {'y': 4, 'x': 1}
     """
 
-    def __init__(self, dimensions: List[Dimension]):
-        #: The Dimensions describing the scan, from slowest to fastest moving
-        self.dimensions = dimensions
+    def __init__(self, stack: List[Frames]):
+        #: The stack of Frames describing the scan, from slowest to fastest moving
+        self.stack = stack
 
     @property
     def axes(self) -> List:
         """The axes that will be present in each points dictionary"""
         axes = []
-        for dim in self.dimensions:
+        for dim in self.stack:
             axes += dim.axes()
         return axes
 
     def __len__(self) -> int:
         """The number of dictionaries that will be produced if iterated over"""
-        return np.product([len(dim) for dim in self.dimensions])
+        return np.product([len(dim) for dim in self.stack])
 
     def __iter__(self) -> Iterator[AxesPoints]:
-        path = Path(self.dimensions)
+        path = Path(self.stack)
         while len(path):
             dim = path.consume(1)
             yield {a: dim.midpoints[a][0] for a in dim.axes()}

@@ -22,7 +22,7 @@ Dimension
 
 A repeatable, possibly snaking, series of `Frames <frame_>` along a number of
 `Axes <axis_>`. In the diagram above, the whole Line produces a single Dimension.
-A stack of `Dimension` instances are produced by `Spec.create_dimensions`.
+A stack of `Dimension` instances are produced by `Spec.frames`.
 
 .. seealso:: `./what-are-dimensions`
 
