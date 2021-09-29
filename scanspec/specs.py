@@ -255,7 +255,7 @@ class Mask(Spec[K]):
     """
 
     spec: A[Spec[K], schema(description="The Spec containing the source midpoints")]
-    region: A[Region, schema(description="The Region that midpoints will be inside")]
+    region: A[Region[K], schema(description="The Region that midpoints will be inside")]
     check_path_changes: ACheckPathChanges = True
 
     def axes(self) -> List:

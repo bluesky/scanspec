@@ -1,5 +1,5 @@
 from dataclasses import dataclass, is_dataclass
-from typing import Iterator, List, Set, TypeVar
+from typing import Generic, Iterator, List, Set, TypeVar
 
 import numpy as np
 from apischema import schema
@@ -28,7 +28,7 @@ K = TypeVar("K")
 
 
 @dataclass
-class Region(Serializable):
+class Region(Serializable, Generic[K]):
     """Abstract baseclass for a Region that can `Mask` a `Spec`. Supports operators:
 
     - ``|``: `UnionOf` two Regions, midpoints present in either
@@ -47,20 +47,20 @@ class Region(Serializable):
         the region"""
         raise NotImplementedError(self)
 
-    def __or__(self, other) -> "UnionOf":
+    def __or__(self, other) -> "UnionOf[K]":
         return if_instance_do(other, Region, lambda o: UnionOf(self, o))
 
-    def __and__(self, other) -> "IntersectionOf":
+    def __and__(self, other) -> "IntersectionOf[K]":
         return if_instance_do(other, Region, lambda o: IntersectionOf(self, o))
 
-    def __sub__(self, other) -> "DifferenceOf":
+    def __sub__(self, other) -> "DifferenceOf[K]":
         return if_instance_do(other, Region, lambda o: DifferenceOf(self, o))
 
-    def __xor__(self, other) -> "SymmetricDifferenceOf":
+    def __xor__(self, other) -> "SymmetricDifferenceOf[K]":
         return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(self, o))
 
 
-def get_mask(region: Region, points: AxesPoints[K]) -> np.ndarray:
+def get_mask(region: Region[K], points: AxesPoints[K]) -> np.ndarray:
     """If there is an overlap of axes of region and frames return a
     mask of the frames in the region, otherwise return all ones
     """
@@ -88,11 +88,11 @@ def _merge_axis_sets(axis_sets: List[Set[str]]) -> Iterator[Set[str]]:
 
 
 @dataclass
-class CombinationOf(Region):
+class CombinationOf(Region[K]):
     """Abstract baseclass for a combination of two regions, left and right"""
 
-    left: A[Region, schema(description="The left-hand Region to combine")]
-    right: A[Region, schema(description="The right-hand Region to combine")]
+    left: A[Region[K], schema(description="The left-hand Region to combine")]
+    right: A[Region[K], schema(description="The right-hand Region to combine")]
 
     def axis_sets(self) -> List[Set[str]]:
         axis_sets = list(
@@ -165,7 +165,7 @@ class SymmetricDifferenceOf(CombinationOf):
 
 
 @dataclass
-class Range(Region):
+class Range(Region[K]):
     """Mask contains points of key >= min and <= max
 
     >>> r = Range("x", 1, 2)
@@ -187,7 +187,7 @@ class Range(Region):
 
 
 @dataclass
-class Rectangle(Region):
+class Rectangle(Region[K]):
     """Mask contains points of axis within a rotated xy rectangle
 
     .. example_spec::
@@ -228,7 +228,7 @@ class Rectangle(Region):
 
 
 @dataclass
-class Polygon(Region):
+class Polygon(Region[K]):
     """Mask contains points of axis within a rotated xy polygon
 
     .. example_spec::
@@ -273,7 +273,7 @@ class Polygon(Region):
 
 
 @dataclass
-class Circle(Region):
+class Circle(Region[K]):
     """Mask contains points of axis within an xy circle of given radius
 
     .. example_spec::
@@ -302,7 +302,7 @@ class Circle(Region):
 
 
 @dataclass
-class Ellipse(Region):
+class Ellipse(Region[K]):
     """Mask contains points of axis within an xy ellipse of given radius
 
     .. example_spec::
@@ -345,7 +345,7 @@ class Ellipse(Region):
         return mask
 
 
-def find_regions(obj) -> Iterator[Region]:
+def find_regions(obj) -> Iterator[Region[K]]:
     """Recursively iterate over obj and its children, yielding any Region
     instances found"""
     if is_dataclass(obj):
