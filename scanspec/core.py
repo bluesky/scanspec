@@ -28,6 +28,7 @@ __all__ = [
     "AxesPoints",
     "if_instance_do",
     "Frames",
+    "SnakedFrames",
     "gap_between_frames",
     "squash_frames",
     "Path",
@@ -36,7 +37,6 @@ __all__ = [
 
 
 def _rec_subclasses(cls: type) -> Iterator[type]:
-    """Recursive implementation of type.__subclasses__"""
     for sub_cls in cls.__subclasses__():
         yield sub_cls
         yield from _rec_subclasses(sub_cls)
@@ -51,8 +51,10 @@ if TYPE_CHECKING:
 else:
 
     def alternative_constructor(f):
-        """Register an alternative constructor for this class. This will be returned
-        as a staticmethod so the signature should not include self/cls.
+        """Register an alternative constructor for this class.
+
+        This will be returned as a staticmethod so the signature should not
+        include self/cls.
 
         >>> import dataclasses
         >>> @dataclasses.dataclass
@@ -139,28 +141,31 @@ S = TypeVar("S", bound="Serializable")
 
 class Serializable:
     """Base class for registering apischema (de)serialization conversions.
+
     Each direct subclass will be registered for (de)serialization as a tagged union
     of its subclasses, using the pattern documented here:
-    https://wyfo.github.io/apischema/examples/subclass_tagged_union/"""
+    https://wyfo.github.io/apischema/examples/subclass_tagged_union/
+    """
 
     # Base class which will directly inherit from Serializable
     _base_serializable: ClassVar[Type["Serializable"]]
 
     def __init_subclass__(cls, **kwargs):
+        """Register immediate baseclasses of Serializable as tagged unions."""
         super().__init_subclass__(**kwargs)
         if Serializable in cls.__bases__:
             cls._base_serializable = cls
             _as_tagged_union(cls)
 
     def serialize(self) -> Mapping[str, Any]:
-        """Serialize to a dictionary representation"""
+        """Serialize to a dictionary representation."""
         # Base serializable class must be passed to serialize in order to use its
         # registered conversion (which is not inherited)
         return serialize(self._base_serializable, self)
 
     @classmethod
     def deserialize(cls: Type[S], serialization: Mapping[str, Any]) -> S:
-        """Deserialize from a dictionary representation"""
+        """Deserialize from a dictionary representation."""
         inst = deserialize(cls._base_serializable, serialization)
         assert isinstance(inst, cls)
         return inst
@@ -173,7 +178,9 @@ AxesPoints = Dict[str, np.ndarray]
 
 def if_instance_do(x, cls: Type, func: Callable):
     """If x is of type cls then return func(x), otherwise return NotImplemented.
-    Used as a helper when implementing operator overloading"""
+
+    Used as a helper when implementing operator overloading.
+    """
     if isinstance(x, cls):
         return func(x)
     else:
@@ -185,25 +192,26 @@ F = TypeVar("F", bound="Frames")
 
 
 class Frames:
-    """Represents a series of scan frames along a number of axes. During a scan
-    each axis will traverse lower-midpoint-upper for each frame.
+    """Represents a series of scan frames along a number of axes.
+
+    During a scan each axis will traverse lower-midpoint-upper for each frame.
 
     Args:
-        midpoints: The centre points of the frames for each axis
-        lower: Lower bounds if different from midpoints
-        upper: Upper bounds if different from midpoints
+        midpoints: The midpoints of scan frames for each axis
+        lower: Lower bounds of scan frames if different from midpoints
+        upper: Upper bounds of scan frames if different from midpoints
         gap: If supplied, define if there is a gap between frame and previous
             otherwise it is calculated by looking at lower and upper bounds
 
     Typically used in two ways:
 
-    - A list of Frames returned from `Spec.calculate` represents a scan as a
-      linear stack of frames. Interpreted as nested from slowest moving to
+    - A list of Frames objects returned from `Spec.calculate` represents a scan
+      as a linear stack of frames. Interpreted as nested from slowest moving to
       fastest moving, so each faster Frames object will iterate once per
-      position of the slower Frames. It is passed to a `Path` for calculation
-      of the actual scan path.
-    - A single Frames object returned from `Path.consume` represents a chunk
-      of frames forming part of a scan path, for interpretation by the code
+      position of the slower Frames object. It is passed to a `Path` for
+      calculation of the actual scan path.
+    - A single Frames object returned from `Path.consume` represents a chunk of
+      frames forming part of a scan path, for interpretation by the code
       that will actually perform the scan.
 
     See Also:
@@ -217,11 +225,11 @@ class Frames:
         upper: AxesPoints = None,
         gap: np.ndarray = None,
     ):
-        #: The centre points of the scan for each axis
+        #: The midpoints of scan frames for each axis
         self.midpoints = midpoints
-        #: The lower bounds of each scan point in each axis for fly-scanning
+        #: The lower bounds of each scan frame in each axis for fly-scanning
         self.lower = lower or midpoints
-        #: The upper bounds of each scan point in each axis for fly-scanning
+        #: The upper bounds of each scan frame in each axis for fly-scanning
         self.upper = upper or midpoints
         if gap is not None:
             #: Whether there is a gap between this frame and the previous. First
@@ -250,21 +258,26 @@ class Frames:
         assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
 
     def axes(self) -> List[str]:
-        """The axes that are present in `midpoints`, `lower` and `upper`
-        which will move during the scan"""
+        """The axes which will move during the scan.
+
+        These will be present in `midpoints`, `lower` and `upper`.
+        """
         return list(self.midpoints.keys())
 
     def __len__(self) -> int:
-        """The number of `stack` in the scan"""
+        """The number of frames in this section of the scan."""
         # All axespoints arrays are same length, pick the first one
         return len(self.gap)
 
-    def extract(self: F, indices: np.ndarray, for_path=False) -> "Frames":
-        """Return a new Frames that produces this dimension
-        restricted to the indices provided
+    def extract(self: F, indices: np.ndarray, calculate_gap=True) -> "Frames":
+        """Return a new Frames object restricted to the indices provided.
 
-        >>> dim = Frames({"x": np.array([1, 2, 3])})
-        >>> dim.extract(np.array([1, 0, 1])).midpoints
+        Args:
+            indices: The indices of the frames to extract, modulo scan length
+            calculate_gap: If True then recalculate the gap from upper and lower
+
+        >>> frames = Frames({"x": np.array([1, 2, 3])})
+        >>> frames.extract(np.array([1, 0, 1])).midpoints
         {'x': array([2, 1, 2])}
         """
         dim_indices = indices % len(self)
@@ -276,24 +289,24 @@ class Frames:
 
         def extract_gap(gaps: Iterable[np.ndarray]) -> Optional[np.ndarray]:
             for gap in gaps:
-                if for_path:
+                if not calculate_gap:
                     return gap[dim_indices]
             return None
 
         return _merge_frames(self, dict_merge=extract_dict, gap_merge=extract_gap)
 
     def concat(self: F, other: F, gap: bool = False) -> F:
-        """Return a new Frames with arrays from self and other concatenated
-        together. Require both Frames to have the same axes and snake
-        settings
+        """Return a new Frames object concatenating self and other.
+
+        Requires both Frames objects to have the same axes.
 
         Args:
-            other: The dimension to concatenate to self
-            snake: Whether to force a gap between the two dimensions
+            other: The Frames to concatenate to self
+            gap: Whether to force a gap between the two Frames objects
 
-        >>> dim = Frames({"x": np.array([1, 2, 3])})
-        >>> dim2 = Frames({"x": np.array([5, 6, 7])})
-        >>> dim.concat(dim2).midpoints
+        >>> frames = Frames({"x": np.array([1, 2, 3])})
+        >>> frames2 = Frames({"x": np.array([5, 6, 7])})
+        >>> frames.concat(frames2).midpoints
         {'x': array([1, 2, 3, 5, 6, 7])}
         """
         assert self.axes() == other.axes(), f"axes {self.axes()} != {other.axes()}"
@@ -305,22 +318,22 @@ class Frames:
 
         def concat_gap(gaps: Sequence[np.ndarray]) -> np.ndarray:
             g = np.concatenate(gaps)
-            # Calc the first point
+            # Calc the first frame
             g[0] = gap_between_frames(other, self)
-            # And the join point
+            # And the join frame
             g[len(self)] = gap or gap_between_frames(self, other)
             return g
 
         return _merge_frames(self, other, dict_merge=concat_dict, gap_merge=concat_gap)
 
     def zip(self: F, other: F) -> F:
-        """Return a new Frames with arrays from axes of self and other
-        merged together. Require both Frames to not share axes, and
-        to have the snake settings
+        """Return a new Frames object merging self and other.
 
-        >>> dimx = Frames({"x": np.array([1, 2, 3])})
-        >>> dimy = Frames({"y": np.array([5, 6, 7])})
-        >>> dimx.zip(dimy).midpoints
+        Require both Frames objects to not share axes.
+
+        >>> fx = Frames({"x": np.array([1, 2, 3])})
+        >>> fy = Frames({"y": np.array([5, 6, 7])})
+        >>> fx.zip(fy).midpoints
         {'x': array([1, 2, 3]), 'y': array([5, 6, 7])}
         """
         overlapping = list(set(self.axes()).intersection(other.axes()))
@@ -332,7 +345,7 @@ class Frames:
             return dict(kv for d in ds for kv in d.items())
 
         def zip_gap(gaps: Sequence[np.ndarray]) -> np.ndarray:
-            # Gap if either dim has a gap. E.g.
+            # Gap if either frames has a gap. E.g.
             # gap[i] = self.gap[i] | other.gap[i]
             return np.logical_or.reduce(gaps)
 
@@ -363,6 +376,8 @@ def _merge_frames(
 
 
 class SnakedFrames(Frames):
+    """Like a `Frames` object, but each alternate repetition will run in reverse."""
+
     def __init__(
         self,
         midpoints: AxesPoints,
@@ -376,16 +391,20 @@ class SnakedFrames(Frames):
         self.gap[0] = False
 
     @classmethod
-    def from_frames(cls: Type[F], stack: Frames) -> F:
-        return cls(stack.midpoints, stack.lower, stack.upper, stack.gap)
+    def from_frames(cls: Type[F], frames: Frames) -> F:
+        """Create a snaked version of a `Frames` object."""
+        return cls(frames.midpoints, frames.lower, frames.upper, frames.gap)
 
-    def extract(self: F, indices: np.ndarray, for_path=False) -> Frames:
-        """Return a new Frames that produces this dimension
-        restricted to the indices provided
+    def extract(self: F, indices: np.ndarray, calculate_gap=True) -> Frames:
+        """Return a new Frames object restricted to the indices provided.
 
-        >>> dim = Frames({"x": np.array([1, 2, 3])})
-        >>> dim.extract(np.array([1, 0, 1])).midpoints
-        {'x': array([2, 1, 2])}
+        Args:
+            indices: The indices of the frames to extract, can extend past len(self)
+            calculate_gap: If True then recalculate the gap from upper and lower
+
+        >>> frames = SnakedFrames({"x": np.array([1, 2, 3])})
+        >>> frames.extract(np.array([0, 1, 2, 3, 4, 5])).midpoints
+        {'x': array([1, 2, 3, 3, 2, 1])}
         """
         # Calculate the indices
         # E.g for len = 4
@@ -396,7 +415,7 @@ class SnakedFrames(Frames):
         length = len(self)
         backwards = (indices // length) % 2
         snake_indices = np.where(backwards, (length - 1) - indices, indices) % length
-        if for_path:
+        if not calculate_gap:
             cls = Frames
             gap = self.gap[np.where(backwards, length - indices, indices) % length]
         else:
@@ -424,8 +443,7 @@ class SnakedFrames(Frames):
 
 
 def gap_between_frames(frames1: Frames, frames2: Frames) -> bool:
-    """Return if there is a gap between last point of frames1 and first point
-    of frames2"""
+    """Is there a gap between end of frames1 and start of frames2."""
     return any(frames1.upper[a][-1] != frames2.lower[a][0] for a in frames1.axes())
 
 
@@ -441,14 +459,14 @@ def squash_frames(stack: List[Frames], check_path_changes=True) -> Frames:
     See Also:
         `why-squash-can-change-path`
 
-    >>> dimx = SnakedFrames({"x": np.array([1, 2])})
-    >>> dimy = Frames({"y": np.array([3, 4])})
-    >>> squash_frames([dimy, dimx]).midpoints
+    >>> fx = SnakedFrames({"x": np.array([1, 2])})
+    >>> fy = Frames({"y": np.array([3, 4])})
+    >>> squash_frames([fy, fx]).midpoints
     {'y': array([3, 3, 4, 4]), 'x': array([1, 2, 2, 1])}
     """
     path = Path(stack)
     # Comsuming a Path of these dimensions performs the squash
-    # TODO: dim.tile might give better performance but is much longer
+    # TODO: frames.tile might give better performance but is much longer
     squashed = path.consume()
     # Check that the squash is the same as the original
     if stack and isinstance(stack[0], SnakedFrames):
@@ -462,34 +480,33 @@ def squash_frames(stack: List[Frames], check_path_changes=True) -> Frames:
             ]
             if non_snaking:
                 raise ValueError(
-                    f"Cannot squash non-snaking Specs in a snaking Frames "
+                    f"Cannot squash non-snaking Frames inside a SnakingFrames "
                     f"otherwise {non_snaking} would run backwards"
                 )
     elif check_path_changes:
         # The top level is not snaking, so make sure there is an even
         # number of iterations of any snaking axis within it so it
         # doesn't jump when this dimension is iterated a second time
-        for i, dim in enumerate(stack):
+        for i, frames in enumerate(stack):
             # A snaking dimension within a non-snaking top level must repeat
             # an even number of times
-            if isinstance(dim, SnakedFrames) and np.product(path.lengths[:i]) % 2:
+            if isinstance(frames, SnakedFrames) and np.product(path.lengths[:i]) % 2:
                 raise ValueError(
-                    f"Cannot squash snaking Specs in a non-snaking Frames "
+                    f"Cannot squash SnakingFrames inside a non-snaking Frames "
                     f"when they do not repeat an even number of times "
-                    f"otherwise {dim.axes()} would jump in position"
+                    f"otherwise {frames.axes()} would jump in position"
                 )
     return squashed
 
 
 class Path:
-    """A consumable route through one or more dimensions,
-    representing a scan path.
+    """A consumable route through a stack of Frames, representing a scan path.
 
     Args:
         stack: The Frames stack describing the scan, from slowest to fastest
             moving
         start: The index of where in the Path to start
-        num: The number of scan points to produce after start. None means up to
+        num: The number of scan frames to produce after start. None means up to
             the end
 
     See Also:
@@ -503,18 +520,18 @@ class Path:
         self.index = start
         #: The lengths of all the stack
         self.lengths = np.array([len(f) for f in stack])
-        #: Index of the end point, one more than the last index that will be
+        #: Index of the end frame, one more than the last index that will be
         #: produced
         self.end_index = np.product(self.lengths)
         if num is not None and start + num < self.end_index:
             self.end_index = start + num
 
     def consume(self, num: int = None) -> Frames:
-        """Consume at most num points from the Path and return as a Frames
+        """Consume at most num frames from the Path and return as a Frames object.
 
-        >>> dimx = SnakedFrames({"x": np.array([1, 2])})
-        >>> dimy = Frames({"y": np.array([3, 4])})
-        >>> path = Path([dimy, dimx])
+        >>> fx = SnakedFrames({"x": np.array([1, 2])})
+        >>> fy = Frames({"y": np.array([3, 4])})
+        >>> path = Path([fy, fx])
         >>> path.consume(3).midpoints
         {'y': array([3, 3, 4]), 'x': array([1, 2, 2])}
         >>> path.consume(3).midpoints
@@ -530,8 +547,8 @@ class Path:
         self.index = end_index
         stack = Frames({}, {}, {}, np.zeros(indices.shape, dtype=np.bool_))
         # Example numbers below from a 2x3x4 ZxYxX scan
-        for i, dim in enumerate(self.stack):
-            # Number of times each point will repeat: Z:12, Y:4, X:1
+        for i, frames in enumerate(self.stack):
+            # Number of times each frame will repeat: Z:12, Y:4, X:1
             repeats = np.product(self.lengths[i + 1 :])
             # Scan indices mapped to indices within dimension:
             # Z:000000000000111111111111
@@ -541,10 +558,10 @@ class Path:
                 dim_indices = indices // repeats
             else:
                 dim_indices = indices
-            # Create the sliced dim
-            sliced = dim.extract(dim_indices, for_path=True)
+            # Create the sliced frames
+            sliced = frames.extract(dim_indices, calculate_gap=False)
             if repeats > 1:
-                # Whether this dim contributes to the gap bit
+                # Whether this frames contributes to the gap bit
                 # Z:000000000000100000000000
                 # Y:000010001000100010001000
                 # X:111111111111111111111111
@@ -556,13 +573,14 @@ class Path:
         return stack
 
     def __len__(self) -> int:
-        """Number of points left in a scan, reduces when `consume` is called"""
+        """Number of frames left in a scan, reduces when `consume` is called."""
         return self.end_index - self.index
 
 
 class Midpoints:
-    """Convenience iterable that produces the scan points for each axis. For
-    better performance, consume from a `Path` instead.
+    """Convenience iterable that produces the scan midpoints for each axis.
+
+    For better performance, consume from a `Path` instead.
 
     Args:
         stack: The stack of Frames describing the scan, from slowest to fastest
@@ -571,9 +589,9 @@ class Midpoints:
     See Also:
         `iterate-a-spec`
 
-    >>> dimx = SnakedFrames({"x": np.array([1, 2])})
-    >>> dimy = Frames({"y": np.array([3, 4])})
-    >>> mp = Midpoints([dimy, dimx])
+    >>> fx = SnakedFrames({"x": np.array([1, 2])})
+    >>> fy = Frames({"y": np.array([3, 4])})
+    >>> mp = Midpoints([fy, fx])
     >>> for p in mp: print(p)
     {'y': 3, 'x': 1}
     {'y': 3, 'x': 2}
@@ -587,18 +605,19 @@ class Midpoints:
 
     @property
     def axes(self) -> List:
-        """The axes that will be present in each points dictionary"""
+        """The axes that will be present in each points dictionary."""
         axes = []
-        for dim in self.stack:
-            axes += dim.axes()
+        for frames in self.stack:
+            axes += frames.axes()
         return axes
 
     def __len__(self) -> int:
-        """The number of dictionaries that will be produced if iterated over"""
-        return np.product([len(dim) for dim in self.stack])
+        """The number of dictionaries that will be produced if iterated over."""
+        return np.product([len(frames) for frames in self.stack])
 
     def __iter__(self) -> Iterator[AxesPoints]:
+        """Yield {axis: midpoint} for each frame in the scan."""
         path = Path(self.stack)
         while len(path):
-            dim = path.consume(1)
-            yield {a: dim.midpoints[a][0] for a in dim.axes()}
+            frames = path.consume(1)
+            yield {a: frames.midpoints[a][0] for a in frames.axes()}

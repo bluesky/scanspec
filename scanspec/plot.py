@@ -81,10 +81,11 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
 
 
 def plot_spec(spec: Spec):
-    """Plot a spec, drawing the path taken through the scan, using a different
-    colour for each point, grey for the turnarounds, and marking the
-    centrepoints with a filled circle if there are less than 200 of them. If the
-    scan is 2D then 2D regions are shown in black.
+    """Plot a spec, drawing the path taken through the scan.
+
+    Uses a different colour for each frame, grey for the turnarounds, and
+    marks the midpoints with a filled circle if there are less than 200 of
+    them. If the scan is 2D then 2D regions are shown in black.
 
     .. example_spec::
 
