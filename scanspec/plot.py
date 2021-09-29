@@ -80,7 +80,7 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
             yield unscaled_splines
 
 
-def plot_spec(spec: Spec):
+def plot_spec(spec: Spec[Any]):
     """Plot a spec, drawing the path taken through the scan, using a different
     colour for each point, grey for the turnarounds, and marking the
     centrepoints with a filled circle if there are less than 200 of them. If the

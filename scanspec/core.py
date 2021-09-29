@@ -5,6 +5,7 @@ from typing import (
     Callable,
     ClassVar,
     Dict,
+    Generic,
     Iterable,
     Iterator,
     List,
@@ -166,9 +167,12 @@ class Serializable:
         return inst
 
 
+#: Type of an axis
+K = TypeVar("K")
+
 #: Map of axes to points_ndarray
 #: E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}
-AxesPoints = Dict[str, np.ndarray]
+AxesPoints = Dict[K, np.ndarray]
 
 
 def if_instance_do(x, cls: Type, func: Callable):
@@ -183,8 +187,11 @@ def if_instance_do(x, cls: Type, func: Callable):
 #: A subclass of `Frames`
 F = TypeVar("F", bound="Frames")
 
+#: Type of an axis
+K = TypeVar("K")
 
-class Frames:
+
+class Frames(Generic[K]):
     """Represents a series of scan frames along a number of axes. During a scan
     each axis will traverse lower-midpoint-upper for each frame.
 
@@ -212,9 +219,9 @@ class Frames:
 
     def __init__(
         self,
-        midpoints: AxesPoints,
-        lower: AxesPoints = None,
-        upper: AxesPoints = None,
+        midpoints: AxesPoints[K],
+        lower: AxesPoints[K] = None,
+        upper: AxesPoints[K] = None,
         gap: np.ndarray = None,
     ):
         #: The centre points of the scan for each axis
@@ -249,7 +256,7 @@ class Frames:
         lengths.add(len(self.gap))
         assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
 
-    def axes(self) -> List[str]:
+    def axes(self) -> List[K]:
         """The axes that are present in `midpoints`, `lower` and `upper`
         which will move during the scan"""
         return list(self.midpoints.keys())
@@ -259,7 +266,7 @@ class Frames:
         # All axespoints arrays are same length, pick the first one
         return len(self.gap)
 
-    def extract(self: F, indices: np.ndarray, for_path=False) -> "Frames":
+    def extract(self: F, indices: np.ndarray, for_path=False) -> "Frames[K]":
         """Return a new Frames that produces this dimension
         restricted to the indices provided
 
@@ -269,7 +276,7 @@ class Frames:
         """
         dim_indices = indices % len(self)
 
-        def extract_dict(ds: Iterable[AxesPoints]) -> AxesPoints:
+        def extract_dict(ds: Iterable[AxesPoints[K]]) -> AxesPoints[K]:
             for d in ds:
                 return {k: v[dim_indices] for k, v in d.items()}
             return {}
@@ -298,7 +305,7 @@ class Frames:
         """
         assert self.axes() == other.axes(), f"axes {self.axes()} != {other.axes()}"
 
-        def concat_dict(ds: Sequence[AxesPoints]) -> AxesPoints:
+        def concat_dict(ds: Sequence[AxesPoints[K]]) -> AxesPoints[K]:
             # Concat each array in midpoints, lower, upper. E.g.
             # lower[ax] = np.concatenate(self.lower[ax], other.lower[ax])
             return {a: np.concatenate([d[a] for d in ds]) for a in self.axes()}
@@ -326,7 +333,7 @@ class Frames:
         overlapping = list(set(self.axes()).intersection(other.axes()))
         assert not overlapping, f"Zipping would overwrite axes {overlapping}"
 
-        def zip_dict(ds: Sequence[AxesPoints]) -> AxesPoints:
+        def zip_dict(ds: Sequence[AxesPoints[K]]) -> AxesPoints[K]:
             # Merge dicts for midpoints, lower, upper. E.g.
             # lower[ax] = {**self.lower[ax], **other.lower[ax]}
             return dict(kv for d in ds for kv in d.items())
@@ -341,7 +348,7 @@ class Frames:
 
 def _merge_frames(
     *stack: F,
-    dict_merge=Callable[[Sequence[AxesPoints]], AxesPoints],
+    dict_merge=Callable[[Sequence[AxesPoints[K]]], AxesPoints[K]],
     gap_merge=Callable[[Sequence[np.ndarray]], Optional[np.ndarray]],
 ) -> F:
     types = set(type(fs) for fs in stack)
@@ -362,12 +369,12 @@ def _merge_frames(
     )
 
 
-class SnakedFrames(Frames):
+class SnakedFrames(Frames[K]):
     def __init__(
         self,
-        midpoints: AxesPoints,
-        lower: AxesPoints = None,
-        upper: AxesPoints = None,
+        midpoints: AxesPoints[K],
+        lower: AxesPoints[K] = None,
+        upper: AxesPoints[K] = None,
         gap: np.ndarray = None,
     ):
         super().__init__(midpoints, lower=lower, upper=upper, gap=gap)
@@ -376,10 +383,10 @@ class SnakedFrames(Frames):
         self.gap[0] = False
 
     @classmethod
-    def from_frames(cls: Type[F], stack: Frames) -> F:
+    def from_frames(cls: Type[F], stack: Frames[K]) -> F:
         return cls(stack.midpoints, stack.lower, stack.upper, stack.gap)
 
-    def extract(self: F, indices: np.ndarray, for_path=False) -> Frames:
+    def extract(self: F, indices: np.ndarray, for_path=False) -> Frames[K]:
         """Return a new Frames that produces this dimension
         restricted to the indices provided
 
@@ -423,13 +430,13 @@ class SnakedFrames(Frames):
         )
 
 
-def gap_between_frames(frames1: Frames, frames2: Frames) -> bool:
+def gap_between_frames(frames1: Frames[K], frames2: Frames[K]) -> bool:
     """Return if there is a gap between last point of frames1 and first point
     of frames2"""
     return any(frames1.upper[a][-1] != frames2.lower[a][0] for a in frames1.axes())
 
 
-def squash_frames(stack: List[Frames], check_path_changes=True) -> Frames:
+def squash_frames(stack: List[Frames[K]], check_path_changes=True) -> Frames[K]:
     """Squash a stack of nested Frames into a single one.
 
     Args:
@@ -496,7 +503,7 @@ class Path:
         `iterate-a-spec`
     """
 
-    def __init__(self, stack: List[Frames], start: int = 0, num: int = None):
+    def __init__(self, stack: List[Frames[K]], start: int = 0, num: int = None):
         #: The Frames stack describing the scan, from slowest to fastest moving
         self.stack = stack
         #: Index that is next to be consumed
@@ -509,7 +516,7 @@ class Path:
         if num is not None and start + num < self.end_index:
             self.end_index = start + num
 
-    def consume(self, num: int = None) -> Frames:
+    def consume(self, num: int = None) -> Frames[K]:
         """Consume at most num points from the Path and return as a Frames
 
         >>> dimx = SnakedFrames({"x": np.array([1, 2])})
@@ -581,7 +588,7 @@ class Midpoints:
     {'y': 4, 'x': 1}
     """
 
-    def __init__(self, stack: List[Frames]):
+    def __init__(self, stack: List[Frames[K]]):
         #: The stack of Frames describing the scan, from slowest to fastest moving
         self.stack = stack
 
@@ -597,7 +604,7 @@ class Midpoints:
         """The number of dictionaries that will be produced if iterated over"""
         return np.product([len(dim) for dim in self.stack])
 
-    def __iter__(self) -> Iterator[AxesPoints]:
+    def __iter__(self) -> Iterator[AxesPoints[K]]:
         path = Path(self.stack)
         while len(path):
             dim = path.consume(1)

@@ -70,7 +70,7 @@ class PointsResponse:
     total_frames: int
     returned_frames: int
 
-    def __init__(self, chunk: Frames, total_frames: int):
+    def __init__(self, chunk: Frames[str], total_frames: int):
         self.total_frames = total_frames
         """The number of frames present across the entire spec"""
         self.returned_frames = len(chunk)
@@ -120,7 +120,7 @@ def abs_diffs(array: np.ndarray) -> np.ndarray:
 
 
 # Checks that the spec will produce a valid scan
-def validate_spec(spec: Spec) -> Any:
+def validate_spec(spec: Spec[str]) -> Any:
     """ A query used to confirm whether or not the Spec will produce a viable scan"""
     # apischema will do all the validation for us
     return spec.serialize()
@@ -128,7 +128,7 @@ def validate_spec(spec: Spec) -> Any:
 
 # Returns a full list of points for each axis in the scan
 # TODO Update max_frames with a more sophisticated method of reducing scan points
-def get_points(spec: Spec, max_frames: Optional[int] = 100000) -> PointsResponse:
+def get_points(spec: Spec[str], max_frames: Optional[int] = 100000) -> PointsResponse:
     """A query that takes a Spec and calculates the points present in the scan
     (for each axis) plus some metadata about the points.
 
@@ -161,7 +161,7 @@ def get_points(spec: Spec, max_frames: Optional[int] = 100000) -> PointsResponse
 schema = graphql_schema(query=[validate_spec, get_points])
 
 
-def reduce_frames(dims: List[Frames], max_frames: int) -> Path:
+def reduce_frames(dims: List[Frames[str]], max_frames: int) -> Path:
     """Removes frames from a spec such that it produces a number that is
     closest to the max points value
 
@@ -184,7 +184,7 @@ def reduce_frames(dims: List[Frames], max_frames: int) -> Path:
     return Path(sub_dims)
 
 
-def sub_sample(dim: Frames, ratio: float) -> Frames:
+def sub_sample(dim: Frames[str], ratio: float) -> Frames[str]:
     """Removes frames from a dimension whilst preserving its core structure
 
     Args:

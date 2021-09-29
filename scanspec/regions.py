@@ -1,5 +1,5 @@
 from dataclasses import dataclass, is_dataclass
-from typing import Iterator, List, Set
+from typing import Iterator, List, Set, TypeVar
 
 import numpy as np
 from apischema import schema
@@ -23,6 +23,9 @@ __all__ = [
     "find_regions",
 ]
 
+#: Type of an axis
+K = TypeVar("K")
+
 
 @dataclass
 class Region(Serializable):
@@ -39,7 +42,7 @@ class Region(Serializable):
         this region spans"""
         raise NotImplementedError(self)
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         """Implemented by subclasses to produce a mask of which points are in
         the region"""
         raise NotImplementedError(self)
@@ -57,7 +60,7 @@ class Region(Serializable):
         return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(self, o))
 
 
-def get_mask(region: Region, points: AxesPoints) -> np.ndarray:
+def get_mask(region: Region, points: AxesPoints[K]) -> np.ndarray:
     """If there is an overlap of axes of region and frames return a
     mask of the frames in the region, otherwise return all ones
     """
@@ -109,7 +112,7 @@ class UnionOf(CombinationOf):
     array([False,  True,  True,  True, False])
     """
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         mask = get_mask(self.left, points) | get_mask(self.right, points)
         return mask
 
@@ -124,7 +127,7 @@ class IntersectionOf(CombinationOf):
     array([False, False,  True, False, False])
     """
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         mask = get_mask(self.left, points) & get_mask(self.right, points)
         return mask
 
@@ -139,7 +142,7 @@ class DifferenceOf(CombinationOf):
     array([False,  True, False, False, False])
     """
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         left_mask = get_mask(self.left, points)
         # Return the xor restricted to the left region
         mask = left_mask ^ get_mask(self.right, points) & left_mask
@@ -156,7 +159,7 @@ class SymmetricDifferenceOf(CombinationOf):
     array([False,  True, False,  True, False])
     """
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         mask = get_mask(self.left, points) ^ get_mask(self.right, points)
         return mask
 
@@ -177,7 +180,7 @@ class Range(Region):
     def axis_sets(self) -> List[Set[str]]:
         return [{self.axis}]
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         v = points[self.axis]
         mask = np.bitwise_and(v >= self.min, v <= self.max)
         return mask
@@ -209,7 +212,7 @@ class Rectangle(Region):
     def axis_sets(self) -> List[Set[str]]:
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         x = points[self.x_axis] - self.x_min
         y = points[self.y_axis] - self.y_min
         if self.angle != 0:
@@ -251,7 +254,7 @@ class Polygon(Region):
     def axis_sets(self) -> List[Set[str]]:
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         x = points[self.x_axis]
         y = points[self.y_axis]
         v1x, v1y = self.x_verts[-1], self.y_verts[-1]
@@ -291,7 +294,7 @@ class Circle(Region):
     def axis_sets(self) -> List[Set[str]]:
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         x = points[self.x_axis] - self.x_middle
         y = points[self.y_axis] - self.y_middle
         mask = x * x + y * y <= (self.radius * self.radius)
@@ -328,7 +331,7 @@ class Ellipse(Region):
     def axis_sets(self) -> List[Set[str]]:
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         x = points[self.x_axis] - self.x_middle
         y = points[self.y_axis] - self.y_middle
         if self.angle != 0:
