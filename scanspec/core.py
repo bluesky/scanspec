@@ -22,6 +22,7 @@ from apischema.conversions import Conversion
 from apischema.metadata import conversion
 from apischema.objects import object_deserialization
 from apischema.tagged_unions import Tagged, TaggedUnion, get_tagged
+from apischema.utils import to_pascal_case
 
 __all__ = [
     "alternative_constructor",
@@ -71,67 +72,90 @@ else:
         return staticmethod(f)
 
 
+def gen_generic_name(cls, *args):
+    print(cls)
+    return cls.__name__ + "".join(
+        arg.__name__[0].upper() + arg.__name__[1:] for arg in args
+    )
+
+
+generic_name = type_name(gen_generic_name)
+
+# generic_name = type_name(
+#     lambda cls, *args: cls.__name__
+#     + "".join(arg.__name__[0].upper() + arg.__name__[1:] for arg in args)
+# )
+
+
 def _as_tagged_union(cls: Type):
+    params = tuple(getattr(cls, "__parameters__", ()))
+    tagged_union_bases: tuple = (TaggedUnion,)
+    if params:
+        tagged_union_bases = (TaggedUnion, Generic[params])
+        generic_name(cls)
+        prev_init_subclass = getattr(cls, "__init_subclass__", None)
+
+        def __init_subclass__(cls, **kwargs):
+            if prev_init_subclass is not None:
+                prev_init_subclass(**kwargs)
+            generic_name(cls)
+
+        cls.__init_subclass__ = classmethod(__init_subclass__)
+
+    def with_params(cls: type) -> Any:
+        return cls[params] if params else cls
+
     def serialization() -> Conversion:
-        serialization_union = new_class(
-            f"Tagged{cls.__name__}Union",
-            (TaggedUnion,),
-            exec_body=lambda ns: ns.update(
-                {
-                    "__annotations__": {
-                        sub.__name__: Tagged[sub]  # type: ignore
-                        for sub in _rec_subclasses(cls)
-                    }
-                }
-            ),
+        annotations = {
+            # Assume that subclasses have same generic parameters than cls
+            sub.__name__: Tagged[with_params(sub)]
+            for sub in _rec_subclasses(cls)
+        }
+        namespace = {"__annotations__": annotations}
+        tagged_union = new_class(
+            cls.__name__, tagged_union_bases, exec_body=lambda ns: ns.update(namespace)
         )
         return Conversion(
-            lambda obj: serialization_union(**{obj.__class__.__name__: obj}),
-            source=cls,
-            target=serialization_union,
-            # Conversion must not be inherited because it would lead to infinite
-            # recursion otherwise
+            lambda obj: tagged_union(**{obj.__class__.__name__: obj}),
+            source=with_params(cls),
+            target=with_params(tagged_union),
+            # Conversion must not be inherited because it would lead to
+            # infinite recursion otherwise
             inherited=False,
         )
 
     def deserialization() -> Conversion:
-        annotations: Dict[str, Any] = {}
-        deserialization_namespace: Dict[str, Any] = {"__annotations__": annotations}
+        annotations: dict[str, Any] = {}
+        namespace: dict[str, Any] = {"__annotations__": annotations}
         for sub in _rec_subclasses(cls):
-            annotations[sub.__name__] = Tagged[sub]  # type: ignore
+            # Assume that subclasses have same generic parameters than cls
+            annotations[sub.__name__] = Tagged[with_params(sub)]
             # Add tagged fields for all its alternative constructors
-            for constructor in _alternative_constructors.get(sub.__name__, ()):
+            for constructor in _alternative_constructors.get(sub, ()):
                 # Build the alias of the field
-                alias = (
-                    "".join(map(str.capitalize, constructor.__name__.split("_")))
-                    + sub.__name__
-                )
+                alias = to_pascal_case(constructor.__name__)
                 # object_deserialization uses get_type_hints, but the constructor
                 # return type is stringified and the class not defined yet,
                 # so it must be assigned manually
-                constructor.__annotations__["return"] = sub
+                constructor.__annotations__["return"] = with_params(sub)
+                # Use object_deserialization to wrap constructor as deserializer
+                deserialization = object_deserialization(constructor, generic_name)
                 # Add constructor tagged field with its conversion
-                annotations[alias] = Tagged[sub]  # type: ignore
-                deserialization_namespace[alias] = Tagged(
-                    conversion(
-                        # Use object_deserialization to wrap constructor as deserializer
-                        deserialization=object_deserialization(
-                            constructor, type_name(alias)
-                        )
-                    )
-                )
+                annotations[alias] = Tagged[with_params(sub)]
+                namespace[alias] = Tagged(conversion(deserialization=deserialization))
         # Create the deserialization tagged union class
-        deserialization_union = new_class(
-            f"Tagged{cls.__name__}Union",
-            (TaggedUnion,),
-            exec_body=lambda ns: ns.update(deserialization_namespace),
+        tagged_union = new_class(
+            cls.__name__, tagged_union_bases, exec_body=lambda ns: ns.update(namespace)
         )
         return Conversion(
-            lambda obj: get_tagged(obj)[1], source=deserialization_union, target=cls
+            lambda obj: get_tagged(obj)[1],
+            source=with_params(tagged_union),
+            target=with_params(cls),
         )
 
     deserializer(lazy=deserialization, target=cls)
     serializer(lazy=serialization, source=cls)
+    return cls
 
 
 #: A subclass of `Serializable`
