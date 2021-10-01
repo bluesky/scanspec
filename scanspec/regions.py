@@ -103,7 +103,7 @@ class CombinationOf(Region[K]):
 
 # Naming so we don't clash with typing.Union
 @dataclass
-class UnionOf(CombinationOf):
+class UnionOf(CombinationOf[K]):
     """A point is in UnionOf(a, b) if it is in either a or b. Typically
     created with the ``|`` operator
 
@@ -118,7 +118,7 @@ class UnionOf(CombinationOf):
 
 
 @dataclass
-class IntersectionOf(CombinationOf):
+class IntersectionOf(CombinationOf[K]):
     """A point is in IntersectionOf(a, b) if it is in both a and b. Typically
     created with the ``&`` operator
 
@@ -133,7 +133,7 @@ class IntersectionOf(CombinationOf):
 
 
 @dataclass
-class DifferenceOf(CombinationOf):
+class DifferenceOf(CombinationOf[K]):
     """A point is in DifferenceOf(a, b) if it is in a and not in b. Typically
     created with the ``-`` operator
 
@@ -150,7 +150,7 @@ class DifferenceOf(CombinationOf):
 
 
 @dataclass
-class SymmetricDifferenceOf(CombinationOf):
+class SymmetricDifferenceOf(CombinationOf[K]):
     """A point is in SymmetricDifferenceOf(a, b) if it is in either a or b,
     but not both. Typically created with the ``^`` operator
 

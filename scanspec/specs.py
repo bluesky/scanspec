@@ -284,18 +284,18 @@ class Mask(Spec[K]):
 
     # *+ bind more tightly than &|^ so without these overrides we
     # would need to add brackets to all combinations of Regions
-    def __or__(self, other: "Region") -> "Mask[K]":
+    def __or__(self, other: "Region[K]") -> "Mask[K]":
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region | o))
 
-    def __and__(self, other: "Region") -> "Mask[K]":
+    def __and__(self, other: "Region[K]") -> "Mask[K]":
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region & o))
 
-    def __xor__(self, other: "Region") -> "Mask[K]":
+    def __xor__(self, other: "Region[K]") -> "Mask[K]":
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region ^ o))
 
     # This is here for completeness, tends not to be called as - binds
     # tighter than &
-    def __sub__(self, other: "Region") -> "Mask[K]":
+    def __sub__(self, other: "Region[K]") -> "Mask[K]":
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
 
 
