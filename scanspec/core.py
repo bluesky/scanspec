@@ -72,10 +72,7 @@ else:
         return staticmethod(f)
 
 
-generic_name = type_name(
-    lambda cls, *args: cls.__name__
-    + "".join(arg.__name__[0].upper() + arg.__name__[1:] for arg in args)
-)
+generic_name = type_name(lambda cls, *args: cls.__name__)
 
 
 def _as_tagged_union(cls: Type):
