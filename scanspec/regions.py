@@ -1,5 +1,5 @@
 from dataclasses import dataclass, is_dataclass
-from typing import Generic, Iterator, List, Set, TypeVar
+from typing import Any, Generic, Iterator, List, Set, TypeVar
 
 import numpy as np
 from apischema import schema
@@ -38,7 +38,7 @@ class Region(Generic[K]):
     - ``^``: `SymmetricDifferenceOf` two Regions, points present in one not both
     """
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         """Implemented by subclasses to produce the non-overlapping sets of axes
         this region spans"""
         raise NotImplementedError(self)
@@ -73,7 +73,7 @@ def get_mask(region: Region[K], points: AxesPoints[K]) -> np.ndarray:
         return np.ones(len(list(points.values())[0]))
 
 
-def _merge_axis_sets(axis_sets: List[Set[str]]) -> Iterator[Set[str]]:
+def _merge_axis_sets(axis_sets: List[Set[K]]) -> Iterator[Set[K]]:
     # Take overlapping axis sets and merge any that overlap into each
     # other
     for ks in axis_sets:  # ks = key_sets - left over from a previous naming standard
@@ -95,7 +95,7 @@ class CombinationOf(Region[K]):
     left: A[Region[K], schema(description="The left-hand Region to combine")]
     right: A[Region[K], schema(description="The right-hand Region to combine")]
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         axis_sets = list(
             _merge_axis_sets(self.left.axis_sets() + self.right.axis_sets())
         )
@@ -174,11 +174,11 @@ class Range(Region[K]):
     array([False,  True,  True, False, False])
     """
 
-    axis: A[str, schema(description="The name matching the axis to mask in spec")]
+    axis: A[K, schema(description="The name matching the axis to mask in spec")]
     min: A[float, schema(description="The minimum inclusive value in the region")]
     max: A[float, schema(description="The minimum inclusive value in the region")]
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         return [{self.axis}]
 
     def mask(self, points: AxesPoints[K]) -> np.ndarray:
@@ -200,8 +200,8 @@ class Rectangle(Region[K]):
         spec = grid & Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30)
     """
 
-    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_axis: A[K, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[K, schema(description="The name matching the y axis of the spec")]
     x_min: A[float, schema(description="Minimum inclusive x value in the region")]
     y_min: A[float, schema(description="Minimum inclusive y value in the region")]
     x_max: A[float, schema(description="Maximum inclusive x value in the region")]
@@ -210,7 +210,7 @@ class Rectangle(Region[K]):
         float, schema(description="Clockwise rotation angle of the rectangle")
     ] = 0.0
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         return [{self.x_axis, self.y_axis}]
 
     def mask(self, points: AxesPoints[K]) -> np.ndarray:
@@ -241,8 +241,8 @@ class Polygon(Region[K]):
         spec = grid & Polygon("x", "y", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])
     """
 
-    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_axis: A[K, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[K, schema(description="The name matching the y axis of the spec")]
     x_verts: A[
         List[float],
         schema(description="The Nx1 x coordinates of the polygons vertices", min_len=3),
@@ -252,7 +252,7 @@ class Polygon(Region[K]):
         schema(description="The Nx1 y coordinates of the polygons vertices", min_len=3),
     ]
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         return [{self.x_axis, self.y_axis}]
 
     def mask(self, points: AxesPoints[K]) -> np.ndarray:
@@ -286,13 +286,13 @@ class Circle(Region[K]):
         spec = grid & Circle("x", "y", 1, 2, 0.9)
     """
 
-    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_axis: A[K, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[K, schema(description="The name matching the y axis of the spec")]
     x_middle: A[float, schema(description="The central x point of the circle")]
     y_middle: A[float, schema(description="The central y point of the circle")]
     radius: A[float, schema(description="Radius of the circle", exc_min=0)]
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         return [{self.x_axis, self.y_axis}]
 
     def mask(self, points: AxesPoints[K]) -> np.ndarray:
@@ -315,8 +315,8 @@ class Ellipse(Region[K]):
         spec = grid & Ellipse("x", "y", 5, 5, 2, 3, 75)
     """
 
-    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_axis: A[K, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[K, schema(description="The name matching the y axis of the spec")]
     x_middle: A[float, schema(description="The central x point of the ellipse")]
     y_middle: A[float, schema(description="The central y point of the ellipse")]
     x_radius: A[
@@ -329,7 +329,7 @@ class Ellipse(Region[K]):
     ]
     angle: A[float, schema(description="The angle of the ellipse (degrees)")] = 0.0
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         return [{self.x_axis, self.y_axis}]
 
     def mask(self, points: AxesPoints[K]) -> np.ndarray:
@@ -346,11 +346,12 @@ class Ellipse(Region[K]):
         return mask
 
 
-def find_regions(obj) -> Iterator[Region[K]]:
+def find_regions(obj: Any) -> Iterator[Region[K]]:
     """Recursively iterate over obj and its children, yielding any Region
     instances found"""
     if is_dataclass(obj):
         if isinstance(obj, Region):
             yield obj
         for name in obj.__dict__.keys():
-            yield from find_regions(getattr(obj, name))
+            regions: Iterator[Region[K]] = find_regions(getattr(obj, name))
+            yield from regions

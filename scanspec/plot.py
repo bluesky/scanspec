@@ -1,5 +1,5 @@
 from itertools import cycle
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterator, List
 
 import numpy as np
 from matplotlib import colors, patches
@@ -8,7 +8,7 @@ from mpl_toolkits.mplot3d import proj3d
 from scipy import interpolate
 
 from .core import Path
-from .regions import Circle, Ellipse, Polygon, Rectangle, find_regions
+from .regions import Circle, Ellipse, Polygon, Rectangle, Region, find_regions
 from .specs import DURATION, Spec
 
 __all__ = ["plot_spec"]
@@ -122,7 +122,8 @@ def plot_spec(spec: Spec[Any]):
 
     # Plot any Regions
     if ndims <= 2:
-        for region in find_regions(spec):
+        regions: Iterator[Region[Any]] = find_regions(spec)
+        for region in regions:
             if isinstance(region, Rectangle):
                 xy = (region.x_min, region.y_min)
                 width = region.x_max - region.x_min

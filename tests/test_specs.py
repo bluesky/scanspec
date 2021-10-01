@@ -1,6 +1,8 @@
+from typing import Any
+
 import pytest
 
-from scanspec.core import Path, SnakedFrames
+from scanspec.core import Frames, Path, SnakedFrames
 from scanspec.regions import Circle, Ellipse, Polygon, Rectangle
 from scanspec.specs import (
     DURATION,
@@ -8,6 +10,7 @@ from scanspec.specs import (
     Line,
     Mask,
     Repeat,
+    Spec,
     Spiral,
     Squash,
     Static,
@@ -23,7 +26,7 @@ def ints(s):
 
 
 def test_one_point_duration() -> None:
-    duration = Static.duration(1.0)
+    duration: Spec[Any] = Static.duration(1.0)
     (dim,) = duration.calculate()
     assert dim.midpoints == {DURATION: pytest.approx([1.0])}
     assert dim.lower == {DURATION: pytest.approx([1.0])}
@@ -33,7 +36,7 @@ def test_one_point_duration() -> None:
 
 
 def test_one_point_line() -> None:
-    inst = Line(x, 0, 1, 1)
+    inst: Spec[Any] = Line(x, 0, 1, 1)
     (dim,) = inst.calculate()
     assert dim.midpoints == {x: pytest.approx([0])}
     assert dim.lower == {x: pytest.approx([-0.5])}
@@ -43,7 +46,7 @@ def test_one_point_line() -> None:
 
 
 def test_two_point_line() -> None:
-    inst = Line(x, 0, 1, 2)
+    inst: Spec[Any] = Line(x, 0, 1, 2)
     (dim,) = inst.calculate()
     assert dim.midpoints == {x: pytest.approx([0, 1])}
     assert dim.lower == {x: pytest.approx([-0.5, 0.5])}
@@ -52,7 +55,7 @@ def test_two_point_line() -> None:
 
 
 def test_two_point_stepped_line() -> None:
-    inst = step(Line(x, 0, 1, 2), 0.1)
+    inst: Spec[Any] = step(Line(x, 0, 1, 2), 0.1)
     dimx, dimt = inst.calculate()
     assert dimx.midpoints == dimx.lower == dimx.upper == {x: pytest.approx([0, 1])}
     assert (
@@ -62,7 +65,7 @@ def test_two_point_stepped_line() -> None:
 
 
 def test_two_point_fly_line() -> None:
-    inst = fly(Line(x, 0, 1, 2), 0.1)
+    inst: Spec[Any] = fly(Line(x, 0, 1, 2), 0.1)
     (dim,) = inst.calculate()
     assert dim.midpoints == {
         x: pytest.approx([0, 1]),
@@ -80,7 +83,7 @@ def test_two_point_fly_line() -> None:
 
 
 def test_many_point_line() -> None:
-    inst = Line(x, 0, 1, 5)
+    inst: Spec[Any] = Line(x, 0, 1, 5)
     (dim,) = inst.calculate()
     assert dim.midpoints == {x: pytest.approx([0, 0.25, 0.5, 0.75, 1])}
     assert dim.lower == {x: pytest.approx([-0.125, 0.125, 0.375, 0.625, 0.875])}
@@ -89,17 +92,17 @@ def test_many_point_line() -> None:
 
 
 def test_one_point_bounded_line() -> None:
-    inst = Line.bounded(x, 0, 1, 1)
+    inst: Spec[Any] = Line.bounded(x, 0, 1, 1)
     assert inst == Line(x, 0.5, 1.5, 1)
 
 
 def test_many_point_bounded_line() -> None:
-    inst = Line.bounded(x, 0, 1, 4)
+    inst: Spec[Any] = Line.bounded(x, 0, 1, 4)
     assert inst == Line(x, 0.125, 0.875, 4)
 
 
 def test_spiral() -> None:
-    inst = Spiral(x, y, 0, 10, 5, 50, 10)
+    inst: Spec[Any] = Spiral(x, y, 0, 10, 5, 50, 10)
     (dim,) = inst.calculate()
     assert dim.midpoints == {
         y: pytest.approx(
@@ -130,12 +133,12 @@ def test_spiral() -> None:
 
 
 def test_spaced_spiral() -> None:
-    inst = Spiral.spaced(x, y, 0, 10, 5, 1)
+    inst: Spec[Any] = Spiral.spaced(x, y, 0, 10, 5, 1)
     assert inst == Spiral(x, y, 0, 10, 10, 10, 78)
 
 
 def test_zipped_lines() -> None:
-    inst = Line(x, 0, 1, 5) + Line(y, 1, 2, 5)
+    inst: Spec[Any] = Line(x, 0, 1, 5) + Line(y, 1, 2, 5)
     assert inst.axes() == [x, y]
     (dim,) = inst.calculate()
     assert dim.midpoints == {
@@ -146,11 +149,11 @@ def test_zipped_lines() -> None:
 
 
 def test_product_lines() -> None:
-    inst = Line(y, 1, 2, 3) * Line(x, 0, 1, 2)
+    inst: Spec[Any] = Line(y, 1, 2, 3) * Line(x, 0, 1, 2)
     assert inst.axes() == [y, x]
     dims = inst.calculate()
     assert len(dims) == 2
-    dim = Path(dims).consume()
+    dim: Frames[Any] = Path(dims).consume()
     assert dim.midpoints == {
         x: pytest.approx([0, 1, 0, 1, 0, 1]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
@@ -167,7 +170,7 @@ def test_product_lines() -> None:
 
 
 def test_zipped_product_lines() -> None:
-    inst = Line(y, 1, 2, 3) * Line(x, 0, 1, 5) + Line(z, 2, 3, 5)
+    inst: Spec[Any] = Line(y, 1, 2, 3) * Line(x, 0, 1, 5) + Line(z, 2, 3, 5)
     assert inst.axes() == [y, x, z]
     dimy, dimxz = inst.calculate()
     assert dimxz.midpoints == {
@@ -181,7 +184,7 @@ def test_zipped_product_lines() -> None:
 
 
 def test_squashed_product() -> None:
-    inst = Squash(Line(y, 1, 2, 3) * Line(x, 0, 1, 2))
+    inst: Spec[Any] = Squash(Line(y, 1, 2, 3) * Line(x, 0, 1, 2))
     assert inst.axes() == [y, x]
     (dim,) = inst.calculate()
     assert dim.midpoints == {
@@ -200,7 +203,7 @@ def test_squashed_product() -> None:
 
 
 def test_squashed_multiplied_snake_scan() -> None:
-    inst = Line(z, 1, 2, 2) * Squash(
+    inst: Spec[Any] = Line(z, 1, 2, 2) * Squash(
         Line(y, 1, 2, 2) * ~Line.bounded(x, 3, 7, 2) * Static.duration(9, 2)
     )
     assert inst.axes() == [z, y, x, DURATION]
@@ -216,11 +219,11 @@ def test_squashed_multiplied_snake_scan() -> None:
 
 
 def test_product_snaking_lines() -> None:
-    inst = Line(y, 1, 2, 3) * ~Line(x, 0, 1, 2)
+    inst: Spec[Any] = Line(y, 1, 2, 3) * ~Line(x, 0, 1, 2)
     assert inst.axes() == [y, x]
     dims = inst.calculate()
     assert len(dims) == 2
-    dim = Path(dims).consume()
+    dim: Frames[Any] = Path(dims).consume()
     assert dim.midpoints == {
         x: pytest.approx([0, 1, 1, 0, 0, 1]),
         y: pytest.approx([1, 1, 1.5, 1.5, 2, 2]),
@@ -237,7 +240,7 @@ def test_product_snaking_lines() -> None:
 
 
 def test_concat_lines() -> None:
-    inst = Concat(Line(x, 0, 1, 2), Line(x, 1, 2, 3))
+    inst: Spec[Any] = Concat(Line(x, 0, 1, 2), Line(x, 1, 2, 3))
     assert inst.axes() == [x]
     (dim,) = inst.calculate()
     assert dim.midpoints == {x: pytest.approx([0, 1, 1, 1.5, 2])}
@@ -247,7 +250,9 @@ def test_concat_lines() -> None:
 
 
 def test_rect_region() -> None:
-    inst = Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(x, y, 0, 1, 1.5, 2.2)
+    inst: Spec[Any] = Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(
+        x, y, 0, 1, 1.5, 2.2
+    )
     assert inst.axes() == [y, x]
     (dim,) = inst.calculate()
     assert dim.midpoints == {
@@ -266,9 +271,9 @@ def test_rect_region() -> None:
 
 
 def test_rect_region_3D() -> None:
-    inst = Static(z, 3.2, 2) * Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(
-        x, y, 0, 1, 1.5, 2.2
-    )
+    inst: Spec[Any] = Static(z, 3.2, 2) * Line(y, 1, 3, 5) * Line(
+        x, 0, 2, 3
+    ) & Rectangle(x, y, 0, 1, 1.5, 2.2)
     assert inst.axes() == [z, y, x]
     zdim, xydim = inst.calculate()
     assert zdim.midpoints == {z: pytest.approx([3.2, 3.2])}
@@ -290,7 +295,7 @@ def test_rect_region_3D() -> None:
 
 
 def test_rect_region_union() -> None:
-    inst = Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(
+    inst: Spec[Any] = Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(
         x, y, 0, 1, 1.5, 2.2
     ) | Rectangle(x, y, 0.5, 1.5, 2, 2.5)
     assert inst.axes() == [y, x]
@@ -303,7 +308,7 @@ def test_rect_region_union() -> None:
 
 
 def test_rect_region_intersection() -> None:
-    inst = (
+    inst: Spec[Any] = (
         Line(y, 1, 3, 5) * Line(x, 0, 2, 3)
         & Rectangle(x, y, 0, 1, 1.5, 2.2)
         & Rectangle(x, y, 0.5, 1.5, 2, 2.5)
@@ -319,7 +324,7 @@ def test_rect_region_intersection() -> None:
 
 def test_rect_region_difference() -> None:
     # Bracket to force testing Mask.__sub__ rather than Region.__sub__
-    inst = (
+    inst: Spec[Any] = (
         Line(y, 1, 3, 5) * Line(x, 0, 2, 3) + Static(DURATION, 0.1)
         & Rectangle(x, y, 0, 1, 1.5, 2.2)
     ) - Rectangle(x, y, 0.5, 1.5, 2, 2.5)
@@ -334,7 +339,7 @@ def test_rect_region_difference() -> None:
 
 
 def test_rect_region_symmetricdifference() -> None:
-    inst = Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(
+    inst: Spec[Any] = Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(
         x, y, 0, 1, 1.5, 2.2
     ) ^ Rectangle(x, y, 0.5, 1.5, 2, 2.5)
     assert inst.axes() == [y, x]
@@ -347,7 +352,7 @@ def test_rect_region_symmetricdifference() -> None:
 
 
 def test_circle_region() -> None:
-    inst = Line(y, 1, 3, 3) * Line(x, 0, 2, 3) & Circle(x, y, 1, 2, 1)
+    inst: Spec[Any] = Line(y, 1, 3, 3) * Line(x, 0, 2, 3) & Circle(x, y, 1, 2, 1)
     assert inst.axes() == [y, x]
     (dim,) = inst.calculate()
     assert dim.midpoints == {
@@ -366,7 +371,7 @@ def test_circle_region() -> None:
 
 
 def test_circle_snaked_region() -> None:
-    inst = Mask(
+    inst: Spec[Any] = Mask(
         Line(y, 1, 3, 3) * ~Line(x, 0, 2, 3),
         Circle(x, y, 1, 2, 1),
         check_path_changes=False,
@@ -389,7 +394,9 @@ def test_circle_snaked_region() -> None:
 
 
 def test_ellipse_region() -> None:
-    inst = Line("y", 1, 3, 3) * Line("x", 0, 2, 3) & Ellipse(x, y, 1, 2, 2, 1, 45)
+    inst: Spec[Any] = Line("y", 1, 3, 3) * Line("x", 0, 2, 3) & Ellipse(
+        x, y, 1, 2, 2, 1, 45
+    )
     assert inst.axes() == [y, x]
     (dim,) = inst.calculate()
     assert dim.midpoints == {
@@ -410,7 +417,9 @@ def test_ellipse_region() -> None:
 def test_polygon_region() -> None:
     x_verts = [0, 0.5, 4.0, 2.5]
     y_verts = [0, 3.5, 3.5, 0.5]
-    inst = Line("y", 1, 3, 3) * Line("x", 0, 4, 5) & Polygon(x, y, x_verts, y_verts)
+    inst: Spec[Any] = Line("y", 1, 3, 3) * Line("x", 0, 4, 5) & Polygon(
+        x, y, x_verts, y_verts
+    )
     assert inst.axes() == [y, x]
     (dim,) = inst.calculate()
     assert dim.midpoints == {
@@ -431,7 +440,7 @@ def test_polygon_region() -> None:
 def test_xyz_stack() -> None:
     # Beam selector scan moves bounded between midpoints and lower and upper bounds at
     # maximum speed. Turnaround sections are where it sends the triggers
-    spec = Line(z, 0, 1, 2) * ~Line(y, 0, 2, 3) * ~Line(x, 0, 3, 4)
+    spec: Spec[Any] = Line(z, 0, 1, 2) * ~Line(y, 0, 2, 3) * ~Line(x, 0, 3, 4)
     dim = spec.frames()
     assert len(dim) == 24
     assert dim.lower == {
@@ -464,7 +473,7 @@ def test_xyz_stack() -> None:
 def test_beam_selector() -> None:
     # Beam selector scan moves bounded between midpoints and lower and upper bounds at
     # maximum speed. Turnaround sections are where it sends the triggers
-    spec = 10 * ~Line.bounded(x, 11, 19, 1)
+    spec: Spec[Any] = 10 * ~Line.bounded(x, 11, 19, 1)
     dim = spec.frames()
     assert len(dim) == 10
     assert dim.lower == {x: pytest.approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19])}
@@ -475,7 +484,7 @@ def test_beam_selector() -> None:
 
 def test_gap_repeat() -> None:
     # Check that no gap propogates to dim.gap for snaked axis
-    spec = Repeat(10, gap=False) * ~Line.bounded(x, 11, 19, 1)
+    spec: Spec[Any] = Repeat(10, gap=False) * ~Line.bounded(x, 11, 19, 1)
     dim = spec.frames()
     assert len(dim) == 10
     assert dim.lower == {x: pytest.approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19])}
@@ -486,7 +495,7 @@ def test_gap_repeat() -> None:
 
 def test_gap_repeat_non_snake() -> None:
     # Check that no gap doesn't propogate to dim.gap for non-snaked axis
-    spec = Repeat(3, gap=False) * Line.bounded(x, 11, 19, 1)
+    spec: Spec[Any] = Repeat(3, gap=False) * Line.bounded(x, 11, 19, 1)
     dim = spec.frames()
     assert len(dim) == 3
     assert dim.lower == {x: pytest.approx([11, 11, 11])}

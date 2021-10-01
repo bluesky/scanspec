@@ -468,7 +468,7 @@ def squash_frames(stack: List[Frames[K]], check_path_changes=True) -> Frames[K]:
     return squashed
 
 
-class Path:
+class Path(Generic[K]):
     """A consumable route through one or more dimensions,
     representing a scan path.
 
@@ -547,7 +547,7 @@ class Path:
         return self.end_index - self.index
 
 
-class Midpoints:
+class Midpoints(Generic[K]):
     """Convenience iterable that produces the scan points for each axis. For
     better performance, consume from a `Path` instead.
 
