@@ -1,3 +1,4 @@
+import inspect
 from types import new_class
 from typing import (
     TYPE_CHECKING,
@@ -14,6 +15,7 @@ from typing import (
     Sequence,
     Type,
     TypeVar,
+    get_type_hints,
 )
 
 import numpy as np
@@ -37,16 +39,22 @@ __all__ = [
 ]
 
 
-def _rec_subclasses(cls: type) -> Iterator[type]:
-    """Recursive implementation of type.__subclasses__"""
+def _parameterized_rec_subclasses(cls: type) -> Iterator[type]:
+    """Recursive implementation of type.__subclasses__ that supports type 
+    parameterization"""
     for sub_cls in cls.__subclasses__():
-        yield sub_cls
-        yield from _rec_subclasses(sub_cls)
+        params = tuple(getattr(sub_cls, "__parameters__", ()))
+        if params:
+            parametrized = sub_cls[params]
+            setattr(parametrized, "__name__", sub_cls.__name__)
+            yield parametrized
+        else:
+            yield sub_cls
+        yield from _parameterized_rec_subclasses(sub_cls)
 
 
 # {cls_name: [functions]}
 _alternative_constructors: Dict[str, List[Callable]] = {}
-
 if TYPE_CHECKING:
     # Close enough for mypy
     alternative_constructor = staticmethod
@@ -68,6 +76,8 @@ else:
         Foo(a=4)
         """
         cls_name = f.__qualname__.split(".")[0]
+        # cls_name = f.__annotations__["return"]
+        # _alternative_constructors.setdefault(cls_name, []).append(f)
         _alternative_constructors.setdefault(cls_name, []).append(f)
         return staticmethod(f)
 
@@ -97,7 +107,7 @@ def _as_tagged_union(cls: Type):
         annotations = {
             # Assume that subclasses have same generic parameters than cls
             sub.__name__: Tagged[with_params(sub)]
-            for sub in _rec_subclasses(cls)
+            for sub in _parameterized_rec_subclasses(cls)
         }
         namespace = {"__annotations__": annotations}
         tagged_union = new_class(
@@ -112,22 +122,28 @@ def _as_tagged_union(cls: Type):
             inherited=False,
         )
 
+    def make_thing(sub):
+        def f(cls, *args):
+            return to_pascal_case(cls.__name__ + sub.__name__)
+
+        return type_name(f)
+
     def deserialization() -> Conversion:
         annotations: dict[str, Any] = {}
         namespace: dict[str, Any] = {"__annotations__": annotations}
-        for sub in _rec_subclasses(cls):
+        for sub in _parameterized_rec_subclasses(cls):
             # Assume that subclasses have same generic parameters than cls
             annotations[sub.__name__] = Tagged[with_params(sub)]
             # Add tagged fields for all its alternative constructors
-            for constructor in _alternative_constructors.get(sub, ()):
+            for constructor in _alternative_constructors.get(sub.__name__, ()):
                 # Build the alias of the field
-                alias = to_pascal_case(constructor.__name__)
+                alias = to_pascal_case(constructor.__name__ + sub.__name__)
                 # object_deserialization uses get_type_hints, but the constructor
                 # return type is stringified and the class not defined yet,
                 # so it must be assigned manually
                 constructor.__annotations__["return"] = with_params(sub)
                 # Use object_deserialization to wrap constructor as deserializer
-                deserialization = object_deserialization(constructor, generic_name)
+                deserialization = object_deserialization(constructor, make_thing(sub))
                 # Add constructor tagged field with its conversion
                 annotations[alias] = Tagged[with_params(sub)]
                 namespace[alias] = Tagged(conversion(deserialization=deserialization))
