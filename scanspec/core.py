@@ -34,6 +34,7 @@ __all__ = [
     "squash_frames",
     "Path",
     "Midpoints",
+    "generic_name",
 ]
 
 
@@ -72,19 +73,10 @@ else:
         return staticmethod(f)
 
 
-def gen_generic_name(cls, *args):
-    print(cls)
-    return cls.__name__ + "".join(
-        arg.__name__[0].upper() + arg.__name__[1:] for arg in args
-    )
-
-
-generic_name = type_name(gen_generic_name)
-
-# generic_name = type_name(
-#     lambda cls, *args: cls.__name__
-#     + "".join(arg.__name__[0].upper() + arg.__name__[1:] for arg in args)
-# )
+generic_name = type_name(
+    lambda cls, *args: cls.__name__
+    + "".join(arg.__name__[0].upper() + arg.__name__[1:] for arg in args)
+)
 
 
 def _as_tagged_union(cls: Type):
@@ -153,6 +145,7 @@ def _as_tagged_union(cls: Type):
             target=with_params(cls),
         )
 
+    setattr(cls, "__is_tagged_union__", True)
     deserializer(lazy=deserialization, target=cls)
     serializer(lazy=serialization, source=cls)
     return cls
@@ -173,7 +166,7 @@ class Serializable:
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        if Serializable in cls.__bases__:
+        if Serializable in cls.__bases__ and not hasattr(cls, "__is_tagged_union__"):
             cls._base_serializable = cls
             _as_tagged_union(cls)
 
@@ -210,9 +203,6 @@ def if_instance_do(x, cls: Type, func: Callable):
 
 #: A subclass of `Frames`
 F = TypeVar("F", bound="Frames")
-
-#: Type of an axis
-K = TypeVar("K")
 
 
 class Frames(Generic[K]):
