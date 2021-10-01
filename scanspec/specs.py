@@ -1,17 +1,17 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, TypeVar
 
 import numpy as np
-from apischema import schema
+from apischema import deserialize, schema, serialize
 from typing_extensions import Annotated as A
 
 from .core import (
     Frames,
     Midpoints,
     Path,
-    Serializable,
     SnakedFrames,
     alternative_constructor,
+    as_tagged_union,
     gap_between_frames,
     if_instance_do,
     squash_frames,
@@ -45,8 +45,9 @@ DURATION = "DURATION"
 K = TypeVar("K")
 
 
+@as_tagged_union
 @dataclass
-class Spec(Serializable, Generic[K]):
+class Spec(Generic[K]):
     """A serializable representation of the type, parameters and axis names
     required to produce scan Frames
 
@@ -91,6 +92,15 @@ class Spec(Serializable, Generic[K]):
 
     def __invert__(self) -> "Snake[K]":
         return Snake(self)
+
+    def serialize(self) -> Mapping[str, Any]:
+        """Serialize the spec to a dictionary"""
+        return serialize(Spec, self)
+
+    @classmethod
+    def deserialize(cls, serialized: Mapping[str, Any]) -> "Spec[T]":
+        """Deserialize the spec from a dictionary"""
+        return deserialize(cls, serialized)
 
 
 @dataclass

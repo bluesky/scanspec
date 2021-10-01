@@ -5,7 +5,7 @@ import numpy as np
 from apischema import schema
 from typing_extensions import Annotated as A
 
-from .core import AxesPoints, Serializable, if_instance_do
+from .core import AxesPoints, as_tagged_union, if_instance_do
 
 __all__ = [
     "Region",
@@ -27,8 +27,9 @@ __all__ = [
 K = TypeVar("K")
 
 
+@as_tagged_union
 @dataclass
-class Region(Serializable, Generic[K]):
+class Region(Generic[K]):
     """Abstract baseclass for a Region that can `Mask` a `Spec`. Supports operators:
 
     - ``|``: `UnionOf` two Regions, midpoints present in either

@@ -1,25 +1,21 @@
-import inspect
 from types import new_class
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    ClassVar,
     Dict,
     Generic,
     Iterable,
     Iterator,
     List,
-    Mapping,
     Optional,
     Sequence,
     Type,
     TypeVar,
-    get_type_hints,
 )
 
 import numpy as np
-from apischema import deserialize, deserializer, serialize, serializer, type_name
+from apischema import deserializer, serializer, type_name
 from apischema.conversions import Conversion
 from apischema.metadata import conversion
 from apischema.objects import object_deserialization
@@ -28,7 +24,6 @@ from apischema.utils import to_pascal_case
 
 __all__ = [
     "alternative_constructor",
-    "Serializable",
     "AxesPoints",
     "if_instance_do",
     "Frames",
@@ -36,21 +31,15 @@ __all__ = [
     "squash_frames",
     "Path",
     "Midpoints",
+    "as_tagged_union",
 ]
 
 
-def _parameterized_rec_subclasses(cls: type) -> Iterator[type]:
-    """Recursive implementation of type.__subclasses__ that supports type 
-    parameterization"""
+def _rec_subclasses(cls: type) -> Iterator[type]:
+    """Recursive implementation of type.__subclasses__"""
     for sub_cls in cls.__subclasses__():
-        params = tuple(getattr(sub_cls, "__parameters__", ()))
-        if params:
-            parametrized = sub_cls[params]
-            setattr(parametrized, "__name__", sub_cls.__name__)
-            yield parametrized
-        else:
-            yield sub_cls
-        yield from _parameterized_rec_subclasses(sub_cls)
+        yield sub_cls
+        yield from _rec_subclasses(sub_cls)
 
 
 # {cls_name: [functions]}
@@ -85,7 +74,7 @@ else:
 generic_name = type_name(lambda cls, *args: cls.__name__)
 
 
-def _as_tagged_union(cls: Type):
+def as_tagged_union(cls: Type):
     params = tuple(getattr(cls, "__parameters__", ()))
     tagged_union_bases: tuple = (TaggedUnion,)
     if params:
@@ -107,7 +96,7 @@ def _as_tagged_union(cls: Type):
         annotations = {
             # Assume that subclasses have same generic parameters than cls
             sub.__name__: Tagged[with_params(sub)]
-            for sub in _parameterized_rec_subclasses(cls)
+            for sub in _rec_subclasses(cls)
         }
         namespace = {"__annotations__": annotations}
         tagged_union = new_class(
@@ -122,16 +111,13 @@ def _as_tagged_union(cls: Type):
             inherited=False,
         )
 
-    def make_thing(sub):
-        def f(cls, *args):
-            return to_pascal_case(cls.__name__ + sub.__name__)
-
-        return type_name(f)
+    def type_name_factory_for_subclass(sub):
+        return type_name(lambda cls, *args: to_pascal_case(cls.__name__ + sub.__name__))
 
     def deserialization() -> Conversion:
         annotations: dict[str, Any] = {}
         namespace: dict[str, Any] = {"__annotations__": annotations}
-        for sub in _parameterized_rec_subclasses(cls):
+        for sub in _rec_subclasses(cls):
             # Assume that subclasses have same generic parameters than cls
             annotations[sub.__name__] = Tagged[with_params(sub)]
             # Add tagged fields for all its alternative constructors
@@ -143,7 +129,9 @@ def _as_tagged_union(cls: Type):
                 # so it must be assigned manually
                 constructor.__annotations__["return"] = with_params(sub)
                 # Use object_deserialization to wrap constructor as deserializer
-                deserialization = object_deserialization(constructor, make_thing(sub))
+                deserialization = object_deserialization(
+                    constructor, type_name_factory_for_subclass(sub)
+                )
                 # Add constructor tagged field with its conversion
                 annotations[alias] = Tagged[with_params(sub)]
                 namespace[alias] = Tagged(conversion(deserialization=deserialization))
@@ -157,43 +145,9 @@ def _as_tagged_union(cls: Type):
             target=with_params(cls),
         )
 
-    setattr(cls, "__is_tagged_union__", True)
     deserializer(lazy=deserialization, target=cls)
     serializer(lazy=serialization, source=cls)
     return cls
-
-
-#: A subclass of `Serializable`
-S = TypeVar("S", bound="Serializable")
-
-
-class Serializable:
-    """Base class for registering apischema (de)serialization conversions.
-    Each direct subclass will be registered for (de)serialization as a tagged union
-    of its subclasses, using the pattern documented here:
-    https://wyfo.github.io/apischema/examples/subclass_tagged_union/"""
-
-    # Base class which will directly inherit from Serializable
-    _base_serializable: ClassVar[Type["Serializable"]]
-
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        if Serializable in cls.__bases__ and not hasattr(cls, "__is_tagged_union__"):
-            cls._base_serializable = cls
-            _as_tagged_union(cls)
-
-    def serialize(self) -> Mapping[str, Any]:
-        """Serialize to a dictionary representation"""
-        # Base serializable class must be passed to serialize in order to use its
-        # registered conversion (which is not inherited)
-        return serialize(self._base_serializable, self)
-
-    @classmethod
-    def deserialize(cls: Type[S], serialization: Mapping[str, Any]) -> S:
-        """Deserialize from a dictionary representation"""
-        inst = deserialize(cls._base_serializable, serialization)
-        assert isinstance(inst, cls)
-        return inst
 
 
 #: Type of an axis
