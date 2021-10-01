@@ -34,7 +34,6 @@ __all__ = [
     "squash_frames",
     "Path",
     "Midpoints",
-    "generic_name",
 ]
 
 
