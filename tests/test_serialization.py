@@ -1,5 +1,3 @@
-from typing import Any
-
 import pytest
 from apischema.validation.errors import ValidationError
 
@@ -8,16 +6,14 @@ from scanspec.specs import Line, Mask, Spec, Spiral
 
 
 def test_line_serializes() -> None:
-    ob: Spec[Any] = Line("x", 0, 1, 4)
+    ob = Line("x", 0, 1, 4)
     serialized = {"Line": {"axis": "x", "start": 0.0, "stop": 1.0, "num": 4}}
     assert ob.serialize() == serialized
     assert Spec.deserialize(serialized) == ob
 
 
 def test_masked_circle_serializes() -> None:
-    ob: Mask[Any] = Mask(
-        Line("x", 0, 1, 4), Circle("x", "y", x_middle=0, y_middle=1, radius=4)
-    )
+    ob = Mask(Line("x", 0, 1, 4), Circle("x", "y", x_middle=0, y_middle=1, radius=4))
     serialized = {
         "Mask": {
             "spec": {"Line": {"axis": "x", "start": 0, "stop": 1, "num": 4}},
@@ -38,7 +34,7 @@ def test_masked_circle_serializes() -> None:
 
 
 def test_product_lines_serializes() -> None:
-    ob: Spec[Any] = Line("z", 4, 5, 6) * Line("y", 2, 3, 5) * Line("x", 0, 1, 4)
+    ob = Line("z", 4, 5, 6) * Line("y", 2, 3, 5) * Line("x", 0, 1, 4)
     serialized = {
         "Product": {
             "outer": {
@@ -59,7 +55,7 @@ def test_product_lines_serializes() -> None:
 
 
 def test_complex_nested_serializes() -> None:
-    ob: Mask[Any] = Mask(
+    ob = Mask(
         Spiral.spaced("x", "y", 0, 0, 10, 3),
         UnionOf(
             Circle("x", "y", x_middle=0, y_middle=1, radius=4),
