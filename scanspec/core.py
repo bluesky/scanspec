@@ -67,8 +67,6 @@ else:
         Foo(a=4)
         """
         cls_name = f.__qualname__.split(".")[0]
-        # cls_name = f.__annotations__["return"]
-        # _alternative_constructors.setdefault(cls_name, []).append(f)
         _alternative_constructors.setdefault(cls_name, []).append(f)
         return staticmethod(f)
 
