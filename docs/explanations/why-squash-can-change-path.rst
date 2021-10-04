@@ -3,11 +3,12 @@
 Why Squash (and Mask) can change the Path
 =========================================
 
-A Spec creates a number of Dimensions that can be set to snake. When snaking,
-every other run of that Dimension will run in reverse. `Squash` and `Mask` will
-merge Dimensions together. This may change the Path compared with the unsquashed
-version if the squashed Dimensions are nested within a slower Dimension, and so
-run more than once. This page lists the times where this is the case.
+A Spec creates a stack of `Frames`, some of which can be snaking. When snaking,
+every other run of that Frames object will run in reverse. `Squash` and `Mask`
+will merge Frames objects together. This may change the Path compared with the
+unsquashed version if the squashed Frames objects are nested within a slower
+Frames object, and so run more than once. This page lists the times where this
+is the case.
 
 .. note::
 
@@ -15,14 +16,14 @@ run more than once. This page lists the times where this is the case.
     ``check_path_changes=False`` is passed to `Squash` or `Mask`, otherwise they
     will fail with `ValueError`
 
-Squash unsnaked axis into a snaked Dimension
---------------------------------------------
+Squash unsnaked axis into a snaked Frames
+-----------------------------------------
 
-Squashing Dimensions together will take the snake setting of the slowest moving
-Dimension in the squash. If this squashed Dimension is nested within another, on
-the second run the originally unsnaked axis will run in reverse. This would
-make a motor that the user had demanded to always run in one direction run in
-reverse, which could make the scan invalid.
+Squashing Frames objects together will take the snake setting of the slowest
+moving Frames object in the squash. If this squashed Frames object is nested
+within another, on the second run the originally unsnaked axis will run in
+reverse. This would make a motor that the user had demanded to always run in one
+direction run in reverse, which could make the scan invalid.
 
 For example, consider a non-snaking x within a snaking y within z:
 
@@ -34,7 +35,8 @@ For example, consider a non-snaking x within a snaking y within z:
     spec = Line("z", 0, 1, 3) * ~Line("y", 0, 1, 3) * Line("x", 0, 1, 3)
     plot_spec(spec)
 
-If we squash the x and y dimensions then x will run in reverse on the second run:
+If we squash the x and y Frames objects together then x will run in reverse on
+the second run:
 
 .. plot::
 
@@ -49,10 +51,10 @@ If we squash the x and y dimensions then x will run in reverse on the second run
 Squash snaked axis into unsnaked odd length axis
 ------------------------------------------------
 
-A snaked axis must repeat an even number of times within a squashed Dimension in order
-to be able to nest this Dimension within another and keep the Path of the snaked axis.
-If this is not the case, the snaked axis will "jump" after each iteration of the
-squashed dimension.
+A snaked axis must repeat an even number of times within a squashed Frames
+object in order to be able to nest this Frames object within another and keep
+the Path of the snaked axis. If this is not the case, the snaked axis will
+"jump" after each iteration of the squashed Frames object.
 
 For example, consider a snaking x within an odd non-snaking y within z:
 
@@ -64,7 +66,8 @@ For example, consider a snaking x within an odd non-snaking y within z:
     spec = Line("z", 0, 1, 3) * Line("y", 0, 1, 3) * ~Line("x", 0, 1, 3)
     plot_spec(spec)
 
-If we squash the x and y dimensions then x will jump between the first and second runs:
+If we squash the x and y Frames objects then x will jump between the first and
+second runs:
 
 .. plot::
 
@@ -79,9 +82,10 @@ If we squash the x and y dimensions then x will jump between the first and secon
 Why this matters
 ----------------
 
-Apart from these two cases, squashing can be considered Path invariant. This means that
-the detector could write data in a stack, then the data could be reshaped with a VDS into
-the original dimensionality. Unfortunately a negative stride is not supported in VDS, so
-the strategy is to squash snaked Dimensions into the Dimension above. If this changes the
-Path through a scan then this needs to be flagged or explicitly allowed in the Spec,
-otherwise the results for the user could be potentially surprising.
+Apart from these two cases, squashing can be considered Path invariant. This
+means that the detector could write data in a stack, then the data could be
+reshaped with a VDS into the original dimensionality. Unfortunately a negative
+stride is not supported in VDS, so the strategy is to squash snaked Frames
+objects into the Frames object above. If this changes the Path through a scan
+then this needs to be flagged or explicitly allowed in the Spec, otherwise the
+results for the user could be potentially surprising.

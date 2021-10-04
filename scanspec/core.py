@@ -171,7 +171,7 @@ class Serializable:
         return inst
 
 
-#: Map of axes to points_ndarray
+#: Map of axes to float ndarray of points
 #: E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}
 AxesPoints = Dict[str, np.ndarray]
 
@@ -615,7 +615,7 @@ class Midpoints:
         """The number of dictionaries that will be produced if iterated over."""
         return np.product([len(frames) for frames in self.stack])
 
-    def __iter__(self) -> Iterator[AxesPoints]:
+    def __iter__(self) -> Iterator[Dict[str, float]]:
         """Yield {axis: midpoint} for each frame in the scan."""
         path = Path(self.stack)
         while len(path):

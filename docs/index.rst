@@ -49,7 +49,7 @@ Explanation of how the library works and why it works that way.
     :hidden:
 
     explanations/technical-terms
-    explanations/what-are-dimensions
+    explanations/why-stack-frames
     explanations/why-squash-can-change-path
 
 .. rst-class:: columns

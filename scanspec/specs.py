@@ -50,7 +50,6 @@ class Spec(Serializable):
 
     - ``*``: Outer `Product` of two Specs, nesting the second within the first.
       If the first operand is an integer, wrap it in a `Repeat`
-    - ``+``: `Zip` two Specs together, iterating in tandem
     - ``&``: `Mask` the Spec with a `Region`, excluding midpoints outside of it
     - ``~``: `Snake` the Spec, reversing every other iteration of it
     """
@@ -83,14 +82,19 @@ class Spec(Serializable):
     def __mul__(self, other) -> "Product":
         return if_instance_do(other, Spec, lambda o: Product(self, o))
 
-    def __add__(self, other) -> "Zip":
-        return if_instance_do(other, Spec, lambda o: Zip(self, o))
-
     def __and__(self, other) -> "Mask":
         return if_instance_do(other, Region, lambda o: Mask(self, o))
 
     def __invert__(self) -> "Snake":
         return Snake(self)
+
+    def zip(self, other: "Spec") -> "Zip":
+        """`Zip` the Spec with another, iterating in tandem"""
+        return Zip(self, other)
+
+    def concat(self, other: "Spec") -> "Concat":
+        """`Concat` the Spec with another, iterating one after the other"""
+        return Concat(self, other)
 
 
 @dataclass
@@ -164,7 +168,7 @@ class Repeat(Spec):
 class Zip(Spec):
     """Run two Specs in parallel, merging their midpoints together.
 
-    Typically formed using the ``+`` operator.
+    Typically formed using `Spec.zip`.
 
     Stacks of Frames are merged by:
 
@@ -180,7 +184,7 @@ class Zip(Spec):
 
         from scanspec.specs import Line
 
-        spec = Line("z", 1, 2, 3) * Line("y", 3, 4, 5) + Line("x", 4, 5, 5)
+        spec = Line("z", 1, 2, 3) * Line("y", 3, 4, 5).zip(Line("x", 4, 5, 5))
     """
 
     left: A[
@@ -332,13 +336,14 @@ class Snake(Spec):
 class Concat(Spec):
     """Concatenate two Specs together, running one after the other.
 
-    Each Dimension of left and right must contain the same axes.
+    Each Dimension of left and right must contain the same axes. Typically
+    formed using `Spec.concat`.
 
     .. example_spec::
 
-        from scanspec.specs import Concat, Line
+        from scanspec.specs import Line
 
-        spec = Concat(Line("x", 1, 3, 3), Line("x", 4, 5, 5))
+        spec = Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5))
     """
 
     left: A[
@@ -356,6 +361,7 @@ class Concat(Spec):
     gap: A[
         bool, schema(description="If True, force a gap in the output at the join")
     ] = False
+    check_path_changes: ACheckPathChanges = True
 
     def axes(self) -> List:
         left_axes, right_axes = self.left.axes(), self.right.axes()
@@ -363,8 +369,12 @@ class Concat(Spec):
         return left_axes
 
     def calculate(self, bounds=True, nested=False) -> List[Frames]:
-        dim_left = squash_frames(self.left.calculate(bounds, nested))
-        dim_right = squash_frames(self.right.calculate(bounds, nested))
+        dim_left = squash_frames(
+            self.left.calculate(bounds, nested), nested and self.check_path_changes
+        )
+        dim_right = squash_frames(
+            self.right.calculate(bounds, nested), nested and self.check_path_changes
+        )
         dim = dim_left.concat(dim_right, self.gap)
         return [dim]
 
@@ -390,7 +400,6 @@ class Squash(Spec):
         return self.spec.axes()
 
     def calculate(self, bounds=True, nested=False) -> List[Frames]:
-        # TODO: if we squash we explode the size, can we avoid this?
         dims = self.spec.calculate(bounds, nested)
         dim = squash_frames(dims, nested and self.check_path_changes)
         return [dim]
@@ -502,7 +511,7 @@ class Static(Spec):
 
         from scanspec.specs import Line, Static
 
-        spec = Line("y", 1, 2, 3) + Static("x", 3)
+        spec = Line("y", 1, 2, 3).zip(Static("x", 3))
     """
 
     axis: AAxis
@@ -520,7 +529,7 @@ class Static(Spec):
 
             from scanspec.specs import Line, Static
 
-            spec = Line("y", 1, 2, 3) + Static.duration(0.1)
+            spec = Line("y", 1, 2, 3).zip(Static.duration(0.1))
         """
         return Static(DURATION, duration, num)
 
@@ -631,7 +640,7 @@ def fly(spec: Spec, duration: float) -> Spec:
 
         spec = fly(Line("x", 1, 2, 3), 0.1)
     """
-    return spec + Static.duration(duration)
+    return spec.zip(Static.duration(duration))
 
 
 def step(spec: Spec, duration: float, num: int = 1) -> Spec:

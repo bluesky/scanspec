@@ -135,7 +135,7 @@ def test_spaced_spiral() -> None:
 
 
 def test_zipped_lines() -> None:
-    inst = Line(x, 0, 1, 5) + Line(y, 1, 2, 5)
+    inst = Line(x, 0, 1, 5).zip(Line(y, 1, 2, 5))
     assert inst.axes() == [x, y]
     (dim,) = inst.calculate()
     assert dim.midpoints == {
@@ -167,7 +167,7 @@ def test_product_lines() -> None:
 
 
 def test_zipped_product_lines() -> None:
-    inst = Line(y, 1, 2, 3) * Line(x, 0, 1, 5) + Line(z, 2, 3, 5)
+    inst = Line(y, 1, 2, 3) * Line(x, 0, 1, 5).zip(Line(z, 2, 3, 5))
     assert inst.axes() == [y, x, z]
     dimy, dimxz = inst.calculate()
     assert dimxz.midpoints == {
@@ -320,7 +320,7 @@ def test_rect_region_intersection() -> None:
 def test_rect_region_difference() -> None:
     # Bracket to force testing Mask.__sub__ rather than Region.__sub__
     inst = (
-        Line(y, 1, 3, 5) * Line(x, 0, 2, 3) + Static(DURATION, 0.1)
+        Line(y, 1, 3, 5) * Line(x, 0, 2, 3).zip(Static(DURATION, 0.1))
         & Rectangle(x, y, 0, 1, 1.5, 2.2)
     ) - Rectangle(x, y, 0.5, 1.5, 2, 2.5)
     assert inst.axes() == [y, x, DURATION]
@@ -498,7 +498,7 @@ def test_gap_repeat_non_snake() -> None:
 def test_multiple_statics():
     part_1 = Static("y", 2) * Static("z", 3) * Line("x", 0, 10, 2)
     part_2 = Static("y", 4) * Static("z", 5) * Line("x", 0, 10, 2)
-    spec = Concat(part_1, part_2)
+    spec = part_1.concat(part_2)
     assert list(spec.midpoints()) == [
         {"x": 0.0, "y": 2, "z": 3},
         {"x": 10.0, "y": 2, "z": 3},
@@ -510,9 +510,9 @@ def test_multiple_statics():
 
 def test_multiple_statics_with_grid():
     grid = Line("y", 0, 10, 2) * Line("x", 0, 10, 2)
-    part_1 = grid + Static("a", 2) + Static("b", 3)
-    part_2 = grid + Static("a", 4) + Static("b", 5)
-    spec = Concat(part_1, part_2)
+    part_1 = grid.zip(Static("a", 2)).zip(Static("b", 3))
+    part_2 = grid.zip(Static("a", 4)).zip(Static("b", 5))
+    spec = part_1.concat(part_2)
     assert list(spec.midpoints()) == [
         {"x": 0.0, "y": 0.0, "a": 2, "b": 3},
         {"x": 10.0, "y": 0.0, "a": 2, "b": 3},

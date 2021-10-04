@@ -12,7 +12,7 @@ API
 The top level scanspec module contains a number of packages that can be used
 from code:
 
-- `scanspec.core`: Core classes like `Dimension` and `Path`
+- `scanspec.core`: Core classes like `Frames` and `Path`
 - `scanspec.specs`: `Spec` and its subclasses
 - `scanspec.regions`: `Region` and its subclasses
 - `scanspec.plot`: `plot_spec` to visualize a scan
