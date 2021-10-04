@@ -52,7 +52,12 @@ nitpicky = True
 # generating warnings in "nitpicky mode". Note that type should include the
 # domain name if present. Example entries would be ('py:func', 'int') or
 # ('envvar', 'LD_LIBRARY_PATH').
-nitpick_ignore = [("py:func", "int")]
+nitpick_ignore = [
+    ("py:func", "int"),
+    ("py:class", "Axis"),
+    ("py:class", "AxesPoints"),
+    ("py:class", "np.ndarray"),
+]
 
 # Both the class’ and the __init__ method’s docstring are concatenated and
 # inserted into the main body of the autoclass directive
@@ -66,6 +71,10 @@ autodoc_inherit_docstrings = False
 
 # Insert inheritance links
 autodoc_default_options = {"show-inheritance": True}
+
+# A dictionary for users defined type aliases that maps a type name to the
+# full-qualified object name.
+autodoc_type_aliases = dict(AxesPoints="scanspec.core.AxesPoints")
 
 # Include source in plot directive by default
 plot_include_source = True

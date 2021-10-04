@@ -1,3 +1,5 @@
+.. _technical-terms:
+
 Technical Terms
 ===============
 
