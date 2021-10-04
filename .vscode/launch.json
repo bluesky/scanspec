@@ -7,11 +7,12 @@
         {
             "name": "Debug Unit Test",
             "type": "python",
-            "request": "test",
+            "request": "launch",
             "justMyCode": false,
             "env": {
                 "PYTEST_ADDOPTS": "--no-cov"
-            }
+            },
+            "module": "pytest"
         }
     ]
 }

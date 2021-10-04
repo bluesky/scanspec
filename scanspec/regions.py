@@ -1,11 +1,11 @@
 from dataclasses import dataclass, is_dataclass
-from typing import Iterator, List, Set
+from typing import Generic, Iterator, List, Set, TypeVar
 
 import numpy as np
 from apischema import schema
 from typing_extensions import Annotated as A
 
-from .core import AxesPoints, Serializable, if_instance_do
+from .core import AxesPoints, as_tagged_union, if_instance_do
 
 __all__ = [
     "Region",
@@ -23,9 +23,13 @@ __all__ = [
     "find_regions",
 ]
 
+#: Type of an axis
+K = TypeVar("K")
 
+
+@as_tagged_union
 @dataclass
-class Region(Serializable):
+class Region(Generic[K]):
     """Abstract baseclass for a Region that can `Mask` a `Spec`.
 
     Supports operators:
@@ -36,28 +40,28 @@ class Region(Serializable):
     - ``^``: `SymmetricDifferenceOf` two Regions, midpoints present in one not both
     """
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         """Produce the non-overlapping sets of axes this region spans."""
         raise NotImplementedError(self)
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         """Produce a mask of which points are in the region."""
         raise NotImplementedError(self)
 
-    def __or__(self, other) -> "UnionOf":
+    def __or__(self, other) -> "UnionOf[K]":
         return if_instance_do(other, Region, lambda o: UnionOf(self, o))
 
-    def __and__(self, other) -> "IntersectionOf":
+    def __and__(self, other) -> "IntersectionOf[K]":
         return if_instance_do(other, Region, lambda o: IntersectionOf(self, o))
 
-    def __sub__(self, other) -> "DifferenceOf":
+    def __sub__(self, other) -> "DifferenceOf[K]":
         return if_instance_do(other, Region, lambda o: DifferenceOf(self, o))
 
-    def __xor__(self, other) -> "SymmetricDifferenceOf":
+    def __xor__(self, other) -> "SymmetricDifferenceOf[K]":
         return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(self, o))
 
 
-def get_mask(region: Region, points: AxesPoints) -> np.ndarray:
+def get_mask(region: Region[K], points: AxesPoints[K]) -> np.ndarray:
     """Return a mask of the points inside the region.
 
     If there is an overlap of axes of region and points return a
@@ -71,7 +75,7 @@ def get_mask(region: Region, points: AxesPoints) -> np.ndarray:
         return np.ones(len(list(points.values())[0]))
 
 
-def _merge_axis_sets(axis_sets: List[Set[str]]) -> Iterator[Set[str]]:
+def _merge_axis_sets(axis_sets: List[Set[K]]) -> Iterator[Set[K]]:
     # Take overlapping axis sets and merge any that overlap into each
     # other
     for ks in axis_sets:  # ks = key_sets - left over from a previous naming standard
@@ -87,13 +91,13 @@ def _merge_axis_sets(axis_sets: List[Set[str]]) -> Iterator[Set[str]]:
 
 
 @dataclass
-class CombinationOf(Region):
+class CombinationOf(Region[K]):
     """Abstract baseclass for a combination of two regions, left and right."""
 
-    left: A[Region, schema(description="The left-hand Region to combine")]
-    right: A[Region, schema(description="The right-hand Region to combine")]
+    left: A[Region[K], schema(description="The left-hand Region to combine")]
+    right: A[Region[K], schema(description="The right-hand Region to combine")]
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         axis_sets = list(
             _merge_axis_sets(self.left.axis_sets() + self.right.axis_sets())
         )
@@ -102,7 +106,7 @@ class CombinationOf(Region):
 
 # Naming so we don't clash with typing.Union
 @dataclass
-class UnionOf(CombinationOf):
+class UnionOf(CombinationOf[K]):
     """A point is in UnionOf(a, b) if in either a or b.
 
     Typically created with the ``|`` operator
@@ -112,13 +116,13 @@ class UnionOf(CombinationOf):
     array([False,  True,  True,  True, False])
     """
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         mask = get_mask(self.left, points) | get_mask(self.right, points)
         return mask
 
 
 @dataclass
-class IntersectionOf(CombinationOf):
+class IntersectionOf(CombinationOf[K]):
     """A point is in IntersectionOf(a, b) if in both a and b.
 
     Typically created with the ``&`` operator.
@@ -128,13 +132,13 @@ class IntersectionOf(CombinationOf):
     array([False, False,  True, False, False])
     """
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         mask = get_mask(self.left, points) & get_mask(self.right, points)
         return mask
 
 
 @dataclass
-class DifferenceOf(CombinationOf):
+class DifferenceOf(CombinationOf[K]):
     """A point is in DifferenceOf(a, b) if in a and not in b.
 
     Typically created with the ``-`` operator.
@@ -144,7 +148,7 @@ class DifferenceOf(CombinationOf):
     array([False,  True, False, False, False])
     """
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         left_mask = get_mask(self.left, points)
         # Return the xor restricted to the left region
         mask = left_mask ^ get_mask(self.right, points) & left_mask
@@ -152,7 +156,7 @@ class DifferenceOf(CombinationOf):
 
 
 @dataclass
-class SymmetricDifferenceOf(CombinationOf):
+class SymmetricDifferenceOf(CombinationOf[K]):
     """A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.
 
     Typically created with the ``^`` operator.
@@ -162,13 +166,13 @@ class SymmetricDifferenceOf(CombinationOf):
     array([False,  True, False,  True, False])
     """
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         mask = get_mask(self.left, points) ^ get_mask(self.right, points)
         return mask
 
 
 @dataclass
-class Range(Region):
+class Range(Region[K]):
     """Mask contains points of axis >= min and <= max.
 
     >>> r = Range("x", 1, 2)
@@ -176,34 +180,34 @@ class Range(Region):
     array([False,  True,  True, False, False])
     """
 
-    axis: A[str, schema(description="The name matching the axis to mask in spec")]
+    axis: A[K, schema(description="The name matching the axis to mask in spec")]
     min: A[float, schema(description="The minimum inclusive value in the region")]
     max: A[float, schema(description="The minimum inclusive value in the region")]
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         return [{self.axis}]
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         v = points[self.axis]
         mask = np.bitwise_and(v >= self.min, v <= self.max)
         return mask
 
 
 @dataclass
-class Rectangle(Region):
+class Rectangle(Region[K]):
     """Mask contains points of axis within a rotated xy rectangle.
 
     .. example_spec::
 
-        from scanspec.specs import Line
         from scanspec.regions import Rectangle
+        from scanspec.specs import Line
 
         grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
         spec = grid & Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30)
     """
 
-    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_axis: A[K, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[K, schema(description="The name matching the y axis of the spec")]
     x_min: A[float, schema(description="Minimum inclusive x value in the region")]
     y_min: A[float, schema(description="Minimum inclusive y value in the region")]
     x_max: A[float, schema(description="Maximum inclusive x value in the region")]
@@ -212,10 +216,10 @@ class Rectangle(Region):
         float, schema(description="Clockwise rotation angle of the rectangle")
     ] = 0.0
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         x = points[self.x_axis] - self.x_min
         y = points[self.y_axis] - self.y_min
         if self.angle != 0:
@@ -231,20 +235,20 @@ class Rectangle(Region):
 
 
 @dataclass
-class Polygon(Region):
+class Polygon(Region[K]):
     """Mask contains points of axis within a rotated xy polygon.
 
     .. example_spec::
 
-        from scanspec.specs import Line
         from scanspec.regions import Polygon
+        from scanspec.specs import Line
 
         grid = Line("y", 3, 8, 10) * ~Line("x", 1 ,8, 10)
         spec = grid & Polygon("x", "y", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])
     """
 
-    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_axis: A[K, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[K, schema(description="The name matching the y axis of the spec")]
     x_verts: A[
         List[float],
         schema(description="The Nx1 x coordinates of the polygons vertices", min_len=3),
@@ -254,10 +258,10 @@ class Polygon(Region):
         schema(description="The Nx1 y coordinates of the polygons vertices", min_len=3),
     ]
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         x = points[self.x_axis]
         y = points[self.y_axis]
         v1x, v1y = self.x_verts[-1], self.y_verts[-1]
@@ -276,28 +280,28 @@ class Polygon(Region):
 
 
 @dataclass
-class Circle(Region):
+class Circle(Region[K]):
     """Mask contains points of axis within an xy circle of given radius.
 
     .. example_spec::
 
-        from scanspec.specs import Line
         from scanspec.regions import Circle
+        from scanspec.specs import Line
 
         grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
         spec = grid & Circle("x", "y", 1, 2, 0.9)
     """
 
-    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_axis: A[K, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[K, schema(description="The name matching the y axis of the spec")]
     x_middle: A[float, schema(description="The central x point of the circle")]
     y_middle: A[float, schema(description="The central y point of the circle")]
     radius: A[float, schema(description="Radius of the circle", exc_min=0)]
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         x = points[self.x_axis] - self.x_middle
         y = points[self.y_axis] - self.y_middle
         mask = x * x + y * y <= (self.radius * self.radius)
@@ -305,20 +309,20 @@ class Circle(Region):
 
 
 @dataclass
-class Ellipse(Region):
+class Ellipse(Region[K]):
     """Mask contains points of axis within an xy ellipse of given radius.
 
     .. example_spec::
 
-        from scanspec.specs import Line
         from scanspec.regions import Ellipse
+        from scanspec.specs import Line
 
         grid = Line("y", 3, 8, 10) * ~Line("x", 1 ,8, 10)
         spec = grid & Ellipse("x", "y", 5, 5, 2, 3, 75)
     """
 
-    x_axis: A[str, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[str, schema(description="The name matching the y axis of the spec")]
+    x_axis: A[K, schema(description="The name matching the x axis of the spec")]
+    y_axis: A[K, schema(description="The name matching the y axis of the spec")]
     x_middle: A[float, schema(description="The central x point of the ellipse")]
     y_middle: A[float, schema(description="The central y point of the ellipse")]
     x_radius: A[
@@ -331,10 +335,10 @@ class Ellipse(Region):
     ]
     angle: A[float, schema(description="The angle of the ellipse (degrees)")] = 0.0
 
-    def axis_sets(self) -> List[Set[str]]:
+    def axis_sets(self) -> List[Set[K]]:
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints) -> np.ndarray:
+    def mask(self, points: AxesPoints[K]) -> np.ndarray:
         x = points[self.x_axis] - self.x_middle
         y = points[self.y_axis] - self.y_middle
         if self.angle != 0:
@@ -348,10 +352,11 @@ class Ellipse(Region):
         return mask
 
 
-def find_regions(obj) -> Iterator[Region]:
+def find_regions(obj) -> Iterator[Region[K]]:
     """Recursively yield Regions from obj and its children."""
     if is_dataclass(obj):
         if isinstance(obj, Region):
             yield obj
         for name in obj.__dict__.keys():
-            yield from find_regions(getattr(obj, name))
+            regions: Iterator[Region[K]] = find_regions(getattr(obj, name))
+            yield from regions

@@ -16,7 +16,7 @@ def test_line_path() -> None:
 
 
 def test_line_midpoints() -> None:
-    x = "x"
+    x: str = "x"
     inst = Line(x, 0, 1, 5)
     it = inst.midpoints()
     assert it.axes == [x]

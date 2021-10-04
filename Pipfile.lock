@@ -65,10 +65,10 @@
         },
         "apischema": {
             "hashes": [
-                "sha256:6c6a8ea1278767140f3807b03cd9986ebe9baf1deb7aba3724504f2410644a45",
-                "sha256:7543fd50405154f8268323af4b8c0f74b9f6613c56051049ca7aa0fd5f115f9e"
+                "sha256:345836c4b90055d7bd0d44c822e93dd76b4ceb197f6ee1dda7092061981a774a",
+                "sha256:c9bcaa901bbbca8699d6ebb05beeff47fac04706bfa358c6b264c10102a5d6c0"
             ],
-            "version": "==0.15.5"
+            "version": "==0.15.7"
         },
         "async-timeout": {
             "hashes": [
@@ -428,10 +428,10 @@
         },
         "apischema": {
             "hashes": [
-                "sha256:6c6a8ea1278767140f3807b03cd9986ebe9baf1deb7aba3724504f2410644a45",
-                "sha256:7543fd50405154f8268323af4b8c0f74b9f6613c56051049ca7aa0fd5f115f9e"
+                "sha256:345836c4b90055d7bd0d44c822e93dd76b4ceb197f6ee1dda7092061981a774a",
+                "sha256:c9bcaa901bbbca8699d6ebb05beeff47fac04706bfa358c6b264c10102a5d6c0"
             ],
-            "version": "==0.15.5"
+            "version": "==0.15.7"
         },
         "appdirs": {
             "hashes": [

@@ -3,12 +3,11 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    ClassVar,
     Dict,
+    Generic,
     Iterable,
     Iterator,
     List,
-    Mapping,
     Optional,
     Sequence,
     Type,
@@ -16,15 +15,15 @@ from typing import (
 )
 
 import numpy as np
-from apischema import deserialize, deserializer, serialize, serializer, type_name
+from apischema import deserializer, serializer, type_name
 from apischema.conversions import Conversion
 from apischema.metadata import conversion
 from apischema.objects import object_deserialization
 from apischema.tagged_unions import Tagged, TaggedUnion, get_tagged
+from apischema.utils import to_pascal_case
 
 __all__ = [
     "alternative_constructor",
-    "Serializable",
     "AxesPoints",
     "if_instance_do",
     "Frames",
@@ -33,6 +32,7 @@ __all__ = [
     "squash_frames",
     "Path",
     "Midpoints",
+    "as_tagged_union",
 ]
 
 
@@ -44,7 +44,6 @@ def _rec_subclasses(cls: type) -> Iterator[type]:
 
 # {cls_name: [functions]}
 _alternative_constructors: Dict[str, List[Callable]] = {}
-
 if TYPE_CHECKING:
     # Close enough for mypy
     alternative_constructor = staticmethod
@@ -72,108 +71,91 @@ else:
         return staticmethod(f)
 
 
-def _as_tagged_union(cls: Type):
+generic_name = type_name(lambda cls, *args: cls.__name__)
+
+
+def as_tagged_union(cls: Type):
+    params = tuple(getattr(cls, "__parameters__", ()))
+    tagged_union_bases: tuple = (TaggedUnion,)
+    if params:
+        tagged_union_bases = (TaggedUnion, Generic[params])  # type: ignore
+        generic_name(cls)
+        prev_init_subclass = getattr(cls, "__init_subclass__", None)
+
+        def __init_subclass__(cls, **kwargs):
+            if prev_init_subclass is not None:
+                prev_init_subclass(**kwargs)
+            generic_name(cls)
+
+        cls.__init_subclass__ = classmethod(__init_subclass__)  # type: ignore
+
+    def with_params(cls: type) -> Any:
+        return cls[params] if params else cls  # type: ignore
+
     def serialization() -> Conversion:
-        serialization_union = new_class(
-            f"Tagged{cls.__name__}Union",
-            (TaggedUnion,),
-            exec_body=lambda ns: ns.update(
-                {
-                    "__annotations__": {
-                        sub.__name__: Tagged[sub]  # type: ignore
-                        for sub in _rec_subclasses(cls)
-                    }
-                }
-            ),
+        annotations = {
+            # Assume that subclasses have same generic parameters than cls
+            sub.__name__: Tagged[with_params(sub)]  # type: ignore
+            for sub in _rec_subclasses(cls)
+        }
+        namespace = {"__annotations__": annotations}
+        tagged_union = new_class(
+            cls.__name__, tagged_union_bases, exec_body=lambda ns: ns.update(namespace)
         )
         return Conversion(
-            lambda obj: serialization_union(**{obj.__class__.__name__: obj}),
-            source=cls,
-            target=serialization_union,
-            # Conversion must not be inherited because it would lead to infinite
-            # recursion otherwise
+            lambda obj: tagged_union(**{obj.__class__.__name__: obj}),
+            source=with_params(cls),
+            target=with_params(tagged_union),
+            # Conversion must not be inherited because it would lead to
+            # infinite recursion otherwise
             inherited=False,
         )
 
+    def type_name_factory_for_subclass(sub):
+        return type_name(lambda cls, *args: to_pascal_case(cls.__name__ + sub.__name__))
+
     def deserialization() -> Conversion:
         annotations: Dict[str, Any] = {}
-        deserialization_namespace: Dict[str, Any] = {"__annotations__": annotations}
+        namespace: Dict[str, Any] = {"__annotations__": annotations}
         for sub in _rec_subclasses(cls):
-            annotations[sub.__name__] = Tagged[sub]  # type: ignore
+            # Assume that subclasses have same generic parameters than cls
+            annotations[sub.__name__] = Tagged[with_params(sub)]  # type: ignore
             # Add tagged fields for all its alternative constructors
             for constructor in _alternative_constructors.get(sub.__name__, ()):
                 # Build the alias of the field
-                alias = (
-                    "".join(map(str.capitalize, constructor.__name__.split("_")))
-                    + sub.__name__
-                )
+                alias = to_pascal_case(constructor.__name__ + sub.__name__)
                 # object_deserialization uses get_type_hints, but the constructor
                 # return type is stringified and the class not defined yet,
                 # so it must be assigned manually
-                constructor.__annotations__["return"] = sub
-                # Add constructor tagged field with its conversion
-                annotations[alias] = Tagged[sub]  # type: ignore
-                deserialization_namespace[alias] = Tagged(
-                    conversion(
-                        # Use object_deserialization to wrap constructor as deserializer
-                        deserialization=object_deserialization(
-                            constructor, type_name(alias)
-                        )
-                    )
+                constructor.__annotations__["return"] = with_params(sub)
+                # Use object_deserialization to wrap constructor as deserializer
+                deserialization = object_deserialization(
+                    constructor, type_name_factory_for_subclass(sub)
                 )
+                # Add constructor tagged field with its conversion
+                annotations[alias] = Tagged[with_params(sub)]  # type: ignore
+                namespace[alias] = Tagged(conversion(deserialization=deserialization))
         # Create the deserialization tagged union class
-        deserialization_union = new_class(
-            f"Tagged{cls.__name__}Union",
-            (TaggedUnion,),
-            exec_body=lambda ns: ns.update(deserialization_namespace),
+        tagged_union = new_class(
+            cls.__name__, tagged_union_bases, exec_body=lambda ns: ns.update(namespace)
         )
         return Conversion(
-            lambda obj: get_tagged(obj)[1], source=deserialization_union, target=cls
+            lambda obj: get_tagged(obj)[1],
+            source=with_params(tagged_union),
+            target=with_params(cls),
         )
 
     deserializer(lazy=deserialization, target=cls)
     serializer(lazy=serialization, source=cls)
+    return cls
 
 
-#: A subclass of `Serializable`
-S = TypeVar("S", bound="Serializable")
-
-
-class Serializable:
-    """Base class for registering apischema (de)serialization conversions.
-
-    Each direct subclass will be registered for (de)serialization as a tagged union
-    of its subclasses, using the pattern documented here:
-    https://wyfo.github.io/apischema/examples/subclass_tagged_union/
-    """
-
-    # Base class which will directly inherit from Serializable
-    _base_serializable: ClassVar[Type["Serializable"]]
-
-    def __init_subclass__(cls, **kwargs):
-        """Register immediate baseclasses of Serializable as tagged unions."""
-        super().__init_subclass__(**kwargs)
-        if Serializable in cls.__bases__:
-            cls._base_serializable = cls
-            _as_tagged_union(cls)
-
-    def serialize(self) -> Mapping[str, Any]:
-        """Serialize to a dictionary representation."""
-        # Base serializable class must be passed to serialize in order to use its
-        # registered conversion (which is not inherited)
-        return serialize(self._base_serializable, self)
-
-    @classmethod
-    def deserialize(cls: Type[S], serialization: Mapping[str, Any]) -> S:
-        """Deserialize from a dictionary representation."""
-        inst = deserialize(cls._base_serializable, serialization)
-        assert isinstance(inst, cls)
-        return inst
-
+#: Type of an axis
+K = TypeVar("K")
 
 #: Map of axes to points_ndarray
 #: E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}
-AxesPoints = Dict[str, np.ndarray]
+AxesPoints = Dict[K, np.ndarray]
 
 
 def if_instance_do(x, cls: Type, func: Callable):
@@ -191,7 +173,7 @@ def if_instance_do(x, cls: Type, func: Callable):
 F = TypeVar("F", bound="Frames")
 
 
-class Frames:
+class Frames(Generic[K]):
     """Represents a series of scan frames along a number of axes.
 
     During a scan each axis will traverse lower-midpoint-upper for each frame.
@@ -220,9 +202,9 @@ class Frames:
 
     def __init__(
         self,
-        midpoints: AxesPoints,
-        lower: AxesPoints = None,
-        upper: AxesPoints = None,
+        midpoints: AxesPoints[K],
+        lower: AxesPoints[K] = None,
+        upper: AxesPoints[K] = None,
         gap: np.ndarray = None,
     ):
         #: The midpoints of scan frames for each axis
@@ -257,7 +239,7 @@ class Frames:
         lengths.add(len(self.gap))
         assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
 
-    def axes(self) -> List[str]:
+    def axes(self) -> List[K]:
         """The axes which will move during the scan.
 
         These will be present in `midpoints`, `lower` and `upper`.
@@ -269,7 +251,7 @@ class Frames:
         # All axespoints arrays are same length, pick the first one
         return len(self.gap)
 
-    def extract(self: F, indices: np.ndarray, calculate_gap=True) -> "Frames":
+    def extract(self: F, indices: np.ndarray, calculate_gap=True) -> "Frames[K]":
         """Return a new Frames object restricted to the indices provided.
 
         Args:
@@ -282,7 +264,7 @@ class Frames:
         """
         dim_indices = indices % len(self)
 
-        def extract_dict(ds: Iterable[AxesPoints]) -> AxesPoints:
+        def extract_dict(ds: Iterable[AxesPoints[K]]) -> AxesPoints[K]:
             for d in ds:
                 return {k: v[dim_indices] for k, v in d.items()}
             return {}
@@ -311,7 +293,7 @@ class Frames:
         """
         assert self.axes() == other.axes(), f"axes {self.axes()} != {other.axes()}"
 
-        def concat_dict(ds: Sequence[AxesPoints]) -> AxesPoints:
+        def concat_dict(ds: Sequence[AxesPoints[K]]) -> AxesPoints[K]:
             # Concat each array in midpoints, lower, upper. E.g.
             # lower[ax] = np.concatenate(self.lower[ax], other.lower[ax])
             return {a: np.concatenate([d[a] for d in ds]) for a in self.axes()}
@@ -339,7 +321,7 @@ class Frames:
         overlapping = list(set(self.axes()).intersection(other.axes()))
         assert not overlapping, f"Zipping would overwrite axes {overlapping}"
 
-        def zip_dict(ds: Sequence[AxesPoints]) -> AxesPoints:
+        def zip_dict(ds: Sequence[AxesPoints[K]]) -> AxesPoints[K]:
             # Merge dicts for midpoints, lower, upper. E.g.
             # lower[ax] = {**self.lower[ax], **other.lower[ax]}
             return dict(kv for d in ds for kv in d.items())
@@ -354,7 +336,7 @@ class Frames:
 
 def _merge_frames(
     *stack: F,
-    dict_merge=Callable[[Sequence[AxesPoints]], AxesPoints],
+    dict_merge=Callable[[Sequence[AxesPoints[K]]], AxesPoints[K]],
     gap_merge=Callable[[Sequence[np.ndarray]], Optional[np.ndarray]],
 ) -> F:
     types = set(type(fs) for fs in stack)
@@ -375,14 +357,14 @@ def _merge_frames(
     )
 
 
-class SnakedFrames(Frames):
+class SnakedFrames(Frames[K]):
     """Like a `Frames` object, but each alternate repetition will run in reverse."""
 
     def __init__(
         self,
-        midpoints: AxesPoints,
-        lower: AxesPoints = None,
-        upper: AxesPoints = None,
+        midpoints: AxesPoints[K],
+        lower: AxesPoints[K] = None,
+        upper: AxesPoints[K] = None,
         gap: np.ndarray = None,
     ):
         super().__init__(midpoints, lower=lower, upper=upper, gap=gap)
@@ -391,11 +373,11 @@ class SnakedFrames(Frames):
         self.gap[0] = False
 
     @classmethod
-    def from_frames(cls: Type[F], frames: Frames) -> F:
+    def from_frames(cls: Type[F], frames: Frames[K]) -> F:
         """Create a snaked version of a `Frames` object."""
         return cls(frames.midpoints, frames.lower, frames.upper, frames.gap)
 
-    def extract(self: F, indices: np.ndarray, calculate_gap=True) -> Frames:
+    def extract(self: F, indices: np.ndarray, calculate_gap=True) -> Frames[K]:
         """Return a new Frames object restricted to the indices provided.
 
         Args:
@@ -442,12 +424,12 @@ class SnakedFrames(Frames):
         )
 
 
-def gap_between_frames(frames1: Frames, frames2: Frames) -> bool:
+def gap_between_frames(frames1: Frames[K], frames2: Frames[K]) -> bool:
     """Is there a gap between end of frames1 and start of frames2."""
     return any(frames1.upper[a][-1] != frames2.lower[a][0] for a in frames1.axes())
 
 
-def squash_frames(stack: List[Frames], check_path_changes=True) -> Frames:
+def squash_frames(stack: List[Frames[K]], check_path_changes=True) -> Frames[K]:
     """Squash a stack of nested Frames into a single one.
 
     Args:
@@ -499,7 +481,7 @@ def squash_frames(stack: List[Frames], check_path_changes=True) -> Frames:
     return squashed
 
 
-class Path:
+class Path(Generic[K]):
     """A consumable route through a stack of Frames, representing a scan path.
 
     Args:
@@ -513,7 +495,7 @@ class Path:
         `iterate-a-spec`
     """
 
-    def __init__(self, stack: List[Frames], start: int = 0, num: int = None):
+    def __init__(self, stack: List[Frames[K]], start: int = 0, num: int = None):
         #: The Frames stack describing the scan, from slowest to fastest moving
         self.stack = stack
         #: Index that is next to be consumed
@@ -526,7 +508,7 @@ class Path:
         if num is not None and start + num < self.end_index:
             self.end_index = start + num
 
-    def consume(self, num: int = None) -> Frames:
+    def consume(self, num: int = None) -> Frames[K]:
         """Consume at most num frames from the Path and return as a Frames object.
 
         >>> fx = SnakedFrames({"x": np.array([1, 2])})
@@ -545,7 +527,7 @@ class Path:
             end_index = min(self.index + num, self.end_index)
         indices = np.arange(self.index, end_index)
         self.index = end_index
-        stack = Frames({}, {}, {}, np.zeros(indices.shape, dtype=np.bool_))
+        stack: Frames[K] = Frames({}, {}, {}, np.zeros(indices.shape, dtype=np.bool_))
         # Example numbers below from a 2x3x4 ZxYxX scan
         for i, frames in enumerate(self.stack):
             # Number of times each frame will repeat: Z:12, Y:4, X:1
@@ -577,7 +559,7 @@ class Path:
         return self.end_index - self.index
 
 
-class Midpoints:
+class Midpoints(Generic[K]):
     """Convenience iterable that produces the scan midpoints for each axis.
 
     For better performance, consume from a `Path` instead.
@@ -599,7 +581,7 @@ class Midpoints:
     {'y': 4, 'x': 1}
     """
 
-    def __init__(self, stack: List[Frames]):
+    def __init__(self, stack: List[Frames[K]]):
         #: The stack of Frames describing the scan, from slowest to fastest moving
         self.stack = stack
 
@@ -615,7 +597,7 @@ class Midpoints:
         """The number of dictionaries that will be produced if iterated over."""
         return np.product([len(frames) for frames in self.stack])
 
-    def __iter__(self) -> Iterator[AxesPoints]:
+    def __iter__(self) -> Iterator[AxesPoints[K]]:
         """Yield {axis: midpoint} for each frame in the scan."""
         path = Path(self.stack)
         while len(path):
