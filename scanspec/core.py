@@ -78,7 +78,7 @@ def as_tagged_union(cls: Type):
     params = tuple(getattr(cls, "__parameters__", ()))
     tagged_union_bases: tuple = (TaggedUnion,)
     if params:
-        tagged_union_bases = (TaggedUnion, Generic[params])
+        tagged_union_bases = (TaggedUnion, Generic[params])  # type: ignore
         generic_name(cls)
         prev_init_subclass = getattr(cls, "__init_subclass__", None)
 
@@ -87,15 +87,15 @@ def as_tagged_union(cls: Type):
                 prev_init_subclass(**kwargs)
             generic_name(cls)
 
-        cls.__init_subclass__ = classmethod(__init_subclass__)
+        cls.__init_subclass__ = classmethod(__init_subclass__)  # type: ignore
 
     def with_params(cls: type) -> Any:
-        return cls[params] if params else cls
+        return cls[params] if params else cls  # type: ignore
 
     def serialization() -> Conversion:
         annotations = {
             # Assume that subclasses have same generic parameters than cls
-            sub.__name__: Tagged[with_params(sub)]
+            sub.__name__: Tagged[with_params(sub)]  # type: ignore
             for sub in _rec_subclasses(cls)
         }
         namespace = {"__annotations__": annotations}
@@ -115,11 +115,11 @@ def as_tagged_union(cls: Type):
         return type_name(lambda cls, *args: to_pascal_case(cls.__name__ + sub.__name__))
 
     def deserialization() -> Conversion:
-        annotations: dict[str, Any] = {}
-        namespace: dict[str, Any] = {"__annotations__": annotations}
+        annotations: Dict[str, Any] = {}
+        namespace: Dict[str, Any] = {"__annotations__": annotations}
         for sub in _rec_subclasses(cls):
             # Assume that subclasses have same generic parameters than cls
-            annotations[sub.__name__] = Tagged[with_params(sub)]
+            annotations[sub.__name__] = Tagged[with_params(sub)]  # type: ignore
             # Add tagged fields for all its alternative constructors
             for constructor in _alternative_constructors.get(sub.__name__, ()):
                 # Build the alias of the field
@@ -133,7 +133,7 @@ def as_tagged_union(cls: Type):
                     constructor, type_name_factory_for_subclass(sub)
                 )
                 # Add constructor tagged field with its conversion
-                annotations[alias] = Tagged[with_params(sub)]
+                annotations[alias] = Tagged[with_params(sub)]  # type: ignore
                 namespace[alias] = Tagged(conversion(deserialization=deserialization))
         # Create the deserialization tagged union class
         tagged_union = new_class(
@@ -515,7 +515,7 @@ class Path(Generic[K]):
             end_index = min(self.index + num, self.end_index)
         indices = np.arange(self.index, end_index)
         self.index = end_index
-        stack = Frames({}, {}, {}, np.zeros(indices.shape, dtype=np.bool_))
+        stack: Frames[K] = Frames({}, {}, {}, np.zeros(indices.shape, dtype=np.bool_))
         # Example numbers below from a 2x3x4 ZxYxX scan
         for i, dim in enumerate(self.stack):
             # Number of times each point will repeat: Z:12, Y:4, X:1

@@ -222,7 +222,9 @@ class Zip(Spec[K]):
         # Left pad frames_right with Nones so they are the same size
         npad = len(frames_left) - len(frames_right)
         padded_right: List[Optional[Frames[K]]] = [None] * npad
-        padded_right += frames_right
+        # Mypy doesn't like this because lists are invariant:
+        # https://github.com/python/mypy/issues/4244
+        padded_right += frames_right  # type: ignore
 
         # Work through, zipping them together one by one
         frames = []
@@ -404,7 +406,7 @@ class Squash(Spec[K]):
 
 
 def _dimensions_from_indexes(
-    func: Callable[[np.ndarray], Dict[str, np.ndarray]],
+    func: Callable[[np.ndarray], Dict[K, np.ndarray]],
     axes: List,
     num: int,
     bounds: bool,
@@ -430,7 +432,7 @@ def _dimensions_from_indexes(
     return [dimension]
 
 
-AAxis = A[str, schema(description="An identifier for what to move")]
+AAxis = A[K, schema(description="An identifier for what to move")]
 
 
 @dataclass
@@ -445,7 +447,7 @@ class Line(Spec[K]):
         spec = Line("x", 1, 2, 5)
     """
 
-    axis: AAxis
+    axis: AAxis[K]
     start: A[float, schema(description="Midpoint of the first point of the line")]
     stop: A[float, schema(description="Midpoint of the last point of the line")]
     num: ANum
@@ -453,7 +455,7 @@ class Line(Spec[K]):
     def axes(self) -> List:
         return [self.axis]
 
-    def _line_from_indexes(self, indexes: np.ndarray) -> Dict[str, np.ndarray]:
+    def _line_from_indexes(self, indexes: np.ndarray) -> Dict[K, np.ndarray]:
         if self.num == 1:
             # Only one point, stop-start gives length of one point
             step = self.stop - self.start
@@ -472,7 +474,7 @@ class Line(Spec[K]):
 
     @alternative_constructor
     def bounded(
-        axis: AAxis,
+        axis: AAxis[K],
         lower: A[
             float, schema(description="Lower bound of the first point of the line")
         ],
@@ -512,7 +514,7 @@ class Static(Spec[K]):
         spec = Line("y", 1, 2, 3) + Static("x", 3)
     """
 
-    axis: AAxis
+    axis: AAxis[K]
     value: A[float, schema(description="The value at each point")]
     num: ANum = 1
 
@@ -520,7 +522,7 @@ class Static(Spec[K]):
     def duration(
         duration: A[float, schema(description="The duration of each static point")],
         num: ANum = 1,
-    ) -> "Static[K]":
+    ) -> "Static[str]":
         """A static spec with no motion, only a duration repeated "num" times
 
         .. example_spec::
@@ -535,7 +537,7 @@ class Static(Spec[K]):
     def axes(self) -> List:
         return [self.axis]
 
-    def _repeats_from_indexes(self, indexes: np.ndarray) -> Dict[str, np.ndarray]:
+    def _repeats_from_indexes(self, indexes: np.ndarray) -> Dict[K, np.ndarray]:
         return {self.axis: np.full(len(indexes), self.value)}
 
     def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
@@ -557,8 +559,8 @@ class Spiral(Spec[K]):
         spec = Spiral("x", "y", 1, 5, 10, 50, 30)
     """
 
-    x_axis: A[str, schema(description="An identifier for what to move for x")]
-    y_axis: A[str, schema(description="An identifier for what to move for y")]
+    x_axis: A[K, schema(description="An identifier for what to move for x")]
+    y_axis: A[K, schema(description="An identifier for what to move for y")]
     x_start: A[float, schema(description="x centre of the spiral")]
     y_start: A[float, schema(description="y centre of the spiral")]
     x_range: A[float, schema(description="x width of the spiral")]
@@ -568,11 +570,11 @@ class Spiral(Spec[K]):
         float, schema(description="How much to rotate the angle of the spiral")
     ] = 0.0
 
-    def axes(self) -> List:
+    def axes(self) -> List[K]:
         # TODO: reversed from __init__ args, a good idea?
         return [self.y_axis, self.x_axis]
 
-    def _spiral_from_indexes(self, indexes: np.ndarray) -> Dict[str, np.ndarray]:
+    def _spiral_from_indexes(self, indexes: np.ndarray) -> Dict[K, np.ndarray]:
         # simplest spiral equation: r = phi
         # we want point spacing across area to be the same as between rings
         # so: sqrt(area / num) = ring_spacing
@@ -596,8 +598,8 @@ class Spiral(Spec[K]):
 
     @alternative_constructor
     def spaced(
-        x_axis: A[str, schema(description="An identifier for what to move for x")],
-        y_axis: A[str, schema(description="An identifier for what to move for y")],
+        x_axis: A[K, schema(description="An identifier for what to move for x")],
+        y_axis: A[K, schema(description="An identifier for what to move for y")],
         x_start: A[float, schema(description="x centre of the spiral")],
         y_start: A[float, schema(description="y centre of the spiral")],
         radius: A[float, schema(description="radius of the spiral")],
