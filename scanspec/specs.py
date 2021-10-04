@@ -1,24 +1,22 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, TypeVar
+from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, TypeVar
 
 import numpy as np
-from apischema import schema
+from apischema import deserialize, schema, serialize
 from typing_extensions import Annotated as A
 
 from .core import (
     Frames,
     Midpoints,
     Path,
-    Serializable,
     SnakedFrames,
     alternative_constructor,
+    as_tagged_union,
     gap_between_frames,
     if_instance_do,
     squash_frames,
 )
 from .regions import Region, get_mask
-
-T = TypeVar("T")
 
 __all__ = [
     "DURATION",
@@ -41,9 +39,13 @@ __all__ = [
 #: Can be used as a special key to indicate how long each point should be
 DURATION = "DURATION"
 
+#: Type of an axis
+K = TypeVar("K")
 
+
+@as_tagged_union
 @dataclass
-class Spec(Serializable):
+class Spec(Generic[K]):
     """A serializable representation of the type and parameters of a scan.
 
     Abstract baseclass for the specification of a scan. Supports operators:
@@ -54,51 +56,60 @@ class Spec(Serializable):
     - ``~``: `Snake` the Spec, reversing every other iteration of it
     """
 
-    def axes(self) -> List:
+    def axes(self) -> List[K]:
         """Return the list of axes that are present in the scan.
 
         Ordered from slowest moving to fastest moving.
         """
         raise NotImplementedError(self)
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
         """Produce a stack of nested `Frames` that form the scan.
 
         Ordered from slowest moving to fastest moving.
         """
         raise NotImplementedError(self)
 
-    def frames(self) -> Frames:
+    def frames(self) -> Frames[K]:
         """Expand all the scan `Frames` and return them."""
         return Path(self.calculate()).consume()
 
-    def midpoints(self) -> Midpoints:
+    def midpoints(self) -> Midpoints[K]:
         """Return `Midpoints` that can be iterated point by point."""
         return Midpoints(self.calculate(bounds=False))
 
-    def __rmul__(self, other) -> "Product":
+    def __rmul__(self, other) -> "Product[K]":
         return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
 
-    def __mul__(self, other) -> "Product":
+    def __mul__(self, other) -> "Product[K]":
         return if_instance_do(other, Spec, lambda o: Product(self, o))
 
-    def __and__(self, other) -> "Mask":
+    def __and__(self, other) -> "Mask[K]":
         return if_instance_do(other, Region, lambda o: Mask(self, o))
 
-    def __invert__(self) -> "Snake":
+    def __invert__(self) -> "Snake[K]":
         return Snake(self)
 
-    def zip(self, other: "Spec") -> "Zip":
+    def zip(self, other: "Spec") -> "Zip[K]":
         """`Zip` the Spec with another, iterating in tandem"""
         return Zip(self, other)
 
-    def concat(self, other: "Spec") -> "Concat":
+    def concat(self, other: "Spec") -> "Concat[K]":
         """`Concat` the Spec with another, iterating one after the other"""
         return Concat(self, other)
 
+    def serialize(self) -> Mapping[str, Any]:
+        """Serialize the spec to a dictionary"""
+        return serialize(Spec, self)
+
+    @classmethod
+    def deserialize(cls, serialized: Mapping[str, Any]) -> "Spec[K]":
+        """Deserialize the spec from a dictionary"""
+        return deserialize(cls, serialized)
+
 
 @dataclass
-class Product(Spec):
+class Product(Spec[K]):
     """Outer product of two Specs, nesting inner within outer.
 
     This means that inner will run in its entirety at each point in outer.
@@ -110,13 +121,13 @@ class Product(Spec):
         spec = Line("y", 1, 2, 3) * Line("x", 3, 4, 12)
     """
 
-    outer: A[Spec, schema(description="Will be executed once")]
-    inner: A[Spec, schema(description="Will be executed len(outer) times")]
+    outer: A[Spec[K], schema(description="Will be executed once")]
+    inner: A[Spec[K], schema(description="Will be executed len(outer) times")]
 
     def axes(self) -> List:
         return self.outer.axes() + self.inner.axes()
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
         frames_outer = self.outer.calculate(bounds=False, nested=nested)
         frames_inner = self.inner.calculate(bounds, nested=True)
         return frames_outer + frames_inner
@@ -126,7 +137,7 @@ ANum = A[int, schema(min=1, description="Number of frames to produce")]
 
 
 @dataclass
-class Repeat(Spec):
+class Repeat(Spec[K]):
     """Repeat an empty frame num times.
 
     Can be used on the outside of a scan to repeat the same scan many times.
@@ -160,12 +171,12 @@ class Repeat(Spec):
     def axes(self) -> List:
         return []
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
         return [Frames({}, gap=np.full(self.num, self.gap))]
 
 
 @dataclass
-class Zip(Spec):
+class Zip(Spec[K]):
     """Run two Specs in parallel, merging their midpoints together.
 
     Typically formed using `Spec.zip`.
@@ -188,18 +199,18 @@ class Zip(Spec):
     """
 
     left: A[
-        Spec,
+        Spec[K],
         schema(description="The left-hand Spec to Zip, will appear earlier in axes"),
     ]
     right: A[
-        Spec,
+        Spec[K],
         schema(description="The right-hand Spec to Zip, will appear later in axes"),
     ]
 
     def axes(self) -> List:
         return self.left.axes() + self.right.axes()
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
         frames_left = self.left.calculate(bounds, nested)
         frames_right = self.right.calculate(bounds, nested)
         assert len(frames_left) >= len(
@@ -218,8 +229,10 @@ class Zip(Spec):
 
         # Left pad frames_right with Nones so they are the same size
         npad = len(frames_left) - len(frames_right)
-        padded_right: List[Optional[Frames]] = [None] * npad
-        padded_right += frames_right
+        padded_right: List[Optional[Frames[K]]] = [None] * npad
+        # Mypy doesn't like this because lists are invariant:
+        # https://github.com/python/mypy/issues/4244
+        padded_right += frames_right  # type: ignore
 
         # Work through, zipping them together one by one
         frames = []
@@ -241,7 +254,7 @@ ACheckPathChanges = A[
 
 
 @dataclass
-class Mask(Spec):
+class Mask(Spec[K]):
     """Restrict Spec to only midpoints that fall inside the given Region.
 
     Typically created with the ``&`` operator. It also pushes down the
@@ -260,14 +273,14 @@ class Mask(Spec):
     See Also: `why-squash-can-change-path`
     """
 
-    spec: A[Spec, schema(description="The Spec containing the source midpoints")]
-    region: A[Region, schema(description="The Region that midpoints will be inside")]
+    spec: A[Spec[K], schema(description="The Spec containing the source midpoints")]
+    region: A[Region[K], schema(description="The Region that midpoints will be inside")]
     check_path_changes: ACheckPathChanges = True
 
     def axes(self) -> List:
         return self.spec.axes()
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
         frames = self.spec.calculate(bounds, nested)
         for axis_set in self.region.axis_sets():
             # Find the start and end index of any dimensions containing these axes
@@ -290,23 +303,23 @@ class Mask(Spec):
 
     # *+ bind more tightly than &|^ so without these overrides we
     # would need to add brackets to all combinations of Regions
-    def __or__(self, other: "Region") -> "Mask":
+    def __or__(self, other: "Region[K]") -> "Mask[K]":
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region | o))
 
-    def __and__(self, other: "Region") -> "Mask":
+    def __and__(self, other: "Region[K]") -> "Mask[K]":
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region & o))
 
-    def __xor__(self, other: "Region") -> "Mask":
+    def __xor__(self, other: "Region[K]") -> "Mask[K]":
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region ^ o))
 
     # This is here for completeness, tends not to be called as - binds
     # tighter than &
-    def __sub__(self, other: "Region") -> "Mask":
+    def __sub__(self, other: "Region[K]") -> "Mask[K]":
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
 
 
 @dataclass
-class Snake(Spec):
+class Snake(Spec[K]):
     """Run the Spec in reverse on every other iteration when nested.
 
     Typically created with the ``~`` operator.
@@ -319,13 +332,13 @@ class Snake(Spec):
     """
 
     spec: A[
-        Spec, schema(description="The Spec to run in reverse every other iteration")
+        Spec[K], schema(description="The Spec to run in reverse every other iteration")
     ]
 
     def axes(self) -> List:
         return self.spec.axes()
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
         return [
             SnakedFrames.from_frames(segment)
             for segment in self.spec.calculate(bounds, nested)
@@ -333,7 +346,7 @@ class Snake(Spec):
 
 
 @dataclass
-class Concat(Spec):
+class Concat(Spec[K]):
     """Concatenate two Specs together, running one after the other.
 
     Each Dimension of left and right must contain the same axes. Typically
@@ -347,13 +360,13 @@ class Concat(Spec):
     """
 
     left: A[
-        Spec,
+        Spec[K],
         schema(
             description="The left-hand Spec to Concat, midpoints will appear earlier"
         ),
     ]
     right: A[
-        Spec,
+        Spec[K],
         schema(
             description="The right-hand Spec to Concat, midpoints will appear later"
         ),
@@ -368,7 +381,7 @@ class Concat(Spec):
         assert left_axes == right_axes, f"axes {left_axes} != {right_axes}"
         return left_axes
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
         dim_left = squash_frames(
             self.left.calculate(bounds, nested), nested and self.check_path_changes
         )
@@ -380,7 +393,7 @@ class Concat(Spec):
 
 
 @dataclass
-class Squash(Spec):
+class Squash(Spec[K]):
     """Squash a stack of Frames together into a single expanded Frames object.
 
     See Also:
@@ -393,24 +406,24 @@ class Squash(Spec):
         spec = Squash(Line("y", 1, 2, 3) * Line("x", 0, 1, 4))
     """
 
-    spec: A[Spec, schema(description="The Spec to squash the dimensions of")]
+    spec: A[Spec[K], schema(description="The Spec to squash the dimensions of")]
     check_path_changes: ACheckPathChanges = True
 
     def axes(self) -> List:
         return self.spec.axes()
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
         dims = self.spec.calculate(bounds, nested)
         dim = squash_frames(dims, nested and self.check_path_changes)
         return [dim]
 
 
 def _dimensions_from_indexes(
-    func: Callable[[np.ndarray], Dict[str, np.ndarray]],
+    func: Callable[[np.ndarray], Dict[K, np.ndarray]],
     axes: List,
     num: int,
     bounds: bool,
-) -> List[Frames]:
+) -> List[Frames[K]]:
     # Calc num midpoints (fences) from 0.5 .. num - 0.5
     midpoints_calc = func(np.linspace(0.5, num - 0.5, num))
     midpoints = {a: midpoints_calc[a] for a in axes}
@@ -432,11 +445,11 @@ def _dimensions_from_indexes(
     return [dimension]
 
 
-AAxis = A[str, schema(description="An identifier for what to move")]
+AAxis = A[K, schema(description="An identifier for what to move")]
 
 
 @dataclass
-class Line(Spec):
+class Line(Spec[K]):
     """Linearly spaced frames with start and stop as first and last midpoints.
 
     .. example_spec::
@@ -446,7 +459,7 @@ class Line(Spec):
         spec = Line("x", 1, 2, 5)
     """
 
-    axis: AAxis
+    axis: AAxis[K]
     start: A[float, schema(description="Midpoint of the first point of the line")]
     stop: A[float, schema(description="Midpoint of the last point of the line")]
     num: ANum
@@ -454,7 +467,7 @@ class Line(Spec):
     def axes(self) -> List:
         return [self.axis]
 
-    def _line_from_indexes(self, indexes: np.ndarray) -> Dict[str, np.ndarray]:
+    def _line_from_indexes(self, indexes: np.ndarray) -> Dict[K, np.ndarray]:
         if self.num == 1:
             # Only one point, stop-start gives length of one point
             step = self.stop - self.start
@@ -466,14 +479,14 @@ class Line(Spec):
         first = self.start - step / 2
         return {self.axis: indexes * step + first}
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
         return _dimensions_from_indexes(
             self._line_from_indexes, self.axes(), self.num, bounds
         )
 
     @alternative_constructor
     def bounded(
-        axis: AAxis,
+        axis: AAxis[K],
         lower: A[
             float, schema(description="Lower bound of the first point of the line")
         ],
@@ -481,7 +494,7 @@ class Line(Spec):
             float, schema(description="Upper bound of the last point of the line")
         ],
         num: ANum,
-    ) -> "Line":
+    ) -> "Line[K]":
         """Specify a Line by extreme bounds instead of midpoints.
 
         .. example_spec::
@@ -502,7 +515,7 @@ class Line(Spec):
 
 
 @dataclass
-class Static(Spec):
+class Static(Spec[K]):
     """A static frame, repeated num times, with axis at value.
 
     Can be used to set axis=value at every point in a scan.
@@ -514,7 +527,7 @@ class Static(Spec):
         spec = Line("y", 1, 2, 3).zip(Static("x", 3))
     """
 
-    axis: AAxis
+    axis: AAxis[K]
     value: A[float, schema(description="The value at each point")]
     num: ANum = 1
 
@@ -522,7 +535,7 @@ class Static(Spec):
     def duration(
         duration: A[float, schema(description="The duration of each static point")],
         num: ANum = 1,
-    ) -> "Static":
+    ) -> "Static[str]":
         """A static spec with no motion, only a duration repeated "num" times.
 
         .. example_spec::
@@ -536,17 +549,17 @@ class Static(Spec):
     def axes(self) -> List:
         return [self.axis]
 
-    def _repeats_from_indexes(self, indexes: np.ndarray) -> Dict[str, np.ndarray]:
+    def _repeats_from_indexes(self, indexes: np.ndarray) -> Dict[K, np.ndarray]:
         return {self.axis: np.full(len(indexes), self.value)}
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
         )
 
 
 @dataclass
-class Spiral(Spec):
+class Spiral(Spec[K]):
     """Archimedean spiral of "x_axis" and "y_axis".
 
     Starts at centre point ("x_start", "y_start") with angle "rotate". Produces
@@ -559,8 +572,8 @@ class Spiral(Spec):
         spec = Spiral("x", "y", 1, 5, 10, 50, 30)
     """
 
-    x_axis: A[str, schema(description="An identifier for what to move for x")]
-    y_axis: A[str, schema(description="An identifier for what to move for y")]
+    x_axis: A[K, schema(description="An identifier for what to move for x")]
+    y_axis: A[K, schema(description="An identifier for what to move for y")]
     x_start: A[float, schema(description="x centre of the spiral")]
     y_start: A[float, schema(description="y centre of the spiral")]
     x_range: A[float, schema(description="x width of the spiral")]
@@ -570,11 +583,11 @@ class Spiral(Spec):
         float, schema(description="How much to rotate the angle of the spiral")
     ] = 0.0
 
-    def axes(self) -> List:
+    def axes(self) -> List[K]:
         # TODO: reversed from __init__ args, a good idea?
         return [self.y_axis, self.x_axis]
 
-    def _spiral_from_indexes(self, indexes: np.ndarray) -> Dict[str, np.ndarray]:
+    def _spiral_from_indexes(self, indexes: np.ndarray) -> Dict[K, np.ndarray]:
         # simplest spiral equation: r = phi
         # we want point spacing across area to be the same as between rings
         # so: sqrt(area / num) = ring_spacing
@@ -591,15 +604,15 @@ class Spiral(Spec):
             self.x_axis: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
         }
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames]:
+    def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self.num, bounds
         )
 
     @alternative_constructor
     def spaced(
-        x_axis: A[str, schema(description="An identifier for what to move for x")],
-        y_axis: A[str, schema(description="An identifier for what to move for y")],
+        x_axis: A[K, schema(description="An identifier for what to move for x")],
+        y_axis: A[K, schema(description="An identifier for what to move for y")],
         x_start: A[float, schema(description="x centre of the spiral")],
         y_start: A[float, schema(description="y centre of the spiral")],
         radius: A[float, schema(description="radius of the spiral")],
@@ -607,7 +620,7 @@ class Spiral(Spec):
         rotate: A[
             float, schema(description="How much to rotate the angle of the spiral"),
         ] = 0.0,
-    ) -> "Spiral":
+    ) -> "Spiral[K]":
         """Specify a Spiral equally spaced in "x_axis" and "y_axis".
 
         .. example_spec::
@@ -627,7 +640,7 @@ class Spiral(Spec):
         )
 
 
-def fly(spec: Spec, duration: float) -> Spec:
+def fly(spec: Spec[K], duration: float) -> Spec[K]:
     """Flyscan, zipping with fixed duration for every frame.
 
     Args:
@@ -643,7 +656,7 @@ def fly(spec: Spec, duration: float) -> Spec:
     return spec.zip(Static.duration(duration))
 
 
-def step(spec: Spec, duration: float, num: int = 1) -> Spec:
+def step(spec: Spec[K], duration: float, num: int = 1) -> Spec[K]:
     """Step scan, with num frames of given duration at each frame in the spec.
 
     Args:

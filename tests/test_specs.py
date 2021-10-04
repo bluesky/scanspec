@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from scanspec.core import Path, SnakedFrames
@@ -8,6 +10,7 @@ from scanspec.specs import (
     Line,
     Mask,
     Repeat,
+    Spec,
     Spiral,
     Squash,
     Static,
@@ -475,7 +478,7 @@ def test_beam_selector() -> None:
 
 def test_gap_repeat() -> None:
     # Check that no gap propogates to dim.gap for snaked axis
-    spec = Repeat(10, gap=False) * ~Line.bounded(x, 11, 19, 1)
+    spec: Spec[Any] = Repeat(10, gap=False) * ~Line.bounded(x, 11, 19, 1)
     dim = spec.frames()
     assert len(dim) == 10
     assert dim.lower == {x: pytest.approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19])}
@@ -486,7 +489,7 @@ def test_gap_repeat() -> None:
 
 def test_gap_repeat_non_snake() -> None:
     # Check that no gap doesn't propogate to dim.gap for non-snaked axis
-    spec = Repeat(3, gap=False) * Line.bounded(x, 11, 19, 1)
+    spec: Spec[Any] = Repeat(3, gap=False) * Line.bounded(x, 11, 19, 1)
     dim = spec.frames()
     assert len(dim) == 3
     assert dim.lower == {x: pytest.approx([11, 11, 11])}

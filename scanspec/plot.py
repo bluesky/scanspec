@@ -1,5 +1,5 @@
 from itertools import cycle
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterator, List
 
 import numpy as np
 from matplotlib import colors, patches
@@ -8,7 +8,7 @@ from mpl_toolkits.mplot3d import proj3d
 from scipy import interpolate
 
 from .core import Path
-from .regions import Circle, Ellipse, Polygon, Rectangle, find_regions
+from .regions import Circle, Ellipse, Polygon, Rectangle, Region, find_regions
 from .specs import DURATION, Spec
 
 __all__ = ["plot_spec"]
@@ -80,7 +80,7 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
             yield unscaled_splines
 
 
-def plot_spec(spec: Spec):
+def plot_spec(spec: Spec[Any]):
     """Plot a spec, drawing the path taken through the scan.
 
     Uses a different colour for each frame, grey for the turnarounds, and
@@ -123,7 +123,8 @@ def plot_spec(spec: Spec):
 
     # Plot any Regions
     if ndims <= 2:
-        for region in find_regions(spec):
+        regions: Iterator[Region[Any]] = find_regions(spec)
+        for region in regions:
             if isinstance(region, Rectangle):
                 xy = (region.x_min, region.y_min)
                 width = region.x_max - region.x_min
