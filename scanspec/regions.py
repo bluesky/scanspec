@@ -1,5 +1,5 @@
 from dataclasses import dataclass, is_dataclass
-from typing import Any, Generic, Iterator, List, Set, TypeVar
+from typing import Generic, Iterator, List, Set, TypeVar
 
 import numpy as np
 from apischema import schema
@@ -30,22 +30,22 @@ K = TypeVar("K")
 @as_tagged_union
 @dataclass
 class Region(Generic[K]):
-    """Abstract baseclass for a Region that can `Mask` a `Spec`. Supports operators:
+    """Abstract baseclass for a Region that can `Mask` a `Spec`.
+
+    Supports operators:
 
     - ``|``: `UnionOf` two Regions, midpoints present in either
-    - ``&``: `IntersectionOf` two Regions, points present in both
-    - ``-``: `DifferenceOf` two Regions, points present in first not second
-    - ``^``: `SymmetricDifferenceOf` two Regions, points present in one not both
+    - ``&``: `IntersectionOf` two Regions, midpoints present in both
+    - ``-``: `DifferenceOf` two Regions, midpoints present in first not second
+    - ``^``: `SymmetricDifferenceOf` two Regions, midpoints present in one not both
     """
 
     def axis_sets(self) -> List[Set[K]]:
-        """Implemented by subclasses to produce the non-overlapping sets of axes
-        this region spans"""
+        """Produce the non-overlapping sets of axes this region spans."""
         raise NotImplementedError(self)
 
     def mask(self, points: AxesPoints[K]) -> np.ndarray:
-        """Implemented by subclasses to produce a mask of which points are in
-        the region"""
+        """Produce a mask of which points are in the region."""
         raise NotImplementedError(self)
 
     def __or__(self, other) -> "UnionOf[K]":
@@ -62,8 +62,10 @@ class Region(Generic[K]):
 
 
 def get_mask(region: Region[K], points: AxesPoints[K]) -> np.ndarray:
-    """If there is an overlap of axes of region and frames return a
-    mask of the frames in the region, otherwise return all ones
+    """Return a mask of the points inside the region.
+
+    If there is an overlap of axes of region and points return a
+    mask of the points in the region, otherwise return all ones
     """
     axes = set(points)
     needs_mask = any(ks & axes for ks in region.axis_sets())
@@ -90,7 +92,7 @@ def _merge_axis_sets(axis_sets: List[Set[K]]) -> Iterator[Set[K]]:
 
 @dataclass
 class CombinationOf(Region[K]):
-    """Abstract baseclass for a combination of two regions, left and right"""
+    """Abstract baseclass for a combination of two regions, left and right."""
 
     left: A[Region[K], schema(description="The left-hand Region to combine")]
     right: A[Region[K], schema(description="The right-hand Region to combine")]
@@ -105,8 +107,9 @@ class CombinationOf(Region[K]):
 # Naming so we don't clash with typing.Union
 @dataclass
 class UnionOf(CombinationOf[K]):
-    """A point is in UnionOf(a, b) if it is in either a or b. Typically
-    created with the ``|`` operator
+    """A point is in UnionOf(a, b) if in either a or b.
+
+    Typically created with the ``|`` operator
 
     >>> r = Range("x", 0.5, 2.5) | Range("x", 1.5, 3.5)
     >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
@@ -120,8 +123,9 @@ class UnionOf(CombinationOf[K]):
 
 @dataclass
 class IntersectionOf(CombinationOf[K]):
-    """A point is in IntersectionOf(a, b) if it is in both a and b. Typically
-    created with the ``&`` operator
+    """A point is in IntersectionOf(a, b) if in both a and b.
+
+    Typically created with the ``&`` operator.
 
     >>> r = Range("x", 0.5, 2.5) & Range("x", 1.5, 3.5)
     >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
@@ -135,8 +139,9 @@ class IntersectionOf(CombinationOf[K]):
 
 @dataclass
 class DifferenceOf(CombinationOf[K]):
-    """A point is in DifferenceOf(a, b) if it is in a and not in b. Typically
-    created with the ``-`` operator
+    """A point is in DifferenceOf(a, b) if in a and not in b.
+
+    Typically created with the ``-`` operator.
 
     >>> r = Range("x", 0.5, 2.5) - Range("x", 1.5, 3.5)
     >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
@@ -152,8 +157,9 @@ class DifferenceOf(CombinationOf[K]):
 
 @dataclass
 class SymmetricDifferenceOf(CombinationOf[K]):
-    """A point is in SymmetricDifferenceOf(a, b) if it is in either a or b,
-    but not both. Typically created with the ``^`` operator
+    """A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.
+
+    Typically created with the ``^`` operator.
 
     >>> r = Range("x", 0.5, 2.5) ^ Range("x", 1.5, 3.5)
     >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
@@ -167,7 +173,7 @@ class SymmetricDifferenceOf(CombinationOf[K]):
 
 @dataclass
 class Range(Region[K]):
-    """Mask contains points of key >= min and <= max
+    """Mask contains points of axis >= min and <= max.
 
     >>> r = Range("x", 1, 2)
     >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
@@ -189,12 +195,12 @@ class Range(Region[K]):
 
 @dataclass
 class Rectangle(Region[K]):
-    """Mask contains points of axis within a rotated xy rectangle
+    """Mask contains points of axis within a rotated xy rectangle.
 
     .. example_spec::
 
-        from scanspec.specs import Line
         from scanspec.regions import Rectangle
+        from scanspec.specs import Line
 
         grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
         spec = grid & Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30)
@@ -230,12 +236,12 @@ class Rectangle(Region[K]):
 
 @dataclass
 class Polygon(Region[K]):
-    """Mask contains points of axis within a rotated xy polygon
+    """Mask contains points of axis within a rotated xy polygon.
 
     .. example_spec::
 
-        from scanspec.specs import Line
         from scanspec.regions import Polygon
+        from scanspec.specs import Line
 
         grid = Line("y", 3, 8, 10) * ~Line("x", 1 ,8, 10)
         spec = grid & Polygon("x", "y", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])
@@ -275,12 +281,12 @@ class Polygon(Region[K]):
 
 @dataclass
 class Circle(Region[K]):
-    """Mask contains points of axis within an xy circle of given radius
+    """Mask contains points of axis within an xy circle of given radius.
 
     .. example_spec::
 
-        from scanspec.specs import Line
         from scanspec.regions import Circle
+        from scanspec.specs import Line
 
         grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
         spec = grid & Circle("x", "y", 1, 2, 0.9)
@@ -304,12 +310,12 @@ class Circle(Region[K]):
 
 @dataclass
 class Ellipse(Region[K]):
-    """Mask contains points of axis within an xy ellipse of given radius
+    """Mask contains points of axis within an xy ellipse of given radius.
 
     .. example_spec::
 
-        from scanspec.specs import Line
         from scanspec.regions import Ellipse
+        from scanspec.specs import Line
 
         grid = Line("y", 3, 8, 10) * ~Line("x", 1 ,8, 10)
         spec = grid & Ellipse("x", "y", 5, 5, 2, 3, 75)
@@ -346,9 +352,8 @@ class Ellipse(Region[K]):
         return mask
 
 
-def find_regions(obj: Any) -> Iterator[Region[K]]:
-    """Recursively iterate over obj and its children, yielding any Region
-    instances found"""
+def find_regions(obj) -> Iterator[Region[K]]:
+    """Recursively yield Regions from obj and its children."""
     if is_dataclass(obj):
         if isinstance(obj, Region):
             yield obj

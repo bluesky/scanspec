@@ -3,6 +3,7 @@
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
     "python.linting.mypyEnabled": true,
+    "python.linting.pydocstyleEnabled": true,
     "python.linting.enabled": true,
     "python.testing.pytestArgs": [],
     "python.testing.unittestEnabled": false,
@@ -13,5 +14,5 @@
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
-    }
+    },
 }

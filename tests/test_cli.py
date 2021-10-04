@@ -6,7 +6,7 @@ import pytest
 from click.testing import CliRunner
 
 from scanspec import cli
-from scanspec.service import schema_text
+from scanspec.service import scanspec_schema_text
 
 
 def assert_min_max_2d(line, xmin, xmax, ymin, ymax, length=None):
@@ -219,4 +219,4 @@ def test_schema() -> None:
     result = runner.invoke(cli.schema)
     assert result.exit_code == 0
     # Note: Click.echo adds a newline when formatting the string
-    assert result.output == schema_text() + "\n"
+    assert result.output == scanspec_schema_text() + "\n"

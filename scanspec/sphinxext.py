@@ -7,9 +7,11 @@ from ._version_git import __version__
 
 @contextmanager
 def always_create_figures():
-    """Force matplotlib PlotDirective to always create figures, even
-    if source rst hasn't changed, as we often use example_spec from
-    within docstrings"""
+    """Force matplotlib PlotDirective to always create figures.
+
+    This is needed even if source rst hasn't changed, as we often use
+    example_spec from within docstrings
+    """
     orig_f = plot_directive.out_of_date
     # Patch the plot directive so it thinks all sources are out of date
     plot_directive.out_of_date = lambda o, d: True
@@ -20,6 +22,8 @@ def always_create_figures():
 
 
 class ExampleSpecDirective(plot_directive.PlotDirective):
+    """Runs `plot_spec` on the ``spec`` definied in the content."""
+
     def run(self):
         self.content = (
             ["# Example Spec", "", "from scanspec.plot import plot_spec"]
@@ -31,6 +35,7 @@ class ExampleSpecDirective(plot_directive.PlotDirective):
 
 
 def setup(app):
+    """Setup this extension in sphinx."""
     app.add_directive("example_spec", ExampleSpecDirective)
 
     return {

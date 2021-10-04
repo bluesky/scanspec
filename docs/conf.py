@@ -4,18 +4,7 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Path setup --------------------------------------------------------------
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-import os
-import sys
-
-import scanspec  # noqa
-
-sys.path.insert(0, os.path.abspath(os.path.join(__file__, "..", "..")))
-
+import scanspec
 
 # -- General configuration ------------------------------------------------
 
@@ -88,9 +77,6 @@ graphviz_output_format = "svg"
 # role, that is, for text marked up `like this`
 default_role = "any"
 
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ["_templates"]
-
 # The suffix of source filenames.
 source_suffix = ".rst"
 
@@ -123,7 +109,7 @@ rst_epilog = """
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_rtd_theme_github_versions"
 
 # Options for the sphinx rtd theme, use DLS blue
 html_theme_options = dict(style_nav_header_background="rgb(7, 43, 93)")

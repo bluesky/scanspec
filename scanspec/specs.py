@@ -21,6 +21,7 @@ from .regions import Region, get_mask
 T = TypeVar("T")
 
 __all__ = [
+    "DURATION",
     "Spec",
     "Product",
     "Repeat",
@@ -32,7 +33,6 @@ __all__ = [
     "Line",
     "Static",
     "Spiral",
-    "DURATION",
     "fly",
     "step",
 ]
@@ -48,8 +48,7 @@ K = TypeVar("K")
 @as_tagged_union
 @dataclass
 class Spec(Generic[K]):
-    """A serializable representation of the type, parameters and axis names
-    required to produce scan Frames
+    """A serializable representation of the type and parameters of a scan.
 
     Abstract baseclass for the specification of a scan. Supports operators:
 
@@ -61,21 +60,25 @@ class Spec(Generic[K]):
     """
 
     def axes(self) -> List[K]:
-        """Return the list of axes that are present in the scan, from
-        slowest moving to fastest moving"""
+        """Return the list of axes that are present in the scan.
+
+        Ordered from slowest moving to fastest moving.
+        """
         raise NotImplementedError(self)
 
     def calculate(self, bounds=True, nested=False) -> List[Frames[K]]:
-        """Implemented by subclasses to produce a stack of nested `Frames` that
-        contribute to midpoints, from slowest moving to fastest moving"""
+        """Produce a stack of nested `Frames` that form the scan.
+
+        Ordered from slowest moving to fastest moving.
+        """
         raise NotImplementedError(self)
 
     def frames(self) -> Frames[K]:
-        """Expand all the scan `Frames` and return it"""
+        """Expand all the scan `Frames` and return them."""
         return Path(self.calculate()).consume()
 
-    def midpoints(self) -> Midpoints:
-        """Return `Midpoints` that can be iterated point by point"""
+    def midpoints(self) -> Midpoints[K]:
+        """Return `Midpoints` that can be iterated point by point."""
         return Midpoints(self.calculate(bounds=False))
 
     def __rmul__(self, other) -> "Product[K]":
@@ -105,8 +108,9 @@ class Spec(Generic[K]):
 
 @dataclass
 class Product(Spec[K]):
-    """Outer product of two Specs, nesting inner within outer. This means that
-    inner will run in its entirety at each point in outer.
+    """Outer product of two Specs, nesting inner within outer.
+
+    This means that inner will run in its entirety at each point in outer.
 
     .. example_spec::
 
@@ -132,8 +136,9 @@ ANum = A[int, schema(min=1, description="Number of frames to produce")]
 
 @dataclass
 class Repeat(Spec[K]):
-    """Repeat an empty frame num times. Can be used on the outside of a scan to
-    repeat the same scan many times
+    """Repeat an empty frame num times.
+
+    Can be used on the outside of a scan to repeat the same scan many times.
 
     .. example_spec::
 
@@ -141,7 +146,7 @@ class Repeat(Spec[K]):
 
         spec = 2 * ~Line.bounded("x", 3, 4, 1)
 
-    If you want snaked axes to have no gap between iterations you can do
+    If you want snaked axes to have no gap between iterations you can do:
 
     .. example_spec::
 
@@ -170,8 +175,9 @@ class Repeat(Spec[K]):
 
 @dataclass
 class Zip(Spec[K]):
-    """Run two Specs in parallel, merging their midpoints together. Typically
-    formed using the ``+`` operator.
+    """Run two Specs in parallel, merging their midpoints together.
+
+    Typically formed using the ``+`` operator.
 
     Stacks of Frames are merged by:
 
@@ -247,8 +253,7 @@ ACheckPathChanges = A[
 
 @dataclass
 class Mask(Spec[K]):
-    """Restrict the given Spec to only the midpoints that fall inside of the
-    given Region.
+    """Restrict Spec to only midpoints that fall inside the given Region.
 
     Typically created with the ``&`` operator. It also pushes down the
     ``& | ^ -`` operators to its `Region` to avoid the need for brackets on
@@ -256,14 +261,14 @@ class Mask(Spec[K]):
 
     If a Region spans multiple Frames objects, they will be squashed together.
 
-    See Also: `why-squash-can-change-path`
-
     .. example_spec::
 
         from scanspec.regions import Circle
         from scanspec.specs import Line
 
         spec = Line("y", 1, 3, 3) * Line("x", 3, 5, 5) & Circle("x", "y", 4, 2, 1.2)
+
+    See Also: `why-squash-can-change-path`
     """
 
     spec: A[Spec[K], schema(description="The Spec containing the source midpoints")]
@@ -313,8 +318,9 @@ class Mask(Spec[K]):
 
 @dataclass
 class Snake(Spec[K]):
-    """Run the Spec in reverse on every other iteration when nested inside
-    another Spec. Typically created with the ``~`` operator.
+    """Run the Spec in reverse on every other iteration when nested.
+
+    Typically created with the ``~`` operator.
 
     .. example_spec::
 
@@ -339,8 +345,9 @@ class Snake(Spec[K]):
 
 @dataclass
 class Concat(Spec[K]):
-    """Concatenate two Specs together, running one after the other. Each Dimension
-    of left and right must contain the same axes.
+    """Concatenate two Specs together, running one after the other.
+
+    Each Dimension of left and right must contain the same axes.
 
     .. example_spec::
 
@@ -379,8 +386,7 @@ class Concat(Spec[K]):
 
 @dataclass
 class Squash(Spec[K]):
-    """Squash the Dimensions together of the scan (but not the midpoints) into one
-    linear stack.
+    """Squash a stack of Frames together into a single expanded Frames object.
 
     See Also:
         `why-squash-can-change-path`
@@ -437,8 +443,7 @@ AAxis = A[K, schema(description="An identifier for what to move")]
 
 @dataclass
 class Line(Spec[K]):
-    """Linearly spaced points in the given axis, with first and last points
-    centred on start and stop.
+    """Linearly spaced frames with start and stop as first and last midpoints.
 
     .. example_spec::
 
@@ -483,7 +488,7 @@ class Line(Spec[K]):
         ],
         num: ANum,
     ) -> "Line[K]":
-        """Specify a Line by extreme bounds instead of centre points.
+        """Specify a Line by extreme bounds instead of midpoints.
 
         .. example_spec::
 
@@ -504,8 +509,9 @@ class Line(Spec[K]):
 
 @dataclass
 class Static(Spec[K]):
-    """A static point, repeated "num" times, with "axis" at "value". Can
-    be used to set axis=value at every point in a scan.
+    """A static frame, repeated num times, with axis at value.
+
+    Can be used to set axis=value at every point in a scan.
 
     .. example_spec::
 
@@ -523,7 +529,7 @@ class Static(Spec[K]):
         duration: A[float, schema(description="The duration of each static point")],
         num: ANum = 1,
     ) -> "Static[str]":
-        """A static spec with no motion, only a duration repeated "num" times
+        """A static spec with no motion, only a duration repeated "num" times.
 
         .. example_spec::
 
@@ -531,7 +537,6 @@ class Static(Spec[K]):
 
             spec = Line("y", 1, 2, 3) + Static.duration(0.1)
         """
-
         return Static(DURATION, duration, num)
 
     def axes(self) -> List:
@@ -548,9 +553,10 @@ class Static(Spec[K]):
 
 @dataclass
 class Spiral(Spec[K]):
-    """Archimedean spiral of "x_axis" and "y_axis", starting at centre point
-    ("x_start", "y_start") with angle "rotate". Produces "num" points
-    in a spiral spanning width of "x_range" and height of "y_range"
+    """Archimedean spiral of "x_axis" and "y_axis".
+
+    Starts at centre point ("x_start", "y_start") with angle "rotate". Produces
+    "num" points in a spiral spanning width of "x_range" and height of "y_range"
 
     .. example_spec::
 
@@ -608,8 +614,7 @@ class Spiral(Spec[K]):
             float, schema(description="How much to rotate the angle of the spiral"),
         ] = 0.0,
     ) -> "Spiral[K]":
-        """Specify a Spiral equally spaced in "x_axis" and "y_axis" by specifying
-        the "radius" and difference between each ring of the spiral "dr"
+        """Specify a Spiral equally spaced in "x_axis" and "y_axis".
 
         .. example_spec::
 
@@ -629,11 +634,11 @@ class Spiral(Spec[K]):
 
 
 def fly(spec: Spec[K], duration: float) -> Spec[K]:
-    """Flyscan, zipping TIME=duration for every frame
+    """Flyscan, zipping with fixed duration for every frame.
 
     Args:
         spec: The source `Spec` to continuously move
-        duration: How long to spend at each point in the spec
+        duration: How long to spend at each frame in the spec
 
     .. example_spec::
 
@@ -645,13 +650,12 @@ def fly(spec: Spec[K], duration: float) -> Spec[K]:
 
 
 def step(spec: Spec[K], duration: float, num: int = 1) -> Spec[K]:
-    """Step scan, adding num x TIME=duration as an inner dimension for
-    every midpoint
+    """Step scan, with num frames of given duration at each frame in the spec.
 
     Args:
         spec: The source `Spec` with midpoints to move to and stop
-        duration: The duration of each scan point
-        num: Number of points to produce with given duration at each of point
+        duration: The duration of each scan frame
+        num: Number of frames to produce with given duration at each of frame
             in the spec
 
     .. example_spec::

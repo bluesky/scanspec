@@ -8,7 +8,7 @@ import pytest
 from graphql.error.graphql_error import GraphQLError
 from graphql.type.schema import GraphQLSchema, assert_schema
 
-from scanspec.service import Points, schema, schema_text
+from scanspec.service import Points, scanspec_schema, scanspec_schema_text
 
 
 # Returns a dummy 'points' dataclass for resolver testing
@@ -44,7 +44,7 @@ def test_validate_spec() -> None:
     validateSpec(spec: {BoundedLine: {axis: "x", lower: 0, upper: 1, num: 5}})
 }
     """
-    assert graphql_exec(schema, query_str) == {
+    assert graphql_exec(scanspec_schema, query_str) == {
         "validateSpec": {"Line": {"axis": "x", "start": 0.1, "stop": 0.9, "num": 5}}
     }
 
@@ -61,7 +61,7 @@ def test_get_points_axis() -> None:
   }
 }
     """
-    assert graphql_exec(schema, query_str) == {
+    assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {"axes": [{"axis": "x"}, {"axis": "y"}]}
     }
 
@@ -79,7 +79,7 @@ def test_get_points_lower() -> None:
   }
 }
     """
-    assert graphql_exec(schema, query_str) == {
+    assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "axes": [
                 {"lower": {"floatList": [0, 0, 0, 1, 1, 1]}},
@@ -102,7 +102,7 @@ def test_get_points_midpoints() -> None:
   }
 }
     """
-    assert graphql_exec(schema, query_str) == {
+    assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "axes": [
                 {"midpoints": {"floatList": [0, 0, 0, 1, 1, 1]}},
@@ -125,7 +125,7 @@ def test_get_points_upper() -> None:
   }
 }
     """
-    assert graphql_exec(schema, query_str) == {
+    assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "axes": [
                 {"upper": {"floatList": [0, 0, 0, 1, 1, 1]}},
@@ -150,7 +150,7 @@ def test_get_points_upper_limited() -> None:
   }
 }
     """
-    assert graphql_exec(schema, query_str) == {
+    assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "totalFrames": 25,
             "returnedFrames": 4,
@@ -175,7 +175,7 @@ def test_get_points_smallest_step() -> None:
 }
 
     """
-    assert graphql_exec(schema, query_str) == {
+    assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "axes": [
                 {"axis": "x", "smallestStep": 0},
@@ -194,7 +194,7 @@ def test_get_points_total_frames() -> None:
   }
 }
     """
-    assert graphql_exec(schema, query_str) == {"getPoints": {"totalFrames": 6}}
+    assert graphql_exec(scanspec_schema, query_str) == {"getPoints": {"totalFrames": 6}}
 
 
 def test_get_points_abs_smallest_step() -> None:
@@ -211,7 +211,7 @@ def test_get_points_abs_smallest_step() -> None:
   }
 }
     """
-    assert graphql_exec(schema, query_str) == {
+    assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "smallestAbsStep": 5,
             "axes": [
@@ -236,10 +236,10 @@ def graphql_exec(schema: GraphQLSchema, query: str) -> Mapping[str, Any]:
 
 # SCHEMA TEST(S)
 def test_schema() -> None:
-    assert_schema(schema)
+    assert_schema(scanspec_schema)
 
 
 def test_schema_text() -> None:
     with mock.patch("graphql.utilities.print_schema") as mock_print_schema:
-        schema_text()
+        scanspec_schema_text()
         mock_print_schema.assert_called()
