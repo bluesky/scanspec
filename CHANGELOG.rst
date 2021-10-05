@@ -14,6 +14,8 @@ Added:
 
 - `Dimension.gap` to see whether there is a gap between frames
 - `Concat.gap` to allow a gap to be explicitly inserted between sections
+- Generics: `Frames`, `AxesPoints`, `Spec` and `Regions` (and their subclasses) can 
+  now be defined in terms of a type of axis (e.g. `str` or `Motor`)
 
 Changed:
 
