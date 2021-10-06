@@ -12,7 +12,7 @@ API
 The top level scanspec module contains a number of packages that can be used
 from code:
 
-- `scanspec.core`: Core classes like `Dimension` and `Path`
+- `scanspec.core`: Core classes like `Frames` and `Path`
 - `scanspec.specs`: `Spec` and its subclasses
 - `scanspec.regions`: `Region` and its subclasses
 - `scanspec.plot`: `plot_spec` to visualize a scan
@@ -25,18 +25,9 @@ from code:
 
 .. automodule:: scanspec.core
     :members:
-    :exclude-members: Serializable
 
     ``scanspec.core``
     -----------------
-
-    .. autoclass:: scanspec.core.Serializable
-        :no-show-inheritance:
-        :members:
-
-        .. seealso::
-            https://github.com/wyfo/apischema/discussions/56#discussioncomment-336580
-            for discussion on tagged unions and alternative constructors
 
 .. automodule:: scanspec.specs
     :members:

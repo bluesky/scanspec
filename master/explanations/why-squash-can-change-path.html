@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Why Squash (and Mask) can change the Path &mdash; scanspec 0.4+9.g91dbc3c documentation</title>
+  <title>Why Squash (and Mask) can change the Path &mdash; scanspec 0.4+40.g238f3d0 documentation</title>
   
 
   
@@ -52,7 +52,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="API" href="../reference/api.html" />
-    <link rel="prev" title="What are Dimensions?" href="what-are-dimensions.html" /> 
+    <link rel="prev" title="Why create a stack of Frames?" href="why-stack-frames.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -99,60 +99,53 @@
         
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-  <style>
-    /* style mobile top nav to look like main nav */
-    .wy-nav-top {
-        background: rgb(7, 43, 93)
-    }
-  </style>
   
             
             
               
             
             
-              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/graphql-service.html">Running a GraphQL service for generating points</a></li>
 </ul>
-<p class="caption"><span class="caption-text">How-to Guides</span></p>
+<p class="caption" role="heading"><span class="caption-text">How-to Guides</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Explanations</span></p>
+<p class="caption" role="heading"><span class="caption-text">Explanations</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="technical-terms.html">Technical Terms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="what-are-dimensions.html">What are Dimensions?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="why-stack-frames.html">Why create a stack of Frames?</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Why Squash (and Mask) can change the Path</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#squash-unsnaked-axis-into-a-snaked-dimension">Squash unsnaked axis into a snaked Dimension</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#squash-unsnaked-axis-into-a-snaked-frames">Squash unsnaked axis into a snaked Frames</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#squash-snaked-axis-into-unsnaked-odd-length-axis">Squash snaked axis into unsnaked odd length axis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#why-this-matters">Why this matters</a></li>
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../reference/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a></li>
+<li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
 </ul>
 
             
           
-  <!-- Include Index in the sidebar -->
-  <!-- https://stackoverflow.com/a/37843854 -->
-  <a href="../genindex.html">Index</a>
-  <!-- Include link to changelog too -->
-  <a href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a>
   <!-- Add versions for selected branches + tags -->
-  <p class="caption"><span class="caption-text">Versions</span></p>
+  <p class="caption">
+    <span class="caption-text">Versions</span>
+  </p>
   <ul id="versions"/>
   <script>
     // Add any branches to appear in the side pane here, tags will be added below
     // Will only appear if docs are built and pushed in gh-pages
-    var versions = ['master', 'main'];
+    var versions = ['main', 'master'];
     var dirs = new Set();
     function addVersion(name) {
       if (dirs.has(name)) {
@@ -245,24 +238,25 @@
             
   <div class="section" id="why-squash-and-mask-can-change-the-path">
 <span id="why-squash-can-change-path"></span><h1>Why Squash (and Mask) can change the Path<a class="headerlink" href="#why-squash-and-mask-can-change-the-path" title="Permalink to this headline">¶</a></h1>
-<p>A Spec creates a number of Dimensions that can be set to snake. When snaking,
-every other run of that Dimension will run in reverse. <a class="reference internal" href="../reference/api.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Squash</span></code></a> and <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a> will
-merge Dimensions together. This may change the Path compared with the unsquashed
-version if the squashed Dimensions are nested within a slower Dimension, and so
-run more than once. This page lists the times where this is the case.</p>
+<p>A Spec creates a stack of <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a>, some of which can be snaking. When snaking,
+every other run of that Frames object will run in reverse. <a class="reference internal" href="../reference/api.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Squash</span></code></a> and <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a>
+will merge Frames objects together. This may change the Path compared with the
+unsquashed version if the squashed Frames objects are nested within a slower
+Frames object, and so run more than once. This page lists the times where this
+is the case.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The cases illustrated below will only be produced if
 <code class="docutils literal notranslate"><span class="pre">check_path_changes=False</span></code> is passed to <a class="reference internal" href="../reference/api.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Squash</span></code></a> or <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a>, otherwise they
-will fail with <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.9)"><code class="xref any docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+will fail with <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 </div>
-<div class="section" id="squash-unsnaked-axis-into-a-snaked-dimension">
-<h2>Squash unsnaked axis into a snaked Dimension<a class="headerlink" href="#squash-unsnaked-axis-into-a-snaked-dimension" title="Permalink to this headline">¶</a></h2>
-<p>Squashing Dimensions together will take the snake setting of the slowest moving
-Dimension in the squash. If this squashed Dimension is nested within another, on
-the second run the originally unsnaked axis will run in reverse. This would
-make a motor that the user had demanded to always run in one direction run in
-reverse, which could make the scan invalid.</p>
+<div class="section" id="squash-unsnaked-axis-into-a-snaked-frames">
+<h2>Squash unsnaked axis into a snaked Frames<a class="headerlink" href="#squash-unsnaked-axis-into-a-snaked-frames" title="Permalink to this headline">¶</a></h2>
+<p>Squashing Frames objects together will take the snake setting of the slowest
+moving Frames object in the squash. If this squashed Frames object is nested
+within another, on the second run the originally unsnaked axis will run in
+reverse. This would make a motor that the user had demanded to always run in one
+direction run in reverse, which could make the scan invalid.</p>
 <p>For example, consider a non-snaking x within a snaking y within z:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
@@ -275,7 +269,8 @@ reverse, which could make the scan invalid.</p>
 <div class="figure align-default">
 <img alt="../_images/why-squash-can-change-path-1.png" class="plot-directive" src="../_images/why-squash-can-change-path-1.png" />
 </div>
-<p>If we squash the x and y dimensions then x will run in reverse on the second run:</p>
+<p>If we squash the x and y Frames objects together then x will run in reverse on
+the second run:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Squash</span>
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
 
@@ -292,10 +287,10 @@ reverse, which could make the scan invalid.</p>
 </div>
 <div class="section" id="squash-snaked-axis-into-unsnaked-odd-length-axis">
 <h2>Squash snaked axis into unsnaked odd length axis<a class="headerlink" href="#squash-snaked-axis-into-unsnaked-odd-length-axis" title="Permalink to this headline">¶</a></h2>
-<p>A snaked axis must repeat an even number of times within a squashed Dimension in order
-to be able to nest this Dimension within another and keep the Path of the snaked axis.
-If this is not the case, the snaked axis will “jump” after each iteration of the
-squashed dimension.</p>
+<p>A snaked axis must repeat an even number of times within a squashed Frames
+object in order to be able to nest this Frames object within another and keep
+the Path of the snaked axis. If this is not the case, the snaked axis will
+“jump” after each iteration of the squashed Frames object.</p>
 <p>For example, consider a snaking x within an odd non-snaking y within z:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
@@ -308,7 +303,8 @@ squashed dimension.</p>
 <div class="figure align-default">
 <img alt="../_images/why-squash-can-change-path-3.png" class="plot-directive" src="../_images/why-squash-can-change-path-3.png" />
 </div>
-<p>If we squash the x and y dimensions then x will jump between the first and second runs:</p>
+<p>If we squash the x and y Frames objects then x will jump between the first and
+second runs:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Squash</span>
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
 
@@ -325,12 +321,13 @@ squashed dimension.</p>
 </div>
 <div class="section" id="why-this-matters">
 <h2>Why this matters<a class="headerlink" href="#why-this-matters" title="Permalink to this headline">¶</a></h2>
-<p>Apart from these two cases, squashing can be considered Path invariant. This means that
-the detector could write data in a stack, then the data could be reshaped with a VDS into
-the original dimensionality. Unfortunately a negative stride is not supported in VDS, so
-the strategy is to squash snaked Dimensions into the Dimension above. If this changes the
-Path through a scan then this needs to be flagged or explicitly allowed in the Spec,
-otherwise the results for the user could be potentially surprising.</p>
+<p>Apart from these two cases, squashing can be considered Path invariant. This
+means that the detector could write data in a stack, then the data could be
+reshaped with a VDS into the original dimensionality. Unfortunately a negative
+stride is not supported in VDS, so the strategy is to squash snaked Frames
+objects into the Frames object above. If this changes the Path through a scan
+then this needs to be flagged or explicitly allowed in the Spec, otherwise the
+results for the user could be potentially surprising.</p>
 </div>
 </div>
 
@@ -341,7 +338,7 @@ otherwise the results for the user could be potentially surprising.</p>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="../reference/api.html" class="btn btn-neutral float-right" title="API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="what-are-dimensions.html" class="btn btn-neutral float-left" title="What are Dimensions?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="why-stack-frames.html" class="btn btn-neutral float-left" title="Why create a stack of Frames?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

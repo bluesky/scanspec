@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>How to Iterate a Spec &mdash; scanspec 0.4+9.g91dbc3c documentation</title>
+  <title>How to Iterate a Spec &mdash; scanspec 0.4+40.g238f3d0 documentation</title>
   
 
   
@@ -99,61 +99,54 @@
         
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-  <style>
-    /* style mobile top nav to look like main nav */
-    .wy-nav-top {
-        background: rgb(7, 43, 93)
-    }
-  </style>
   
             
             
               
             
             
-              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/graphql-service.html">Running a GraphQL service for generating points</a></li>
 </ul>
-<p class="caption"><span class="caption-text">How-to Guides</span></p>
+<p class="caption" role="heading"><span class="caption-text">How-to Guides</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">How to Iterate a Spec</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#if-you-only-need-the-midpoints">If you only need the midpoints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#if-you-need-to-do-a-fly-scan">If you need to do a fly scan</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#if-you-need-to-do-multiple-runs-of-the-same-scan">If you need to do multiple runs of the same scan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#if-you-want-the-most-performant-option">If you want the most performant option</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#if-you-need-to-know-whether-there-is-a-gap-between-points">If you need to know whether there is a gap between points</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Explanations</span></p>
+<p class="caption" role="heading"><span class="caption-text">Explanations</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../explanations/technical-terms.html">Technical Terms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../explanations/what-are-dimensions.html">What are Dimensions?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanations/why-stack-frames.html">Why create a stack of Frames?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../reference/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a></li>
+<li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
 </ul>
 
             
           
-  <!-- Include Index in the sidebar -->
-  <!-- https://stackoverflow.com/a/37843854 -->
-  <a href="../genindex.html">Index</a>
-  <!-- Include link to changelog too -->
-  <a href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a>
   <!-- Add versions for selected branches + tags -->
-  <p class="caption"><span class="caption-text">Versions</span></p>
+  <p class="caption">
+    <span class="caption-text">Versions</span>
+  </p>
   <ul id="versions"/>
   <script>
     // Add any branches to appear in the side pane here, tags will be added below
     // Will only appear if docs are built and pushed in gh-pages
-    var versions = ['master', 'main'];
+    var versions = ['main', 'master'];
     var dirs = new Set();
     function addVersion(name) {
       if (dirs.has(name)) {
@@ -250,8 +243,8 @@
 <a class="reference internal" href="../explanations/technical-terms.html#frame"><span class="std std-ref">Frames</span></a>. We can do this in a few ways.</p>
 <div class="section" id="if-you-only-need-the-midpoints">
 <h2>If you only need the midpoints<a class="headerlink" href="#if-you-only-need-the-midpoints" title="Permalink to this headline">¶</a></h2>
-<p>If you are conducting a step scan, you only need the midpoints of each
-scan frame. You can get these by using the <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.midpoints" title="scanspec.specs.Spec.midpoints"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.midpoints()</span></code></a> method to produce a
+<p>If you are conducting a step scan, you only need the midpoints of each scan
+frame. You can get these by using the <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.midpoints" title="scanspec.specs.Spec.midpoints"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.midpoints()</span></code></a> method to produce a
 <a class="reference internal" href="../reference/api.html#scanspec.core.Midpoints" title="scanspec.core.Midpoints"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Midpoints</span></code></a> iterator of scan <a class="reference internal" href="../explanations/technical-terms.html#point"><span class="std std-ref">Points</span></a>:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -268,38 +261,32 @@ points are unpacked point by point into point dictionaries</p>
 </div>
 <div class="section" id="if-you-need-to-do-a-fly-scan">
 <h2>If you need to do a fly scan<a class="headerlink" href="#if-you-need-to-do-a-fly-scan" title="Permalink to this headline">¶</a></h2>
-<p>If you are conducting a fly scan then you need the <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.path" title="scanspec.specs.Spec.path"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">path</span></code></a> that the motor moves
-through. You can get that from the lower and upper bounds of each point. It is
-more efficient to consume this Path in numpy array chunks that can be processed
-into a trajectory:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">path</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<p>If you are conducting a fly scan then you need the frames that the motor moves
+through. You can get that from the lower and upper bounds of each point. If the
+scan is small enough to fit in memory on the machine you can use the <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.frames" title="scanspec.specs.Spec.frames"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.frames()</span></code></a>
+method to produce a single <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> object containing the entire scan:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">frames</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span>
 <span class="go">3</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">lower</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span><span class="o">.</span><span class="n">lower</span>
 <span class="go">{&#39;x&#39;: array([0.75, 1.25, 1.75])}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span><span class="o">.</span><span class="n">midpoints</span>
 <span class="go">{&#39;x&#39;: array([1. , 1.5, 2. ])}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">upper</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span><span class="o">.</span><span class="n">upper</span>
 <span class="go">{&#39;x&#39;: array([1.25, 1.75, 2.25])}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-<span class="go">0</span>
 </pre></div>
 </div>
-<p>If <code class="docutils literal notranslate"><span class="pre">upper[i]</span> <span class="pre">==</span> <span class="pre">lower[i+1]</span></code> then we say that two scan points are joined, and
-will be blended together in a motion trajectory, otherwise the scanning system
-should insert a gap where the motors move between segments</p>
 </div>
-<div class="section" id="if-you-need-to-do-multiple-runs-of-the-same-scan">
-<h2>If you need to do multiple runs of the same scan<a class="headerlink" href="#if-you-need-to-do-multiple-runs-of-the-same-scan" title="Permalink to this headline">¶</a></h2>
-<p>A <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> instance is a one-shot consumable view of the list of <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a>
-instances created by <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.create_dimensions" title="scanspec.specs.Spec.create_dimensions"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.create_dimensions()</span></code></a>. Once you have consumed it you
+<div class="section" id="if-you-want-the-most-performant-option">
+<h2>If you want the most performant option<a class="headerlink" href="#if-you-want-the-most-performant-option" title="Permalink to this headline">¶</a></h2>
+<p>A <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> instance is a one-shot consumable view of the stack of <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a>
+objects created by <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.calculate" title="scanspec.specs.Spec.calculate"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.calculate()</span></code></a>. Once you have consumed it you
 should create a new instance of it. For performance reasons, you can keep the
-intermediate <a class="reference external" href="https://numpy.org/doc/stable/glossary.html#term-dimension" title="(in NumPy v1.21)"><code class="xref any docutils literal notranslate"><span class="pre">Dimensions</span></code></a> and create as many <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> wrappers to them
+intermediate <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> stack and create as many <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> wrappers to them
 as you need. You can also give a maximum size to <a class="reference internal" href="../reference/api.html#scanspec.core.Path.consume" title="scanspec.core.Path.consume"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Path.consume()</span></code></a></p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.core</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dims</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">create_dimensions</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 <span class="go">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -315,7 +302,7 @@ as you need. You can also give a maximum size to <a class="reference internal" h
 </pre></div>
 </div>
 <p>You can also use this method to only run a subset of the scan:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">stack</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 <span class="go">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
@@ -325,6 +312,10 @@ as you need. You can also give a maximum size to <a class="reference internal" h
 <span class="go">0</span>
 </pre></div>
 </div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../explanations/why-stack-frames.html"><span class="doc">Why create a stack of Frames?</span></a></p>
+</div>
 </div>
 <div class="section" id="if-you-need-to-know-whether-there-is-a-gap-between-points">
 <h2>If you need to know whether there is a gap between points<a class="headerlink" href="#if-you-need-to-know-whether-there-is-a-gap-between-points" title="Permalink to this headline">¶</a></h2>
@@ -333,12 +324,12 @@ something in the turnaround. For example, if we take the x axis of a grid scan,
 you can see it snakes back and forth:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">fly</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span> <span class="o">=</span> <span class="n">fly</span><span class="p">(</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mf">0.1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">path</span><span class="p">()</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">frames</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
 <span class="go">array([1. , 1.5, 2. , 2. , 1.5, 1. ])</span>
 </pre></div>
 </div>
-<p>You can check where the gaps are by using the <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension.gap" title="scanspec.core.Dimension.gap"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Dimension.gap</span></code></a> attribute:</p>
+<p>You can check where the gaps are by using the <a class="reference internal" href="../reference/api.html#scanspec.core.Frames.gap" title="scanspec.core.Frames.gap"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.gap</span></code></a> attribute:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">gap</span>
 <span class="go">array([ True, False, False,  True, False, False])</span>
 </pre></div>

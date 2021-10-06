@@ -4,7 +4,7 @@ Running a GraphQL service for generating points
 ===============================================
 
 The `creating-a-spec` tutorial shows how you would use the commandline client to
-plot a `Spec`. This maps nicely to using scanspec in a commanline utility, but
+plot a `Spec`. This maps nicely to using scanspec in a commandline utility, but
 not if you want to expose those points to a web GUI. To do this we will bring up
 a GraphQL_ service that allows a web GUI to request the points it would like to
 plot.
@@ -19,15 +19,15 @@ In a terminal, run::
     (Press CTRL+C to quit)
 
 You can now open a browser to http://0.0.0.0:8080/graphql and see a GraphiQL_ editor
-which will allow you to send GraphQL queries to the server
+which will allow you to send GraphQL queries to the server.
 
 .. note::
 
-    All the examples below will embed a GraphiQL_ editor in your browser talking
-    to the scanspec service, they are live and you can modify the queries and press
-    the play button to get an updated response from the server. If the server is
-    not running (or you didn't pass ``--cors`` to it) then the play button will not
-    be visible.
+    All the examples below will embed a GraphiQL_ editor in your browser. If you
+    refresh your browser, they will contact the scanspec service you are running
+    and become live: you can modify the queries and press the play button to get
+    an updated response from the server. If the server is not running (or you
+    didn't pass ``--cors`` to it) then the play button will not be visible.
 
 
 Validating a Spec
@@ -78,7 +78,7 @@ The equivalent in our service is:
 Getting Points from a Spec
 --------------------------
 
-Most importantly, is the ability to obtain a list of scan points from a Spec. 
+More important is the ability to obtain a list of scan frames from a Spec. 
 GraphQL gives the user the ability to request one or more fields from an object, 
 allowing them to obtain data that is relevant only to their application.
 
@@ -86,9 +86,9 @@ The 'getPoints' query makes use of this, giving users the ability to select from
 one or more of the following fields:
 
 - axes: a list of axes present in the Spec and its associated scan points
-- total_frames: the total number of frames produced by the Spec
-- returned_frames (WIP): the number of frames returned, limited by the maxPoint argument
-- smallest_abs_step: the smallest step between midpoints across ALL axes in the scan
+- totalFrames: the total number of frames produced by the Spec
+- returnedFrames: the number of frames returned, limited by the maxFrames argument
+- smallestAbsStep: the smallest step between midpoints across ALL axes in the scan
 
 Within axes:
 
@@ -96,11 +96,12 @@ Within axes:
 - lower: a list of lower bounds that are each present in a frame
 - midpoints: a list of midpoints that are each present in a frame
 - upper: a list of upper bounds that are each present in a frame
-- smallest-step: the smallest step between midpoints in this axis of the scan
+- smallestStep: the smallest step between midpoints in this axis of the scan
 
 Within lower, middle and upper:
 
-- string: returns the requested points as a human readable numpy formatted string
+- string: returns the requested points as a human readable truncated numpy formatted 
+  string for debugging
 - floatList: returns the requested points as a list of floats
 - b64: returns the requested points encoded into base64
 
@@ -167,14 +168,18 @@ Using the example above, we can request to return points from it:
 Masking a region of a spec
 --------------------------
 
-The following fields can be used to mask a region as described in `creating-a-spec`:
+Regions can be used to mask a Spec as described in `creating-a-spec`. Consider
+the following spec:
 
-- ``*``: Outer `Product` of two Specs, nesting the second within the first
-- ``+``: `Zip` two Specs together, iterating in tandem
-- ``&``: `Mask` the Spec with a `Region`, excluding midpoints outside of it
-- ``~``: `Snake` the Spec, reversing every other iteration of it
+.. example_spec::
 
-An example query using `Mask` is presented below:
+    from scanspec.specs import Line
+    from scanspec.regions import Circle
+
+    spec = Line("x", 0, 10, 5) * Line("y", 0, 10, 5) & Circle("x", "y", 5, 5, 3)
+
+
+We could query the service for the points information like so:
 
 .. graphiql:: http://localhost:8080/graphql
     :query:
@@ -253,80 +258,6 @@ An example query using `Mask` is presented below:
                     5
                   ]
                 }
-              }
-            ]
-          }
-        }
-      }
-
-Content to move
----------------
-
-When we move this sphinx extension into its own repo we will use the following to demo it:
-
-.. graphiql:: https://countries.trevorblades.com/
-    :query:
-      {
-        country(code: "BR") {
-          name
-          native
-          capital
-          emoji
-          currency
-          languages {
-            code
-            name
-          }
-        }
-      }
-    :response:
-      {
-        "data": {
-          "country": {
-            "name": "Brazil",
-            "native": "Brasil",
-            "capital": "Brasília",
-            "emoji": "🇧🇷",
-            "currency": "BRL",
-            "languages": [
-              {
-                "code": "pt",
-                "name": "Portuguese"
-              }
-            ]
-          }
-        }
-      }
-
-
-.. graphiql::
-    :query:
-      {
-        country(code: "BR") {
-          name
-          native
-          capital
-          emoji
-          currency
-          languages {
-            code
-            name
-          }
-        }
-      }
-    :response:
-      {
-        "data": {
-          "country": {
-            "name": "Brazil",
-            "native": "Brasil",
-            "capital": "Brasília",
-            "emoji": "🇧🇷",
-            "currency": "BRL",
-            "languages": [
-              {
-                "code": "pt",
-                "name": "Portuguese"
               }
             ]
           }

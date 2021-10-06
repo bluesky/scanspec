@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Technical Terms &mdash; scanspec 0.4+9.g91dbc3c documentation</title>
+  <title>Technical Terms &mdash; scanspec 0.4+40.g238f3d0 documentation</title>
   
 
   
@@ -51,7 +51,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="What are Dimensions?" href="what-are-dimensions.html" />
+    <link rel="next" title="Why create a stack of Frames?" href="why-stack-frames.html" />
     <link rel="prev" title="How to Serialize and Deserialize a Spec" href="../how-to/serialize-a-spec.html" /> 
 </head>
 
@@ -99,62 +99,55 @@
         
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-  <style>
-    /* style mobile top nav to look like main nav */
-    .wy-nav-top {
-        background: rgb(7, 43, 93)
-    }
-  </style>
   
             
             
               
             
             
-              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/graphql-service.html">Running a GraphQL service for generating points</a></li>
 </ul>
-<p class="caption"><span class="caption-text">How-to Guides</span></p>
+<p class="caption" role="heading"><span class="caption-text">How-to Guides</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Explanations</span></p>
+<p class="caption" role="heading"><span class="caption-text">Explanations</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Technical Terms</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#axis">Axis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dimension">Dimension</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#frame">Frame</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#path">Path</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#point">Point</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#frame">Frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stack-of-frames">Stack of Frames</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#path">Path</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="what-are-dimensions.html">What are Dimensions?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="why-stack-frames.html">Why create a stack of Frames?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../reference/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a></li>
+<li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
 </ul>
 
             
           
-  <!-- Include Index in the sidebar -->
-  <!-- https://stackoverflow.com/a/37843854 -->
-  <a href="../genindex.html">Index</a>
-  <!-- Include link to changelog too -->
-  <a href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a>
   <!-- Add versions for selected branches + tags -->
-  <p class="caption"><span class="caption-text">Versions</span></p>
+  <p class="caption">
+    <span class="caption-text">Versions</span>
+  </p>
   <ul id="versions"/>
   <script>
     // Add any branches to appear in the side pane here, tags will be added below
     // Will only appear if docs are built and pushed in gh-pages
-    var versions = ['master', 'main'];
+    var versions = ['main', 'master'];
     var dirs = new Set();
     function addVersion(name) {
       if (dirs.has(name)) {
@@ -246,46 +239,44 @@
            <div itemprop="articleBody">
             
   <div class="section" id="technical-terms">
-<h1>Technical Terms<a class="headerlink" href="#technical-terms" title="Permalink to this headline">¶</a></h1>
-<p>This page draws together some of the technical terms used throughout
-the documentation. Consider a 1D line scan:</p>
+<span id="id1"></span><h1>Technical Terms<a class="headerlink" href="#technical-terms" title="Permalink to this headline">¶</a></h1>
+<p>This page draws together some of the technical terms used throughout the
+documentation. Consider a 1D line scan:</p>
 <img alt="../_images/definitions.png" src="../_images/definitions.png" />
 <div class="section" id="axis">
-<span id="id1"></span><h2>Axis<a class="headerlink" href="#axis" title="Permalink to this headline">¶</a></h2>
-<p>A fixed reference that can be scanned, i.e. a motor or the <a class="reference internal" href="#frame"><span class="std std-ref">Frame</span></a> duration.
-In the diagram above, the Axis is <code class="docutils literal notranslate"><span class="pre">x</span></code>. <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.axes" title="scanspec.specs.Spec.axes"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.axes</span></code></a> will return
-the Axes that should be scanned for a given Spec.</p>
+<span id="id2"></span><h2>Axis<a class="headerlink" href="#axis" title="Permalink to this headline">¶</a></h2>
+<p>A fixed reference that can be scanned, i.e. a motor or the <a class="reference internal" href="#frame"><span class="std std-ref">Frame</span></a> <a class="reference internal" href="../reference/api.html#scanspec.specs.DURATION" title="scanspec.specs.DURATION"><code class="xref any py py-data docutils literal notranslate"><span class="pre">DURATION</span></code></a>.
+In the diagram above, the Axis is <code class="docutils literal notranslate"><span class="pre">x</span></code>. <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.axes" title="scanspec.specs.Spec.axes"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.axes</span></code></a> will return the Axes that
+should be scanned for a given Spec.</p>
 </div>
-<div class="section" id="dimension">
-<span id="id2"></span><h2>Dimension<a class="headerlink" href="#dimension" title="Permalink to this headline">¶</a></h2>
-<p>A repeatable, possibly snaking, series of <a class="reference internal" href="#frame"><span class="std std-ref">Frames</span></a> along a number of
-<a class="reference internal" href="#axis"><span class="std std-ref">Axes</span></a>. In the diagram above, the whole Line produces a single Dimension.
-A stack of <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a> instances are produced by <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.create_dimensions" title="scanspec.specs.Spec.create_dimensions"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.create_dimensions</span></code></a>.</p>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="what-are-dimensions.html"><span class="doc">What are Dimensions?</span></a></p>
-</div>
+<div class="section" id="point">
+<span id="id3"></span><h2>Point<a class="headerlink" href="#point" title="Permalink to this headline">¶</a></h2>
+<p>A single or multidimensional location in scan space. In the diagram above, each
+<a class="reference internal" href="#frame"><span class="std std-ref">Frame</span></a> is made up of lower, midpoint and upper Points. <a class="reference internal" href="../reference/api.html#scanspec.core.Midpoints" title="scanspec.core.Midpoints"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Midpoints</span></code></a> are
+available as an interator from <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.midpoints" title="scanspec.specs.Spec.midpoints"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.midpoints</span></code></a>. Arrays of these are available
+as <a class="reference internal" href="../reference/api.html#scanspec.core.Frames.lower" title="scanspec.core.Frames.lower"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.lower</span></code></a>, <a class="reference internal" href="../reference/api.html#scanspec.core.Frames.midpoints" title="scanspec.core.Frames.midpoints"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.midpoints</span></code></a> and <a class="reference internal" href="../reference/api.html#scanspec.core.Frames.upper" title="scanspec.core.Frames.upper"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.upper</span></code></a>.</p>
 </div>
 <div class="section" id="frame">
-<span id="id3"></span><h2>Frame<a class="headerlink" href="#frame" title="Permalink to this headline">¶</a></h2>
+<span id="id4"></span><h2>Frame<a class="headerlink" href="#frame" title="Permalink to this headline">¶</a></h2>
 <p>A vector of three <a class="reference internal" href="#point"><span class="std std-ref">Points</span></a> in scan space: lower, midpoint, upper. They
 describe the trajectory that should be taken while a detector is active while
 fly scanning. In the diagram above each Frame is denoted by a different coloured
 section.</p>
 </div>
-<div class="section" id="path">
-<span id="id4"></span><h2>Path<a class="headerlink" href="#path" title="Permalink to this headline">¶</a></h2>
-<p>A consumable route through one or more <a class="reference internal" href="#dimension"><span class="std std-ref">Dimensions</span></a>. If the Line in
-the above diagram was stacked within another line of length 5, then the Path
-would contain 15 <a class="reference internal" href="#frame"><span class="std std-ref">Frames</span></a>. A <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> is produced from <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.path" title="scanspec.specs.Spec.path"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.path</span></code></a> or
-can be created from a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref any docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a> objects.</p>
+<div class="section" id="stack-of-frames">
+<span id="stack"></span><h2>Stack of Frames<a class="headerlink" href="#stack-of-frames" title="Permalink to this headline">¶</a></h2>
+<p>A repeatable, possibly snaking, series of <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> along a number of <a class="reference internal" href="#axis"><span class="std std-ref">Axes</span></a>. In the diagram above, the whole Line produces a single <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a>
+object, while a grid scan would be a stack of two <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> objects. A stack of
+<a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> objects are produced by <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.calculate" title="scanspec.specs.Spec.calculate"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.calculate</span></code></a>.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="why-stack-frames.html"><span class="doc">Why create a stack of Frames?</span></a></p>
 </div>
-<div class="section" id="point">
-<span id="id5"></span><h2>Point<a class="headerlink" href="#point" title="Permalink to this headline">¶</a></h2>
-<p>A single or multidimensional location in scan space. In the diagram above,
-each <a class="reference internal" href="#frame"><span class="std std-ref">Frame</span></a> is made up of lower, midpoint and upper Points. Arrays of
-these are available as <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension.lower" title="scanspec.core.Dimension.lower"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Dimension.lower</span></code></a>, <a class="reference internal" href="../reference/api.html#scanspec.core.Dimension.midpoints" title="scanspec.core.Dimension.midpoints"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Dimension.midpoints</span></code></a> and
-<a class="reference internal" href="../reference/api.html#scanspec.core.Dimension.upper" title="scanspec.core.Dimension.upper"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Dimension.upper</span></code></a>.</p>
+</div>
+<div class="section" id="path">
+<span id="id5"></span><h2>Path<a class="headerlink" href="#path" title="Permalink to this headline">¶</a></h2>
+<p>A consumable route through a _stack_. If the Line in the above diagram was
+stacked within another line of length 5, then the Path would contain 15 <a class="reference internal" href="#frame"><span class="std std-ref">Frames</span></a>. A <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> is created from a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> objects.</p>
 </div>
 </div>
 
@@ -295,7 +286,7 @@ these are available as <a class="reference internal" href="../reference/api.html
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="what-are-dimensions.html" class="btn btn-neutral float-right" title="What are Dimensions?" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="why-stack-frames.html" class="btn btn-neutral float-right" title="Why create a stack of Frames?" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="../how-to/serialize-a-spec.html" class="btn btn-neutral float-left" title="How to Serialize and Deserialize a Spec" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

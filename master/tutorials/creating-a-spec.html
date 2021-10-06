@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Creating a Scan Spec &mdash; scanspec 0.4+9.g91dbc3c documentation</title>
+  <title>Creating a Scan Spec &mdash; scanspec 0.4+40.g238f3d0 documentation</title>
   
 
   
@@ -99,19 +99,13 @@
         
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
-  <style>
-    /* style mobile top nav to look like main nav */
-    .wy-nav-top {
-        background: rgb(7, 43, 93)
-    }
-  </style>
   
             
             
               
             
             
-              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Tutorial</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Creating a Scan Spec</a><ul>
@@ -127,37 +121,36 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="graphql-service.html">Running a GraphQL service for generating points</a></li>
 </ul>
-<p class="caption"><span class="caption-text">How-to Guides</span></p>
+<p class="caption" role="heading"><span class="caption-text">How-to Guides</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Explanations</span></p>
+<p class="caption" role="heading"><span class="caption-text">Explanations</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../explanations/technical-terms.html">Technical Terms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../explanations/what-are-dimensions.html">What are Dimensions?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanations/why-stack-frames.html">Why create a stack of Frames?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../reference/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a></li>
+<li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
 </ul>
 
             
           
-  <!-- Include Index in the sidebar -->
-  <!-- https://stackoverflow.com/a/37843854 -->
-  <a href="../genindex.html">Index</a>
-  <!-- Include link to changelog too -->
-  <a href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a>
   <!-- Add versions for selected branches + tags -->
-  <p class="caption"><span class="caption-text">Versions</span></p>
+  <p class="caption">
+    <span class="caption-text">Versions</span>
+  </p>
   <ul id="versions"/>
   <script>
     // Add any branches to appear in the side pane here, tags will be added below
     // Will only appear if docs are built and pushed in gh-pages
-    var versions = ['master', 'main'];
+    var versions = ['main', 'master'];
     var dirs = new Set();
     function addVersion(name) {
       if (dirs.has(name)) {
@@ -254,10 +247,12 @@
 the results.</p>
 <div class="section" id="line">
 <h2>Line<a class="headerlink" href="#line" title="Permalink to this headline">¶</a></h2>
-<p>We’ll start with a simple one, a <a class="reference internal" href="../reference/api.html#scanspec.specs.Line" title="scanspec.specs.Line"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Line</span></code></a>. If you enter the following
-code into an interactive Python terminal, it should plot a graph of a 1D line:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<p>We’ll start with a simple one, a <a class="reference internal" href="../reference/api.html#scanspec.specs.Line" title="scanspec.specs.Line"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Line</span></code></a>. If you enter the following code into an
+interactive Python terminal, it should plot a graph of a 1D line:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
+
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 
 <span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
@@ -267,10 +262,10 @@ code into an interactive Python terminal, it should plot a graph of a 1D line:</
 <div class="figure align-default">
 <img alt="../_images/creating-a-spec-1.png" class="plot-directive" src="../_images/creating-a-spec-1.png" />
 </div>
-<p>This will create a Spec with 5 points, the first centred on 1, the last centred
-on 2. The black dots mark the midpoints on the Path. The coloured
-lines mark the motion from the lower to upper bound of each point on the Path.
-The grey arrowhead marks the start of the scan, and the cross marks the end.</p>
+<p>This will create a Spec with 5 frames, the first centred on 1, the last centred
+on 2. The black dots mark the midpoints on the Path. The coloured lines mark the
+motion from the lower to upper bound of each frame on the Path. The grey
+arrowhead marks the start of the scan, and the cross marks the end.</p>
 </div>
 <div class="section" id="plotting-from-the-commandline">
 <h2>Plotting from the commandline<a class="headerlink" href="#plotting-from-the-commandline" title="Permalink to this headline">¶</a></h2>
@@ -283,13 +278,13 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 </div>
 <div class="section" id="line-with-2-axes">
 <h2>Line with 2 axes<a class="headerlink" href="#line-with-2-axes" title="Permalink to this headline">¶</a></h2>
-<p>If we want to plot a Line in two axes, we can do this with <a class="reference internal" href="../reference/api.html#scanspec.specs.Zip" title="scanspec.specs.Zip"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Zip</span></code></a>, or the <code class="docutils literal notranslate"><span class="pre">+</span></code> operator:</p>
+<p>If we want to plot a Line in two axes, we can do this with <a class="reference internal" href="../reference/api.html#scanspec.specs.Zip" title="scanspec.specs.Zip"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Zip</span></code></a>, or <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.zip" title="scanspec.specs.Spec.zip"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.zip</span></code></a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -301,8 +296,10 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 <div class="section" id="grid">
 <h2>Grid<a class="headerlink" href="#grid" title="Permalink to this headline">¶</a></h2>
 <p>We can make a grid by creating the <a class="reference internal" href="../reference/api.html#scanspec.specs.Product" title="scanspec.specs.Product"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Product</span></code></a> of 2 Lines with the <code class="docutils literal notranslate"><span class="pre">*</span></code> operator:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
+
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 
 <span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
@@ -313,15 +310,18 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 <img alt="../_images/creating-a-spec-3.png" class="plot-directive" src="../_images/creating-a-spec-3.png" />
 </div>
 <p>The plot shows grey arrowed lines marking the turnarounds. These are added by
-the plotting function as an indication of what a scanning program might do between
-two disjoint points, it is not a guarantee of the path that will be taken.</p>
+the plotting function as an indication of what a scanning program might do
+between two disjoint frames, it is not a guarantee of the path that will be
+taken.</p>
 </div>
 <div class="section" id="snaked-grid">
 <span id="id1"></span><h2>Snaked Grid<a class="headerlink" href="#snaked-grid" title="Permalink to this headline">¶</a></h2>
-<p>We can <a class="reference internal" href="../reference/api.html#scanspec.specs.Snake" title="scanspec.specs.Snake"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Snake</span></code></a> a Spec with the <code class="docutils literal notranslate"><span class="pre">~</span></code> operator. If we apply this to the inner Spec of
-our grid we get:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<p>We can <a class="reference internal" href="../reference/api.html#scanspec.specs.Snake" title="scanspec.specs.Snake"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Snake</span></code></a> a Spec with the <code class="docutils literal notranslate"><span class="pre">~</span></code> operator. If we apply this to the inner
+Spec of our grid we get:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
+
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 
 <span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
@@ -334,11 +334,13 @@ our grid we get:</p>
 </div>
 <div class="section" id="masking-with-regions">
 <h2>Masking with Regions<a class="headerlink" href="#masking-with-regions" title="Permalink to this headline">¶</a></h2>
-<p>We can apply a <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a> to only include frames where the midpoints are within a given <a class="reference internal" href="../reference/api.html#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> using
-the <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> operator:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
-<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Circle</span>
+<p>We can apply a <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a> to only include frames where the midpoints are within a
+given <a class="reference internal" href="../reference/api.html#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> using the <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> operator:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
+
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Circle</span>
 
 <span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
@@ -359,9 +361,11 @@ the <code class="docutils literal notranslate"><span class="pre">&amp;</span></c
 <li><p><code class="docutils literal notranslate"><span class="pre">^</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.regions.SymmetricDifferenceOf" title="scanspec.regions.SymmetricDifferenceOf"><code class="xref any py py-class docutils literal notranslate"><span class="pre">SymmetricDifferenceOf</span></code></a> two Regions</p></li>
 </ul>
 <p>For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
-<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Circle</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
+
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Circle</span>
 
 <span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span> <span class="o">-</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
