@@ -19,8 +19,7 @@ from .specs import *  # noqa
 @click.version_option()
 @click.pass_context
 def cli(ctx, log_level: str):
-    """ScanSpec library command line interface."""
-
+    """Top level scanspec command line interface."""
     level = getattr(logging, log_level.upper(), None)
     logging.basicConfig(format="%(levelname)s:%(message)s", level=level)
 
@@ -32,7 +31,7 @@ def cli(ctx, log_level: str):
 @cli.command()
 @click.argument("spec")
 def plot(spec: str):
-    """Plot a ScanSpec"""
+    """Plot a scanspec."""
     from scanspec.plot import plot_spec
 
     for letter in string.ascii_lowercase:
@@ -47,7 +46,7 @@ def plot(spec: str):
     "--port", default=8080, help="The port that the scanspec service will be hosted on."
 )
 def service(cors, port):
-    """Run up a GraphQL service"""
+    """Run up a GraphQL service."""
     from scanspec.service import run_app
 
     run_app(cors, port)
@@ -55,7 +54,7 @@ def service(cors, port):
 
 @cli.command()
 def schema():
-    """Print schema"""
-    from scanspec.service import schema_text
+    """Print the GraphQL schema for the service."""
+    from scanspec.service import scanspec_schema_text
 
-    click.echo(schema_text())
+    click.echo(scanspec_schema_text())

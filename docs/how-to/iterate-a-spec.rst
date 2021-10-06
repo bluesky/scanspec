@@ -9,8 +9,8 @@ A Spec is only the specification for a scan. To execute the scan we need the
 If you only need the midpoints
 ------------------------------
 
-If you are conducting a step scan, you only need the midpoints of each
-scan frame. You can get these by using the `Spec.midpoints()` method to produce a
+If you are conducting a step scan, you only need the midpoints of each scan
+frame. You can get these by using the `Spec.midpoints()` method to produce a
 `Midpoints` iterator of scan `Points <point_>`:
 
 >>> from scanspec.specs import Line
@@ -28,41 +28,34 @@ points are unpacked point by point into point dictionaries
 If you need to do a fly scan
 ----------------------------
 
-If you are conducting a fly scan then you need the `path` that the motor moves
-through. You can get that from the lower and upper bounds of each point. It is
-more efficient to consume this Path in numpy array chunks that can be processed
-into a trajectory:
+If you are conducting a fly scan then you need the frames that the motor moves
+through. You can get that from the lower and upper bounds of each point. If the
+scan is small enough to fit in memory on the machine you can use the `Spec.frames()`
+method to produce a single `Frames` object containing the entire scan:
 
->>> path = spec.path()
->>> len(path)
+>>> segment = spec.frames()
+>>> len(segment)
 3
->>> chunk = path.consume()
->>> chunk.lower
+>>> segment.lower
 {'x': array([0.75, 1.25, 1.75])}
->>> chunk.midpoints
+>>> segment.midpoints
 {'x': array([1. , 1.5, 2. ])}
->>> chunk.upper
+>>> segment.upper
 {'x': array([1.25, 1.75, 2.25])}
->>> len(path)
-0
-
-If ``upper[i] == lower[i+1]`` then we say that two scan points are joined, and
-will be blended together in a motion trajectory, otherwise the scanning system
-should insert a gap where the motors move between segments
 
 
-If you need to do multiple runs of the same scan
-------------------------------------------------
+If you want the most performant option
+--------------------------------------
 
-A `Path` instance is a one-shot consumable view of the list of `Dimension`
-instances created by `Spec.create_dimensions()`. Once you have consumed it you
+A `Path` instance is a one-shot consumable view of the stack of `Frames`
+objects created by `Spec.calculate()`. Once you have consumed it you
 should create a new instance of it. For performance reasons, you can keep the
-intermediate `Dimensions <dimension>` and create as many `Path` wrappers to them
+intermediate `Frames` stack and create as many `Path` wrappers to them
 as you need. You can also give a maximum size to `Path.consume()`
 
 >>> from scanspec.core import Path
->>> dims = spec.create_dimensions()
->>> path = Path(dims)
+>>> stack = spec.calculate()
+>>> path = Path(stack)
 >>> len(path)
 3
 >>> chunk = path.consume(2)
@@ -78,7 +71,7 @@ as you need. You can also give a maximum size to `Path.consume()`
 
 You can also use this method to only run a subset of the scan:
 
->>> path = Path(dims, start=1, num=1)
+>>> path = Path(stack, start=1, num=1)
 >>> len(path)
 1
 >>> chunk = path.consume()
@@ -87,6 +80,7 @@ You can also use this method to only run a subset of the scan:
 >>> len(path)
 0
 
+.. seealso:: `../explanations/why-stack-frames`
 
 If you need to know whether there is a gap between points
 ---------------------------------------------------------
@@ -97,11 +91,11 @@ you can see it snakes back and forth:
 
 >>> from scanspec.specs import Line, fly
 >>> grid = fly(Line("y", 0, 1, 2) * ~Line("x", 1, 2, 3), 0.1)
->>> chunk = grid.path().consume()
+>>> chunk = grid.frames()
 >>> chunk.midpoints["x"]
 array([1. , 1.5, 2. , 2. , 1.5, 1. ])
 
-You can check where the gaps are by using the `Dimension.gap` attribute:
+You can check where the gaps are by using the `Frames.gap` attribute:
 
 >>> chunk.gap
 array([ True, False, False,  True, False, False])

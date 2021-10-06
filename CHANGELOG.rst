@@ -14,6 +14,8 @@ Added:
 
 - `Dimension.gap` to see whether there is a gap between frames
 - `Concat.gap` to allow a gap to be explicitly inserted between sections
+- Generics: `Frames`, `AxesPoints`, `Path`, `Midpoints`, `Spec` and `Regions` (and their subclasses) can 
+  now be defined in terms of a type of axis (e.g. `str` or `Motor`)
 
 Changed:
 
@@ -68,9 +70,9 @@ Fixed:
 - Initial release
 
 
-.. _Unreleased: https://github.com/dls-controls/scanspec/compare/0.4...HEAD
-.. _0.4: https://github.com/dls-controls/scanspec/compare/0.3...0.4
-.. _0.3: https://github.com/dls-controls/scanspec/compare/0.2...0.3
-.. _0.2: https://github.com/dls-controls/scanspec/compare/0.1.1...0.2
-.. _0.1.1: https://github.com/dls-controls/scanspec/compare/0.1...0.1.1
-.. _0.1: https://github.com/dls-controls/scanspec/releases/tag/0.1
+.. _Unreleased: ../../compare/0.4...HEAD
+.. _0.4: ../../compare/0.3...0.4
+.. _0.3: ../../compare/0.2...0.3
+.. _0.2: ../../compare/0.1.1...0.2
+.. _0.1.1: ../../compare/0.1...0.1.1
+.. _0.1: ../../releases/tag/0.1

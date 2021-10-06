@@ -33,11 +33,13 @@ The code in this repository conforms to standards set by the following tools:
 - flake8_ for style checks
 - isort_ for import ordering
 - mypy_ for static type checking
+- pydocstyle_ for docstring checking
 
 .. _black: https://github.com/psf/black
 .. _flake8: http://flake8.pycqa.org/en/latest/
 .. _isort: https://github.com/timothycrosley/isort
 .. _mypy: https://github.com/python/mypy
+.. _pydocstyle: http://www.pydocstyle.org
 
 These tests will be run on code when running ``pipenv run tests`` and also
 automatically at check in. Please read the tool documentation for details

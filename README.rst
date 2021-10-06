@@ -11,7 +11,7 @@ Specify step and flyscan Paths using combinations of:
 - Masks with multiple Regions to restrict
 
 Serialize the Spec rather than the expanded Path and reconstruct it on the
-server. It can them be iterated over like a cycler_, or scan Dimensions
+server. It can them be iterated over like a cycler_, or a stack of scan Frames
 can be produced and expanded Paths created to consume chunk by chunk.
 
 .. _cycler: https://matplotlib.org/cycler/
@@ -23,15 +23,16 @@ Documentation  https://dls-controls.github.io/scanspec
 Changelog      https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst
 ============== ==============================================================
 
-An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at each point looks like:
+An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
+each point looks like:
 
 .. code:: python
 
     from scanspec.specs import Line, fly
     from scanspec.regions import Circle
 
-    grid = Line(ymotor, 2.1, 3.8, 12) * ~Line(xmotor, 0.5, 1.5, 10)
-    spec = fly(grid, 0.4) & Circle(xmotor, ymotor, 1.0, 2.8, radius=0.5)
+    grid = Line(y, 2.1, 3.8, 12) * ~Line(x, 0.5, 1.5, 10)
+    spec = fly(grid, 0.4) & Circle(x, y, 1.0, 2.8, radius=0.5)
 
 |plot|
 
@@ -39,25 +40,26 @@ You can then either iterate through the scan positions directly for convenience:
 
 .. code:: python
 
-    for positions in spec.positions():
-        print(positions)
+    for point in spec.midpoints():
+        print(point)
     # ...
-    # {ymotor: 3.2813559322033896, xmotor: 0.8838383838383839, "TIME": 0.4}
-    # {ymotor: 3.2813559322033896, xmotor: 0.8737373737373737, "TIME": 0.4}
+    # {'y': 3.1818181818181817, 'x': 0.8333333333333333, 'DURATION': 0.4}
+    # {'y': 3.1818181818181817, 'x': 0.7222222222222222, 'DURATION': 0.4}
 
-or create a Path from the Dimensions and consume chunks of a given length from it for performance:
+or create a Path from the stack of Frames and consume chunks of a given length
+from it for performance:
 
 .. code:: python
 
     from scanspec.core import Path
 
-    dims = spec.create_dimensions()
-    len(dims[0].shape)  # 44
-    dims[0].keys()  # (ymotor, xmotor, "TIME")
+    stack = spec.calculate()
+    len(stack[0])  # 44
+    stack[0].axes()  # ['y', 'x', 'DURATION']
 
-    path = Path(dims, start=5, num=30)
+    path = Path(stack, start=5, num=30)
     chunk = path.consume(10)
-    chunk.positions  # {xmotor: <ndarray len=10>, ymotor: <ndarray len=10>, "TIME": <ndarray len=10>}
+    chunk.midpoints  # {'x': <ndarray len=10>, 'y': <ndarray len=10>, 'DURATION': <ndarray len=10>}
     chunk.upper  # bounds are same dimensionality as positions
 
 
@@ -85,6 +87,6 @@ or create a Path from the Dimensions and consume chunks of a given length from i
     These definitions are used when viewing README.rst and will be replaced
     when included in index.rst
 
-.. |plot| image:: https://raw.githubusercontent.com/dls-controls/scanspec/0.1/docs/images/plot_spec.png
+.. |plot| image:: https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/plot_spec.png
 
 See https://dls-controls.github.io/scanspec for more detailed documentation.

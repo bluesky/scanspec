@@ -1,5 +1,5 @@
 from itertools import cycle
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterator, List
 
 import numpy as np
 from matplotlib import colors, patches
@@ -8,7 +8,7 @@ from mpl_toolkits.mplot3d import proj3d
 from scipy import interpolate
 
 from .core import Path
-from .regions import Circle, Ellipse, Polygon, Rectangle, find_regions
+from .regions import Circle, Ellipse, Polygon, Rectangle, Region, find_regions
 from .specs import DURATION, Spec
 
 __all__ = ["plot_spec"]
@@ -80,11 +80,12 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
             yield unscaled_splines
 
 
-def plot_spec(spec: Spec):
-    """Plot a spec, drawing the path taken through the scan, using a different
-    colour for each point, grey for the turnarounds, and marking the
-    centrepoints with a filled circle if there are less than 200 of them. If the
-    scan is 2D then 2D regions are shown in black.
+def plot_spec(spec: Spec[Any]):
+    """Plot a spec, drawing the path taken through the scan.
+
+    Uses a different colour for each frame, grey for the turnarounds, and
+    marks the midpoints with a filled circle if there are less than 200 of
+    them. If the scan is 2D then 2D regions are shown in black.
 
     .. example_spec::
 
@@ -94,7 +95,7 @@ def plot_spec(spec: Spec):
         cube = Line("z", 1, 3, 3) * Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
         spec = cube & Circle("x", "y", 1, 2, 0.9)
     """
-    dims = spec.create_dimensions()
+    dims = spec.calculate()
     dim = Path(dims).consume()
     axes = [a for a in spec.axes() if a is not DURATION]
     ndims = len(axes)
@@ -122,7 +123,8 @@ def plot_spec(spec: Spec):
 
     # Plot any Regions
     if ndims <= 2:
-        for region in find_regions(spec):
+        regions: Iterator[Region[Any]] = find_regions(spec)
+        for region in regions:
             if isinstance(region, Rectangle):
                 xy = (region.x_min, region.y_min)
                 width = region.x_max - region.x_min
