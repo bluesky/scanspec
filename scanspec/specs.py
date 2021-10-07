@@ -16,6 +16,7 @@ from .core import (
     gap_between_frames,
     if_instance_do,
     squash_frames,
+    to_gql_input,
 )
 from .regions import Region, get_mask
 
@@ -104,6 +105,10 @@ class Spec(Generic[Axis]):
     def deserialize(cls, serialized: Mapping[str, Any]) -> "Spec[Axis]":
         """Deserialize the spec from a dictionary."""
         return deserialize(cls, serialized)
+
+    def to_gql_input(self) -> str:
+        """Convert to the GraphQL input format."""
+        return to_gql_input(self.serialize())
 
 
 @dataclass
