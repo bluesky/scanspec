@@ -1,0 +1,352 @@
+type Query {
+  validateSpec(spec: SpecInput!): JSON!
+  getPoints(spec: SpecInput!, maxFrames: Int = 100000): PointsResponse!
+}
+
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+
+input SpecInput {
+  Product: ProductInput
+  Repeat: RepeatInput
+  Zip: ZipInput
+  Mask: MaskInput
+  Snake: SnakeInput
+  Concat: ConcatInput
+  Squash: SquashInput
+  Line: LineInput
+  BoundedLine: BoundedLineInput
+  Static: StaticInput
+  DurationStatic: DurationStaticInput
+  Spiral: SpiralInput
+  SpacedSpiral: SpacedSpiralInput
+}
+
+input ProductInput {
+  """Will be executed once"""
+  outer: SpecInput!
+
+  """Will be executed len(outer) times"""
+  inner: SpecInput!
+}
+
+input RepeatInput {
+  """Number of frames to produce"""
+  num: Int!
+
+  """
+  If False and the slowest of the stack of Frames is snaked then the end and start of consecutive iterations of Spec will have no gap
+  """
+  gap: Boolean! = true
+}
+
+input ZipInput {
+  """The left-hand Spec to Zip, will appear earlier in axes"""
+  left: SpecInput!
+
+  """The right-hand Spec to Zip, will appear later in axes"""
+  right: SpecInput!
+}
+
+input MaskInput {
+  """The Spec containing the source midpoints"""
+  spec: SpecInput!
+
+  """The Region that midpoints will be inside"""
+  region: RegionInput!
+
+  """If True path through scan will not be modified by squash"""
+  checkPathChanges: Boolean! = true
+}
+
+input RegionInput {
+  CombinationOf: CombinationOfInput
+  UnionOf: UnionOfInput
+  IntersectionOf: IntersectionOfInput
+  DifferenceOf: DifferenceOfInput
+  SymmetricDifferenceOf: SymmetricDifferenceOfInput
+  Range: RangeInput
+  Rectangle: RectangleInput
+  Polygon: PolygonInput
+  Circle: CircleInput
+  Ellipse: EllipseInput
+}
+
+input CombinationOfInput {
+  """The left-hand Region to combine"""
+  left: RegionInput!
+
+  """The right-hand Region to combine"""
+  right: RegionInput!
+}
+
+input UnionOfInput {
+  """The left-hand Region to combine"""
+  left: RegionInput!
+
+  """The right-hand Region to combine"""
+  right: RegionInput!
+}
+
+input IntersectionOfInput {
+  """The left-hand Region to combine"""
+  left: RegionInput!
+
+  """The right-hand Region to combine"""
+  right: RegionInput!
+}
+
+input DifferenceOfInput {
+  """The left-hand Region to combine"""
+  left: RegionInput!
+
+  """The right-hand Region to combine"""
+  right: RegionInput!
+}
+
+input SymmetricDifferenceOfInput {
+  """The left-hand Region to combine"""
+  left: RegionInput!
+
+  """The right-hand Region to combine"""
+  right: RegionInput!
+}
+
+input RangeInput {
+  """The name matching the axis to mask in spec"""
+  axis: String!
+
+  """The minimum inclusive value in the region"""
+  min: Float!
+
+  """The minimum inclusive value in the region"""
+  max: Float!
+}
+
+input RectangleInput {
+  """The name matching the x axis of the spec"""
+  xAxis: String!
+
+  """The name matching the y axis of the spec"""
+  yAxis: String!
+
+  """Minimum inclusive x value in the region"""
+  xMin: Float!
+
+  """Minimum inclusive y value in the region"""
+  yMin: Float!
+
+  """Maximum inclusive x value in the region"""
+  xMax: Float!
+
+  """Maximum inclusive y value in the region"""
+  yMax: Float!
+
+  """Clockwise rotation angle of the rectangle"""
+  angle: Float! = 0
+}
+
+input PolygonInput {
+  """The name matching the x axis of the spec"""
+  xAxis: String!
+
+  """The name matching the y axis of the spec"""
+  yAxis: String!
+
+  """The Nx1 x coordinates of the polygons vertices"""
+  xVerts: [Float!]!
+
+  """The Nx1 y coordinates of the polygons vertices"""
+  yVerts: [Float!]!
+}
+
+input CircleInput {
+  """The name matching the x axis of the spec"""
+  xAxis: String!
+
+  """The name matching the y axis of the spec"""
+  yAxis: String!
+
+  """The central x point of the circle"""
+  xMiddle: Float!
+
+  """The central y point of the circle"""
+  yMiddle: Float!
+
+  """Radius of the circle"""
+  radius: Float!
+}
+
+input EllipseInput {
+  """The name matching the x axis of the spec"""
+  xAxis: String!
+
+  """The name matching the y axis of the spec"""
+  yAxis: String!
+
+  """The central x point of the ellipse"""
+  xMiddle: Float!
+
+  """The central y point of the ellipse"""
+  yMiddle: Float!
+
+  """The radius along the x axis of the ellipse"""
+  xRadius: Float!
+
+  """The radius along the y axis of the ellipse"""
+  yRadius: Float!
+
+  """The angle of the ellipse (degrees)"""
+  angle: Float! = 0
+}
+
+input SnakeInput {
+  """The Spec to run in reverse every other iteration"""
+  spec: SpecInput!
+}
+
+input ConcatInput {
+  """The left-hand Spec to Concat, midpoints will appear earlier"""
+  left: SpecInput!
+
+  """The right-hand Spec to Concat, midpoints will appear later"""
+  right: SpecInput!
+
+  """If True, force a gap in the output at the join"""
+  gap: Boolean! = false
+
+  """If True path through scan will not be modified by squash"""
+  checkPathChanges: Boolean! = true
+}
+
+input SquashInput {
+  """The Spec to squash the dimensions of"""
+  spec: SpecInput!
+
+  """If True path through scan will not be modified by squash"""
+  checkPathChanges: Boolean! = true
+}
+
+input LineInput {
+  """An identifier for what to move"""
+  axis: String!
+
+  """Midpoint of the first point of the line"""
+  start: Float!
+
+  """Midpoint of the last point of the line"""
+  stop: Float!
+
+  """Number of frames to produce"""
+  num: Int!
+}
+
+input BoundedLineInput {
+  """An identifier for what to move"""
+  axis: String!
+
+  """Lower bound of the first point of the line"""
+  lower: Float!
+
+  """Upper bound of the last point of the line"""
+  upper: Float!
+
+  """Number of frames to produce"""
+  num: Int!
+}
+
+input StaticInput {
+  """An identifier for what to move"""
+  axis: String!
+
+  """The value at each point"""
+  value: Float!
+
+  """Number of frames to produce"""
+  num: Int! = 1
+}
+
+input DurationStaticInput {
+  """The duration of each static point"""
+  duration: Float!
+
+  """Number of frames to produce"""
+  num: Int! = 1
+}
+
+input SpiralInput {
+  """An identifier for what to move for x"""
+  xAxis: String!
+
+  """An identifier for what to move for y"""
+  yAxis: String!
+
+  """x centre of the spiral"""
+  xStart: Float!
+
+  """y centre of the spiral"""
+  yStart: Float!
+
+  """x width of the spiral"""
+  xRange: Float!
+
+  """y width of the spiral"""
+  yRange: Float!
+
+  """Number of frames to produce"""
+  num: Int!
+
+  """How much to rotate the angle of the spiral"""
+  rotate: Float! = 0
+}
+
+input SpacedSpiralInput {
+  """An identifier for what to move for x"""
+  xAxis: String!
+
+  """An identifier for what to move for y"""
+  yAxis: String!
+
+  """x centre of the spiral"""
+  xStart: Float!
+
+  """y centre of the spiral"""
+  yStart: Float!
+
+  """radius of the spiral"""
+  radius: Float!
+
+  """difference between each ring"""
+  dr: Float!
+
+  """How much to rotate the angle of the spiral"""
+  rotate: Float! = 0
+}
+
+type PointsResponse {
+  totalFrames: Int!
+  returnedFrames: Int!
+  axes: [AxisFrames!]!
+  smallestAbsStep: Float!
+}
+
+type AxisFrames {
+  """An identifier for what to move"""
+  axis: String!
+
+  """The lower bounds of each scan frame in each axis"""
+  lower: Points!
+
+  """The midpoints of scan frames for each axis"""
+  midpoints: Points!
+
+  """The upper bounds of each scan frame in each axis"""
+  upper: Points!
+  smallestStep: Float!
+}
+
+type Points {
+  string: String!
+  floatList: [Float!]!
+  b64: String!
+}
+

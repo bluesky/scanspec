@@ -1,6 +1,5 @@
 import base64
 from typing import Any, Mapping
-from unittest import mock
 
 import graphql
 import numpy as np
@@ -8,7 +7,7 @@ import pytest
 from graphql.error.graphql_error import GraphQLError
 from graphql.type.schema import GraphQLSchema, assert_schema
 
-from scanspec.service import Points, scanspec_schema, scanspec_schema_text
+from scanspec.service import Points, scanspec_schema
 
 
 # Returns a dummy 'points' dataclass for resolver testing
@@ -234,12 +233,5 @@ def graphql_exec(schema: GraphQLSchema, query: str) -> Mapping[str, Any]:
         return execution_result.data
 
 
-# SCHEMA TEST(S)
 def test_schema() -> None:
     assert_schema(scanspec_schema)
-
-
-def test_schema_text() -> None:
-    with mock.patch("graphql.utilities.print_schema") as mock_print_schema:
-        scanspec_schema_text()
-        mock_print_schema.assert_called()
