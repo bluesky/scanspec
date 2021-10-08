@@ -32,12 +32,17 @@ We can turn this back into a spec using `Spec.deserialize`:
 Product(outer=Line(axis='y', start=4.0, stop=5.0, num=6), inner=Line(axis='x', start=1.0, stop=2.0, num=3))
 
 
-How to Specify JSON from the class definitions
-----------------------------------------------
+How to send it over GraphQL
+---------------------------
 
-Every Spec lists in its documentation a list of parameters and types. The JSON
+Every Spec lists in its documentation a list of parameters and types. The GraphQL
 representation is the dictionary of these parameters, wrapped in a dictionary
 with a single element whose key is the classname. This allows the
 deserialization code to pick the correct class to deserialize to. For example::
 
-    {'Line': {'axis': 'y', 'start': 4, 'stop': 5, 'num': 6}}
+    {Line: {axis: "y", start: 4, stop: 5, num: 6}}
+
+You can use `Spec.to_gql_input` to produce this from an existing spec:
+
+>>> spec.to_gql_input()
+'{Product: {outer: {Line: {axis: "y", start: 4, stop: 5, num: 6}}, inner: {Line: {axis: "x", start: 1, stop: 2, num: 3}}}}'
