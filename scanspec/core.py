@@ -89,12 +89,8 @@ def to_gql_input(ob) -> str:
     elif isinstance(ob, list):
         inner = ", ".join(to_gql_input(v) for v in ob)
         return "[%s]" % inner
-    elif isinstance(ob, str):
-        return '"%s"' % ob
-    elif isinstance(ob, bool):
-        return "true" if ob else "false"
-    elif isinstance(ob, (int, float)):
-        return str(ob)
+    elif isinstance(ob, (str, int, float, bool)):
+        return json.dumps(ob)
     else:
         raise ValueError("Cannot format %r" % ob)
 
