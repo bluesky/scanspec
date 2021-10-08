@@ -10,13 +10,19 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 Unreleased_
 -----------
 
+Nothing yet
+
+
+0.5_ - 2021-09-08
+-----------------
+
 Added:
 
 - `Dimension.gap` to see whether there is a gap between frames
 - `Concat.gap` to allow a gap to be explicitly inserted between sections
 - Generics: `Frames`, `AxesPoints`, `Path`, `Midpoints`, `Spec` and `Regions` (and their subclasses) can 
   now be defined in terms of a type of axis (e.g. `str` or `Motor`)
-- `GraphQL serialization <../../pulls/36>`_
+- `GraphQL serialization function for Spec <../../pull/36>`_
 
 Changed:
 
@@ -72,7 +78,8 @@ Fixed:
 - Initial release
 
 
-.. _Unreleased: ../../compare/0.4...HEAD
+.. _Unreleased: ../../compare/0.5...HEAD
+.. _0.5: ../../compare/0.4...0.5
 .. _0.4: ../../compare/0.3...0.4
 .. _0.3: ../../compare/0.2...0.3
 .. _0.2: ../../compare/0.1.1...0.2
