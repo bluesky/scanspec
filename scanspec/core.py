@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from types import new_class
 from typing import (
     TYPE_CHECKING,
@@ -80,8 +81,8 @@ generic_name = type_name(lambda cls, *args: cls.__name__)
 def to_gql_input(ob) -> str:
     """Convert plain Python objects to their GraphQL representation.
 
-    >>> to_gql_input({"a": {"b": 1, "c": True, "d": 4.2, "e": "e"}})
-    '{a: {b: 1, c: true, d: 4.2, e: "e"}}'
+    >>> to_gql_input({"a": {"b": 1, "c": True, "d": [4.2, 3.4], "e": "e"}})
+    '{a: {b: 1, c: true, d: [4.2, 3.4], e: "e"}}'
     """
     if isinstance(ob, dict):
         inner = ", ".join(f"{k}: {to_gql_input(v)}" for k, v in ob.items())
