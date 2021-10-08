@@ -1,6 +1,7 @@
 import pytest
 from apischema.validation.errors import ValidationError
 
+from scanspec.core import to_gql_input
 from scanspec.regions import Circle, Rectangle, UnionOf
 from scanspec.specs import Line, Mask, Spec, Spiral
 
@@ -10,6 +11,12 @@ def test_line_serializes() -> None:
     serialized = {"Line": {"axis": "x", "start": 0.0, "stop": 1.0, "num": 4}}
     assert ob.serialize() == serialized
     assert Spec.deserialize(serialized) == ob
+
+
+def test_bad_sgql_serialization() -> None:
+    with pytest.raises(ValueError) as ctx:
+        to_gql_input(Line("x", 0, 1, 4))
+    assert str(ctx.value) == "Cannot format Line(axis='x', start=0, stop=1, num=4)"
 
 
 def test_masked_circle_serializes() -> None:

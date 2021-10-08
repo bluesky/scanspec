@@ -1,3 +1,4 @@
+import pathlib
 from unittest.mock import patch
 
 import matplotlib.pyplot as plt
@@ -6,7 +7,6 @@ import pytest
 from click.testing import CliRunner
 
 from scanspec import cli
-from scanspec.service import scanspec_schema_text
 
 
 def assert_min_max_2d(line, xmin, xmax, ymin, ymax, length=None):
@@ -218,5 +218,5 @@ def test_schema() -> None:
     runner = CliRunner()
     result = runner.invoke(cli.schema)
     assert result.exit_code == 0
-    # Note: Click.echo adds a newline when formatting the string
-    assert result.output == scanspec_schema_text() + "\n"
+    schema_path = pathlib.Path(__file__).resolve().parent.parent / "schema.gql"
+    assert result.output == open(schema_path).read()

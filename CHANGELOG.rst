@@ -16,10 +16,12 @@ Added:
 - `Concat.gap` to allow a gap to be explicitly inserted between sections
 - Generics: `Frames`, `AxesPoints`, `Path`, `Midpoints`, `Spec` and `Regions` (and their subclasses) can 
   now be defined in terms of a type of axis (e.g. `str` or `Motor`)
+- `GraphQL serialization <../../pulls/36>`_
 
 Changed:
 
 - Removed `repeat(spec, 3)` and replaced with `Repeat(spec, 3)` and `3 * spec` shortcut
+- Renamed `Dimension -> Frames` and `Dimension(snake=True) -> SnakedFrames`
 
 
 0.4_ - 2021-08-13

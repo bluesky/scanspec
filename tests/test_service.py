@@ -1,6 +1,5 @@
 import base64
 from typing import Any, Mapping
-from unittest import mock
 
 import graphql
 import numpy as np
@@ -8,7 +7,8 @@ import pytest
 from graphql.error.graphql_error import GraphQLError
 from graphql.type.schema import GraphQLSchema, assert_schema
 
-from scanspec.service import Points, scanspec_schema, scanspec_schema_text
+from scanspec.service import Points, scanspec_schema
+from scanspec.specs import Line
 
 
 # Returns a dummy 'points' dataclass for resolver testing
@@ -39,38 +39,48 @@ def test_decodeb64(points) -> None:
 
 # VALIDATE SPEC QUERY TEST(S) #
 def test_validate_spec() -> None:
-    query_str = """
+    spec = Line.bounded("x", 0, 1, 5)
+    query_str = (
+        """
 {
-    validateSpec(spec: {BoundedLine: {axis: "x", lower: 0, upper: 1, num: 5}})
+    validateSpec(spec: %s)
 }
     """
+        % spec.to_gql_input()
+    )
     assert graphql_exec(scanspec_schema, query_str) == {
         "validateSpec": {"Line": {"axis": "x", "start": 0.1, "stop": 0.9, "num": 5}}
     }
 
 
 # GET POINTS QUERY TEST(S) #
+GRID = Line("x", 0, 1, 2) * Line("y", 0, 1, 3)
+
+
 def test_get_points_axis() -> None:
-    query_str = """
+
+    query_str = (
+        """
 {
-  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
-  inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}) {
+  getPoints(spec: %s) {
     axes {
       axis
     }
   }
 }
     """
+        % GRID.to_gql_input()
+    )
     assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {"axes": [{"axis": "x"}, {"axis": "y"}]}
     }
 
 
 def test_get_points_lower() -> None:
-    query_str = """
+    query_str = (
+        """
 {
-  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
-  inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}) {
+  getPoints(spec: %s) {
     axes {
       lower{
         floatList
@@ -79,6 +89,8 @@ def test_get_points_lower() -> None:
   }
 }
     """
+        % GRID.to_gql_input()
+    )
     assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "axes": [
@@ -90,10 +102,10 @@ def test_get_points_lower() -> None:
 
 
 def test_get_points_midpoints() -> None:
-    query_str = """
+    query_str = (
+        """
 {
-  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
-  inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}) {
+  getPoints(spec: %s) {
     axes {
       midpoints{
         floatList
@@ -102,6 +114,8 @@ def test_get_points_midpoints() -> None:
   }
 }
     """
+        % GRID.to_gql_input()
+    )
     assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "axes": [
@@ -113,10 +127,10 @@ def test_get_points_midpoints() -> None:
 
 
 def test_get_points_upper() -> None:
-    query_str = """
+    query_str = (
+        """
 {
-  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
-  inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}) {
+  getPoints(spec: %s) {
     axes {
       upper{
         floatList
@@ -125,6 +139,8 @@ def test_get_points_upper() -> None:
   }
 }
     """
+        % GRID.to_gql_input()
+    )
     assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "axes": [
@@ -136,10 +152,11 @@ def test_get_points_upper() -> None:
 
 
 def test_get_points_upper_limited() -> None:
-    query_str = """
+    spec = Line("x", 0, 10, 5) * Line("y", 0, 10, 5)
+    query_str = (
+        """
 {
-  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 10, num: 5}},
-  inner: {Line: {axis: "y", start: 0, stop: 10, num: 5}}}}, maxFrames: 8) {
+  getPoints(spec: %s, maxFrames: 8) {
     totalFrames
     returnedFrames
     axes {
@@ -150,6 +167,8 @@ def test_get_points_upper_limited() -> None:
   }
 }
     """
+        % spec.to_gql_input()
+    )
     assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "totalFrames": 25,
@@ -163,10 +182,10 @@ def test_get_points_upper_limited() -> None:
 
 
 def test_get_points_smallest_step() -> None:
-    query_str = """
+    query_str = (
+        """
 {
-  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}},
-  inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}) {
+  getPoints(spec: %s) {
     axes {
       axis
       smallestStep
@@ -175,6 +194,8 @@ def test_get_points_smallest_step() -> None:
 }
 
     """
+        % GRID.to_gql_input()
+    )
     assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "axes": [
@@ -186,22 +207,25 @@ def test_get_points_smallest_step() -> None:
 
 
 def test_get_points_total_frames() -> None:
-    query_str = """
+    query_str = (
+        """
 {
-  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 1, num: 2}}
-  inner: {Line: {axis: "y", start: 0, stop: 1, num: 3}}}}) {
+  getPoints(spec: %s) {
     totalFrames
   }
 }
     """
+        % GRID.to_gql_input()
+    )
     assert graphql_exec(scanspec_schema, query_str) == {"getPoints": {"totalFrames": 6}}
 
 
 def test_get_points_abs_smallest_step() -> None:
-    query_str = """
+    spec = Line("x", 0, 10, 3) * Line("y", 0, 10, 3)
+    query_str = (
+        """
 {
-  getPoints(spec: {Product: {outer: {Line: {axis: "x", start: 0, stop: 10, num: 3}},
-  inner: {Line: {axis: "y", start: 0, stop: 10, num: 3}}}}) {
+  getPoints(spec: %s) {
     smallestAbsStep
     axes {
       midpoints {
@@ -211,6 +235,8 @@ def test_get_points_abs_smallest_step() -> None:
   }
 }
     """
+        % spec.to_gql_input()
+    )
     assert graphql_exec(scanspec_schema, query_str) == {
         "getPoints": {
             "smallestAbsStep": 5,
@@ -234,12 +260,5 @@ def graphql_exec(schema: GraphQLSchema, query: str) -> Mapping[str, Any]:
         return execution_result.data
 
 
-# SCHEMA TEST(S)
 def test_schema() -> None:
     assert_schema(scanspec_schema)
-
-
-def test_schema_text() -> None:
-    with mock.patch("graphql.utilities.print_schema") as mock_print_schema:
-        scanspec_schema_text()
-        mock_print_schema.assert_called()

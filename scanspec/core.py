@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from types import new_class
 from typing import (
     TYPE_CHECKING,
@@ -75,6 +76,24 @@ else:
 
 
 generic_name = type_name(lambda cls, *args: cls.__name__)
+
+
+def to_gql_input(ob) -> str:
+    """Convert plain Python objects to their GraphQL representation.
+
+    >>> to_gql_input({"a": {"b": 1, "c": True, "d": [4.2, 3.4], "e": "e"}})
+    '{a: {b: 1, c: true, d: [4.2, 3.4], e: "e"}}'
+    """
+    if isinstance(ob, dict):
+        inner = ", ".join(f"{k}: {to_gql_input(v)}" for k, v in ob.items())
+        return "{%s}" % inner
+    elif isinstance(ob, list):
+        inner = ", ".join(to_gql_input(v) for v in ob)
+        return "[%s]" % inner
+    elif isinstance(ob, (str, int, float, bool)):
+        return json.dumps(ob)
+    else:
+        raise ValueError("Cannot format %r" % ob)
 
 
 def as_tagged_union(cls: Type):
