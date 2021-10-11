@@ -13,7 +13,15 @@ Unreleased_
 Nothing yet
 
 
-0.5_ - 2021-09-08
+0.5.1_ - 2021-10-11
+-------------------
+
+Fixed:
+
+- Pipenv issue fixed to allow internal DLS build
+
+
+0.5_ - 2021-10-08
 -----------------
 
 Added:
@@ -78,7 +86,8 @@ Fixed:
 - Initial release
 
 
-.. _Unreleased: ../../compare/0.5...HEAD
+.. _Unreleased: ../../compare/0.5.1...HEAD
+.. _0.5.1: ../../compare/0.5...0.5.1
 .. _0.5: ../../compare/0.4...0.5
 .. _0.4: ../../compare/0.3...0.4
 .. _0.3: ../../compare/0.2...0.3
