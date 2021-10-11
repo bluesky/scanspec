@@ -4,33 +4,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-# Pinning black stops us having to allow pre-releases globally
-black = "==19.10b0"
-
-# Pins to make lockfile usable on multiple Python versions and platforms
-mypy = "*"
-atomicwrites = "*"
-typing-extensions = "*"
-importlib-metadata = "*"
-typed-ast = "*"
-
-# Test and docs dependencies
-pytest-cov = "*"
-pytest-mypy = "*"
-pytest-flake8 = "*"
-pytest-black = "*"
-pytest-pydocstyle = "*"
-flake8-isort = "*"
-isort = ">5.0"
-sphinx-rtd-theme-github-versions = "*"
-sphinx-graphql = "*"
-sphinx-apischema = "*"
+scanspec = {editable = true, extras = ["dev"], path = "."}
 
 [packages]
-# All other package requirements from setup.cfg
 scanspec = {editable = true, extras = ["plotting", "graphql"], path = "."}
-# Force pipenv to install typing-extensions always (otherwise it skips on 3.8+)
-typing-extensions = "*"
 
 [scripts]
 tests = "python -m pytest"
