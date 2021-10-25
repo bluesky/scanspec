@@ -26,17 +26,15 @@ jobs:
     steps:
       - name: Checkout Source
         uses: actions/checkout@v2
+        with:
+          # require history to get back to last tag for version number of branches
+          fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
-
-      - name: Install Python Dependencies
-        run: |
-          pip install pipenv build
-          pipenv install --dev --${{ matrix.pipenv }} --python $(python -c 'import sys; print(sys.executable)') && pipenv graph
-
+         
       - name: Create Sdist and Wheel
         if: matrix.publish
         # Set SOURCE_DATE_EPOCH from git commit for reproducible build
@@ -45,10 +43,25 @@ jobs:
         run: |
           chmod -R g+w .
           umask 0002
-          SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) python -m build --sdist --wheel
+          SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) pipx run build --sdist --wheel
+
+      - name: Test cli works from the installed wheel
+        if: matrix.publish          
+        # Can remove the reference to `scanspec` after https://github.com/pypa/pipx/pull/733 
+        run: pipx run --spec dist/*.whl scanspec --version
+
+      - name: Use a non-editable install to test the installed wheel
+        if: matrix.pipenv == 'skip-lock'
+        run: sed -i 's/editable *= *true/editable = false/' Pipfile
+
+      - name: Install Python Dependencies
+        run: |
+          pip install pipenv          
+          pipenv install --dev --${{ matrix.pipenv }} --python $(python -c 'import sys; print(sys.executable)') && pipenv graph
 
       - name: Run Tests
-        run: pipenv run tests
+        # https://github.com/pytest-dev/pytest/issues/2042
+        run: PY_IGNORE_IMPORTMISMATCH=1 pipenv run tests
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
