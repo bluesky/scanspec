@@ -1,42 +1,21 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Creating a Scan Spec &mdash; scanspec 0.5.1 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
-
-  
-  
+  <title>Creating a Scan Spec &mdash; scanspec 0.5.1+2.g8cdcf59 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/scanspec-logo.ico"/>
-  
-
-  
-  
-
-  
-
-  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
@@ -45,46 +24,24 @@
         <script src="https://cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.js"></script>
         <script src="../_static/attachGraphiQL.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Running a GraphQL service for generating points" href="graphql-service.html" />
     <link rel="prev" title="Installation Tutorial" href="installation.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search"  style="background: rgb(7, 43, 93)" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> scanspec
-          
-
-          
-            
             <img src="../_static/scanspec-logo.svg" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                0.5.1
+                master
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -92,19 +49,8 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
   
-            
-            
-              
-            
-            
               <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Tutorial</a></li>
@@ -140,8 +86,6 @@
 <li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
 </ul>
 
-            
-          
   <!-- Add versions for selected branches + tags -->
   <p class="caption">
     <span class="caption-text">Versions</span>
@@ -179,74 +123,35 @@
   </script>
 
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgb(7, 43, 93)" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">scanspec</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Creating a Scan Spec</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/tutorials/creating-a-spec.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="creating-a-scan-spec">
-<h1>Creating a Scan Spec<a class="headerlink" href="#creating-a-scan-spec" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="creating-a-scan-spec">
+<h1>Creating a Scan Spec<a class="headerlink" href="#creating-a-scan-spec" title="Permalink to this headline"></a></h1>
 <p>This tutorial shows how to create Scan Specs of increasing complexity, plotting
 the results.</p>
-<div class="section" id="line">
-<h2>Line<a class="headerlink" href="#line" title="Permalink to this headline">¶</a></h2>
+<section id="line">
+<h2>Line<a class="headerlink" href="#line" title="Permalink to this headline"></a></h2>
 <p>We’ll start with a simple one, a <a class="reference internal" href="../reference/api.html#scanspec.specs.Line" title="scanspec.specs.Line"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Line</span></code></a>. If you enter the following code into an
 interactive Python terminal, it should plot a graph of a 1D line:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
@@ -259,25 +164,25 @@ interactive Python terminal, it should plot a graph of a 1D line:</p>
 </pre></div>
 </div>
 <p>(<a class="reference external" href="../tutorials/creating-a-spec-1.py">Source code</a>, <a class="reference external" href="../tutorials/creating-a-spec-1.png">png</a>, <a class="reference external" href="../tutorials/creating-a-spec-1.hires.png">hires.png</a>, <a class="reference external" href="../tutorials/creating-a-spec-1.pdf">pdf</a>)</p>
-<div class="figure align-default">
+<figure class="align-default">
 <img alt="../_images/creating-a-spec-1.png" class="plot-directive" src="../_images/creating-a-spec-1.png" />
-</div>
+</figure>
 <p>This will create a Spec with 5 frames, the first centred on 1, the last centred
 on 2. The black dots mark the midpoints on the Path. The coloured lines mark the
 motion from the lower to upper bound of each frame on the Path. The grey
 arrowhead marks the start of the scan, and the cross marks the end.</p>
-</div>
-<div class="section" id="plotting-from-the-commandline">
-<h2>Plotting from the commandline<a class="headerlink" href="#plotting-from-the-commandline" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="plotting-from-the-commandline">
+<h2>Plotting from the commandline<a class="headerlink" href="#plotting-from-the-commandline" title="Permalink to this headline"></a></h2>
 <p>To quickly plot Scan Specs you can use the commandline client. The input is
 evaluated with variables <code class="docutils literal notranslate"><span class="pre">a</span></code> to <code class="docutils literal notranslate"><span class="pre">z</span></code> defined and the output plotted.</p>
 <p>For example, for the Line example above you would type:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ scanspec plot &#39;Line(x, 1, 2, 5)&#39;
 </pre></div>
 </div>
-</div>
-<div class="section" id="line-with-2-axes">
-<h2>Line with 2 axes<a class="headerlink" href="#line-with-2-axes" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="line-with-2-axes">
+<h2>Line with 2 axes<a class="headerlink" href="#line-with-2-axes" title="Permalink to this headline"></a></h2>
 <p>If we want to plot a Line in two axes, we can do this with <a class="reference internal" href="../reference/api.html#scanspec.specs.Zip" title="scanspec.specs.Zip"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Zip</span></code></a>, or <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.zip" title="scanspec.specs.Spec.zip"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.zip</span></code></a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
@@ -289,12 +194,12 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 </pre></div>
 </div>
 <p>(<a class="reference external" href="../tutorials/creating-a-spec-2.py">Source code</a>, <a class="reference external" href="../tutorials/creating-a-spec-2.png">png</a>, <a class="reference external" href="../tutorials/creating-a-spec-2.hires.png">hires.png</a>, <a class="reference external" href="../tutorials/creating-a-spec-2.pdf">pdf</a>)</p>
-<div class="figure align-default">
+<figure class="align-default">
 <img alt="../_images/creating-a-spec-2.png" class="plot-directive" src="../_images/creating-a-spec-2.png" />
-</div>
-</div>
-<div class="section" id="grid">
-<h2>Grid<a class="headerlink" href="#grid" title="Permalink to this headline">¶</a></h2>
+</figure>
+</section>
+<section id="grid">
+<h2>Grid<a class="headerlink" href="#grid" title="Permalink to this headline"></a></h2>
 <p>We can make a grid by creating the <a class="reference internal" href="../reference/api.html#scanspec.specs.Product" title="scanspec.specs.Product"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Product</span></code></a> of 2 Lines with the <code class="docutils literal notranslate"><span class="pre">*</span></code> operator:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
@@ -306,16 +211,16 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 </pre></div>
 </div>
 <p>(<a class="reference external" href="../tutorials/creating-a-spec-3.py">Source code</a>, <a class="reference external" href="../tutorials/creating-a-spec-3.png">png</a>, <a class="reference external" href="../tutorials/creating-a-spec-3.hires.png">hires.png</a>, <a class="reference external" href="../tutorials/creating-a-spec-3.pdf">pdf</a>)</p>
-<div class="figure align-default">
+<figure class="align-default">
 <img alt="../_images/creating-a-spec-3.png" class="plot-directive" src="../_images/creating-a-spec-3.png" />
-</div>
+</figure>
 <p>The plot shows grey arrowed lines marking the turnarounds. These are added by
 the plotting function as an indication of what a scanning program might do
 between two disjoint frames, it is not a guarantee of the path that will be
 taken.</p>
-</div>
-<div class="section" id="snaked-grid">
-<span id="id1"></span><h2>Snaked Grid<a class="headerlink" href="#snaked-grid" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="snaked-grid">
+<span id="id1"></span><h2>Snaked Grid<a class="headerlink" href="#snaked-grid" title="Permalink to this headline"></a></h2>
 <p>We can <a class="reference internal" href="../reference/api.html#scanspec.specs.Snake" title="scanspec.specs.Snake"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Snake</span></code></a> a Spec with the <code class="docutils literal notranslate"><span class="pre">~</span></code> operator. If we apply this to the inner
 Spec of our grid we get:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
@@ -328,12 +233,12 @@ Spec of our grid we get:</p>
 </pre></div>
 </div>
 <p>(<a class="reference external" href="../tutorials/creating-a-spec-4.py">Source code</a>, <a class="reference external" href="../tutorials/creating-a-spec-4.png">png</a>, <a class="reference external" href="../tutorials/creating-a-spec-4.hires.png">hires.png</a>, <a class="reference external" href="../tutorials/creating-a-spec-4.pdf">pdf</a>)</p>
-<div class="figure align-default">
+<figure class="align-default">
 <img alt="../_images/creating-a-spec-4.png" class="plot-directive" src="../_images/creating-a-spec-4.png" />
-</div>
-</div>
-<div class="section" id="masking-with-regions">
-<h2>Masking with Regions<a class="headerlink" href="#masking-with-regions" title="Permalink to this headline">¶</a></h2>
+</figure>
+</section>
+<section id="masking-with-regions">
+<h2>Masking with Regions<a class="headerlink" href="#masking-with-regions" title="Permalink to this headline"></a></h2>
 <p>We can apply a <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a> to only include frames where the midpoints are within a
 given <a class="reference internal" href="../reference/api.html#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> using the <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> operator:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
@@ -347,12 +252,12 @@ given <a class="reference internal" href="../reference/api.html#scanspec.regions
 </pre></div>
 </div>
 <p>(<a class="reference external" href="../tutorials/creating-a-spec-5.py">Source code</a>, <a class="reference external" href="../tutorials/creating-a-spec-5.png">png</a>, <a class="reference external" href="../tutorials/creating-a-spec-5.hires.png">hires.png</a>, <a class="reference external" href="../tutorials/creating-a-spec-5.pdf">pdf</a>)</p>
-<div class="figure align-default">
+<figure class="align-default">
 <img alt="../_images/creating-a-spec-5.png" class="plot-directive" src="../_images/creating-a-spec-5.png" />
-</div>
-</div>
-<div class="section" id="masking-with-multiple-regions">
-<h2>Masking with Multiple Regions<a class="headerlink" href="#masking-with-multiple-regions" title="Permalink to this headline">¶</a></h2>
+</figure>
+</section>
+<section id="masking-with-multiple-regions">
+<h2>Masking with Multiple Regions<a class="headerlink" href="#masking-with-multiple-regions" title="Permalink to this headline"></a></h2>
 <p>We can apply set-like operators to Masked Specs:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">|</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.regions.UnionOf" title="scanspec.regions.UnionOf"><code class="xref any py py-class docutils literal notranslate"><span class="pre">UnionOf</span></code></a> two Regions</p></li>
@@ -372,57 +277,45 @@ given <a class="reference internal" href="../reference/api.html#scanspec.regions
 </pre></div>
 </div>
 <p>(<a class="reference external" href="../tutorials/creating-a-spec-6.py">Source code</a>, <a class="reference external" href="../tutorials/creating-a-spec-6.png">png</a>, <a class="reference external" href="../tutorials/creating-a-spec-6.hires.png">hires.png</a>, <a class="reference external" href="../tutorials/creating-a-spec-6.pdf">pdf</a>)</p>
-<div class="figure align-default">
+<figure class="align-default">
 <img alt="../_images/creating-a-spec-6.png" class="plot-directive" src="../_images/creating-a-spec-6.png" />
-</div>
-</div>
-<div class="section" id="conclusion">
-<h2>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this headline">¶</a></h2>
+</figure>
+</section>
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this headline"></a></h2>
 <p>This tutorial has demonstrated some Specs and combinations of them. From here
 you may like to read <a class="reference internal" href="../how-to/iterate-a-spec.html#iterate-a-spec"><span class="std std-ref">How to Iterate a Spec</span></a> to see how a scanning system could use
 these Specs and <a class="reference internal" href="../how-to/serialize-a-spec.html#serialize-a-spec"><span class="std std-ref">How to Serialize and Deserialize a Spec</span></a> to see how you might send one to such a
 scanning system.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="graphql-service.html" class="btn btn-neutral float-right" title="Running a GraphQL service for generating points" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="installation.html" class="btn btn-neutral float-left" title="Installation Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="graphql-service.html" class="btn btn-neutral float-right" title="Running a GraphQL service for generating points" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Diamond Light Source.
+    <p>&#169; Copyright 2020, Diamond Light Source.</p>
+  </div>
 
-    </p>
-  </div> 
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

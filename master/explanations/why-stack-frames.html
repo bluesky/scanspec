@@ -1,42 +1,21 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Why create a stack of Frames? &mdash; scanspec 0.5.1 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
-
-  
-  
+  <title>Why create a stack of Frames? &mdash; scanspec 0.5.1+2.g8cdcf59 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="shortcut icon" href="../_static/scanspec-logo.ico"/>
-  
-
-  
-  
-
-  
-
-  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
@@ -45,46 +24,24 @@
         <script src="https://cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.js"></script>
         <script src="../_static/attachGraphiQL.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Why Squash (and Mask) can change the Path" href="why-squash-can-change-path.html" />
     <link rel="prev" title="Technical Terms" href="technical-terms.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search"  style="background: rgb(7, 43, 93)" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> scanspec
-          
-
-          
-            
             <img src="../_static/scanspec-logo.svg" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                0.5.1
+                master
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -92,19 +49,8 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
   
-            
-            
-              
-            
-            
               <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/installation.html">Installation Tutorial</a></li>
@@ -136,8 +82,6 @@
 <li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
 </ul>
 
-            
-          
   <!-- Add versions for selected branches + tags -->
   <p class="caption">
     <span class="caption-text">Versions</span>
@@ -175,78 +119,39 @@
   </script>
 
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgb(7, 43, 93)" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">scanspec</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Why create a stack of Frames?</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/explanations/why-stack-frames.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="why-create-a-stack-of-frames">
-<h1>Why create a stack of Frames?<a class="headerlink" href="#why-create-a-stack-of-frames" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="why-create-a-stack-of-frames">
+<h1>Why create a stack of Frames?<a class="headerlink" href="#why-create-a-stack-of-frames" title="Permalink to this headline"></a></h1>
 <p>If a <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a> tells you the parameters of a scan, <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> gives you the <a class="reference internal" href="../reference/api.html#scanspec.service.Points" title="scanspec.service.Points"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Points</span></code></a>
 that will let you actually execute the scan. A stack of Frames is interpreted as
 nested from slowest moving to fastest moving, so each faster Frames object will
 iterate once per position of the slower Frames object. When fly-scanning the
 axis will traverse lower-midpoint-upper on the fastest Frames object for each
 point in the scan.</p>
-<div class="section" id="an-example">
-<h2>An Example<a class="headerlink" href="#an-example" title="Permalink to this headline">¶</a></h2>
+<section id="an-example">
+<h2>An Example<a class="headerlink" href="#an-example" title="Permalink to this headline"></a></h2>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span>
@@ -266,9 +171,9 @@ point in the scan.</p>
 having the same size as the outer line, and the second having the same size as
 the inner. Executing the scan will iterate the inner Frames object 6 times, once for
 each point in the outer Frames object, 18 points in all.</p>
-</div>
-<div class="section" id="why-not-squash-them-into-a-flat-sequence">
-<h2>Why not squash them into a flat sequence?<a class="headerlink" href="#why-not-squash-them-into-a-flat-sequence" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="why-not-squash-them-into-a-flat-sequence">
+<h2>Why not squash them into a flat sequence?<a class="headerlink" href="#why-not-squash-them-into-a-flat-sequence" title="Permalink to this headline"></a></h2>
 <p>A stack of Frames objects are created to give the most compact representation of
 the scan. Imagine a 100x2000x2000 point scan, which creates a list of 3 Frames
 objects. Considering just the midpoint arrays, they would take 100 + 2000 + 2000
@@ -276,17 +181,17 @@ float64 = 32.8kB RAM in our list form. If we squashed the list into a single
 Frames object it would take 100 * 2000 * 2000 float64 = 3.2GB of RAM. The scan
 itself is likely to be executed over a long period of time, so it makes sense to
 save on the memory and calculate the squashed points as they are needed.</p>
-</div>
-<div class="section" id="what-about-regions">
-<h2>What about Regions?<a class="headerlink" href="#what-about-regions" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="what-about-regions">
+<h2>What about Regions?<a class="headerlink" href="#what-about-regions" title="Permalink to this headline"></a></h2>
 <p>Regions will stop the regularity of the nested Frames objects, so will cause
 them to be squashed into a single Frames object. Taking our example above, if we
 <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a> the grid with a <a class="reference internal" href="../reference/api.html#scanspec.regions.Circle" title="scanspec.regions.Circle"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Circle</span></code></a>, then the <a class="reference internal" href="../reference/api.html#scanspec.specs.Line" title="scanspec.specs.Line"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Line</span></code></a> in <code class="docutils literal notranslate"><span class="pre">x</span></code> won’t have 3 points in
 each iteration, the number of points is dependent on <code class="docutils literal notranslate"><span class="pre">y</span></code>. This means that a
 <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a> will squash any Specs together referred to by its Regions.</p>
-</div>
-<div class="section" id="how-does-this-stack-relate-to-hdf5-dimensions">
-<h2>How does this stack relate to HDF5 Dimensions?<a class="headerlink" href="#how-does-this-stack-relate-to-hdf5-dimensions" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="how-does-this-stack-relate-to-hdf5-dimensions">
+<h2>How does this stack relate to HDF5 Dimensions?<a class="headerlink" href="#how-does-this-stack-relate-to-hdf5-dimensions" title="Permalink to this headline"></a></h2>
 <p>A Spec by itself does not specify how the scan points should be written to disk.
 The simplest strategy is to simply write a stack of images, along with the
 setpoint positions specified in the Frames objects, and let the reader of the data
@@ -297,47 +202,35 @@ which point it destroys the performance of the VDS. For this reason, it is
 advisable to <a class="reference internal" href="../reference/api.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Squash</span></code></a> any snaking Specs with the first non-snaking axis above it
 so that the HDF Dimension will not be snaking. See <a class="reference internal" href="why-squash-can-change-path.html"><span class="doc">Why Squash (and Mask) can change the Path</span></a> for
 some details on this.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="why-squash-can-change-path.html" class="btn btn-neutral float-right" title="Why Squash (and Mask) can change the Path" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="technical-terms.html" class="btn btn-neutral float-left" title="Technical Terms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="why-squash-can-change-path.html" class="btn btn-neutral float-right" title="Why Squash (and Mask) can change the Path" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Diamond Light Source.
+    <p>&#169; Copyright 2020, Diamond Light Source.</p>
+  </div>
 
-    </p>
-  </div> 
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
