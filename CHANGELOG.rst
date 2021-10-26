@@ -7,28 +7,36 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0/>`
 and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
 
-Unreleased_
------------
+`Unreleased <../../compare/0.5.2...HEAD>`_
+------------------------------------------
 
 Nothing yet
 
 
-0.5.1_ - 2021-10-11
--------------------
+`0.5.2 <../../compare/0.5.1...0.5.2>`_ - 2021-10-26
+---------------------------------------------------
+
+Changed:
+
+- `Move sources to a src/ directory <../../pull/38>`_
+
+
+`0.5.1 <../../compare/0.5...0.5.1>`_ - 2021-10-11
+-------------------------------------------------
 
 Fixed:
 
 - Pipenv issue fixed to allow internal DLS build
 
 
-0.5_ - 2021-10-08
------------------
+`0.5 <../../compare/0.4...0.5>`_ - 2021-10-08
+---------------------------------------------
 
 Added:
 
 - `Dimension.gap` to see whether there is a gap between frames
 - `Concat.gap` to allow a gap to be explicitly inserted between sections
-- Generics: `Frames`, `AxesPoints`, `Path`, `Midpoints`, `Spec` and `Regions` (and their subclasses) can 
+- Generics: `Frames`, `AxesPoints`, `Path`, `Midpoints`, `Spec` and `Regions` (and their subclasses) can
   now be defined in terms of a type of axis (e.g. `str` or `Motor`)
 - `GraphQL serialization function for Spec <../../pull/36>`_
 
@@ -38,8 +46,8 @@ Changed:
 - Renamed `Dimension -> Frames` and `Dimension(snake=True) -> SnakedFrames`
 
 
-0.4_ - 2021-08-13
------------------
+`0.4 <../../compare/0.3...0.4>`_ - 2021-08-13
+---------------------------------------------
 
 Fixed:
 
@@ -52,8 +60,8 @@ Changed:
 - TIME is now DURATION
 
 
-0.3_ - 2021-06-01
------------------
+`0.3 <../../compare/0.2...0.3>`_ - 2021-06-01
+---------------------------------------------
 
 Added:
 
@@ -63,8 +71,8 @@ Added:
 - documentation on how to use get_points in graphiql
 
 
-0.2_ - 2020-12-18
------------------
+`0.2 <../../compare/0.1.1...0.2>`_ - 2020-12-18
+-----------------------------------------------
 
 Added:
 
@@ -72,25 +80,20 @@ Added:
 - more documentation
 
 
-0.1.1_ - 2020-12-10
--------------------
+`0.1.1 <../../compare/0.1...0.1.1>`_ - 2020-12-10
+-------------------------------------------------
 
 Fixed:
 
 - README so it works on PyPI
 
 
-0.1_ - 2020-12-10
------------------
+`0.1 <../../releases/tag/0.1>`_ - 2020-12-10
+--------------------------------------------
 
 - Initial release
 
 
-.. _Unreleased: ../../compare/0.5.1...HEAD
-.. _0.5.1: ../../compare/0.5...0.5.1
-.. _0.5: ../../compare/0.4...0.5
-.. _0.4: ../../compare/0.3...0.4
-.. _0.3: ../../compare/0.2...0.3
-.. _0.2: ../../compare/0.1.1...0.2
-.. _0.1.1: ../../compare/0.1...0.1.1
-.. _0.1: ../../releases/tag/0.1
+
+
+
