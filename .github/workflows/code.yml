@@ -2,6 +2,11 @@ name: Code CI
 
 on:
   push:
+    branches:
+      - master
+      - main
+    tags:
+      - "*"
   pull_request:
 
 jobs:
@@ -34,7 +39,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
-         
+
       - name: Create Sdist and Wheel
         if: matrix.publish
         # Set SOURCE_DATE_EPOCH from git commit for reproducible build
@@ -46,8 +51,8 @@ jobs:
           SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) pipx run build --sdist --wheel
 
       - name: Test cli works from the installed wheel
-        if: matrix.publish          
-        # Can remove the reference to `scanspec` after https://github.com/pypa/pipx/pull/733 
+        if: matrix.publish
+        # Can remove the reference to `scanspec` after https://github.com/pypa/pipx/pull/733
         run: pipx run --spec dist/*.whl scanspec --version
 
       - name: Use a non-editable install to test the installed wheel
@@ -56,7 +61,7 @@ jobs:
 
       - name: Install Python Dependencies
         run: |
-          pip install pipenv          
+          pip install pipenv
           pipenv install --dev --${{ matrix.pipenv }} --python $(python -c 'import sys; print(sys.executable)') && pipenv graph
 
       - name: Run Tests
