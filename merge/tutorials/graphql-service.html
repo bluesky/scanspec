@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Running a GraphQL service for generating points &mdash; scanspec 0.5.2+2.g67a3f75 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/scanspec-logo.ico"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react@16.13.1/umd/react.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.js"></script>
+        <script src="../_static/attachGraphiQL.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How to Iterate a Spec" href="../how-to/iterate-a-spec.html" />
+    <link rel="prev" title="Creating a Scan Spec" href="creating-a-spec.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgb(7, 43, 93)" >
+            <a href="../index.html" class="icon icon-home"> scanspec
+            <img src="../_static/scanspec-logo.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                master
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating-a-spec.html">Creating a Scan Spec</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Running a GraphQL service for generating points</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-server">Running the server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#validating-a-spec">Validating a Spec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-points-from-a-spec">Getting Points from a Spec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#masking-a-region-of-a-spec">Masking a region of a spec</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How-to Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Explanations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../explanations/technical-terms.html">Technical Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanations/why-stack-frames.html">Why create a stack of Frames?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../reference/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a></li>
+<li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
+</ul>
+
+  <!-- Add versions for selected branches + tags -->
+  <p class="caption">
+    <span class="caption-text">Versions</span>
+  </p>
+  <ul id="versions"/>
+  <script>
+    // Add any branches to appear in the side pane here, tags will be added below
+    // Will only appear if docs are built and pushed in gh-pages
+    var versions = ['main', 'master'];
+    var dirs = new Set();
+    function addVersion(name) {
+      if (dirs.has(name)) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = 'https://dls-controls.github.io/scanspec/' + name;
+        a.innerText = name;
+        li.appendChild(a)
+        document.getElementById('versions').appendChild(li);
+      }
+    }
+    Promise.all([
+      // Find gh-pages directories and populate `dirs`
+      fetch("https://api.github.com/repos/dls-controls/scanspec/contents?ref=gh-pages")
+      .then(response => response.json())
+      .then(data => data.forEach(function(e) {
+        if (e.type == "dir") dirs.add(e.name);
+      })),
+      // Add tags to `versions`
+      fetch('https://api.github.com/repos/dls-controls/scanspec/tags')
+        .then(response => response.json())
+        .then(data => data.forEach(function(e) {
+          versions.push(e.name);
+        }))
+      ]).then(_ => versions.forEach(addVersion))
+  </script>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgb(7, 43, 93)" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">scanspec</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Running a GraphQL service for generating points</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/graphql-service.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="running-a-graphql-service-for-generating-points">
+<span id="graphql-service"></span><h1>Running a GraphQL service for generating points<a class="headerlink" href="#running-a-graphql-service-for-generating-points" title="Permalink to this headline"></a></h1>
+<p>The <a class="reference internal" href="creating-a-spec.html"><span class="doc">Creating a Scan Spec</span></a> tutorial shows how you would use the commandline client to
+plot a <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a>. This maps nicely to using scanspec in a commandline utility, but
+not if you want to expose those points to a web GUI. To do this we will bring up
+a <a class="reference external" href="https://www.graphql.com/">GraphQL</a> service that allows a web GUI to request the points it would like to
+plot.</p>
+<section id="running-the-server">
+<h2>Running the server<a class="headerlink" href="#running-the-server" title="Permalink to this headline"></a></h2>
+<p>In a terminal, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ scanspec service --cors
+======== Running on http://0.0.0.0:8080 ========
+(Press CTRL+C to quit)
+</pre></div>
+</div>
+<p>You can now open a browser to <a class="reference external" href="http://0.0.0.0:8080/graphql">http://0.0.0.0:8080/graphql</a> and see a <a class="reference external" href="https://github.com/graphql/graphiql/tree/main/packages/graphiql#readme">GraphiQL</a> editor
+which will allow you to send GraphQL queries to the server.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All the examples below will embed a <a class="reference external" href="https://github.com/graphql/graphiql/tree/main/packages/graphiql#readme">GraphiQL</a> editor in your browser. If you
+refresh your browser, they will contact the scanspec service you are running
+and become live: you can modify the queries and press the play button to get
+an updated response from the server. If the server is not running (or you
+didn’t pass <code class="docutils literal notranslate"><span class="pre">--cors</span></code> to it) then the play button will not be visible.</p>
+</div>
+</section>
+<section id="validating-a-spec">
+<h2>Validating a Spec<a class="headerlink" href="#validating-a-spec" title="Permalink to this headline"></a></h2>
+<p>The first use case for our service is producing the canonical serialization of a
+Spec. Some of the Specs like <a class="reference internal" href="../reference/api.html#scanspec.specs.Line.bounded" title="scanspec.specs.Line.bounded"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Line.bounded</span></code></a> will return an instance of Line that
+has different parameters to those that are passed.</p>
+<p>For example, on the commandline we might do:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Line</span><span class="o">.</span><span class="n">bounded</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+<span class="go">{&#39;Line&#39;: {&#39;axis&#39;: &#39;x&#39;, &#39;start&#39;: 0.1, &#39;stop&#39;: 0.9, &#39;num&#39;: 5}}</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../how-to/serialize-a-spec.html#serialize-a-spec"><span class="std std-ref">How to Serialize and Deserialize a Spec</span></a></p>
+</div>
+<p>The equivalent in our service is:</p>
+
+<style>
+.graphiql {
+    height: 325px;
+    margin: 0 0 24px 0;
+}
+.graphiql-container .secondary-editor, .graphiql-container .toolbar,
+.graphiql-ro .execute-button, .graphiql-ro .docExplorerShow {
+    display: none
+}
+</style>
+<div id="graphiql" class="graphiql">
+    Loading GraphiQL...
+    <div class="query">
+{
+  validateSpec(
+    spec: {
+      BoundedLine: {
+        axis: "x"
+        lower: 0
+        upper: 1
+        num: 5
+      }
+    }
+  )
+}
+    </div>
+    <div class="response">
+{
+  "data": {
+    "validateSpec": {
+      "Line": {
+        "axis": "x",
+        "start": 0.1,
+        "stop": 0.9,
+        "num": 5
+      }
+    }
+  }
+}
+    </div>
+    <script>
+        attachGraphiQL(document.currentScript.parentNode, "http://localhost:8080/graphql");
+    </script>
+</div>
+</section>
+<section id="getting-points-from-a-spec">
+<h2>Getting Points from a Spec<a class="headerlink" href="#getting-points-from-a-spec" title="Permalink to this headline"></a></h2>
+<p>More important is the ability to obtain a list of scan frames from a Spec.
+GraphQL gives the user the ability to request one or more fields from an object,
+allowing them to obtain data that is relevant only to their application.</p>
+<p>The ‘getPoints’ query makes use of this, giving users the ability to select from
+one or more of the following fields:</p>
+<ul class="simple">
+<li><p>axes: a list of axes present in the Spec and its associated scan points</p></li>
+<li><p>totalFrames: the total number of frames produced by the Spec</p></li>
+<li><p>returnedFrames: the number of frames returned, limited by the maxFrames argument</p></li>
+<li><p>smallestAbsStep: the smallest step between midpoints across ALL axes in the scan</p></li>
+</ul>
+<p>Within axes:</p>
+<ul class="simple">
+<li><p>axis: the name of the axis present in the Spec</p></li>
+<li><p>lower: a list of lower bounds that are each present in a frame</p></li>
+<li><p>midpoints: a list of midpoints that are each present in a frame</p></li>
+<li><p>upper: a list of upper bounds that are each present in a frame</p></li>
+<li><p>smallestStep: the smallest step between midpoints in this axis of the scan</p></li>
+</ul>
+<p>Within lower, middle and upper:</p>
+<ul class="simple">
+<li><p>string: returns the requested points as a human readable truncated numpy formatted
+string for debugging</p></li>
+<li><p>floatList: returns the requested points as a list of floats</p></li>
+<li><p>b64: returns the requested points encoded into base64</p></li>
+</ul>
+<p>Using the example above, we can request to return points from it:</p>
+
+<style>
+.graphiql {
+    height: 325px;
+    margin: 0 0 24px 0;
+}
+.graphiql-container .secondary-editor, .graphiql-container .toolbar,
+.graphiql-ro .execute-button, .graphiql-ro .docExplorerShow {
+    display: none
+}
+</style>
+<div id="graphiql" class="graphiql">
+    Loading GraphiQL...
+    <div class="query">
+{
+  getPoints(
+    spec: {
+      BoundedLine: {
+        axis: "x"
+        lower: 0
+        upper: 1
+        num: 5
+      }
+    }
+  )
+  {
+    returnedFrames
+    axes {
+      axis
+      upper {
+        string
+      }
+      midpoints{
+        floatList
+      }
+      lower{
+        b64
+      }
+    }
+  }
+}
+    </div>
+    <div class="response">
+{
+  "data": {
+    "getPoints": {
+      "returnedFrames": 5,
+      "axes": [
+        {
+          "axis": "x",
+          "upper": {
+            "string": "[0.2 0.4 0.6 0.8 1. ]"
+          },
+          "midpoints": {
+            "floatList": [
+              0.1,
+              0.30000000000000004,
+              0.5,
+              0.7000000000000001,
+              0.9
+            ]
+          },
+          "lower": {
+            "b64": "AAAAAAAAAACamZmZmZnJP5qZmZmZmdk/NDMzMzMz4z+amZmZmZnpPw=="
+          }
+        }
+      ]
+    }
+  }
+}
+    </div>
+    <script>
+        attachGraphiQL(document.currentScript.parentNode, "http://localhost:8080/graphql");
+    </script>
+</div>
+</section>
+<section id="masking-a-region-of-a-spec">
+<h2>Masking a region of a spec<a class="headerlink" href="#masking-a-region-of-a-spec" title="Permalink to this headline"></a></h2>
+<p>Regions can be used to mask a Spec as described in <a class="reference internal" href="creating-a-spec.html"><span class="doc">Creating a Scan Spec</span></a>. Consider
+the following spec:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
+
+<span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
+<span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Circle</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(<a class="reference external" href="../tutorials/graphql-service-1.py">Source code</a>, <a class="reference external" href="../tutorials/graphql-service-1.png">png</a>, <a class="reference external" href="../tutorials/graphql-service-1.hires.png">hires.png</a>, <a class="reference external" href="../tutorials/graphql-service-1.pdf">pdf</a>)</p>
+<figure class="align-default">
+<img alt="../_images/graphql-service-1.png" class="plot-directive" src="../_images/graphql-service-1.png" />
+</figure>
+<p>We could query the service for the points information like so:</p>
+
+<style>
+.graphiql {
+    height: 325px;
+    margin: 0 0 24px 0;
+}
+.graphiql-container .secondary-editor, .graphiql-container .toolbar,
+.graphiql-ro .execute-button, .graphiql-ro .docExplorerShow {
+    display: none
+}
+</style>
+<div id="graphiql" class="graphiql">
+    Loading GraphiQL...
+    <div class="query">
+{
+  getPoints(
+    spec: {
+      Mask: {
+        spec: {
+          Product: {
+            outer: {
+              Line: {
+                axis: "x",
+                start: 0,
+                stop: 10,
+                num: 5
+              }
+            },
+            inner: {
+              Line: {
+                axis: "y",
+                start: 0,
+                stop: 10,
+                num: 5
+              }
+            }
+          }
+        },
+        region: {
+          Circle: {
+            xAxis: "x",
+            yAxis: "y",
+            xMiddle: 5,
+            yMiddle: 5,
+            radius: 3
+          }
+        }
+      }
+    }
+  )
+  {
+    totalFrames
+    axes {
+      axis
+      midpoints {
+        floatList
+      }
+    }
+  }
+}
+    </div>
+    <div class="response">
+{
+  "data": {
+    "getPoints": {
+      "totalFrames": 5,
+      "axes": [
+        {
+          "axis": "x",
+          "midpoints": {
+            "floatList": [
+              2.5,
+              5,
+              5,
+              5,
+              7.5
+            ]
+          }
+        },
+        {
+          "axis": "y",
+          "midpoints": {
+            "floatList": [
+              5,
+              2.5,
+              5,
+              7.5,
+              5
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
+    </div>
+    <script>
+        attachGraphiQL(document.currentScript.parentNode, "http://localhost:8080/graphql");
+    </script>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="creating-a-spec.html" class="btn btn-neutral float-left" title="Creating a Scan Spec" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../how-to/iterate-a-spec.html" class="btn btn-neutral float-right" title="How to Iterate a Spec" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Diamond Light Source.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

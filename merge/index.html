@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scanspec &mdash; scanspec 0.5.2+2.g67a3f75 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="_static/plot_directive.css" type="text/css" />
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
+      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/scanspec-logo.ico"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react@16.13.1/umd/react.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.js"></script>
+        <script src="_static/attachGraphiQL.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation Tutorial" href="tutorials/installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgb(7, 43, 93)" >
+            <a href="#" class="icon icon-home"> scanspec
+            <img src="_static/scanspec-logo.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                master
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/installation.html">Installation Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/graphql-service.html">Running a GraphQL service for generating points</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How-to Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Explanations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="explanations/technical-terms.html">Technical Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="explanations/why-stack-frames.html">Why create a stack of Frames?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a></li>
+<li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
+</ul>
+
+  <!-- Add versions for selected branches + tags -->
+  <p class="caption">
+    <span class="caption-text">Versions</span>
+  </p>
+  <ul id="versions"/>
+  <script>
+    // Add any branches to appear in the side pane here, tags will be added below
+    // Will only appear if docs are built and pushed in gh-pages
+    var versions = ['main', 'master'];
+    var dirs = new Set();
+    function addVersion(name) {
+      if (dirs.has(name)) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = 'https://dls-controls.github.io/scanspec/' + name;
+        a.innerText = name;
+        li.appendChild(a)
+        document.getElementById('versions').appendChild(li);
+      }
+    }
+    Promise.all([
+      // Find gh-pages directories and populate `dirs`
+      fetch("https://api.github.com/repos/dls-controls/scanspec/contents?ref=gh-pages")
+      .then(response => response.json())
+      .then(data => data.forEach(function(e) {
+        if (e.type == "dir") dirs.add(e.name);
+      })),
+      // Add tags to `versions`
+      fetch('https://api.github.com/repos/dls-controls/scanspec/tags')
+        .then(response => response.json())
+        .then(data => data.forEach(function(e) {
+          versions.push(e.name);
+        }))
+      ]).then(_ => versions.forEach(addVersion))
+  </script>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgb(7, 43, 93)" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">scanspec</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li>scanspec</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="scanspec">
+<h1>scanspec<a class="headerlink" href="#scanspec" title="Permalink to this headline"></a></h1>
+<p><a class="reference external" href="https://github.com/dls-controls/scanspec/actions?query=workflow%3A%22Code+CI%22"><img alt="Code CI" src="https://github.com/dls-controls/scanspec/workflows/Code%20CI/badge.svg?branch=master" /></a> <a class="reference external" href="https://github.com/dls-controls/scanspec/actions?query=workflow%3A%22Docs+CI%22"><img alt="Docs CI" src="https://github.com/dls-controls/scanspec/workflows/Docs%20CI/badge.svg?branch=master" /></a> <a class="reference external" href="https://codecov.io/gh/dls-controls/scanspec"><img alt="Test Coverage" src="https://codecov.io/gh/dls-controls/scanspec/branch/master/graph/badge.svg" /></a> <a class="reference external" href="https://pypi.org/project/scanspec"><img alt="Latest PyPI version" src="https://img.shields.io/pypi/v/scanspec.svg" /></a> <a class="reference external" href="https://opensource.org/licenses/Apache-2.0"><img alt="Apache License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a></p>
+<p>Specify step and flyscan Paths using combinations of:</p>
+<ul class="simple">
+<li><p>Specs like Line or Spiral</p></li>
+<li><p>Optionally Snaking</p></li>
+<li><p>Zip, Product and Concat to compose</p></li>
+<li><p>Masks with multiple Regions to restrict</p></li>
+</ul>
+<p>Serialize the Spec rather than the expanded Path and reconstruct it on the
+server. It can them be iterated over like a <a class="reference external" href="https://matplotlib.org/cycler/">cycler</a>, or a stack of scan Frames
+can be produced and expanded Paths created to consume chunk by chunk.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 83%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>PyPI</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">scanspec</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Source code</p></td>
+<td><p><a class="reference external" href="https://github.com/dls-controls/scanspec">https://github.com/dls-controls/scanspec</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Documentation</p></td>
+<td><p><a class="reference external" href="https://dls-controls.github.io/scanspec">https://dls-controls.github.io/scanspec</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Changelog</p></td>
+<td><p><a class="reference external" href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
+each point looks like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">fly</span>
+<span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Circle</span>
+
+<span class="n">grid</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mf">3.8</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">fly</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="plot" src="_images/plot_spec.png" /></p>
+<p>You can then either iterate through the scan positions directly for convenience:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">midpoints</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+<span class="c1"># ...</span>
+<span class="c1"># {&#39;y&#39;: 3.1818181818181817, &#39;x&#39;: 0.8333333333333333, &#39;DURATION&#39;: 0.4}</span>
+<span class="c1"># {&#39;y&#39;: 3.1818181818181817, &#39;x&#39;: 0.7222222222222222, &#39;DURATION&#39;: 0.4}</span>
+</pre></div>
+</div>
+<p>or create a Path from the stack of Frames and consume chunks of a given length
+from it for performance:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.core</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">stack</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">stack</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># 44</span>
+<span class="n">stack</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>  <span class="c1"># [&#39;y&#39;, &#39;x&#39;, &#39;DURATION&#39;]</span>
+
+<span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">stack</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span>  <span class="c1"># {&#39;x&#39;: &lt;ndarray len=10&gt;, &#39;y&#39;: &lt;ndarray len=10&gt;, &#39;DURATION&#39;: &lt;ndarray len=10&gt;}</span>
+<span class="n">chunk</span><span class="o">.</span><span class="n">upper</span>  <span class="c1"># bounds are same dimensionality as positions</span>
+</pre></div>
+</div>
+<section id="how-the-documentation-is-structured">
+<h2>How the documentation is structured<a class="headerlink" href="#how-the-documentation-is-structured" title="Permalink to this headline"></a></h2>
+<p>Documentation is split into four categories, accessible from links in the side-bar.</p>
+<section class="columns" id="tutorials">
+<h3>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this headline"></a></h3>
+<p>Tutorials for installation, library and commandline usage. New users start here.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section class="columns" id="how-to-guides">
+<h3>How-to Guides<a class="headerlink" href="#how-to-guides" title="Permalink to this headline"></a></h3>
+<p>Practical step-by-step guides for the more experienced user.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section class="columns" id="explanations">
+<h3>Explanations<a class="headerlink" href="#explanations" title="Permalink to this headline"></a></h3>
+<p>Explanation of how the library works and why it works that way.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section class="columns" id="reference">
+<h3>Reference<a class="headerlink" href="#reference" title="Permalink to this headline"></a></h3>
+<p>Technical reference material, for classes, methods, APIs, commands, and contributing to the project.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section class="endcolumns" id="about-the-documentation">
+<h3>About the documentation<a class="headerlink" href="#about-the-documentation" title="Permalink to this headline"></a></h3>
+<p><a class="reference external" href="https://documentation.divio.com">Why is the documentation structured this way?</a></p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorials/installation.html" class="btn btn-neutral float-right" title="Installation Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Diamond Light Source.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
