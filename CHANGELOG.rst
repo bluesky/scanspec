@@ -7,10 +7,17 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0/>`
 and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
 
-`Unreleased <../../compare/0.5.2...HEAD>`_
+`Unreleased <../../compare/0.5.3...HEAD>`_
 ------------------------------------------
 
 Nothing yet
+
+`0.5.3 <../../compare/0.5.2...0.5.3>`_ - 2021-10-26
+---------------------------------------------------
+
+Changed:
+
+- `Fix docs CI <../../pull/39>`_
 
 
 `0.5.2 <../../compare/0.5.1...0.5.2>`_ - 2021-10-26
