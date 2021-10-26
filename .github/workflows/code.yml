@@ -52,8 +52,8 @@ jobs:
 
       - name: Test cli works from the installed wheel
         if: matrix.publish
-        # Can remove the reference to `scanspec` after https://github.com/pypa/pipx/pull/733
-        run: pipx run --spec dist/*.whl scanspec --version
+        # Can remove the repository reference after https://github.com/pypa/pipx/pull/733
+        run: pipx run --spec dist/*.whl ${GITHUB_REPOSITORY##*/} --version
 
       - name: Use a non-editable install to test the installed wheel
         if: matrix.pipenv == 'skip-lock'
