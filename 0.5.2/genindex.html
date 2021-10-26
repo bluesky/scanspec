@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Index &mdash; scanspec 0.5.2 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="_static/plot_directive.css" type="text/css" />
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" type="text/css" />
+      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/scanspec-logo.ico"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react@16.13.1/umd/react.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.js"></script>
+        <script src="_static/attachGraphiQL.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgb(7, 43, 93)" >
+            <a href="index.html" class="icon icon-home"> scanspec
+            <img src="_static/scanspec-logo.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.5.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/installation.html">Installation Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/creating-a-spec.html">Creating a Scan Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/graphql-service.html">Running a GraphQL service for generating points</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How-to Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Explanations</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="explanations/technical-terms.html">Technical Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="explanations/why-stack-frames.html">Why create a stack of Frames?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst">Changelog</a></li>
+<li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
+</ul>
+
+  <!-- Add versions for selected branches + tags -->
+  <p class="caption">
+    <span class="caption-text">Versions</span>
+  </p>
+  <ul id="versions"/>
+  <script>
+    // Add any branches to appear in the side pane here, tags will be added below
+    // Will only appear if docs are built and pushed in gh-pages
+    var versions = ['main', 'master'];
+    var dirs = new Set();
+    function addVersion(name) {
+      if (dirs.has(name)) {
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = 'https://dls-controls.github.io/scanspec/' + name;
+        a.innerText = name;
+        li.appendChild(a)
+        document.getElementById('versions').appendChild(li);
+      }
+    }
+    Promise.all([
+      // Find gh-pages directories and populate `dirs`
+      fetch("https://api.github.com/repos/dls-controls/scanspec/contents?ref=gh-pages")
+      .then(response => response.json())
+      .then(data => data.forEach(function(e) {
+        if (e.type == "dir") dirs.add(e.name);
+      })),
+      // Add tags to `versions`
+      fetch('https://api.github.com/repos/dls-controls/scanspec/tags')
+        .then(response => response.json())
+        .then(data => data.forEach(function(e) {
+          versions.push(e.name);
+        }))
+      ]).then(_ => versions.forEach(addVersion))
+  </script>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgb(7, 43, 93)" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">scanspec</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Index</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+
+<h1 id="index">Index</h1>
+
+<div class="genindex-jumpbox">
+ <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#Z"><strong>Z</strong></a>
+ 
+</div>
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.alternative_constructor">alternative_constructor() (in module scanspec.core)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.as_tagged_union">as_tagged_union() (in module scanspec.core)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.Midpoints.axes">axes (scanspec.core.Midpoints property)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.Frames.axes">axes() (scanspec.core.Frames method)</a>
+
+      <ul>
+        <li><a href="reference/api.html#scanspec.service.PointsResponse.axes">(scanspec.service.PointsResponse method)</a>
+</li>
+        <li><a href="reference/api.html#scanspec.specs.Spec.axes">(scanspec.specs.Spec method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.AxesPoints">AxesPoints (in module scanspec.core)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.Axis">Axis (in module scanspec.core)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.Region.axis_sets">axis_sets() (scanspec.regions.Region method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.AxisFrames">AxisFrames (class in scanspec.service)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.service.Points.b64">b64() (scanspec.service.Points method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.specs.Line.bounded">bounded() (scanspec.specs.Line static method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.specs.Spec.calculate">calculate() (scanspec.specs.Spec method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.Circle">Circle (class in scanspec.regions)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.CombinationOf">CombinationOf (class in scanspec.regions)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.specs.Concat">Concat (class in scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.Frames.concat">concat() (scanspec.core.Frames method)</a>
+
+      <ul>
+        <li><a href="reference/api.html#scanspec.specs.Spec.concat">(scanspec.specs.Spec method)</a>
+</li>
+      </ul></li>
+      <li><a href="reference/api.html#scanspec.core.Path.consume">consume() (scanspec.core.Path method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.specs.Spec.deserialize">deserialize() (scanspec.specs.Spec class method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.DifferenceOf">DifferenceOf (class in scanspec.regions)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.specs.DURATION">DURATION (in module scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Static.duration">duration() (scanspec.specs.Static static method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.regions.Ellipse">Ellipse (class in scanspec.regions)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.Path.end_index">end_index (scanspec.core.Path attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.Frames.extract">extract() (scanspec.core.Frames method)</a>
+
+      <ul>
+        <li><a href="reference/api.html#scanspec.core.SnakedFrames.extract">(scanspec.core.SnakedFrames method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.regions.find_regions">find_regions() (in module scanspec.regions)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.Points.float_list">float_list() (scanspec.service.Points method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.fly">fly() (in module scanspec.specs)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.Frames">Frames (class in scanspec.core)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Spec.frames">frames() (scanspec.specs.Spec method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.SnakedFrames.from_frames">from_frames() (scanspec.core.SnakedFrames class method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.Frames.gap">gap (scanspec.core.Frames attribute)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.gap_between_frames">gap_between_frames() (in module scanspec.core)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.regions.get_mask">get_mask() (in module scanspec.regions)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.get_points">get_points() (in module scanspec.service)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.if_instance_do">if_instance_do() (in module scanspec.core)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.Path.index">index (scanspec.core.Path attribute)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.IntersectionOf">IntersectionOf (class in scanspec.regions)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.Path.lengths">lengths (scanspec.core.Path attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.specs.Line">Line (class in scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.Frames.lower">lower (scanspec.core.Frames attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.specs.Mask">Mask (class in scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.Region.mask">mask() (scanspec.regions.Region method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.Midpoints">Midpoints (class in scanspec.core)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.Frames.midpoints">midpoints (scanspec.core.Frames attribute)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Spec.midpoints">midpoints() (scanspec.specs.Spec method)</a>
+</li>
+      <li>
+    module
+
+      <ul>
+        <li><a href="reference/api.html#module-scanspec">scanspec</a>
+</li>
+        <li><a href="reference/api.html#module-scanspec.core">scanspec.core</a>
+</li>
+        <li><a href="reference/api.html#module-scanspec.plot">scanspec.plot</a>
+</li>
+        <li><a href="reference/api.html#module-scanspec.regions">scanspec.regions</a>
+</li>
+        <li><a href="reference/api.html#module-scanspec.service">scanspec.service</a>
+</li>
+        <li><a href="reference/api.html#module-scanspec.specs">scanspec.specs</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.Path">Path (class in scanspec.core)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.plot.plot_spec">plot_spec() (in module scanspec.plot)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.Points">Points (class in scanspec.service)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.service.PointsResponse">PointsResponse (class in scanspec.service)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.Polygon">Polygon (class in scanspec.regions)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Product">Product (class in scanspec.specs)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.regions.Range">Range (class in scanspec.regions)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.Rectangle">Rectangle (class in scanspec.regions)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.reduce_frames">reduce_frames() (in module scanspec.service)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.regions.Region">Region (class in scanspec.regions)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Repeat">Repeat (class in scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.PointsResponse.returned_frames">returned_frames (scanspec.service.PointsResponse attribute)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.run_app">run_app() (in module scanspec.service)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    scanspec
+
+      <ul>
+        <li><a href="reference/api.html#module-scanspec">module</a>
+</li>
+      </ul></li>
+      <li><a href="reference/api.html#scanspec.scanspec.__version__">scanspec.__version__ (in module scanspec)</a>
+</li>
+      <li>
+    scanspec.core
+
+      <ul>
+        <li><a href="reference/api.html#module-scanspec.core">module</a>
+</li>
+      </ul></li>
+      <li>
+    scanspec.plot
+
+      <ul>
+        <li><a href="reference/api.html#module-scanspec.plot">module</a>
+</li>
+      </ul></li>
+      <li>
+    scanspec.regions
+
+      <ul>
+        <li><a href="reference/api.html#module-scanspec.regions">module</a>
+</li>
+      </ul></li>
+      <li>
+    scanspec.service
+
+      <ul>
+        <li><a href="reference/api.html#module-scanspec.service">module</a>
+</li>
+      </ul></li>
+      <li>
+    scanspec.specs
+
+      <ul>
+        <li><a href="reference/api.html#module-scanspec.specs">module</a>
+</li>
+      </ul></li>
+      <li><a href="reference/api.html#scanspec.service.scanspec_schema_text">scanspec_schema_text() (in module scanspec.service)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Spec.serialize">serialize() (scanspec.specs.Spec method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.service.PointsResponse.smallest_abs_step">smallest_abs_step() (scanspec.service.PointsResponse method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.AxisFrames.smallest_step">smallest_step() (scanspec.service.AxisFrames method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Snake">Snake (class in scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.SnakedFrames">SnakedFrames (class in scanspec.core)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Spiral.spaced">spaced() (scanspec.specs.Spiral static method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Spec">Spec (class in scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Spiral">Spiral (class in scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.Squash">Squash (class in scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.squash_frames">squash_frames() (in module scanspec.core)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.core.Midpoints.stack">stack (scanspec.core.Midpoints attribute)</a>
+
+      <ul>
+        <li><a href="reference/api.html#scanspec.core.Path.stack">(scanspec.core.Path attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="reference/api.html#scanspec.specs.Static">Static (class in scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.specs.step">step() (in module scanspec.specs)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.Points.string">string() (scanspec.service.Points method)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.sub_sample">sub_sample() (in module scanspec.service)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.SymmetricDifferenceOf">SymmetricDifferenceOf (class in scanspec.regions)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.specs.Spec.to_gql_input">to_gql_input() (scanspec.specs.Spec method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.service.PointsResponse.total_frames">total_frames (scanspec.service.PointsResponse attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.regions.UnionOf">UnionOf (class in scanspec.regions)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.Frames.upper">upper (scanspec.core.Frames attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.service.validate_spec">validate_spec() (in module scanspec.service)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Z">Z</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.specs.Zip">Zip (class in scanspec.specs)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.Frames.zip">zip() (scanspec.core.Frames method)</a>
+
+      <ul>
+        <li><a href="reference/api.html#scanspec.specs.Spec.zip">(scanspec.specs.Spec method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Diamond Light Source.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
