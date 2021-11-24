@@ -12,5 +12,7 @@ scanspec = {editable = true, extras = ["plotting", "graphql"], path = "."}
 [scripts]
 tests = "python -m pytest"
 docs = "sphinx-build -EWT --keep-going docs build/html"
+# Creates the versions file for GitHub Pages builds
+github-pages-version-file = "python docs/github_pages_version_file.py"
 # Delete any files that git ignore hides from us
 gitclean = "git clean -fdX"
