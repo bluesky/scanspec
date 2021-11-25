@@ -162,17 +162,6 @@ def create_gh_pages_versions_file():
         if tag in unsorted_releases:
             releases.append(unsorted_releases[tag])
 
-    # Create our file string
-    file_str = ""
-    # Add branches first
-    for build in main_branches:
-        file_str += f"\t{build.version} <{build.url}>\n"
-    for build in branches:
-        file_str += f"\t{build.version} <{build.url}>\n"
-    # Add releases
-    for build in releases:
-        file_str += f"\t{build.version} <{build.url}>\n"
-
     # Get version file string
     version_file_string = get_version_file_string(main_branches, branches, releases)
 
