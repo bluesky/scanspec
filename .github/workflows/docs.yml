@@ -55,3 +55,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .github/pages
           keep_files: true
+        
+      - name: Create version file
+        run: pipenv run github-pages-version-file
