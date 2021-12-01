@@ -85,7 +85,9 @@ def push_file_to_GitHub(file_string: str, filename: str, remote: str, branch: st
         # Status of zero means tracked. So check if file has changed
         if not status:
             status = run_command(
-                f"git diff --exit-code {filename}", return_exit_status=True
+                f"git diff --exit-code {filename}",
+                return_exit_status=True,
+                fail_on_bad_status=False,
             )
 
         # If status is one (either untracked or file has changed) then commit the file
