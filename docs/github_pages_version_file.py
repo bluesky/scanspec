@@ -67,6 +67,10 @@ def get_version_file_string(
 
 def push_file_to_GitHub(file_string: str, filename: str, remote: str, branch: str):
     """Push the version file to the GitHub Pages branch."""
+    # Set git config
+    run_command('git config user.email "dls-controls@diamond.ac.uk"')
+    run_command('git config user.name "dls-controls"')
+
     # Check out a local branch tracking the GitHub Pages branch
     run_command(f"git checkout -tq {remote}/{branch}")
 
