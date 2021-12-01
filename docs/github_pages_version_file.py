@@ -1,24 +1,13 @@
 import subprocess
-from dataclasses import dataclass
 from subprocess import PIPE
-from typing import Dict, List, Optional, Union
-
-import conf
-
-
-@dataclass(eq=True, order=True)
-class GitHubPagesBuild:
-    """For storing a version and the GitHub Pages URL to its index."""
-
-    version: str
-    url: str
+from typing import List, Optional, Union
 
 
 def run_command(
     command: str,
     return_stdout: bool = False,
     return_exit_status: bool = False,
-    fail_on_bad_status=True,
+    fail_on_bad_status: bool = True,
 ) -> Optional[Union[str, int]]:
     """Run a command using subprocess."""
     print(f"Running command: {command} ({command.split(' ')})")
@@ -61,20 +50,18 @@ def get_docs_url(github_org: str, project: str, version: str):
 
 
 def get_version_file_string(
-    main_branches: List[GitHubPagesBuild],
-    branches: List[GitHubPagesBuild],
-    releases: List[GitHubPagesBuild],
+    main_branches: List[str], branches: List[str], releases: List[str],
 ) -> str:
     """Create the string for the RST file."""
     file_str = ""
     # Add branches first
-    for build in main_branches:
-        file_str += f"{build.version} <{build.url}>\n"
-    for build in branches:
-        file_str += f"{build.version} <{build.url}>\n"
+    for version in main_branches:
+        file_str += f"{version}\n"
+    for version in branches:
+        file_str += f"{version}\n"
     # Add releases
-    for build in releases:
-        file_str += f"{build.version} <{build.url}>\n"
+    for version in releases:
+        file_str += f"{version}\n"
     return file_str
 
 
@@ -126,17 +113,15 @@ def push_file_to_GitHub(file_string: str, filename: str, remote: str, branch: st
 def create_gh_pages_versions_file():
     """Generate the file containing the list of all GitHub Pages builds."""
     # General information
-    github_org = "dls-controls"
     remote = "origin"
     # TODO: replace branch with actual gh-pages branch
     github_pages_branch = "test/gh-pages-file"
-    project = conf.project
     version_filename = "version.txt"
 
     # Store the builds into different groups
-    main_branches: List[GitHubPagesBuild] = []
-    releases: List[GitHubPagesBuild] = []
-    branches: List[GitHubPagesBuild] = []
+    main_branches: List[str] = []
+    releases: List[str] = []
+    branches: List[str] = []
 
     # Get the list of sorted tags
     tags = get_sorted_tags_list()
@@ -145,22 +130,20 @@ def create_gh_pages_versions_file():
     all_build_versions = get_branch_contents(remote, github_pages_branch)
 
     # Parse all builds, storing releases in an unordered dict
-    unsorted_releases: Dict[str, GitHubPagesBuild] = {}
+    unsorted_releases: List[str] = []
     for version in all_build_versions:
-        # Create our instance
-        url = get_docs_url(github_org, project, version)
-        build = GitHubPagesBuild(version, url)
+        # Parse the version
         if version[0].isdigit():
-            unsorted_releases[version] = build
+            unsorted_releases.append(version)
         elif version in ["master", "main"]:
-            main_branches.append(build)
+            main_branches.append(version)
         else:
-            branches.append(build)
+            branches.append(version)
 
     # Use output from git tag to sort the releases
     for tag in tags:
         if tag in unsorted_releases:
-            releases.append(unsorted_releases[tag])
+            releases.append(tag)
 
     # Get version file string
     version_file_string = get_version_file_string(main_branches, branches, releases)
