@@ -44,27 +44,6 @@ def get_branch_contents(remote: str, branch: str) -> List[str]:
     return stdout.strip().split("\n")
 
 
-def get_docs_url(github_org: str, project: str, version: str):
-    """Get the URL for a specific build of the project."""
-    return f"https://{github_org}.github.io/{project}/{version}"
-
-
-def get_version_file_string(
-    main_branches: List[str], branches: List[str], releases: List[str],
-) -> str:
-    """Create the string for the RST file."""
-    file_str = ""
-    # Add branches first
-    for version in main_branches:
-        file_str += f"{version}\n"
-    for version in branches:
-        file_str += f"{version}\n"
-    # Add releases
-    for version in releases:
-        file_str += f"{version}\n"
-    return file_str
-
-
 def push_file_to_GitHub(file_string: str, filename: str, remote: str, branch: str):
     """Push the version file to the GitHub Pages branch."""
     # Set git config
@@ -129,16 +108,12 @@ def create_gh_pages_versions_file():
     releases: List[str] = []
     branches: List[str] = []
 
-    # Get the list of sorted tags
-    tags = get_sorted_tags_list()
-
     # Get the directories (i.e. builds) from the GitHub Pages branch
     all_build_versions = get_branch_contents(remote, github_pages_branch)
 
     # Parse all builds, storing releases in an unordered dict
     unsorted_releases: List[str] = []
     for version in all_build_versions:
-        # Parse the version
         if version[0].isdigit():
             unsorted_releases.append(version)
         elif version in ["master", "main"]:
@@ -146,13 +121,16 @@ def create_gh_pages_versions_file():
         else:
             branches.append(version)
 
+    # Get the list of sorted tags
+    tags = get_sorted_tags_list()
+
     # Use output from git tag to sort the releases
     for tag in tags:
         if tag in unsorted_releases:
             releases.append(tag)
 
     # Get version file string
-    version_file_string = get_version_file_string(main_branches, branches, releases)
+    version_file_string = "\n".join(main_branches + branches + releases)
 
     # Push version file to GitHub Pages branch
     push_file_to_GitHub(
