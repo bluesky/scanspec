@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Generic, List, Mapping, Optional
 
@@ -77,23 +79,23 @@ class Spec(Generic[Axis]):
         """Return `Midpoints` that can be iterated point by point."""
         return Midpoints(self.calculate(bounds=False))
 
-    def __rmul__(self, other) -> "Product[Axis]":
+    def __rmul__(self, other) -> Product[Axis]:
         return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
 
-    def __mul__(self, other) -> "Product[Axis]":
+    def __mul__(self, other) -> Product[Axis]:
         return if_instance_do(other, Spec, lambda o: Product(self, o))
 
-    def __and__(self, other) -> "Mask[Axis]":
+    def __and__(self, other) -> Mask[Axis]:
         return if_instance_do(other, Region, lambda o: Mask(self, o))
 
-    def __invert__(self) -> "Snake[Axis]":
+    def __invert__(self) -> Snake[Axis]:
         return Snake(self)
 
-    def zip(self, other: "Spec") -> "Zip[Axis]":
+    def zip(self, other: Spec) -> Zip[Axis]:
         """`Zip` the Spec with another, iterating in tandem."""
         return Zip(self, other)
 
-    def concat(self, other: "Spec") -> "Concat[Axis]":
+    def concat(self, other: Spec) -> Concat[Axis]:
         """`Concat` the Spec with another, iterating one after the other."""
         return Concat(self, other)
 
@@ -102,7 +104,7 @@ class Spec(Generic[Axis]):
         return serialize(Spec, self)
 
     @classmethod
-    def deserialize(cls, serialized: Mapping[str, Any]) -> "Spec[Axis]":
+    def deserialize(cls, serialized: Mapping[str, Any]) -> Spec[Axis]:
         """Deserialize the spec from a dictionary."""
         return deserialize(cls, serialized)
 
@@ -308,18 +310,18 @@ class Mask(Spec[Axis]):
 
     # *+ bind more tightly than &|^ so without these overrides we
     # would need to add brackets to all combinations of Regions
-    def __or__(self, other: "Region[Axis]") -> "Mask[Axis]":
+    def __or__(self, other: Region[Axis]) -> Mask[Axis]:
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region | o))
 
-    def __and__(self, other: "Region[Axis]") -> "Mask[Axis]":
+    def __and__(self, other: Region[Axis]) -> Mask[Axis]:
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region & o))
 
-    def __xor__(self, other: "Region[Axis]") -> "Mask[Axis]":
+    def __xor__(self, other: Region[Axis]) -> Mask[Axis]:
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region ^ o))
 
     # This is here for completeness, tends not to be called as - binds
     # tighter than &
-    def __sub__(self, other: "Region[Axis]") -> "Mask[Axis]":
+    def __sub__(self, other: Region[Axis]) -> Mask[Axis]:
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
 
 
@@ -500,7 +502,7 @@ class Line(Spec[Axis]):
             float, schema(description="Upper bound of the last point of the line")
         ],
         num: ANum,
-    ) -> "Line[Axis]":
+    ) -> Line[Axis]:
         """Specify a Line by extreme bounds instead of midpoints.
 
         .. example_spec::
@@ -541,7 +543,7 @@ class Static(Spec[Axis]):
     def duration(
         duration: A[float, schema(description="The duration of each static point")],
         num: ANum = 1,
-    ) -> "Static[str]":
+    ) -> Static[str]:
         """A static spec with no motion, only a duration repeated "num" times.
 
         .. example_spec::
@@ -626,7 +628,7 @@ class Spiral(Spec[Axis]):
         rotate: A[
             float, schema(description="How much to rotate the angle of the spiral"),
         ] = 0.0,
-    ) -> "Spiral[Axis]":
+    ) -> Spiral[Axis]:
         """Specify a Spiral equally spaced in "x_axis" and "y_axis".
 
         .. example_spec::
