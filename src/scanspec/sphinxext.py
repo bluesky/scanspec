@@ -14,7 +14,7 @@ def always_create_figures():
     """
     orig_f = plot_directive.out_of_date
     # Patch the plot directive so it thinks all sources are out of date
-    plot_directive.out_of_date = lambda o, d: True
+    plot_directive.out_of_date = lambda *args, **kwargs: True
     try:
         yield
     finally:
