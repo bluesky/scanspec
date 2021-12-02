@@ -205,13 +205,6 @@ def test_plot_3D_line() -> None:
     assert_min_max_3d(lines[11], 1, 2, 2, 3, 5, 6, length=8)
     # End
     assert_min_max_3d(lines[12], 0.5, 0.5, 2, 2, 6, 6)
-    # Arrows
-    artists = axes.artists
-    assert len(artists) == 4
-    assert_3d_arrow(artists[0], 0.5, 2, 5)
-    assert_3d_arrow(artists[1], 2.5, 3, 5)
-    assert_3d_arrow(artists[2], 0.5, 3, 6)
-    assert_3d_arrow(artists[3], 2.5, 2, 6)
 
 
 def test_schema() -> None:
