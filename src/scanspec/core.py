@@ -270,7 +270,7 @@ class Frames(Generic[Axis]):
         # All axespoints arrays are same length, pick the first one
         return len(self.gap)
 
-    def extract(self, indices: np.ndarray, calculate_gap=True) -> "Frames[Axis]":
+    def extract(self, indices: np.ndarray, calculate_gap=True) -> Frames[Axis]:
         """Return a new Frames object restricted to the indices provided.
 
         Args:
@@ -296,7 +296,7 @@ class Frames(Generic[Axis]):
 
         return _merge_frames(self, dict_merge=extract_dict, gap_merge=extract_gap)
 
-    def concat(self, other: "Frames[Axis]", gap: bool = False) -> "Frames[Axis]":
+    def concat(self, other: Frames[Axis], gap: bool = False) -> Frames[Axis]:
         """Return a new Frames object concatenating self and other.
 
         Requires both Frames objects to have the same axes.
@@ -327,7 +327,7 @@ class Frames(Generic[Axis]):
 
         return _merge_frames(self, other, dict_merge=concat_dict, gap_merge=concat_gap)
 
-    def zip(self, other: "Frames[Axis]") -> "Frames[Axis]":
+    def zip(self, other: Frames[Axis]) -> Frames[Axis]:
         """Return a new Frames object merging self and other.
 
         Require both Frames objects to not share axes.
@@ -392,7 +392,7 @@ class SnakedFrames(Frames[Axis]):
         self.gap[0] = False
 
     @classmethod
-    def from_frames(cls, frames: Frames[Axis]) -> "SnakedFrames[Axis]":
+    def from_frames(cls, frames: Frames[Axis]) -> SnakedFrames[Axis]:
         """Create a snaked version of a `Frames` object."""
         return cls(frames.midpoints, frames.lower, frames.upper, frames.gap)
 

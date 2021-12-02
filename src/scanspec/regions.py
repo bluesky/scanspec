@@ -47,16 +47,16 @@ class Region(Generic[Axis]):
         """Produce a mask of which points are in the region."""
         raise NotImplementedError(self)
 
-    def __or__(self, other) -> "UnionOf[Axis]":
+    def __or__(self, other) -> UnionOf[Axis]:
         return if_instance_do(other, Region, lambda o: UnionOf(self, o))
 
-    def __and__(self, other) -> "IntersectionOf[Axis]":
+    def __and__(self, other) -> IntersectionOf[Axis]:
         return if_instance_do(other, Region, lambda o: IntersectionOf(self, o))
 
-    def __sub__(self, other) -> "DifferenceOf[Axis]":
+    def __sub__(self, other) -> DifferenceOf[Axis]:
         return if_instance_do(other, Region, lambda o: DifferenceOf(self, o))
 
-    def __xor__(self, other) -> "SymmetricDifferenceOf[Axis]":
+    def __xor__(self, other) -> SymmetricDifferenceOf[Axis]:
         return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(self, o))
 
 
