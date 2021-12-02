@@ -8,6 +8,9 @@ on:
     tags:
       - "*"
   pull_request:
+  schedule:
+    # Should pick the latest commit on default branch - https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows#schedule
+    - cron: '0 * * * *'
 
 jobs:
   build:
