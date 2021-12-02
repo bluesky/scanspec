@@ -35,6 +35,14 @@ class _Arrow3D(patches.FancyArrowPatch):
         self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
         super().draw(renderer)
 
+    # Added here because of https://github.com/matplotlib/matplotlib/issues/21688
+    def do_3d_projection(self, renderer=None):
+        xs3d, ys3d, zs3d = self._verts3d
+        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)
+        self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
+
+        return np.min(zs)
+
 
 def _plot_arrow(axes, arrays: List[np.ndarray]):
     if len(arrays) == 1:
