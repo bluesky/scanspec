@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scanspec.specs &mdash; scanspec 0.5.3+3.g7fffd7a documentation</title>
+  <title>scanspec.specs &mdash; scanspec 0.5.3+9.g800bb03 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -134,7 +134,9 @@
            <div itemprop="articleBody">
              
   <h1>Source code for scanspec.specs</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -213,23 +215,23 @@
         <span class="sd">&quot;&quot;&quot;Return `Midpoints` that can be iterated point by point.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Midpoints</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Product[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Product</span><span class="p">(</span><span class="n">Repeat</span><span class="p">(</span><span class="n">o</span><span class="p">),</span> <span class="bp">self</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Product[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Spec</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mask[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mask</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__invert__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Snake[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__invert__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Snake</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">Snake</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Spec.zip"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec.zip">[docs]</a>    <span class="k">def</span> <span class="nf">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Spec&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Zip[Axis]&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="Spec.zip"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec.zip">[docs]</a>    <span class="k">def</span> <span class="nf">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Spec</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Zip</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;`Zip` the Spec with another, iterating in tandem.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Spec.concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec.concat">[docs]</a>    <span class="k">def</span> <span class="nf">concat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Spec&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Concat[Axis]&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="Spec.concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec.concat">[docs]</a>    <span class="k">def</span> <span class="nf">concat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Spec</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Concat</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;`Concat` the Spec with another, iterating one after the other.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Concat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></div>
 
@@ -238,7 +240,7 @@
         <span class="k">return</span> <span class="n">serialize</span><span class="p">(</span><span class="n">Spec</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Spec.deserialize"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec.deserialize">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">serialized</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;Spec[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">serialized</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Deserialize the spec from a dictionary.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">deserialize</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">serialized</span><span class="p">)</span></div>
 
@@ -444,18 +446,18 @@
 
     <span class="c1"># *+ bind more tightly than &amp;|^ so without these overrides we</span>
     <span class="c1"># would need to add brackets to all combinations of Regions</span>
-    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Region[Axis]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mask[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mask</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">|</span> <span class="n">o</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Region[Axis]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mask[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mask</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">&amp;</span> <span class="n">o</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__xor__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Region[Axis]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mask[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__xor__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mask</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">^</span> <span class="n">o</span><span class="p">))</span>
 
     <span class="c1"># This is here for completeness, tends not to be called as - binds</span>
     <span class="c1"># tighter than &amp;</span>
-    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Region[Axis]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mask[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mask</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">-</span> <span class="n">o</span><span class="p">))</span></div>
 
 
@@ -636,7 +638,7 @@
             <span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Upper bound of the last point of the line&quot;</span><span class="p">)</span>
         <span class="p">],</span>
         <span class="n">num</span><span class="p">:</span> <span class="n">ANum</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Line[Axis]&quot;</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Line</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Specify a Line by extreme bounds instead of midpoints.</span>
 
 <span class="sd">        .. example_spec::</span>
@@ -677,7 +679,7 @@
     <span class="k">def</span> <span class="nf">duration</span><span class="p">(</span>
         <span class="n">duration</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The duration of each static point&quot;</span><span class="p">)],</span>
         <span class="n">num</span><span class="p">:</span> <span class="n">ANum</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Static[str]&quot;</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Static</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;A static spec with no motion, only a duration repeated &quot;num&quot; times.</span>
 
 <span class="sd">        .. example_spec::</span>
@@ -762,7 +764,7 @@
         <span class="n">rotate</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
             <span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;How much to rotate the angle of the spiral&quot;</span><span class="p">),</span>
         <span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Spiral[Axis]&quot;</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spiral</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Specify a Spiral equally spaced in &quot;x_axis&quot; and &quot;y_axis&quot;.</span>
 
 <span class="sd">        .. example_spec::</span>

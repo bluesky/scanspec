@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scanspec.regions &mdash; scanspec 0.5.3+3.g7fffd7a documentation</title>
+  <title>scanspec.regions &mdash; scanspec 0.5.3+9.g800bb03 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -183,16 +183,16 @@
         <span class="sd">&quot;&quot;&quot;Produce a mask of which points are in the region.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UnionOf[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnionOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">UnionOf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;IntersectionOf[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IntersectionOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">IntersectionOf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;DifferenceOf[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DifferenceOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">DifferenceOf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__xor__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SymmetricDifferenceOf[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__xor__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SymmetricDifferenceOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">SymmetricDifferenceOf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span></div>
 
 

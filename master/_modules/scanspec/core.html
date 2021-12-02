@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scanspec.core &mdash; scanspec 0.5.3+3.g7fffd7a documentation</title>
+  <title>scanspec.core &mdash; scanspec 0.5.3+9.g800bb03 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -406,7 +406,7 @@
         <span class="c1"># All axespoints arrays are same length, pick the first one</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Frames.extract"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.extract">[docs]</a>    <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">calculate_gap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Frames[Axis]&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="Frames.extract"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.extract">[docs]</a>    <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">calculate_gap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return a new Frames object restricted to the indices provided.</span>
 
 <span class="sd">        Args:</span>
@@ -432,7 +432,7 @@
 
         <span class="k">return</span> <span class="n">_merge_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_merge</span><span class="o">=</span><span class="n">extract_dict</span><span class="p">,</span> <span class="n">gap_merge</span><span class="o">=</span><span class="n">extract_gap</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Frames.concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.concat">[docs]</a>    <span class="k">def</span> <span class="nf">concat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Frames[Axis]&quot;</span><span class="p">,</span> <span class="n">gap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Frames[Axis]&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="Frames.concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.concat">[docs]</a>    <span class="k">def</span> <span class="nf">concat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span> <span class="n">gap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return a new Frames object concatenating self and other.</span>
 
 <span class="sd">        Requires both Frames objects to have the same axes.</span>
@@ -463,7 +463,7 @@
 
         <span class="k">return</span> <span class="n">_merge_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">dict_merge</span><span class="o">=</span><span class="n">concat_dict</span><span class="p">,</span> <span class="n">gap_merge</span><span class="o">=</span><span class="n">concat_gap</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Frames.zip"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.zip">[docs]</a>    <span class="k">def</span> <span class="nf">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Frames[Axis]&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Frames[Axis]&quot;</span><span class="p">:</span>
+<div class="viewcode-block" id="Frames.zip"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.zip">[docs]</a>    <span class="k">def</span> <span class="nf">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return a new Frames object merging self and other.</span>
 
 <span class="sd">        Require both Frames objects to not share axes.</span>
@@ -528,7 +528,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="SnakedFrames.from_frames"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.SnakedFrames.from_frames">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_frames</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">frames</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;SnakedFrames[Axis]&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">from_frames</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">frames</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SnakedFrames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Create a snaked version of a `Frames` object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">frames</span><span class="o">.</span><span class="n">midpoints</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">gap</span><span class="p">)</span></div>
 
