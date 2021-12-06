@@ -10,7 +10,7 @@ scanspec = {editable = true, extras = ["dev"], path = "."}
 scanspec = {editable = true, extras = ["plotting", "graphql"], path = "."}
 
 [scripts]
-tests = "python -m pytest"
+tests = "pytest"
 docs = "sphinx-build -EWT --keep-going docs build/html"
 # Delete any files that git ignore hides from us
 gitclean = "git clean -fdX"

@@ -13,38 +13,20 @@ on:
     - cron: '0 8 * * MON'
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["ubuntu-latest"]  # can add windows-latest, macos-latest
-        python: ["3.7", "3.8", "3.9"]
-        pipenv: ["skip-lock"]  # --${flag} will be passed to pipenv command
-
-        include:
-          # Add an extra Python3.7 runner to publish wheels and use the lockfile
-          - os: "ubuntu-latest"
-            python: "3.7"
-            pipenv: "deploy"
-            publish: true
-
-    name: build/${{ matrix.python }}/${{ matrix.os }}/${{ matrix.pipenv }}
-    runs-on: ${{ matrix.os }}
-
+  static:
+    runs-on: "ubuntu-latest"
     steps:
-      - name: Checkout Source
-        uses: actions/checkout@v2
+      - name: Run black, flake8, mypy
+        uses: dls-controls/scanspec/.github/setup_action@template
         with:
-          # require history to get back to last tag for version number of branches
-          fetch-depth: 0
+          command: pre-commit run --all-files
 
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
+  wheel:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: dls-controls/scanspec/.github/setup_action@template
 
       - name: Create Sdist and Wheel
-        if: matrix.publish
         # Set SOURCE_DATE_EPOCH from git commit for reproducible build
         # https://reproducible-builds.org/
         # Set group writable and umask to do the same to match inside DLS
@@ -54,38 +36,50 @@ jobs:
           SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) pipx run build --sdist --wheel
 
       - name: Test cli works from the installed wheel
-        if: matrix.publish
         # Can remove the repository reference after https://github.com/pypa/pipx/pull/733
         run: pipx run --spec dist/*.whl ${GITHUB_REPOSITORY##*/} --version
 
-      - name: Use a non-editable install to test the installed wheel
-        if: matrix.pipenv == 'skip-lock'
-        run: sed -i 's/editable *= *true/editable = false/' Pipfile
-
-      - name: Install Python Dependencies
-        run: |
-          pip install pipenv
-          pipenv install --dev --${{ matrix.pipenv }} --python $(python -c 'import sys; print(sys.executable)') && pipenv graph
-
-      - name: Run Tests
-        # https://github.com/pytest-dev/pytest/issues/2042
-        run: PY_IGNORE_IMPORTMISMATCH=1 pipenv run tests
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          name: ${{ toJSON(matrix) }}
-          files: cov.xml
-
       - name: Upload Wheel and Sdist as artifacts
-        if: matrix.publish
         uses: actions/upload-artifact@v2
         with:
           name: dist
           path: dist/*
 
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest"]  # can add windows-latest, macos-latest
+        python: ["3.7", "3.8", "3.9"]
+        pipenv: ["skip-lock"]
+
+        include:
+          # Add an extra Python3.7 runner to use the lockfile
+          - os: "ubuntu-latest"
+            python: "3.7"
+            pipenv: "deploy"
+
+    runs-on: ${{ matrix.os }}
+    env:
+      # https://github.com/pytest-dev/pytest/issues/2042
+      PY_IGNORE_IMPORTMISMATCH: "1"
+
+    steps:
+      - name: Setup repo and test
+        uses: dls-controls/scanspec/.github/setup_action@template
+        with:
+          python: ${{ matrix.python }}
+          pipenv: ${{ matrix.pipenv }}
+          command: tests
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          name: ${{ matrix.python }}/${{ matrix.os }}/${{ matrix.pipenv_command }}
+          files: cov.xml
+
   release:
-    needs: [build]
+    needs: [static, wheel, test]
     runs-on: ubuntu-latest
     # upload to PyPI and make a release on every tag
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')

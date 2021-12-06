@@ -41,8 +41,15 @@ The code in this repository conforms to standards set by the following tools:
 .. _mypy: https://github.com/python/mypy
 .. _pydocstyle: http://www.pydocstyle.org
 
-These tests will be run on code when running ``pipenv run tests`` and also
-automatically at check in. Please read the tool documentation for details
+To run these automatically on the files committed to git run::
+
+    $ pipenv run pre-commit install
+
+If you want to run them on all files run::
+
+    $ pipenv run pre-commit run --all-files
+
+These tests will also be run with CI. Please read the tool documentation for details
 on how to fix the errors it reports.
 
 Documentation
