@@ -9,14 +9,14 @@ repos:
   - repo: local
     hooks:
       - id: black
-        name: black
+        name: Run black
         stages: [commit]
         language: system
-        entry: pipenv run black --check
+        entry: pipenv run black --check --diff
         types: [python]
 
       - id: flake8
-        name: flake8
+        name: Run flake8
         stages: [commit]
         language: system
         entry: pipenv run flake8
@@ -24,7 +24,7 @@ repos:
         exclude: setup.py
 
       - id: mypy
-        name: mypy
+        name: Run mypy
         stages: [commit]
         language: system
         entry: pipenv run mypy

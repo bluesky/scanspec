@@ -19,7 +19,7 @@ jobs:
       - name: Run black, flake8, mypy
         uses: dls-controls/scanspec/.github/setup_action@template
         with:
-          command: pre-commit run --all-files
+          command: pre-commit run --all-files --show-diff-on-failure --color=always
 
   wheel:
     runs-on: "ubuntu-latest"
