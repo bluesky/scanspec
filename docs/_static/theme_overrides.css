@@ -26,3 +26,7 @@
 .endcolumns {
     clear: both
 }
+
+.columns .toctree-wrapper, .toctree-wrapper .caption-text {
+    display: none;
+}
