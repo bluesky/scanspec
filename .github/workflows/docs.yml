@@ -19,9 +19,9 @@ jobs:
         run: sudo apt-get install graphviz
 
       - name: Build docs
-        uses: dls-controls/scanspec/.github/setup_action@template
+        uses: dls-controls/pipenv-run-action@v1
         with:
-          command: docs
+          pipenv-run: docs
 
       - name: Move to versioned directory
         # e.g. master or 0.1.2

@@ -17,14 +17,16 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: Run black, flake8, mypy
-        uses: dls-controls/scanspec/.github/setup_action@template
+        uses: dls-controls/pipenv-run-action@v1
         with:
-          command: pre-commit run --all-files --show-diff-on-failure --color=always
+          pipenv-run: pre-commit run --all-files --show-diff-on-failure --color=always
 
   wheel:
     runs-on: "ubuntu-latest"
     steps:
-      - uses: dls-controls/scanspec/.github/setup_action@template
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Create Sdist and Wheel
         # Set SOURCE_DATE_EPOCH from git commit for reproducible build
@@ -66,16 +68,17 @@ jobs:
 
     steps:
       - name: Setup repo and test
-        uses: dls-controls/scanspec/.github/setup_action@template
+        uses: dls-controls/pipenv-run-action@v1
         with:
-          python: ${{ matrix.python }}
-          pipenv: ${{ matrix.pipenv }}
-          command: tests
+          python-version: ${{ matrix.python }}
+          pipenv-install: --dev --${{ matrix.pipenv }}
+          allow-editable-installs: ${{ matrix.pipenv == 'deploy' }}
+          pipenv-run: tests
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
-          name: ${{ matrix.python }}/${{ matrix.os }}/${{ matrix.pipenv_command }}
+          name: ${{ matrix.python }}/${{ matrix.os }}/${{ matrix.pipenv }}
           files: cov.xml
 
   release:
