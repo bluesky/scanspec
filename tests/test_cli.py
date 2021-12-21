@@ -222,5 +222,5 @@ def test_schema() -> None:
     runner = CliRunner()
     result = runner.invoke(cli.schema)
     assert result.exit_code == 0
-    schema_path = pathlib.Path(__file__).resolve().parent.parent / "schema.gql"
-    assert result.output == open(schema_path).read()
+    schema_path = pathlib.Path(__file__).parent.parent / "schema.gql"
+    assert result.output == schema_path.read_text()
