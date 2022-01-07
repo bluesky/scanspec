@@ -1,4 +1,6 @@
 import pathlib
+import subprocess
+import sys
 from unittest.mock import patch
 
 import matplotlib.pyplot as plt
@@ -6,7 +8,7 @@ import numpy as np
 import pytest
 from click.testing import CliRunner
 
-from scanspec import cli
+from scanspec import __version__, cli
 from scanspec.plot import _Arrow3D
 
 
@@ -224,3 +226,8 @@ def test_schema() -> None:
     assert result.exit_code == 0
     schema_path = pathlib.Path(__file__).resolve().parent.parent / "schema.gql"
     assert result.output == open(schema_path).read()
+
+
+def test_cli_version():
+    cmd = [sys.executable, "-m", "scanspec", "--version"]
+    assert subprocess.check_output(cmd).decode().strip().endswith(__version__)

@@ -20,7 +20,7 @@ can be produced and expanded Paths created to consume chunk by chunk.
 PyPI           ``pip install scanspec``
 Source code    https://github.com/dls-controls/scanspec
 Documentation  https://dls-controls.github.io/scanspec
-Changelog      https://github.com/dls-controls/scanspec/blob/master/CHANGELOG.rst
+Releases       https://github.com/dls-controls/scanspec/releases
 ============== ==============================================================
 
 An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
@@ -84,7 +84,7 @@ from it for performance:
     :alt: Apache License
 
 ..
-    These definitions are used when viewing README.rst and will be replaced
+    Anything below this line is used when viewing README.rst and will be replaced
     when included in index.rst
 
 .. |plot| image:: https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/plot_spec.png
