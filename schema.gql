@@ -1,9 +1,9 @@
 type Query {
-  validateSpec(spec: SpecInput!): JSON!
+  validateSpec(spec: SpecInput!): JSON
   getPoints(spec: SpecInput!, maxFrames: Int = 100000): PointsResponse!
 }
 
-scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+scalar JSON
 
 input SpecInput {
   Product: ProductInput
@@ -349,4 +349,3 @@ type Points {
   floatList: [Float!]!
   b64: String!
 }
-
