@@ -386,7 +386,9 @@ class Concat(Spec[Axis]):
 
     def axes(self) -> List:
         left_axes, right_axes = self.left.axes(), self.right.axes()
-        assert left_axes == right_axes, f"axes {left_axes} != {right_axes}"
+        # Assuming the axes are the same, the order does not matter, we inherit the
+        # order from the left-hand side. See also scanspec.core.concat.
+        assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
         return left_axes
 
     def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
@@ -626,7 +628,8 @@ class Spiral(Spec[Axis]):
         radius: A[float, schema(description="radius of the spiral")],
         dr: A[float, schema(description="difference between each ring")],
         rotate: A[
-            float, schema(description="How much to rotate the angle of the spiral"),
+            float,
+            schema(description="How much to rotate the angle of the spiral"),
         ] = 0.0,
     ) -> Spiral[Axis]:
         """Specify a Spiral equally spaced in "x_axis" and "y_axis".
@@ -644,7 +647,14 @@ class Spiral(Spec[Axis]):
         n_rings = radius / dr
         num = int(n_rings ** 2 * np.pi)
         return Spiral(
-            x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate,
+            x_axis,
+            y_axis,
+            x_start,
+            y_start,
+            radius * 2,
+            radius * 2,
+            num,
+            rotate,
         )
 
 
