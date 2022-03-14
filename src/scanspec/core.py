@@ -436,11 +436,7 @@ class SnakedFrames(Frames[Axis]):
             }
         if self.midpoints is not self.upper:
             kwargs["upper"] = {
-                k: np.where(
-                    backwards,
-                    self.lower[k][snake_indices],
-                    v[snake_indices],
-                )
+                k: np.where(backwards, self.lower[k][snake_indices], v[snake_indices],)
                 for k, v in self.upper.items()
             }
 
