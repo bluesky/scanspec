@@ -45,11 +45,31 @@ commit`` on just the files that have changed::
     $ pipenv run pre-commit install
 
 .. _black: https://github.com/psf/black
-.. _flake8: http://flake8.pycqa.org/en/latest/
-.. _isort: https://github.com/timothycrosley/isort
+.. _flake8: https://flake8.pycqa.org/en/latest/
+.. _isort: https://github.com/PyCQA/isort
 .. _mypy: https://github.com/python/mypy
 .. _pydocstyle: http://www.pydocstyle.org
 .. _pre-commit: https://pre-commit.com/
+
+Docstrings are pre-processed using the Sphinx Napoleon extension. As such,
+google-style_ is considered as standard for this repository. Please use type
+hints in the function signature for types. For example::
+
+    def func(arg1: str, arg2: int) -> bool:
+        """Summary line.
+
+        Extended description of function.
+
+        Args:
+            arg1: Description of arg1
+            arg2: Description of arg2
+
+        Returns:
+            Description of return value
+        """
+        return True
+
+.. _google-style: https://sphinxcontrib-napoleon.readthedocs.io/en/latest/index.html#google-vs-numpy
 
 Documentation
 -------------
