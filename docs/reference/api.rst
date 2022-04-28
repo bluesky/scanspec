@@ -19,7 +19,7 @@ from code:
 .. data:: scanspec.__version__
     :type: str
 
-    Version number as calculated by https://github.com/dls-controls/versiongit
+    Version number as calculated by https://github.com/pypa/setuptools_scm
 
 .. automodule:: scanspec.core
     :members:

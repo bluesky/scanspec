@@ -1,1 +1,1 @@
-src/*/_version_git.py export-subst
+src/*/_version.py export-subst
