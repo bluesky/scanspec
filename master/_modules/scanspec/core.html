@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scanspec.core &mdash; scanspec 0.5.3+29.g1ab5ea7 documentation</title>
+  <title>scanspec.core &mdash; scanspec 0.5.3+32.gf748e70 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -398,18 +398,21 @@
 <div class="viewcode-block" id="Frames.concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.concat">[docs]</a>    <span class="k">def</span> <span class="nf">concat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span> <span class="n">gap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return a new Frames object concatenating self and other.</span>
 
-<span class="sd">        Requires both Frames objects to have the same axes.</span>
+<span class="sd">        Requires both Frames objects to have the same axes, but not necessarily in</span>
+<span class="sd">        the same order. The order is inherited from self, so other may be reordered.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            other: The Frames to concatenate to self</span>
 <span class="sd">            gap: Whether to force a gap between the two Frames objects</span>
 
-<span class="sd">        &gt;&gt;&gt; frames = Frames({&quot;x&quot;: np.array([1, 2, 3])})</span>
-<span class="sd">        &gt;&gt;&gt; frames2 = Frames({&quot;x&quot;: np.array([5, 6, 7])})</span>
+<span class="sd">        &gt;&gt;&gt; frames = Frames({&quot;x&quot;: np.array([1, 2, 3]), &quot;y&quot;: np.array([6, 5, 4])})</span>
+<span class="sd">        &gt;&gt;&gt; frames2 = Frames({&quot;y&quot;: np.array([3, 2, 1]), &quot;x&quot;: np.array([4, 5, 6])})</span>
 <span class="sd">        &gt;&gt;&gt; frames.concat(frames2).midpoints</span>
-<span class="sd">        {&#39;x&#39;: array([1, 2, 3, 5, 6, 7])}</span>
+<span class="sd">        {&#39;x&#39;: array([1, 2, 3, 4, 5, 6]), &#39;y&#39;: array([6, 5, 4, 3, 2, 1])}</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">axes</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">&quot;axes </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
+            <span class="n">other</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;axes </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
 
         <span class="k">def</span> <span class="nf">concat_dict</span><span class="p">(</span><span class="n">ds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
             <span class="c1"># Concat each array in midpoints, lower, upper. E.g.</span>
