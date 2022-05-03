@@ -299,18 +299,21 @@ class Frames(Generic[Axis]):
     def concat(self, other: Frames[Axis], gap: bool = False) -> Frames[Axis]:
         """Return a new Frames object concatenating self and other.
 
-        Requires both Frames objects to have the same axes.
+        Requires both Frames objects to have the same axes, but not necessarily in
+        the same order. The order is inherited from self, so other may be reordered.
 
         Args:
             other: The Frames to concatenate to self
             gap: Whether to force a gap between the two Frames objects
 
-        >>> frames = Frames({"x": np.array([1, 2, 3])})
-        >>> frames2 = Frames({"x": np.array([5, 6, 7])})
+        >>> frames = Frames({"x": np.array([1, 2, 3]), "y": np.array([6, 5, 4])})
+        >>> frames2 = Frames({"y": np.array([3, 2, 1]), "x": np.array([4, 5, 6])})
         >>> frames.concat(frames2).midpoints
-        {'x': array([1, 2, 3, 5, 6, 7])}
+        {'x': array([1, 2, 3, 4, 5, 6]), 'y': array([6, 5, 4, 3, 2, 1])}
         """
-        assert self.axes() == other.axes(), f"axes {self.axes()} != {other.axes()}"
+        assert set(self.axes()) == set(
+            other.axes()
+        ), f"axes {self.axes()} != {other.axes()}"
 
         def concat_dict(ds: Sequence[AxesPoints[Axis]]) -> AxesPoints[Axis]:
             # Concat each array in midpoints, lower, upper. E.g.

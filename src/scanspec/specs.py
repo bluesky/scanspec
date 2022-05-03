@@ -386,7 +386,9 @@ class Concat(Spec[Axis]):
 
     def axes(self) -> List:
         left_axes, right_axes = self.left.axes(), self.right.axes()
-        assert left_axes == right_axes, f"axes {left_axes} != {right_axes}"
+        # Assuming the axes are the same, the order does not matter, we inherit the
+        # order from the left-hand side. See also scanspec.core.concat.
+        assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
         return left_axes
 
     def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
