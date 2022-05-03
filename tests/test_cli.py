@@ -179,7 +179,7 @@ def test_plot_3D_line() -> None:
     runner = CliRunner()
     spec = 'Snake(Line("z", 5, 6, 2) * Line("y", 2, 3, 2) * Line("x", 1, 2, 2))'
     with patch("scanspec.plot.plt.show"):
-        result = runner.invoke(cli.cli, ["plot", spec],)
+        result = runner.invoke(cli.cli, ["plot", spec])
     assert result.exit_code == 0
     axes = plt.gcf().axes[0]
     lines = axes.lines

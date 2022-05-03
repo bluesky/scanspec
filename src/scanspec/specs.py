@@ -628,7 +628,7 @@ class Spiral(Spec[Axis]):
         radius: A[float, schema(description="radius of the spiral")],
         dr: A[float, schema(description="difference between each ring")],
         rotate: A[
-            float, schema(description="How much to rotate the angle of the spiral"),
+            float, schema(description="How much to rotate the angle of the spiral")
         ] = 0.0,
     ) -> Spiral[Axis]:
         """Specify a Spiral equally spaced in "x_axis" and "y_axis".
@@ -644,9 +644,9 @@ class Spiral(Spec[Axis]):
         # so: n_rings * 2 * pi = sqrt(4 * pi * num)
         # so: num = n_rings^2 * pi
         n_rings = radius / dr
-        num = int(n_rings ** 2 * np.pi)
+        num = int(n_rings**2 * np.pi)
         return Spiral(
-            x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate,
+            x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate
         )
 
 

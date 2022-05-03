@@ -49,13 +49,13 @@ class AxisFrames:
 
     axis: A[str, schema(description="An identifier for what to move")]
     lower: A[
-        Points, schema(description="The lower bounds of each scan frame in each axis"),
+        Points, schema(description="The lower bounds of each scan frame in each axis")
     ]
     midpoints: A[
         Points, schema(description="The midpoints of scan frames for each axis")
     ]
     upper: A[
-        Points, schema(description="The upper bounds of each scan frame in each axis"),
+        Points, schema(description="The upper bounds of each scan frame in each axis")
     ]
 
     @resolver
@@ -211,7 +211,9 @@ def run_app(cors=False, port=8080):
             app,
             defaults={
                 "*": aiohttp_cors.ResourceOptions(
-                    allow_credentials=True, expose_headers="*", allow_headers="*",
+                    allow_credentials=True,
+                    expose_headers="*",
+                    allow_headers="*",
                 )
             },
         )
