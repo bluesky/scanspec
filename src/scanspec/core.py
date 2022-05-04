@@ -173,7 +173,7 @@ def as_tagged_union(cls: Type):
     return cls
 
 
-def if_instance_do(x, cls: Type, func: Callable):
+def if_instance_do(x: Any, cls: Type, func: Callable):
     """If x is of type cls then return func(x), otherwise return NotImplemented.
 
     Used as a helper when implementing operator overloading.
