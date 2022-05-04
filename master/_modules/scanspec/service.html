@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scanspec.service &mdash; scanspec 0.5.3+32.gf748e70 documentation</title>
+  <title>scanspec.service &mdash; scanspec 0.5.3+37.g27f2758 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -148,13 +148,13 @@
 
     <span class="n">axis</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">)]</span>
     <span class="n">lower</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
-        <span class="n">Points</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The lower bounds of each scan frame in each axis&quot;</span><span class="p">),</span>
+        <span class="n">Points</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The lower bounds of each scan frame in each axis&quot;</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="n">midpoints</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
         <span class="n">Points</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The midpoints of scan frames for each axis&quot;</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="n">upper</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
-        <span class="n">Points</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The upper bounds of each scan frame in each axis&quot;</span><span class="p">),</span>
+        <span class="n">Points</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The upper bounds of each scan frame in each axis&quot;</span><span class="p">)</span>
     <span class="p">]</span>
 
 <div class="viewcode-block" id="AxisFrames.smallest_step"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.AxisFrames.smallest_step">[docs]</a>    <span class="nd">@resolver</span>
@@ -310,7 +310,9 @@
             <span class="n">app</span><span class="p">,</span>
             <span class="n">defaults</span><span class="o">=</span><span class="p">{</span>
                 <span class="s2">&quot;*&quot;</span><span class="p">:</span> <span class="n">aiohttp_cors</span><span class="o">.</span><span class="n">ResourceOptions</span><span class="p">(</span>
-                    <span class="n">allow_credentials</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">expose_headers</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">allow_headers</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
+                    <span class="n">allow_credentials</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">expose_headers</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
+                    <span class="n">allow_headers</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="p">},</span>
         <span class="p">)</span>

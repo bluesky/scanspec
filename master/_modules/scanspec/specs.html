@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scanspec.specs &mdash; scanspec 0.5.3+32.gf748e70 documentation</title>
+  <title>scanspec.specs &mdash; scanspec 0.5.3+37.g27f2758 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -727,7 +727,7 @@
         <span class="n">radius</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;radius of the spiral&quot;</span><span class="p">)],</span>
         <span class="n">dr</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;difference between each ring&quot;</span><span class="p">)],</span>
         <span class="n">rotate</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
-            <span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;How much to rotate the angle of the spiral&quot;</span><span class="p">),</span>
+            <span class="nb">float</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;How much to rotate the angle of the spiral&quot;</span><span class="p">)</span>
         <span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spiral</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Specify a Spiral equally spaced in &quot;x_axis&quot; and &quot;y_axis&quot;.</span>
@@ -743,9 +743,9 @@
         <span class="c1"># so: n_rings * 2 * pi = sqrt(4 * pi * num)</span>
         <span class="c1"># so: num = n_rings^2 * pi</span>
         <span class="n">n_rings</span> <span class="o">=</span> <span class="n">radius</span> <span class="o">/</span> <span class="n">dr</span>
-        <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_rings</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_rings</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Spiral</span><span class="p">(</span>
-            <span class="n">x_axis</span><span class="p">,</span> <span class="n">y_axis</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">y_start</span><span class="p">,</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">rotate</span><span class="p">,</span>
+            <span class="n">x_axis</span><span class="p">,</span> <span class="n">y_axis</span><span class="p">,</span> <span class="n">x_start</span><span class="p">,</span> <span class="n">y_start</span><span class="p">,</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">rotate</span>
         <span class="p">)</span></div></div>
 
 

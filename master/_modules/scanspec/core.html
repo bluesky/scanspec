@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scanspec.core &mdash; scanspec 0.5.3+32.gf748e70 documentation</title>
+  <title>scanspec.core &mdash; scanspec 0.5.3+37.g27f2758 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -272,7 +272,7 @@
     <span class="k">return</span> <span class="bp">cls</span></div>
 
 
-<div class="viewcode-block" id="if_instance_do"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.if_instance_do">[docs]</a><span class="k">def</span> <span class="nf">if_instance_do</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
+<div class="viewcode-block" id="if_instance_do"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.if_instance_do">[docs]</a><span class="k">def</span> <span class="nf">if_instance_do</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;If x is of type cls then return func(x), otherwise return NotImplemented.</span>
 
 <span class="sd">    Used as a helper when implementing operator overloading.</span>
@@ -535,7 +535,7 @@
             <span class="p">}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;upper&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">backwards</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">snake_indices</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="n">snake_indices</span><span class="p">],)</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">backwards</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">snake_indices</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="n">snake_indices</span><span class="p">])</span>
                 <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
             <span class="p">}</span>
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>API &mdash; scanspec 0.5.3+32.gf748e70 documentation</title>
+  <title>API &mdash; scanspec 0.5.3+37.g27f2758 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -157,7 +157,7 @@ include self/cls.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="scanspec.core.if_instance_do">
-<span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">if_instance_do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#if_instance_do"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.if_instance_do" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">if_instance_do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#if_instance_do"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.if_instance_do" title="Permalink to this definition"></a></dt>
 <dd><p>If x is of type cls then return func(x), otherwise return NotImplemented.</p>
 <p>Used as a helper when implementing operator overloading.</p>
 </dd></dl>
