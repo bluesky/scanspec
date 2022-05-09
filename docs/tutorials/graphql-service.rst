@@ -15,10 +15,10 @@ Running the server
 In a terminal, run::
 
     $ scanspec service --cors
-    ======== Running on http://0.0.0.0:8080 ========
+    ======== Running on http://localhost:8080 ========
     (Press CTRL+C to quit)
 
-You can now open a browser to http://0.0.0.0:8080/graphql and see a GraphiQL_ editor
+You can now open a browser to http://localhost:8080/graphql and see a GraphiQL_ editor
 which will allow you to send GraphQL queries to the server.
 
 .. note::
