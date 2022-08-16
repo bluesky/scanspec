@@ -34,6 +34,9 @@ jobs:
 
       - name: Write versions.txt
         run: pipenv run sphinx_rtd_theme_github_versions .github/pages
+        
+      - name: Debug
+        run: echo ${{ github.ref_name }}
 
       - name: Publish Docs to gh-pages
         if: github.event_name == 'push'
