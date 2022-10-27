@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from types import new_class
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -18,16 +17,8 @@ from typing import (
 )
 
 import numpy as np
-from apischema import deserializer, serializer, type_name
-from apischema.conversions import Conversion
-from apischema.metadata import conversion
-from apischema.objects import object_deserialization
-from apischema.tagged_unions import Tagged, TaggedUnion, get_tagged
-from apischema.utils import to_pascal_case
 
 __all__ = [
-    "alternative_constructor",
-    "as_tagged_union",
     "if_instance_do",
     "Axis",
     "AxesPoints",
@@ -46,38 +37,6 @@ def _rec_subclasses(cls: type) -> Iterator[type]:
         yield from _rec_subclasses(sub_cls)
 
 
-# {cls_name: [functions]}
-_alternative_constructors: Dict[str, List[Callable]] = {}
-if TYPE_CHECKING:
-    # Close enough for mypy
-    alternative_constructor = staticmethod
-else:
-
-    def alternative_constructor(f):
-        """Register an alternative constructor for this class.
-
-        This will be returned as a staticmethod so the signature should not
-        include self/cls.
-
-        >>> import dataclasses
-        >>> @dataclasses.dataclass
-        ... class Foo:
-        ...     a: int
-        ...     @alternative_constructor
-        ...     def doubled(b: int) -> "Foo":
-        ...         return Foo(b * 2)
-        ...
-        >>> Foo.doubled(2)
-        Foo(a=4)
-        """
-        cls_name = f.__qualname__.split(".")[0]
-        _alternative_constructors.setdefault(cls_name, []).append(f)
-        return staticmethod(f)
-
-
-generic_name = type_name(lambda cls, *args: cls.__name__)
-
-
 def to_gql_input(ob) -> str:
     """Convert plain Python objects to their GraphQL representation.
 
@@ -94,83 +53,6 @@ def to_gql_input(ob) -> str:
         return json.dumps(ob)
     else:
         raise ValueError("Cannot format %r" % ob)
-
-
-def as_tagged_union(cls: Type):
-    """Used by `Spec` and `Region` so they serialize as a tagged union."""
-    params = tuple(getattr(cls, "__parameters__", ()))
-    tagged_union_bases: tuple = (TaggedUnion,)
-    if params:
-        tagged_union_bases = (TaggedUnion, Generic[params])  # type: ignore
-        generic_name(cls)
-        prev_init_subclass = getattr(cls, "__init_subclass__", None)
-
-        def __init_subclass__(cls, **kwargs):
-            if prev_init_subclass is not None:
-                prev_init_subclass(**kwargs)
-            generic_name(cls)
-
-        cls.__init_subclass__ = classmethod(__init_subclass__)  # type: ignore
-
-    def with_params(cls: type) -> Any:
-        return cls[params] if params else cls  # type: ignore
-
-    def serialization() -> Conversion:
-        annotations = {
-            # Assume that subclasses have same generic parameters than cls
-            sub.__name__: Tagged[with_params(sub)]  # type: ignore
-            for sub in _rec_subclasses(cls)
-        }
-        namespace = {"__annotations__": annotations}
-        tagged_union = new_class(
-            cls.__name__, tagged_union_bases, exec_body=lambda ns: ns.update(namespace)
-        )
-        return Conversion(
-            lambda obj: tagged_union(**{obj.__class__.__name__: obj}),
-            source=with_params(cls),
-            target=with_params(tagged_union),
-            # Conversion must not be inherited because it would lead to
-            # infinite recursion otherwise
-            inherited=False,
-        )
-
-    def type_name_factory_for_subclass(sub):
-        return type_name(lambda cls, *args: to_pascal_case(cls.__name__ + sub.__name__))
-
-    def deserialization() -> Conversion:
-        annotations: Dict[str, Any] = {}
-        namespace: Dict[str, Any] = {"__annotations__": annotations}
-        for sub in _rec_subclasses(cls):
-            # Assume that subclasses have same generic parameters than cls
-            annotations[sub.__name__] = Tagged[with_params(sub)]  # type: ignore
-            # Add tagged fields for all its alternative constructors
-            for constructor in _alternative_constructors.get(sub.__name__, ()):
-                # Build the alias of the field
-                alias = to_pascal_case(constructor.__name__ + sub.__name__)
-                # object_deserialization uses get_type_hints, but the constructor
-                # return type is stringified and the class not defined yet,
-                # so it must be assigned manually
-                constructor.__annotations__["return"] = with_params(sub)
-                # Use object_deserialization to wrap constructor as deserializer
-                deserialization = object_deserialization(
-                    constructor, type_name_factory_for_subclass(sub)
-                )
-                # Add constructor tagged field with its conversion
-                annotations[alias] = Tagged[with_params(sub)]  # type: ignore
-                namespace[alias] = Tagged(conversion(deserialization=deserialization))
-        # Create the deserialization tagged union class
-        tagged_union = new_class(
-            cls.__name__, tagged_union_bases, exec_body=lambda ns: ns.update(namespace)
-        )
-        return Conversion(
-            lambda obj: get_tagged(obj)[1],
-            source=with_params(tagged_union),
-            target=with_params(cls),
-        )
-
-    deserializer(lazy=deserialization, target=cls)
-    serializer(lazy=serialization, source=cls)
-    return cls
 
 
 def if_instance_do(x: Any, cls: Type, func: Callable):
