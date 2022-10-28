@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -14,9 +14,13 @@ from typing import (
     Sequence,
     Type,
     TypeVar,
+    Union,
 )
 
 import numpy as np
+from pydantic import BaseConfig, Extra, Field, ValidationError, create_model
+from pydantic.error_wrappers import ErrorWrapper
+from typing_extensions import Literal
 
 __all__ = [
     "if_instance_do",
@@ -28,31 +32,79 @@ __all__ = [
     "squash_frames",
     "Path",
     "Midpoints",
+    "discriminated_union_of_subclasses",
+    "ScanspecModelConfig",
 ]
 
 
-def _rec_subclasses(cls: type) -> Iterator[type]:
-    for sub_cls in cls.__subclasses__():
-        yield sub_cls
-        yield from _rec_subclasses(sub_cls)
+class ScanspecModelConfig:
+    # extra: Extra.forbid
+    ...
 
 
-def to_gql_input(ob) -> str:
-    """Convert plain Python objects to their GraphQL representation.
+def discriminated_union_of_subclasses(
+    super_cls: Optional[Type] = None,
+    *,
+    discriminator: str = "type",
+    config: Optional[Type[BaseConfig]] = None,
+) -> Union[Type, Callable[[Type], Type]]:
+    def wrap(cls):
+        return _discriminated_union_of_subclasses(cls, discriminator, config)
 
-    >>> to_gql_input({"a": {"b": 1, "c": True, "d": [4.2, 3.4], "e": "e"}})
-    '{a: {b: 1, c: true, d: [4.2, 3.4], e: "e"}}'
-    """
-    if isinstance(ob, dict):
-        inner = ", ".join(f"{k}: {to_gql_input(v)}" for k, v in ob.items())
-        return "{%s}" % inner
-    elif isinstance(ob, list):
-        inner = ", ".join(to_gql_input(v) for v in ob)
-        return "[%s]" % inner
-    elif isinstance(ob, (str, int, float, bool)):
-        return json.dumps(ob)
+    if super_cls is None:
+        return wrap
     else:
-        raise ValueError("Cannot format %r" % ob)
+        return wrap(super_cls)
+
+
+def _discriminated_union_of_subclasses(
+    super_cls: Type,
+    discriminator: str,
+    config: Optional[Type[BaseConfig]] = None,
+) -> Union[Type, Callable[[Type], Type]]:
+
+    super_cls.__ref_classes__ = set()
+    super_cls.__model__ = None
+
+    def __init_subclass__(cls) -> None:
+        # print(cls, getattr(cls, discriminator, None))
+        cls.__ref_classes__.add(cls)
+        cls.__annotations__ = {
+            **cls.__annotations__,
+            discriminator: Literal[cls.__name__],
+        }
+        setattr(cls, discriminator, cls.__name__)
+
+    def __get_validators__(cls) -> Any:
+        yield cls.__validate__
+
+    def __validate__(cls, v: Any) -> Any:
+        if cls.__model__ is None:
+            root = Union[tuple(cls.__ref_classes__)]
+            cls.__model__ = create_model(
+                super_cls.__name__,
+                __root__=(root, Field(..., discriminator=discriminator)),
+                __config__=config,
+            )
+
+        try:
+            return cls.__model__(__root__=v).__root__
+        except ValidationError as e:
+            for (
+                error
+            ) in e.raw_errors:  # need in to remove redundant __root__ from error path
+                if (
+                    isinstance(error, ErrorWrapper)
+                    and error.loc_tuple()[0] == "__root__"
+                ):
+                    error._loc = error.loc_tuple()[1:]
+
+            raise e
+
+    for method in __init_subclass__, __get_validators__, __validate__:
+        setattr(super_cls, method.__name__, classmethod(method))
+
+    return super_cls
 
 
 def if_instance_do(x: Any, cls: Type, func: Callable):

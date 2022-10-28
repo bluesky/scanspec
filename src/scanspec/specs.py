@@ -1,22 +1,25 @@
 from __future__ import annotations
 
+import itertools
 from dataclasses import asdict
 from typing import Any, Callable, Dict, Generic, List, Mapping, Optional
 
 import numpy as np
-from pydantic import Field
+from pydantic import Extra, Field, parse_obj_as
 from pydantic.dataclasses import dataclass
+from typing_extensions import Annotated
 
 from .core import (
     Axis,
     Frames,
     Midpoints,
     Path,
+    ScanspecModelConfig,
     SnakedFrames,
+    discriminated_union_of_subclasses,
     gap_between_frames,
     if_instance_do,
     squash_frames,
-    to_gql_input,
 )
 from .regions import Region, get_mask
 
@@ -42,7 +45,7 @@ __all__ = [
 DURATION = "DURATION"
 
 
-@dataclass
+@discriminated_union_of_subclasses
 class Spec(Generic[Axis]):
     """A serializable representation of the type and parameters of a scan.
 
@@ -101,13 +104,9 @@ class Spec(Generic[Axis]):
         return asdict(self)
 
     @classmethod
-    def deserialize(cls, serialized: Mapping[str, Any]) -> Spec[Axis]:
+    def deserialize(cls, obj):
         """Deserialize the spec from a dictionary."""
-        return cls(**serialized)
-
-    def to_gql_input(self) -> str:
-        """Convert to the GraphQL input format."""
-        return to_gql_input(self.serialize())
+        return parse_obj_as(cls, obj)
 
 
 @dataclass
@@ -600,6 +599,7 @@ class Spiral(Spec[Axis]):
             self._spiral_from_indexes, self.axes(), self.num, bounds
         )
 
+    @classmethod
     def spaced(
         cls,
         x_axis: Axis = Field(description="An identifier for what to move for x"),
@@ -625,7 +625,7 @@ class Spiral(Spec[Axis]):
         # so: n_rings * 2 * pi = sqrt(4 * pi * num)
         # so: num = n_rings^2 * pi
         n_rings = radius / dr
-        num = int(n_rings ** 2 * np.pi)
+        num = int(n_rings**2 * np.pi)
         return cls(
             x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate
         )

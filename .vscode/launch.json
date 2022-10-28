@@ -20,6 +20,14 @@
                 // https://github.com/microsoft/vscode-python/issues/693
                 "PYTEST_ADDOPTS": "--no-cov"
             },
+        },
+        {
+            "name": "Python (Current File)",
+            "type": "python",
+            "request": "launch",
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "program": "${file}"
         }
     ]
 }
