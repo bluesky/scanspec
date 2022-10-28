@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, is_dataclass
-from email.policy import default
 from typing import Generic, Iterator, List, Set
 
 import numpy as np
