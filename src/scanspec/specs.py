@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from dataclasses import asdict
 from typing import Any, Callable, Dict, Generic, List, Mapping, Optional
 
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 from .core import (
@@ -42,7 +43,7 @@ DURATION = "DURATION"
 
 
 @dataclass
-class Spec(BaseModel, Generic[Axis]):
+class Spec(Generic[Axis]):
     """A serializable representation of the type and parameters of a scan.
 
     Abstract baseclass for the specification of a scan. Supports operators:
@@ -97,7 +98,7 @@ class Spec(BaseModel, Generic[Axis]):
 
     def serialize(self) -> Mapping[str, Any]:
         """Serialize the spec to a dictionary."""
-        return self.asdict()
+        return asdict(self)
 
     @classmethod
     def deserialize(cls, serialized: Mapping[str, Any]) -> Spec[Axis]:

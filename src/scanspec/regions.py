@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, is_dataclass
 from typing import Generic, Iterator, List, Set
 
 import numpy as np
 from pydantic import BaseModel, Field
+from pydantic.dataclasses import dataclass
 
 from .core import AxesPoints, Axis, if_instance_do
 
@@ -26,7 +26,7 @@ __all__ = [
 
 
 @dataclass
-class Region(BaseModel, Generic[Axis]):
+class Region(Generic[Axis]):
     """Abstract baseclass for a Region that can `Mask` a `Spec`.
 
     Supports operators:
@@ -347,7 +347,9 @@ class Ellipse(Region[Axis]):
 
 def find_regions(obj) -> Iterator[Region[Axis]]:
     """Recursively yield Regions from obj and its children."""
-    if is_dataclass(obj):
+    if hasattr(obj, "__pydantic_model__") and issubclass(
+        obj.__pydantic_model__, BaseModel
+    ):
         if isinstance(obj, Region):
             yield obj
         for name in obj.__dict__.keys():
