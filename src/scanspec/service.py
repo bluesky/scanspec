@@ -1,10 +1,11 @@
-from dataclasses import dataclass
 from enum import Enum
 from typing import Any, List, Mapping, Optional, Union
 
 import numpy as np
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import Field
+from pydantic.dataclasses import dataclass
 
 from scanspec.core import AxesPoints, Frames, Path
 
@@ -35,14 +36,25 @@ class PointsFormat(Enum):
 class PointsResponse:
     """Generated scan points with metadata."""
 
-    total_frames: int
-    returned_frames: int
-    format: PointsFormat
-    axes: List[str]
-    lower: Mapping[str, Points]
-    midpoints: Mapping[str, Points]
-    upper: Mapping[str, Points]
-    gap: List[bool]
+    total_frames: int = Field(description="Total number of frames in spec")
+    returned_frames: int = Field(
+        description="Total of number of frames in this response, may be "
+        "less than total_frames due to downsampling etc."
+    )
+    format: PointsFormat = Field(description="Format of returned point data")
+    axes: List[str] = Field(description="Names of axes")
+    lower: Mapping[str, Points] = Field(
+        description="Lower bounds of scan frames if different from midpoints"
+    )
+    midpoints: Mapping[str, Points] = Field(
+        description="The midpoints of scan frames for each axis"
+    )
+    upper: Mapping[str, Points] = Field(
+        description="Upper bounds of scan frames if different from midpoints"
+    )
+    gap: Optional[List[bool]] = Field(
+        description="Boolean array indicating if there is a gap between each frame"
+    )
 
     @classmethod
     def from_path(cls, frames: Frames) -> "PointsResponse":
@@ -61,8 +73,12 @@ class PointsResponse:
 class SmallestStepResponse:
     """Information about the smallest steps between points in a spec."""
 
-    absolute: float
-    per_axis: Mapping[str, float]
+    absolute: float = Field(
+        description="Absolute smallest distance between two points on a single axis"
+    )
+    per_axis: Mapping[str, float] = Field(
+        description="Smallest distance between two points on each axis"
+    )
 
 
 #
