@@ -1,11 +1,25 @@
 from __future__ import annotations
 
-from dataclasses import asdict
-from typing import Any, Callable, Dict, Generic, List, Mapping, Optional
+from dataclasses import asdict, is_dataclass
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    ForwardRef,
+    Generic,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    get_type_hints,
+)
 
 import numpy as np
-from pydantic import Field
+from pydantic import ConfigDict, Field, create_model, parse_obj_as
 from pydantic.dataclasses import dataclass
+from typing_extensions import Annotated, Literal, get_origin
 
 from .core import (
     Axis,
@@ -17,6 +31,8 @@ from .core import (
     if_instance_do,
     squash_frames,
     to_gql_input,
+    type_adding_dataclass,
+    union_of_subclasses,
 )
 from .regions import Region, get_mask
 
@@ -42,7 +58,9 @@ __all__ = [
 DURATION = "DURATION"
 
 
-@dataclass
+_spec_referrers: Dict[Type, List[Tuple[str, str]]] = {}
+
+
 class Spec(Generic[Axis]):
     """A serializable representation of the type and parameters of a scan.
 
@@ -53,6 +71,26 @@ class Spec(Generic[Axis]):
     - ``&``: `Mask` the Spec with a `Region`, excluding midpoints outside of it
     - ``~``: `Snake` the Spec, reversing every other iteration of it
     """
+
+    def __init_subclass__(cls, **kwargs):
+        hints = [
+            (k, v) for k, v in get_type_hints(cls).items() if get_origin(v) is Spec
+        ]
+        _spec_referrers[cls] = hints
+        if not hasattr(cls, "__annotations__"):
+            setattr(cls, "__annotations__", {})
+        cls.__annotations__["type"] = Literal[cls.__name__]
+        setattr(cls, "type", cls.__name__)
+        for ref_cls, hints in _spec_referrers.items():
+            if not is_dataclass(ref_cls):
+                print(cls.__name__, ref_cls.__name__)
+                for k, v in hints:
+                    u = union_of_subclasses(Spec, v)
+                    if not u:
+                        return
+                    ref_cls.__annotations__[k] = u
+                    setattr(ref_cls, k, Field(discriminator="type"))
+            # ref_cls.__pydantic_model__.update_forward_refs()
 
     def axes(self) -> List[Axis]:
         """Return the list of axes that are present in the scan.
@@ -101,9 +139,11 @@ class Spec(Generic[Axis]):
         return asdict(self)
 
     @classmethod
-    def deserialize(cls, serialized: Mapping[str, Any]) -> Spec[Axis]:
+    def deserialize(cls, obj):
         """Deserialize the spec from a dictionary."""
-        return cls(**serialized)
+        union = union_of_subclasses(cls)
+        common = Annotated[union, Field(discriminator="type")]
+        return parse_obj_as(common, obj)
 
     def to_gql_input(self) -> str:
         """Convert to the GraphQL input format."""
@@ -600,6 +640,7 @@ class Spiral(Spec[Axis]):
             self._spiral_from_indexes, self.axes(), self.num, bounds
         )
 
+    @classmethod
     def spaced(
         cls,
         x_axis: Axis = Field(description="An identifier for what to move for x"),
@@ -625,7 +666,7 @@ class Spiral(Spec[Axis]):
         # so: n_rings * 2 * pi = sqrt(4 * pi * num)
         # so: num = n_rings^2 * pi
         n_rings = radius / dr
-        num = int(n_rings ** 2 * np.pi)
+        num = int(n_rings**2 * np.pi)
         return cls(
             x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate
         )
