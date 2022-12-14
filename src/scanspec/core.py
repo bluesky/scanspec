@@ -71,10 +71,13 @@ def type_adding_dataclass(cls):
     return dataclass(cls, config=ConfigDict(arbitrary_types_allowed=True))
 
 
-def union_of_subclasses(cls, ann):
+def union_of_subclasses(cls, ann=None):
     # Union of subclasses without base
-    args = get_args(ann)
-    subclasses = tuple(c[args] for c in _rec_subclasses(cls))
+    if ann is not None:
+        args = get_args(ann)
+        subclasses = tuple(c[args] for c in _rec_subclasses(cls))
+    else:
+        subclasses = tuple(_rec_subclasses(cls))
     if len(subclasses) > 1:
         return Union[subclasses]
 

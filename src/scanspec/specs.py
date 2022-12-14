@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 from dataclasses import asdict, is_dataclass
 from typing import (
     Any,
@@ -60,6 +61,8 @@ DURATION = "DURATION"
 
 _spec_referrers: Dict[Type, List[Tuple[str, str]]] = {}
 
+_SpecUnion = ForwardRef("_SpecUnion")
+
 
 class Spec(Generic[Axis]):
     """A serializable representation of the type and parameters of a scan.
@@ -73,24 +76,48 @@ class Spec(Generic[Axis]):
     """
 
     def __init_subclass__(cls, **kwargs):
+
+        global _SpecUnion
         hints = [
             (k, v) for k, v in get_type_hints(cls).items() if get_origin(v) is Spec
         ]
         _spec_referrers[cls] = hints
+
         if not hasattr(cls, "__annotations__"):
             setattr(cls, "__annotations__", {})
         cls.__annotations__["type"] = Literal[cls.__name__]
         setattr(cls, "type", cls.__name__)
-        for ref_cls, hints in _spec_referrers.items():
-            if not is_dataclass(ref_cls):
-                print(cls.__name__, ref_cls.__name__)
+
+        for k, v in hints:
+            cls.__annotations__[k] = _SpecUnion
+            # setattr(cls, k, Field(discriminator="type"))
+
+        if len(_spec_referrers) > 1:
+            for ref_cls, hints in _spec_referrers.items():
                 for k, v in hints:
-                    u = union_of_subclasses(Spec, v)
-                    if not u:
-                        return
-                    ref_cls.__annotations__[k] = u
                     setattr(ref_cls, k, Field(discriminator="type"))
-            # ref_cls.__pydantic_model__.update_forward_refs()
+
+        _SpecUnion = union_of_subclasses(Spec)
+
+        # _SpecUnion.update_forward_refs()
+        # if is_dataclass(cls):
+        #     cls.__pydantic_model__.update_forward_refs()
+
+        # _spec_referrers[cls] = hints
+        # if not hasattr(cls, "__annotations__"):
+        #     setattr(cls, "__annotations__", {})
+        # cls.__annotations__["type"] = Literal[cls.__name__]
+        # setattr(cls, "type", cls.__name__)
+        # for ref_cls, hints in _spec_referrers.items():
+        #     if not is_dataclass(ref_cls):
+        #         print(cls.__name__, ref_cls.__name__)
+        #         for k, v in hints:
+        #             u = union_of_subclasses(Spec, v)
+        #             if not u:
+        #                 return
+        #             ref_cls.__annotations__[k] = u
+        #             setattr(ref_cls, k, Field(discriminator="type"))
+        # ref_cls.__pydantic_model__.update_forward_refs()
 
     def axes(self) -> List[Axis]:
         """Return the list of axes that are present in the scan.
