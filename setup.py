@@ -11,4 +11,3 @@ vg = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(vg)
 
 setup(cmdclass=vg.get_cmdclass(), version=vg.__version__)
-a
