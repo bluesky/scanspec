@@ -48,6 +48,72 @@ def discriminated_union_of_subclasses(
     discriminator: str = "type",
     config: Optional[Type[BaseConfig]] = None,
 ) -> Union[Type, Callable[[Type], Type]]:
+    """Add all subclasses of super_cls to a discriminated union.
+
+    For all subclasses of super_cls, add a discriminator field to identify
+    the type. Raw JSON should look like {"type": <type name>, params for <type name>...}.
+    Add validation methods to super_cls so it can be parsed by pydantic.parse_obj_as.
+
+    Example:
+    @discriminated_union_of_subclasses
+    class Expression(ABC):
+        @abstractmethod
+        def calculate(self) -> int:
+            ...
+
+
+    @dataclass
+    class Add(Expression):
+        left: Expression
+        right: Expression
+
+        def calculate(self) -> int:
+            return self.left.calculate() + self.right.calculate()
+
+
+    @dataclass
+    class Subtract(Expression):
+        left: Expression
+        right: Expression
+
+        def calculate(self) -> int:
+            return self.left.calculate() - self.right.calculate()
+
+
+    @dataclass
+    class IntLiteral(Expression):
+        value: int
+
+        def calculate(self) -> int:
+            return self.value
+
+
+    my_sum = Add(IntLiteral(5), Subtract(IntLiteral(10), IntLiteral(2)))
+    assert my_sum.calculate() == 13
+
+    assert my_sum == parse_obj_as(
+        Expression,
+        {
+            "type": "Add",
+            "left": {"type": "IntLiteral", "value": 5},
+            "right": {
+                "type": "Subtract",
+                "left": {"type": "IntLiteral", "value": 10},
+                "right": {"type": "IntLiteral", "value": 2},
+            },
+        },
+    )
+
+    Args:
+        super_cls (Optional[Type], optional): _description_. Defaults to None.
+        discriminator (str, optional): _description_. Defaults to "type".
+        config (Optional[Type[BaseConfig]], optional): _description_. Defaults to None.
+
+    Returns:
+        Union[Type, Callable[[Type], Type]]: A decorator that adds the necessary functionality
+            to a class.
+    """
+
     def wrap(cls):
         return _discriminated_union_of_subclasses(cls, discriminator, config)
 
@@ -67,8 +133,11 @@ def _discriminated_union_of_subclasses(
     super_cls.__model__ = None
 
     def __init_subclass__(cls) -> None:
-        # print(cls, getattr(cls, discriminator, None))
+        # Keep track of inherting classes in super class
         cls.__ref_classes__.add(cls)
+
+        # Add a discriminator field to the class so it can
+        # be identified when deserailizing.
         cls.__annotations__ = {
             **cls.__annotations__,
             discriminator: Literal[cls.__name__],
@@ -79,6 +148,9 @@ def _discriminated_union_of_subclasses(
         yield cls.__validate__
 
     def __validate__(cls, v: Any) -> Any:
+        # Lazily initialize model on first use because this
+        # needs to be done once, after all subclasses have been
+        # declared
         if cls.__model__ is None:
             root = Union[tuple(cls.__ref_classes__)]
             cls.__model__ = create_model(
@@ -101,6 +173,7 @@ def _discriminated_union_of_subclasses(
 
             raise e
 
+    # Inject magic methods into super_cls
     for method in __init_subclass__, __get_validators__, __validate__:
         setattr(super_cls, method.__name__, classmethod(method))
 
