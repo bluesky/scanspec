@@ -1,0 +1,54 @@
+[
+  {
+    "version": "master",
+    "url": "https://dls-controls.github.io/scanspec/master/"
+  },
+  {
+    "version": "0.5.4",
+    "url": "https://dls-controls.github.io/scanspec/0.5.4/"
+  },
+  {
+    "version": "0.5.3",
+    "url": "https://dls-controls.github.io/scanspec/0.5.3/"
+  },
+  {
+    "version": "0.5.2",
+    "url": "https://dls-controls.github.io/scanspec/0.5.2/"
+  },
+  {
+    "version": "0.5.1",
+    "url": "https://dls-controls.github.io/scanspec/0.5.1/"
+  },
+  {
+    "version": "0.5",
+    "url": "https://dls-controls.github.io/scanspec/0.5/"
+  },
+  {
+    "version": "0.4",
+    "url": "https://dls-controls.github.io/scanspec/0.4/"
+  },
+  {
+    "version": "0.2",
+    "url": "https://dls-controls.github.io/scanspec/0.2/"
+  },
+  {
+    "version": "0.1.1",
+    "url": "https://dls-controls.github.io/scanspec/0.1.1/"
+  },
+  {
+    "version": "0.1",
+    "url": "https://dls-controls.github.io/scanspec/0.1/"
+  },
+  {
+    "version": "delete",
+    "url": "https://dls-controls.github.io/scanspec/delete/"
+  },
+  {
+    "version": "merge",
+    "url": "https://dls-controls.github.io/scanspec/merge/"
+  },
+  {
+    "version": "new-skeleton",
+    "url": "https://dls-controls.github.io/scanspec/new-skeleton/"
+  }
+]
