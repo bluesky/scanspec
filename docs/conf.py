@@ -65,6 +65,8 @@ nitpicky = True
 nitpick_ignore = [
     ("py:func", "int"),
     ("py:class", "Axis"),
+    ("py:class", "~Axis"),
+    ("py:class", "scanspec.core.Axis"),
     ("py:class", "AxesPoints"),
     ("py:class", "np.ndarray"),
     ("py:class", "NoneType"),
