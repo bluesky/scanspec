@@ -28,7 +28,7 @@ jobs:
         uses: ./.github/actions/install_requirements
         with:
           requirements_file: requirements-dev-3.x.txt
-          install_options: -e .[dev]
+          install_options: -e .[dev,graphql,plotting]
 
       - name: Build docs
         run: tox -e docs
