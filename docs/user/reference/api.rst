@@ -1,14 +1,14 @@
 API
 ===
 
-.. automodule:: python3_pip_skeleton
+.. automodule:: scanspec
 
-    ``python3_pip_skeleton``
+    ``scanspec``
     -----------------------------------
 
-This is the internal API reference for python3_pip_skeleton
+This is the internal API reference for scanspec
 
-.. data:: python3_pip_skeleton.__version__
+.. data:: scanspec.__version__
     :type: str
 
     Version number as calculated by https://github.com/pypa/setuptools_scm

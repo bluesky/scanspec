@@ -1,4 +1,4 @@
-python3-pip-skeleton
+scanspec
 ===========================
 
 |code_ci| |docs_ci| |coverage| |pypi_version| |anaconda_version| |license|
@@ -7,17 +7,17 @@ python3-pip-skeleton
 
     This project contains template code only. For documentation on how to
     adopt this skeleton project see
-    https://DiamondLightSource.github.io/python3-pip-skeleton-cli
+    https://dls-controls.github.io/scanspec-cli
 
 This is where you should write a short paragraph that describes what your module does,
 how it does it, and why people should use it.
 
 ============== ==============================================================
-PyPI           ``pip install python3-pip-skeleton``
-Conda          ``conda install -c DiamondLightSource python3-pip-skeleton``
-Source code    https://github.com/DiamondLightSource/python3-pip-skeleton
-Documentation  https://DiamondLightSource.github.io/python3-pip-skeleton
-Releases       https://github.com/DiamondLightSource/python3-pip-skeleton/releases
+PyPI           ``pip install scanspec``
+Conda          ``conda install -c dls-controls scanspec``
+Source code    https://github.com/dls-controls/scanspec
+Documentation  https://dls-controls.github.io/scanspec
+Releases       https://github.com/dls-controls/scanspec/releases
 ============== ==============================================================
 
 This is where you should put some images or code snippets that illustrate
@@ -26,32 +26,32 @@ introductory code here:
 
 .. code-block:: python
 
-    from python3_pip_skeleton import __version__
+    from scanspec import __version__
 
-    print(f"Hello python3_pip_skeleton {__version__}")
+    print(f"Hello scanspec {__version__}")
 
 Or if it is a commandline tool then you might put some example commands here::
 
-    $ python -m python3_pip_skeleton --version
+    $ python -m scanspec --version
 
-.. |code_ci| image:: https://github.com/DiamondLightSource/python3-pip-skeleton/actions/workflows/code.yml/badge.svg?branch=main
-    :target: https://github.com/DiamondLightSource/python3-pip-skeleton/actions/workflows/code.yml
+.. |code_ci| image:: https://github.com/dls-controls/scanspec/actions/workflows/code.yml/badge.svg?branch=main
+    :target: https://github.com/dls-controls/scanspec/actions/workflows/code.yml
     :alt: Code CI
 
-.. |docs_ci| image:: https://github.com/DiamondLightSource/python3-pip-skeleton/actions/workflows/docs.yml/badge.svg?branch=main
-    :target: https://github.com/DiamondLightSource/python3-pip-skeleton/actions/workflows/docs.yml
+.. |docs_ci| image:: https://github.com/dls-controls/scanspec/actions/workflows/docs.yml/badge.svg?branch=main
+    :target: https://github.com/dls-controls/scanspec/actions/workflows/docs.yml
     :alt: Docs CI
 
-.. |coverage| image:: https://codecov.io/gh/DiamondLightSource/python3-pip-skeleton/branch/main/graph/badge.svg
-    :target: https://codecov.io/gh/DiamondLightSource/python3-pip-skeleton
+.. |coverage| image:: https://codecov.io/gh/dls-controls/scanspec/branch/main/graph/badge.svg
+    :target: https://codecov.io/gh/dls-controls/scanspec
     :alt: Test Coverage
 
-.. |pypi_version| image:: https://img.shields.io/pypi/v/python3-pip-skeleton.svg
-    :target: https://pypi.org/project/python3-pip-skeleton
+.. |pypi_version| image:: https://img.shields.io/pypi/v/scanspec.svg
+    :target: https://pypi.org/project/scanspec
     :alt: Latest PyPI version
 
-.. |anaconda_version| image:: https://anaconda.org/DiamondLightSource/python3-pip-skeleton/badges/version.svg
-    :target: https://anaconda.org/DiamondLightSource/python3-pip-skeleton
+.. |anaconda_version| image:: https://anaconda.org/dls-controls/scanspec/badges/version.svg
+    :target: https://anaconda.org/dls-controls/scanspec
     :alt: Latest Anaconda version
 
 .. |license| image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
@@ -62,4 +62,4 @@ Or if it is a commandline tool then you might put some example commands here::
     Anything below this line is used when viewing README.rst and will be replaced
     when included in index.rst
 
-See https://DiamondLightSource.github.io/python3-pip-skeleton for more detailed documentation.
+See https://dls-controls.github.io/scanspec for more detailed documentation.

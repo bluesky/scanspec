@@ -1,6 +1,6 @@
 from importlib.metadata import version
 
-__version__ = version("python3-pip-skeleton")
+__version__ = version("scanspec")
 del version
 
 __all__ = ["__version__"]
