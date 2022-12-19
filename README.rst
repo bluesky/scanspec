@@ -3,12 +3,6 @@ scanspec
 
 |code_ci| |docs_ci| |coverage| |pypi_version| |anaconda_version| |license|
 
-.. note::
-
-    This project contains template code only. For documentation on how to
-    adopt this skeleton project see
-    https://dls-controls.github.io/scanspec-cli
-
 Specify step and flyscan Paths using combinations of:
 
 - Specs like Line or Spiral

@@ -16,7 +16,7 @@ from .specs import *  # noqa
         ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"], case_sensitive=False
     ),
 )
-@click.version_option()
+@click.version_option(prog_name="scanspec")
 @click.pass_context
 def cli(ctx, log_level: str):
     """Top level scanspec command line interface."""
