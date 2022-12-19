@@ -618,7 +618,7 @@ class Midpoints(Generic[Axis]):
 
     def __len__(self) -> int:
         """The number of dictionaries that will be produced if iterated over."""
-        return np.product([len(frames) for frames in self.stack])
+        return int(np.product([len(frames) for frames in self.stack]))
 
     def __iter__(self) -> Iterator[Dict[Axis, float]]:
         """Yield {axis: midpoint} for each frame in the scan."""
