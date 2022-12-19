@@ -419,6 +419,7 @@ class SnakedFrames(Frames[Axis]):
         length = len(self)
         backwards = (indices // length) % 2
         snake_indices = np.where(backwards, (length - 1) - indices, indices) % length
+        cls: Type[Frames[Any]]
         if not calculate_gap:
             cls = Frames
             gap = self.gap[np.where(backwards, length - indices, indices) % length]
