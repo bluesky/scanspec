@@ -62,15 +62,15 @@ from it for performance:
     chunk.midpoints  # {'x': <ndarray len=10>, 'y': <ndarray len=10>, 'DURATION': <ndarray len=10>}
     chunk.upper  # bounds are same dimensionality as positions
 
-.. |code_ci| image:: https://github.com/dls-controls/scanspec/actions/workflows/code.yml/badge.svg?branch=main
+.. |code_ci| image:: https://github.com/dls-controls/scanspec/actions/workflows/code.yml/badge.svg?branch=master
     :target: https://github.com/dls-controls/scanspec/actions/workflows/code.yml
     :alt: Code CI
 
-.. |docs_ci| image:: https://github.com/dls-controls/scanspec/actions/workflows/docs.yml/badge.svg?branch=main
+.. |docs_ci| image:: https://github.com/dls-controls/scanspec/actions/workflows/docs.yml/badge.svg?branch=master
     :target: https://github.com/dls-controls/scanspec/actions/workflows/docs.yml
     :alt: Docs CI
 
-.. |coverage| image:: https://codecov.io/gh/dls-controls/scanspec/branch/main/graph/badge.svg
+.. |coverage| image:: https://codecov.io/gh/dls-controls/scanspec/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/dls-controls/scanspec
     :alt: Test Coverage
 
