@@ -13,12 +13,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 description = "Specify step and flyscan paths in a serializable, efficient and Pythonic way"
-dependencies = [
-    "numpy>=1.19.3",
-    "click",
-    "apischema>=0.17.2",
-    "typing_extensions",
-]
+dependencies = ["numpy>=1.19.3", "click", "pydantic", "typing_extensions"]
 dynamic = ["version"]
 license.file = "LICENSE"
 readme = "README.rst"
@@ -32,7 +27,7 @@ plotting = [
     "matplotlib>=3.2.2,<3.6",
 ]
 # GraphQL service support
-graphql = ["graphql-server[aiohttp]==3.0.0b5", "aiohttp_cors"]
+service = ["fastapi", "uvicorn"]
 # For development tests/docs
 dev = [
     "black==22.3.0",
