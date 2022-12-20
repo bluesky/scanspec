@@ -230,4 +230,7 @@ def test_schema() -> None:
 
 def test_cli_version():
     cmd = [sys.executable, "-m", "scanspec", "--version"]
-    assert subprocess.check_output(cmd).decode().strip().endswith(__version__)
+    assert (
+        subprocess.check_output(cmd).decode().strip()
+        == f"scanspec, version {__version__}"
+    )

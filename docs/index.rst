@@ -9,41 +9,37 @@ How the documentation is structured
 Documentation is split into four categories, also accessible from links in the
 side-bar.
 
-.. rst-class:: columns
+.. grid:: 4
 
-`tutorials`
-~~~~~~~~~~~
+    .. grid-item-card:: :material-regular:`person;4em`
+        :link: tutorials
+        :link-type: doc
 
-.. include:: tutorials.rst
-    :start-after: =========
+        Tutorials
 
-.. rst-class:: columns
+    .. grid-item-card:: :material-regular:`code;4em`
+        :link: how-to
+        :link-type: doc
 
-`how-to`
-~~~~~~~~
+        How-To
 
-.. include:: how-to.rst
-    :start-after: =============
+    .. grid-item-card:: :material-regular:`person;4em`
+        :link: explanations
+        :link-type: doc
 
-.. rst-class:: columns
+        Explanations
 
-`explanations`
-~~~~~~~~~~~~~~
+    .. grid-item-card:: :material-regular:`code;4em`
+        :link: reference
+        :link-type: doc
 
-.. include:: explanations.rst
-    :start-after: ============
+        Reference
 
-.. rst-class:: columns
 
-`reference`
-~~~~~~~~~~~
+.. toctree::
+    :hidden:
 
-.. include:: reference.rst
-    :start-after: =========
-
-.. rst-class:: endcolumns
-
-About the documentation
-~~~~~~~~~~~~~~~~~~~~~~~
-
-`Why is the documentation structured this way? <https://documentation.divio.com>`_
+    tutorials
+    how-to
+    explanations
+    reference

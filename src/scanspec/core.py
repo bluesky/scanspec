@@ -419,6 +419,7 @@ class SnakedFrames(Frames[Axis]):
         length = len(self)
         backwards = (indices // length) % 2
         snake_indices = np.where(backwards, (length - 1) - indices, indices) % length
+        cls: Type[Frames[Any]]
         if not calculate_gap:
             cls = Frames
             gap = self.gap[np.where(backwards, length - indices, indices) % length]
@@ -618,7 +619,7 @@ class Midpoints(Generic[Axis]):
 
     def __len__(self) -> int:
         """The number of dictionaries that will be produced if iterated over."""
-        return np.product([len(frames) for frames in self.stack])
+        return int(np.product([len(frames) for frames in self.stack]))
 
     def __iter__(self) -> Iterator[Dict[Axis, float]]:
         """Yield {axis: midpoint} for each frame in the scan."""

@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 from matplotlib.sphinxext import plot_directive
 
-from ._version_git import __version__
+from . import __version__
 
 
 @contextmanager

@@ -1,4 +1,6 @@
-from . import regions, specs
-from ._version_git import __version__
+from importlib.metadata import version
+
+__version__ = version("scanspec")
+del version
 
 __all__ = ["__version__", "specs", "regions"]
