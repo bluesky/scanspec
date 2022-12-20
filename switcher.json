@@ -4,6 +4,10 @@
     "url": "https://dls-controls.github.io/scanspec/master/"
   },
   {
+    "version": "0.5.5",
+    "url": "https://dls-controls.github.io/scanspec/0.5.5/"
+  },
+  {
     "version": "0.5.4",
     "url": "https://dls-controls.github.io/scanspec/0.5.4/"
   },
@@ -46,9 +50,5 @@
   {
     "version": "merge",
     "url": "https://dls-controls.github.io/scanspec/merge/"
-  },
-  {
-    "version": "new-skeleton",
-    "url": "https://dls-controls.github.io/scanspec/new-skeleton/"
   }
 ]
