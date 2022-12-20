@@ -36,7 +36,7 @@ graphql = ["graphql-server[aiohttp]==3.0.0b5", "aiohttp_cors"]
 # For development tests/docs
 dev = [
     "black==22.3.0",
-    "mypy<=0.982",
+    "mypy<0.992",
     "flake8-isort",
     "Flake8-pyproject",
     "pipdeptree",
