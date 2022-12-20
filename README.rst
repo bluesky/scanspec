@@ -1,7 +1,7 @@
 scanspec
 ========
 
-|code_ci| |docs_ci| |coverage| |pypi_version| |anaconda_version| |license|
+|code_ci| |docs_ci| |coverage| |pypi_version| |license|
 
 Specify step and flyscan Paths using combinations of:
 
@@ -77,10 +77,6 @@ from it for performance:
 .. |pypi_version| image:: https://img.shields.io/pypi/v/scanspec.svg
     :target: https://pypi.org/project/scanspec
     :alt: Latest PyPI version
-
-.. |anaconda_version| image:: https://anaconda.org/dls-controls/scanspec/badges/version.svg
-    :target: https://anaconda.org/dls-controls/scanspec
-    :alt: Latest Anaconda version
 
 .. |license| image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
     :target: https://opensource.org/licenses/Apache-2.0
