@@ -1,15 +1,15 @@
 from enum import Enum
-from typing import Any, List, Mapping, Optional, Union
+from typing import Any, Dict, List, Mapping, Optional, Union
 
 import numpy as np
-from fastapi import FastAPI
+from fastapi import Body, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 from scanspec.core import AxesPoints, Frames, Path
 
-from .specs import Spec
+from .specs import Line, Spec
 
 app = FastAPI()
 
@@ -17,11 +17,19 @@ app = FastAPI()
 # Data Model
 #
 
-#: Temporary type def until we have pydantic-friendly specs
-PreSpec = Mapping[str, Any]
 
 #: A set of points, that can be returned in various formats
 Points = Union[str, List[float]]
+
+
+@dataclass
+class ValidResponse:
+    """Response model for spec validation."""
+
+    input_spec: Mapping[str, Any] = Field(
+        description="The input scanspec, potentially invalid"
+    )
+    valid_spec: Spec = Field(description="The validated version of the spec")
 
 
 class PointsFormat(Enum):
@@ -30,6 +38,22 @@ class PointsFormat(Enum):
     STRING = "STRING"
     FLOAT_LIST = "FLOAT_LIST"
     BASE64_ENCODED = "BASE64_ENCODED"
+
+
+@dataclass
+class PointsRequest:
+    """A request for generated scan points."""
+
+    spec: Spec = Field(description="The spec from which to generate points")
+    format: PointsFormat = Field(
+        description="The format in which to output the points data",
+        default=PointsFormat.FLOAT_LIST,
+    )
+    max_frames: Optional[int] = Field(
+        description="The maximum number of points to return, if None will return "
+        "as many as calculated",
+        default=100000,
+    )
 
 
 @dataclass
@@ -43,13 +67,13 @@ class PointsResponse:
     )
     format: PointsFormat = Field(description="Format of returned point data")
     axes: List[str] = Field(description="Names of axes")
-    lower: Mapping[str, Points] = Field(
+    lower: Dict[str, Points] = Field(
         description="Lower bounds of scan frames if different from midpoints"
     )
-    midpoints: Mapping[str, Points] = Field(
+    midpoints: Dict[str, Points] = Field(
         description="The midpoints of scan frames for each axis"
     )
-    upper: Mapping[str, Points] = Field(
+    upper: Dict[str, Points] = Field(
         description="Upper bounds of scan frames if different from midpoints"
     )
     gap: Optional[List[bool]] = Field(
@@ -85,32 +109,37 @@ class SmallestStepResponse:
 # API Routes
 #
 
+EXAMPLE_SPEC = Line("y", 0.0, 10.0, 16) * Line("x", 0.0, 10.0, 8)
 
-@app.get("/valid")
-def valid(spec: PreSpec) -> PreSpec:
+
+@app.get("/valid", response_model=ValidResponse)
+def valid(spec: Mapping[str, Any] = Body(..., example=EXAMPLE_SPEC)) -> ValidResponse:
     """Validate wether a ScanSpec can produce a viable scan.
 
     Args:
-        spec (PreSpec): The scanspec to validate
+        spec (Spec): The scanspec to validate
 
     Returns:
-        PreSpec: A canonical version of the spec if it is valid. An error otherwise.
+        ValidResponse: A canonical version of the spec if it is valid.
+            An error otherwise.
     """
-    return Spec.deserialize(spec).serialize()
+    valid_spec = Spec.deserialize(spec)
+    return ValidResponse(spec, valid_spec)
 
 
-@app.get("/points")
+@app.get("/points", response_model=PointsResponse)
 def points(
-    spec: PreSpec,
-    format: PointsFormat = PointsFormat.FLOAT_LIST,
-    max_frames: Optional[int] = 100000,
+    request: PointsRequest = Body(
+        ...,
+        example=PointsRequest(EXAMPLE_SPEC, PointsFormat.FLOAT_LIST, max_frames=1024),
+    )
 ) -> PointsResponse:
     """Generate the points of a scanspec.
 
     Points are generated in "frames" which map axes to coordinates at a particular time.
 
     Args:
-        spec (PreSpec): ScanSpec to validate
+        spec (Spec): ScanSpec to validate
         format (PointsFormat, optional): Format of returned points.
             Defaults to FLOAT_LIST.
         max_frames (Optional[int], optional): Maximum number of frames to return.
@@ -121,7 +150,7 @@ def points(
     Returns:
         PointsResponse: _description_
     """
-    spec = Spec.deserialize(spec)
+    spec = Spec.deserialize(request.spec)
     dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
 
@@ -130,6 +159,7 @@ def points(
 
     # MAX FRAMES
     # Limit the consumed data by the max_frames argument
+    max_frames = request.max_frames
     if max_frames and (max_frames < len(path)):
         # Cap the frames by the max limit
         path = _reduce_frames(dims, max_frames)
@@ -139,7 +169,7 @@ def points(
     return PointsResponse(
         total_frames,
         max_frames or total_frames,
-        format,
+        request.format,
         chunk.axes,
         _format_axes_points(chunk.lower),
         _format_axes_points(chunk.midpoints),
@@ -148,15 +178,17 @@ def points(
     )
 
 
-@app.get("/smallest-step")
-def smallest_step(spec: PreSpec) -> SmallestStepResponse:
+@app.get("/smallest-step", response_model=SmallestStepResponse)
+def smallest_step(
+    spec: Mapping[str, Any] = Body(..., example=EXAMPLE_SPEC)
+) -> SmallestStepResponse:
     """Calculate the smallest step in a scan, both absolutely and per-axis.
 
     Args:
-        spec (PreSpec): _description_
+        spec (Spec): The spec of the scan
 
     Returns:
-        SmallestStepResponse: _description_
+        SmallestStepResponse: A description of the smallest steps in the spec
     """
     spec = Spec.deserialize(spec)
     dims = spec.calculate()  # Grab dimensions from spec
