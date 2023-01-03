@@ -46,6 +46,7 @@ dev = [
     "sphinx-apischema",
     "tox-direct",
     "types-mock",
+    "httpx",
 ]
 
 [project.scripts]

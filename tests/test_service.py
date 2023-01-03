@@ -1,9 +1,21 @@
+import pytest
+from fastapi.testclient import TestClient
+
+from scanspec.service import app
+from scanspec.specs import Line
+
+
+@pytest.fixture
+def client() -> TestClient:
+    return TestClient(app)
+
+
 # import base64
 # from typing import Any, Mapping
 
 # import graphql
 # import numpy as np
-# import pytest
+
 # from graphql.error.graphql_error import GraphQLError
 # from graphql.type.schema import GraphQLSchema, assert_schema
 
@@ -36,21 +48,26 @@
 #     t = np.frombuffer(s, dtype=np.float64)
 #     assert np.array2string(t) == "[1.5  0.   0.25 1.   0.  ]"
 
-
-# # VALIDATE SPEC QUERY TEST(S) #
-# def test_validate_spec() -> None:
-#     spec = Line.bounded("x", 0, 1, 5)
-#     query_str = (
-#         """
-# {
-#     validateSpec(spec: %s)
-# }
-#     """
-#         % spec.to_gql_input()
-#     )
-#     assert graphql_exec(scanspec_schema, query_str) == {
-#         "validateSpec": {"Line": {"axis": "x", "start": 0.1, "stop": 0.9, "num": 5}}
-#     }
+# VALIDATE SPEC QUERY TEST(S) #
+def test_validate_spec(client: TestClient) -> None:
+    spec = Line.bounded("x", 0, 1, 5)
+    response = client.post("/valid", json=spec.serialize())
+    assert response.json() == {
+        "input_spec": {
+            "axis": "x",
+            "start": 0.1,
+            "stop": 0.9,
+            "num": 5,
+            "type": "Line",
+        },
+        "valid_spec": {
+            "axis": "x",
+            "start": 0.1,
+            "stop": 0.9,
+            "num": 5,
+            "type": "Line",
+        },
+    }
 
 
 # # GET POINTS QUERY TEST(S) #
