@@ -28,6 +28,17 @@
             "justMyCode": false,
             "console": "integratedTerminal",
             "program": "${file}"
+        },
+        {
+            "name": "Scanspec Service",
+            "type": "python",
+            "request": "launch",
+            "justMyCode": false,
+            "console": "integratedTerminal",
+            "module": "scanspec",
+            "args": [
+                "service"
+            ]
         }
     ]
 }
