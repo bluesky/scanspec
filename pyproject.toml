@@ -63,6 +63,7 @@ name = "Tom Cobb"
 write_to = "src/scanspec/_version.py"
 
 [tool.mypy]
+plugins = "pydantic.mypy"
 ignore_missing_imports = true # Ignore missing stubs in imported modules
 
 [tool.isort]

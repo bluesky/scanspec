@@ -1,9 +1,9 @@
 import base64
 from enum import Enum
-from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
+from typing import Any, List, Mapping, Optional, Tuple, Union
 
 import numpy as np
-from fastapi import Body, FastAPI, Query
+from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import Field
 from pydantic.dataclasses import dataclass

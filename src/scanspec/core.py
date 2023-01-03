@@ -152,7 +152,7 @@ def _discriminated_union_of_subclasses(
         # needs to be done once, after all subclasses have been
         # declared
         if cls.__model__ is None:
-            root = Union[tuple(cls.__ref_classes__)]
+            root = Union[tuple(cls.__ref_classes__)]  # type: ignore
             cls.__model__ = create_model(
                 super_cls.__name__,
                 __root__=(root, Field(..., discriminator=discriminator)),
@@ -175,7 +175,7 @@ def _discriminated_union_of_subclasses(
 
     # Inject magic methods into super_cls
     for method in __init_subclass__, __get_validators__, __validate__:
-        setattr(super_cls, method.__name__, classmethod(method))
+        setattr(super_cls, method.__name__, classmethod(method))  # type: ignore
 
     return super_cls
 
