@@ -48,11 +48,11 @@
     "url": "https://dls-controls.github.io/scanspec/delete/"
   },
   {
-    "version": "fix-badges",
-    "url": "https://dls-controls.github.io/scanspec/fix-badges/"
-  },
-  {
     "version": "merge",
     "url": "https://dls-controls.github.io/scanspec/merge/"
+  },
+  {
+    "version": "mypy-update",
+    "url": "https://dls-controls.github.io/scanspec/mypy-update/"
   }
 ]
