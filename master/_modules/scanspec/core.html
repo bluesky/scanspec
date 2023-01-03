@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.core &#8212; scanspec 0.5.6.dev1+g6d61d84 documentation</title>
+    <title>scanspec.core &#8212; scanspec 0.5.6.dev3+gfcb86f3 documentation</title>
   
   
   
@@ -448,7 +448,7 @@
 <span class="k">else</span><span class="p">:</span>
 
 <div class="viewcode-block" id="alternative_constructor"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.alternative_constructor">[docs]</a>    <span class="k">def</span> <span class="nf">alternative_constructor</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Register an alternative constructor for this class.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register an alternative constructor for this class.</span>
 
 <span class="sd">        This will be returned as a staticmethod so the signature should not</span>
 <span class="sd">        include self/cls.</span>
@@ -473,7 +473,7 @@
 
 
 <span class="k">def</span> <span class="nf">to_gql_input</span><span class="p">(</span><span class="n">ob</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Convert plain Python objects to their GraphQL representation.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert plain Python objects to their GraphQL representation.</span>
 
 <span class="sd">    &gt;&gt;&gt; to_gql_input({&quot;a&quot;: {&quot;b&quot;: 1, &quot;c&quot;: True, &quot;d&quot;: [4.2, 3.4], &quot;e&quot;: &quot;e&quot;}})</span>
 <span class="sd">    &#39;{a: {b: 1, c: true, d: [4.2, 3.4], e: &quot;e&quot;}}&#39;</span>
@@ -491,7 +491,7 @@
 
 
 <div class="viewcode-block" id="as_tagged_union"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.as_tagged_union">[docs]</a><span class="k">def</span> <span class="nf">as_tagged_union</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Used by `Spec` and `Region` so they serialize as a tagged union.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Used by `Spec` and `Region` so they serialize as a tagged union.&quot;&quot;&quot;</span>
     <span class="n">params</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s2">&quot;__parameters__&quot;</span><span class="p">,</span> <span class="p">()))</span>
     <span class="n">tagged_union_bases</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="n">TaggedUnion</span><span class="p">,)</span>
     <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
@@ -568,7 +568,7 @@
 
 
 <div class="viewcode-block" id="if_instance_do"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.if_instance_do">[docs]</a><span class="k">def</span> <span class="nf">if_instance_do</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="n">Type</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;If x is of type cls then return func(x), otherwise return NotImplemented.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;If x is of type cls then return func(x), otherwise return NotImplemented.</span>
 
 <span class="sd">    Used as a helper when implementing operator overloading.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -587,7 +587,7 @@
 
 
 <div class="viewcode-block" id="Frames"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames">[docs]</a><span class="k">class</span> <span class="nc">Frames</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot;Represents a series of scan frames along a number of axes.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a series of scan frames along a number of axes.</span>
 
 <span class="sd">    During a scan each axis will traverse lower-midpoint-upper for each frame.</span>
 
@@ -616,9 +616,9 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">midpoints</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span>
-        <span class="n">lower</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">upper</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">gap</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">lower</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">upper</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">gap</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="c1">#: The midpoints of scan frames for each axis</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span> <span class="o">=</span> <span class="n">midpoints</span>
@@ -653,19 +653,19 @@
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Mismatching lengths </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
 
 <div class="viewcode-block" id="Frames.axes"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.axes">[docs]</a>    <span class="k">def</span> <span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;The axes which will move during the scan.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The axes which will move during the scan.</span>
 
 <span class="sd">        These will be present in `midpoints`, `lower` and `upper`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;The number of frames in this section of the scan.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of frames in this section of the scan.&quot;&quot;&quot;</span>
         <span class="c1"># All axespoints arrays are same length, pick the first one</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Frames.extract"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.extract">[docs]</a>    <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">calculate_gap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Return a new Frames object restricted to the indices provided.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new Frames object restricted to the indices provided.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            indices: The indices of the frames to extract, modulo scan length</span>
@@ -691,7 +691,7 @@
         <span class="k">return</span> <span class="n">_merge_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_merge</span><span class="o">=</span><span class="n">extract_dict</span><span class="p">,</span> <span class="n">gap_merge</span><span class="o">=</span><span class="n">extract_gap</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Frames.concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.concat">[docs]</a>    <span class="k">def</span> <span class="nf">concat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span> <span class="n">gap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Return a new Frames object concatenating self and other.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new Frames object concatenating self and other.</span>
 
 <span class="sd">        Requires both Frames objects to have the same axes, but not necessarily in</span>
 <span class="sd">        the same order. The order is inherited from self, so other may be reordered.</span>
@@ -725,7 +725,7 @@
         <span class="k">return</span> <span class="n">_merge_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">dict_merge</span><span class="o">=</span><span class="n">concat_dict</span><span class="p">,</span> <span class="n">gap_merge</span><span class="o">=</span><span class="n">concat_gap</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Frames.zip"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.zip">[docs]</a>    <span class="k">def</span> <span class="nf">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Return a new Frames object merging self and other.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new Frames object merging self and other.</span>
 
 <span class="sd">        Require both Frames objects to not share axes.</span>
 
@@ -774,14 +774,14 @@
 
 
 <div class="viewcode-block" id="SnakedFrames"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.SnakedFrames">[docs]</a><span class="k">class</span> <span class="nc">SnakedFrames</span><span class="p">(</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot;Like a `Frames` object, but each alternate repetition will run in reverse.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Like a `Frames` object, but each alternate repetition will run in reverse.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">midpoints</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span>
-        <span class="n">lower</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">upper</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">gap</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">lower</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">upper</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">gap</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">midpoints</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">upper</span><span class="p">,</span> <span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">)</span>
         <span class="c1"># Override first element of gap to be True, as subsequent runs</span>
@@ -790,11 +790,11 @@
 
 <div class="viewcode-block" id="SnakedFrames.from_frames"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.SnakedFrames.from_frames">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_frames</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">frames</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SnakedFrames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Create a snaked version of a `Frames` object.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a snaked version of a `Frames` object.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">frames</span><span class="o">.</span><span class="n">midpoints</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">gap</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SnakedFrames.extract"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.SnakedFrames.extract">[docs]</a>    <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">calculate_gap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Return a new Frames object restricted to the indices provided.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new Frames object restricted to the indices provided.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            indices: The indices of the frames to extract, can extend past len(self)</span>
@@ -842,12 +842,12 @@
 
 
 <div class="viewcode-block" id="gap_between_frames"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.gap_between_frames">[docs]</a><span class="k">def</span> <span class="nf">gap_between_frames</span><span class="p">(</span><span class="n">frames1</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span> <span class="n">frames2</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Is there a gap between end of frames1 and start of frames2.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Is there a gap between end of frames1 and start of frames2.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">frames1</span><span class="o">.</span><span class="n">upper</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">frames2</span><span class="o">.</span><span class="n">lower</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">frames1</span><span class="o">.</span><span class="n">axes</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="squash_frames"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.squash_frames">[docs]</a><span class="k">def</span> <span class="nf">squash_frames</span><span class="p">(</span><span class="n">stack</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]],</span> <span class="n">check_path_changes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Squash a stack of nested Frames into a single one.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Squash a stack of nested Frames into a single one.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        stack: The Frames stack to squash, from slowest to fastest moving</span>
@@ -898,7 +898,7 @@
 
 
 <div class="viewcode-block" id="Path"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Path">[docs]</a><span class="k">class</span> <span class="nc">Path</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot;A consumable route through a stack of Frames, representing a scan path.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A consumable route through a stack of Frames, representing a scan path.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        stack: The Frames stack describing the scan, from slowest to fastest</span>
@@ -911,7 +911,9 @@
 <span class="sd">        `iterate-a-spec`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stack</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]],</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">stack</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]],</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
         <span class="c1">#: The Frames stack describing the scan, from slowest to fastest moving</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stack</span> <span class="o">=</span> <span class="n">stack</span>
         <span class="c1">#: Index that is next to be consumed</span>
@@ -924,8 +926,8 @@
         <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">+</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">num</span>
 
-<div class="viewcode-block" id="Path.consume"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Path.consume">[docs]</a>    <span class="k">def</span> <span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Consume at most num frames from the Path and return as a Frames object.</span>
+<div class="viewcode-block" id="Path.consume"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Path.consume">[docs]</a>    <span class="k">def</span> <span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Consume at most num frames from the Path and return as a Frames object.</span>
 
 <span class="sd">        &gt;&gt;&gt; fx = SnakedFrames({&quot;x&quot;: np.array([1, 2])})</span>
 <span class="sd">        &gt;&gt;&gt; fy = Frames({&quot;y&quot;: np.array([3, 4])})</span>
@@ -973,12 +975,12 @@
         <span class="k">return</span> <span class="n">stack</span></div>
 
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Number of frames left in a scan, reduces when `consume` is called.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of frames left in a scan, reduces when `consume` is called.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span></div>
 
 
 <div class="viewcode-block" id="Midpoints"><a class="viewcode-back" href="../../reference/api.html#scanspec.core.Midpoints">[docs]</a><span class="k">class</span> <span class="nc">Midpoints</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
-    <span class="sd">&quot;&quot;&quot;Convenience iterable that produces the scan midpoints for each axis.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convenience iterable that produces the scan midpoints for each axis.</span>
 
 <span class="sd">    For better performance, consume from a `Path` instead.</span>
 
@@ -1005,18 +1007,18 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;The axes that will be present in each points dictionary.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The axes that will be present in each points dictionary.&quot;&quot;&quot;</span>
         <span class="n">axes</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">frames</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="p">:</span>
             <span class="n">axes</span> <span class="o">+=</span> <span class="n">frames</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">axes</span>
 
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;The number of dictionaries that will be produced if iterated over.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of dictionaries that will be produced if iterated over.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span> <span class="k">for</span> <span class="n">frames</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="p">]))</span>
 
     <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Axis</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;Yield {axis: midpoint} for each frame in the scan.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Yield {axis: midpoint} for each frame in the scan.&quot;&quot;&quot;</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="p">)</span>
         <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
             <span class="n">frames</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>

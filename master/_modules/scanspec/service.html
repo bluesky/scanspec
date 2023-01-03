@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.service &#8212; scanspec 0.5.6.dev1+g6d61d84 documentation</title>
+    <title>scanspec.service &#8212; scanspec 0.5.6.dev3+gfcb86f3 documentation</title>
   
   
   
@@ -411,24 +411,24 @@
 
 <div class="viewcode-block" id="Points"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.Points">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">Points</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;A collection of singular or multidimensional points in scan space.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A collection of singular or multidimensional points in scan space.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="o">=</span> <span class="n">points</span>
 
 <div class="viewcode-block" id="Points.string"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.Points.string">[docs]</a>    <span class="nd">@resolver</span>
     <span class="k">def</span> <span class="nf">string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Truncated string representation of array for debugging.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Truncated string representation of array for debugging.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array2string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Points.float_list"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.Points.float_list">[docs]</a>    <span class="nd">@resolver</span>
     <span class="k">def</span> <span class="nf">float_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Float list representation of array.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Float list representation of array.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Points.b64"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.Points.b64">[docs]</a>    <span class="nd">@resolver</span>
     <span class="k">def</span> <span class="nf">b64</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Base64 encoded string representation of array.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Base64 encoded string representation of array.&quot;&quot;&quot;</span>
         <span class="c1"># make sure the data is sent as float64</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_points</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
@@ -439,7 +439,7 @@
 
 <div class="viewcode-block" id="AxisFrames"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.AxisFrames">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">AxisFrames</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;The scan points restricted to one particular axis.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The scan points restricted to one particular axis.&quot;&quot;&quot;</span>
 
     <span class="n">axis</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">schema</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">)]</span>
     <span class="n">lower</span><span class="p">:</span> <span class="n">A</span><span class="p">[</span>
@@ -454,28 +454,28 @@
 
 <div class="viewcode-block" id="AxisFrames.smallest_step"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.AxisFrames.smallest_step">[docs]</a>    <span class="nd">@resolver</span>
     <span class="k">def</span> <span class="nf">smallest_step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;The smallest step between midpoints in this axis.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The smallest step between midpoints in this axis.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">_calc_smallest_step</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">get_points</span><span class="p">()])</span></div></div>
 
 
 <div class="viewcode-block" id="PointsResponse"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.PointsResponse">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">PointsResponse</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Information about the points provided by a spec.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Information about the points provided by a spec.&quot;&quot;&quot;</span>
 
     <span class="n">total_frames</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">returned_frames</span><span class="p">:</span> <span class="nb">int</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">total_frames</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">total_frames</span> <span class="o">=</span> <span class="n">total_frames</span>
-        <span class="sd">&quot;&quot;&quot;The number of frames present across the entire spec&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of frames present across the entire spec&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">returned_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;The number of frames returned by the getPoints query</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of frames returned by the getPoints query</span>
 <span class="sd">        (controlled by the max_points argument)&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span> <span class="o">=</span> <span class="n">chunk</span>
 
 <div class="viewcode-block" id="PointsResponse.axes"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.PointsResponse.axes">[docs]</a>    <span class="nd">@resolver</span>
     <span class="k">def</span> <span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">AxisFrames</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;A list of all of the points present in the spec per axis.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A list of all of the points present in the spec per axis.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="n">AxisFrames</span><span class="p">(</span>
                 <span class="n">axis</span><span class="p">,</span>
@@ -488,7 +488,7 @@
 
 <div class="viewcode-block" id="PointsResponse.smallest_abs_step"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.PointsResponse.smallest_abs_step">[docs]</a>    <span class="nd">@resolver</span>
     <span class="k">def</span> <span class="nf">smallest_abs_step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;The smallest step between midpoints across ALL axes in the scan.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The smallest step between midpoints across ALL axes in the scan.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">_calc_smallest_step</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chunk</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span></div></div>
 
 
@@ -500,7 +500,7 @@
 
 
 <span class="k">def</span> <span class="nf">abs_diffs</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Calculates the absolute differences between adjacent elements in the array.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates the absolute differences between adjacent elements in the array.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        array: A 1xN array of numerical values</span>
@@ -515,14 +515,14 @@
 
 <span class="c1"># Checks that the spec will produce a valid scan</span>
 <div class="viewcode-block" id="validate_spec"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.validate_spec">[docs]</a><span class="k">def</span> <span class="nf">validate_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;A query used to confirm whether or not the Spec will produce a viable scan.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A query used to confirm whether or not the Spec will produce a viable scan.&quot;&quot;&quot;</span>
     <span class="c1"># apischema will do all the validation for us</span>
     <span class="k">return</span> <span class="n">spec</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span></div>
 
 
 <span class="c1"># Returns a full list of points for each axis in the scan</span>
 <div class="viewcode-block" id="get_points"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.get_points">[docs]</a><span class="k">def</span> <span class="nf">get_points</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">max_frames</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PointsResponse</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Calculate the frames present in the scan plus some metadata about the points.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the frames present in the scan plus some metadata about the points.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        spec: The specification of the scan</span>
@@ -550,7 +550,7 @@
 
 
 <div class="viewcode-block" id="reduce_frames"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.reduce_frames">[docs]</a><span class="k">def</span> <span class="nf">reduce_frames</span><span class="p">(</span><span class="n">stack</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">max_frames</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Removes frames from a spec so len(path) &lt; max_frames.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Removes frames from a spec so len(path) &lt; max_frames.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        stack: A stack of Frames created by a spec</span>
@@ -569,7 +569,7 @@
 
 
 <div class="viewcode-block" id="sub_sample"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.sub_sample">[docs]</a><span class="k">def</span> <span class="nf">sub_sample</span><span class="p">(</span><span class="n">frames</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Provides a sub-sample Frames object whilst preserving its core structure.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Provides a sub-sample Frames object whilst preserving its core structure.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        frames: the Frames object to be reduced</span>
@@ -581,12 +581,12 @@
 
 
 <div class="viewcode-block" id="scanspec_schema_text"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.scanspec_schema_text">[docs]</a><span class="k">def</span> <span class="nf">scanspec_schema_text</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Return the text representation of the GraphQL schema.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the text representation of the GraphQL schema.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">graphql</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">print_schema</span><span class="p">(</span><span class="n">scanspec_schema</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="run_app"><a class="viewcode-back" href="../../reference/api.html#scanspec.service.run_app">[docs]</a><span class="k">def</span> <span class="nf">run_app</span><span class="p">(</span><span class="n">cors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8080</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Run an application providing the scanspec service.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run an application providing the scanspec service.&quot;&quot;&quot;</span>
     <span class="n">app</span> <span class="o">=</span> <span class="n">web</span><span class="o">.</span><span class="n">Application</span><span class="p">()</span>
 
     <span class="n">view</span> <span class="o">=</span> <span class="n">GraphQLView</span><span class="p">(</span><span class="n">schema</span><span class="o">=</span><span class="n">scanspec_schema</span><span class="p">,</span> <span class="n">graphiql</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
