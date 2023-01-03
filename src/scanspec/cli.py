@@ -54,7 +54,7 @@ def service(cors, port):
 
 @cli.command()
 def schema():
-    """Print the GraphQL schema for the service."""
+    """Print the OpenAPI schema for the service."""
     from scanspec.service import scanspec_schema_text
 
     click.echo(scanspec_schema_text())

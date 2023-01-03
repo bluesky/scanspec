@@ -1,10 +1,12 @@
 import base64
+import json
 from enum import Enum
 from typing import Any, List, Mapping, Optional, Tuple, Union
 
 import numpy as np
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
@@ -345,3 +347,20 @@ def run_app(cors: bool = False, port: int = 8080) -> None:
     import uvicorn
 
     uvicorn.run(app, port=port)
+
+
+def scanspec_schema_text() -> str:
+    """Generate the OpenAPI schema for the service as a string.
+
+    Returns:
+        str: The OpenAPI schema
+    """
+    return json.dumps(
+        get_openapi(
+            title=app.title,
+            version=app.version,
+            openapi_version=app.openapi_version,
+            description=app.description,
+            routes=app.routes,
+        )
+    )
