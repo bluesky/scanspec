@@ -1,3 +1,4 @@
+import base64
 from enum import Enum
 from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
@@ -112,7 +113,7 @@ class SmallestStepResponse:
 # API Routes
 #
 
-_EXAMPLE_SPEC = Line("y", 0.0, 10.0, 16) * Line("x", 0.0, 10.0, 8)
+_EXAMPLE_SPEC = Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 4)
 _EXAMPLE_POINTS_REQUEST = PointsRequest(
     _EXAMPLE_SPEC, max_frames=1024, format=PointsFormat.FLOAT_LIST
 )
@@ -184,7 +185,7 @@ def bounds(
 
 @app.post("/gap", response_model=GapResponse)
 def gap(
-    request: Spec = Body(
+    spec: Spec = Body(
         ...,
         example=_EXAMPLE_SPEC,
     )
@@ -197,15 +198,15 @@ def gap(
     Returns:
         BoundsResponse: Bounds of the scan
     """
-    spec = Spec.deserialize(spec)
     dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
-    return GapResponse(path.gap)
+    gap = list(path.consume().gap)
+    return GapResponse(gap)
 
 
 @app.post("/smalleststep", response_model=SmallestStepResponse)
 def smallest_step(
-    spec: Mapping = Body(..., example=_EXAMPLE_SPEC)
+    spec: Spec = Body(..., example=_EXAMPLE_SPEC)
 ) -> SmallestStepResponse:
     """Calculate the smallest step in a scan, both absolutely and per-axis.
 
@@ -215,12 +216,14 @@ def smallest_step(
     Returns:
         SmallestStepResponse: A description of the smallest steps in the spec
     """
-    spec = Spec.deserialize(spec)
     dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
+    chunk = path.consume()
 
-    absolute = _calc_smallest_step(list(path.midpoints.values()))
-    per_axis = {axis: _calc_smallest_step(path.midpoints[axis]) for axis in path.axes()}
+    absolute = _calc_smallest_step(list(chunk.midpoints.values()))
+    per_axis = {
+        axis: _calc_smallest_step([chunk.midpoints[axis]]) for axis in chunk.axes()
+    }
 
     return SmallestStepResponse(absolute, per_axis)
 
@@ -264,11 +267,14 @@ def _format_axes_points(
         Mapping[str, Points]: A mapping of axis to formatted points.
     """
     if format is PointsFormat.FLOAT_LIST:
-        return axes_points
+        return {axis: list(points) for axis, points in axes_points.items()}
     elif format is PointsFormat.STRING:
         return {axis: str(points) for axis, points in axes_points.items()}
     elif format is PointsFormat.BASE64_ENCODED:
-        return {axis: str(points) for axis, points in axes_points.items()}
+        return {
+            axis: base64.b64encode(points.tobytes()).decode()
+            for axis, points in axes_points.items()
+        }
     else:
         raise KeyError(f"Unknown format: {format}")
 
