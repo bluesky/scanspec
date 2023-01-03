@@ -112,7 +112,7 @@ class SmallestStepResponse:
 EXAMPLE_SPEC = Line("y", 0.0, 10.0, 16) * Line("x", 0.0, 10.0, 8)
 
 
-@app.get("/valid", response_model=ValidResponse)
+@app.post("/valid", response_model=ValidResponse)
 def valid(spec: Mapping[str, Any] = Body(..., example=EXAMPLE_SPEC)) -> ValidResponse:
     """Validate wether a ScanSpec can produce a viable scan.
 
@@ -127,7 +127,7 @@ def valid(spec: Mapping[str, Any] = Body(..., example=EXAMPLE_SPEC)) -> ValidRes
     return ValidResponse(spec, valid_spec)
 
 
-@app.get("/points", response_model=PointsResponse)
+@app.post("/points", response_model=PointsResponse)
 def points(
     request: PointsRequest = Body(
         ...,
@@ -178,7 +178,7 @@ def points(
     )
 
 
-@app.get("/smallest-step", response_model=SmallestStepResponse)
+@app.post("/smallest-step", response_model=SmallestStepResponse)
 def smallest_step(
     spec: Mapping[str, Any] = Body(..., example=EXAMPLE_SPEC)
 ) -> SmallestStepResponse:
