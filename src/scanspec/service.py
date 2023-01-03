@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, List, Mapping, Optional, Union
+from typing import Any, Dict, List, Mapping, Optional, Tuple, Union
 
 import numpy as np
 from fastapi import Body, FastAPI, Query
@@ -45,52 +45,55 @@ class PointsRequest:
     """A request for generated scan points."""
 
     spec: Spec = Field(description="The spec from which to generate points")
-    format: PointsFormat = Field(
-        description="The format in which to output the points data",
-        default=PointsFormat.FLOAT_LIST,
-    )
     max_frames: Optional[int] = Field(
         description="The maximum number of points to return, if None will return "
         "as many as calculated",
         default=100000,
     )
+    format: PointsFormat = Field(
+        description="The format in which to output the points data",
+        default=PointsFormat.FLOAT_LIST,
+    )
 
 
 @dataclass
-class PointsResponse:
-    """Generated scan points with metadata."""
-
+class _GeneratedPointsResponse:
     total_frames: int = Field(description="Total number of frames in spec")
     returned_frames: int = Field(
         description="Total of number of frames in this response, may be "
         "less than total_frames due to downsampling etc."
     )
     format: PointsFormat = Field(description="Format of returned point data")
-    axes: List[str] = Field(description="Names of axes")
-    lower: Dict[str, Points] = Field(
-        description="Lower bounds of scan frames if different from midpoints"
-    )
-    midpoints: Dict[str, Points] = Field(
+
+
+@dataclass
+class MidpointsResponse(_GeneratedPointsResponse):
+    """Midpoints of a generated scan."""
+
+    midpoints: Mapping[str, Points] = Field(
         description="The midpoints of scan frames for each axis"
     )
-    upper: Dict[str, Points] = Field(
+
+
+@dataclass
+class BoundsResponse(_GeneratedPointsResponse):
+    """Bounds of a generated scan."""
+
+    lower: Mapping[str, Points] = Field(
+        description="Lower bounds of scan frames if different from midpoints"
+    )
+    upper: Mapping[str, Points] = Field(
         description="Upper bounds of scan frames if different from midpoints"
     )
-    gap: Optional[List[bool]] = Field(
+
+
+@dataclass
+class GapResponse:
+    """Presence of gaps in a generated scan."""
+
+    gap: List[bool] = Field(
         description="Boolean array indicating if there is a gap between each frame"
     )
-
-    @classmethod
-    def from_path(cls, frames: Frames) -> "PointsResponse":
-        return cls(
-            len(frames.midpoints),
-            len(frames.midpoints),
-            frames.axes,
-            frames.lower,
-            frames.midpoints,
-            frames.upper,
-            frames.gap,
-        )
 
 
 @dataclass
@@ -109,11 +112,14 @@ class SmallestStepResponse:
 # API Routes
 #
 
-EXAMPLE_SPEC = Line("y", 0.0, 10.0, 16) * Line("x", 0.0, 10.0, 8)
+_EXAMPLE_SPEC = Line("y", 0.0, 10.0, 16) * Line("x", 0.0, 10.0, 8)
+_EXAMPLE_POINTS_REQUEST = PointsRequest(
+    _EXAMPLE_SPEC, max_frames=1024, format=PointsFormat.FLOAT_LIST
+)
 
 
 @app.post("/valid", response_model=ValidResponse)
-def valid(spec: Mapping[str, Any] = Body(..., example=EXAMPLE_SPEC)) -> ValidResponse:
+def valid(spec: Mapping[str, Any] = Body(..., example=_EXAMPLE_SPEC)) -> ValidResponse:
     """Validate wether a ScanSpec can produce a viable scan.
 
     Args:
@@ -127,60 +133,79 @@ def valid(spec: Mapping[str, Any] = Body(..., example=EXAMPLE_SPEC)) -> ValidRes
     return ValidResponse(spec, valid_spec)
 
 
-@app.post("/points", response_model=PointsResponse)
-def points(
+@app.post("/midpoints", response_model=MidpointsResponse)
+def midpoints(
     request: PointsRequest = Body(
         ...,
-        example=PointsRequest(EXAMPLE_SPEC, PointsFormat.FLOAT_LIST, max_frames=1024),
+        example=_EXAMPLE_POINTS_REQUEST,
     )
-) -> PointsResponse:
-    """Generate the points of a scanspec.
-
-    Points are generated in "frames" which map axes to coordinates at a particular time.
+) -> MidpointsResponse:
+    """Generate midpoints from a scanspec.
 
     Args:
-        spec (Spec): ScanSpec to validate
-        format (PointsFormat, optional): Format of returned points.
-            Defaults to FLOAT_LIST.
-        max_frames (Optional[int], optional): Maximum number of frames to return.
-            If the spec generates more points than the maximum, the return value
-            will be downsampled. If None is passed, all frames will be returned
-            no matter what. Defaults to 100000.
+        request PointsRequest: Scanspec and formatting info.
 
     Returns:
-        PointsResponse: _description_
+        MidpointsResponse: Midpoints of the scan
     """
-    spec = Spec.deserialize(request.spec)
-    dims = spec.calculate()  # Grab dimensions from spec
-    path = Path(dims)  # Convert to a path
-
-    # TOTAL FRAMES
-    total_frames = len(path)  # Capture the total length of the path
-
-    # MAX FRAMES
-    # Limit the consumed data by the max_frames argument
-    max_frames = request.max_frames
-    if max_frames and (max_frames < len(path)):
-        # Cap the frames by the max limit
-        path = _reduce_frames(dims, max_frames)
-    # WARNING: path object is consumed after this statement
-    chunk = path.consume(max_frames)
-
-    return PointsResponse(
+    chunk, total_frames = _to_chunk(request)
+    return MidpointsResponse(
         total_frames,
-        max_frames or total_frames,
+        request.max_frames or total_frames,
         request.format,
-        chunk.axes,
-        _format_axes_points(chunk.lower),
-        _format_axes_points(chunk.midpoints),
-        _format_axes_points(chunk.upper),
-        list(chunk.gap),
+        _format_axes_points(chunk.midpoints, request.format),
     )
 
 
-@app.post("/smallest-step", response_model=SmallestStepResponse)
+@app.post("/bounds", response_model=BoundsResponse)
+def bounds(
+    request: PointsRequest = Body(
+        ...,
+        example=_EXAMPLE_POINTS_REQUEST,
+    )
+) -> BoundsResponse:
+    """Generate bounds from a scanspec.
+
+    Args:
+        request PointsRequest: Scanspec and formatting info.
+
+    Returns:
+        BoundsResponse: Bounds of the scan
+    """
+    chunk, total_frames = _to_chunk(request)
+    return BoundsResponse(
+        total_frames,
+        request.max_frames or total_frames,
+        request.format,
+        _format_axes_points(chunk.lower, request.format),
+        _format_axes_points(chunk.upper, request.format),
+    )
+
+
+@app.post("/gap", response_model=GapResponse)
+def gap(
+    request: Spec = Body(
+        ...,
+        example=_EXAMPLE_SPEC,
+    )
+) -> GapResponse:
+    """Generate bounds from a scanspec.
+
+    Args:
+        request PointsRequest: Scanspec and formatting info.
+
+    Returns:
+        BoundsResponse: Bounds of the scan
+    """
+    spec = Spec.deserialize(spec)
+    dims = spec.calculate()  # Grab dimensions from spec
+    path = Path(dims)  # Convert to a path
+    return GapResponse(path.gap)
+
+
+@app.post("/smalleststep", response_model=SmallestStepResponse)
 def smallest_step(
-    spec: Mapping[str, Any] = Body(..., example=EXAMPLE_SPEC)
+    spec: Mapping = Body(..., example=_EXAMPLE_SPEC)
 ) -> SmallestStepResponse:
     """Calculate the smallest step in a scan, both absolutely and per-axis.
 
@@ -203,6 +228,24 @@ def smallest_step(
 #
 # Utility Functions
 #
+
+
+def _to_chunk(request: PointsRequest) -> Tuple[Frames, int]:
+    spec = Spec.deserialize(request.spec)
+    dims = spec.calculate()  # Grab dimensions from spec
+    path = Path(dims)  # Convert to a path
+
+    # TOTAL FRAMES
+    total_frames = len(path)  # Capture the total length of the path
+
+    # MAX FRAMES
+    # Limit the consumed data by the max_frames argument
+    max_frames = request.max_frames
+    if max_frames and (max_frames < len(path)):
+        # Cap the frames by the max limit
+        path = _reduce_frames(dims, max_frames)
+    # WARNING: path object is consumed after this statement
+    return path.consume(max_frames), total_frames
 
 
 def _format_axes_points(
@@ -245,11 +288,11 @@ def _reduce_frames(stack: List[Frames[str]], max_frames: int) -> Path:
     # Need each dim to be this much smaller
     ratio = 1 / np.power(max_frames / num_frames, 1 / len(stack))
 
-    sub_frames = [sub_sample(f, ratio) for f in stack]
+    sub_frames = [_sub_sample(f, ratio) for f in stack]
     return Path(sub_frames)
 
 
-def sub_sample(frames: Frames[str], ratio: float) -> Frames:
+def _sub_sample(frames: Frames[str], ratio: float) -> Frames:
     """Provides a sub-sample Frames object whilst preserving its core structure.
 
     Args:
