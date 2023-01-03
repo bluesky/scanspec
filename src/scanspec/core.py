@@ -222,9 +222,9 @@ class Frames(Generic[Axis]):
     def __init__(
         self,
         midpoints: AxesPoints[Axis],
-        lower: AxesPoints[Axis] = None,
-        upper: AxesPoints[Axis] = None,
-        gap: np.ndarray = None,
+        lower: Optional[AxesPoints[Axis]] = None,
+        upper: Optional[AxesPoints[Axis]] = None,
+        gap: Optional[np.ndarray] = None,
     ):
         #: The midpoints of scan frames for each axis
         self.midpoints = midpoints
@@ -385,9 +385,9 @@ class SnakedFrames(Frames[Axis]):
     def __init__(
         self,
         midpoints: AxesPoints[Axis],
-        lower: AxesPoints[Axis] = None,
-        upper: AxesPoints[Axis] = None,
-        gap: np.ndarray = None,
+        lower: Optional[AxesPoints[Axis]] = None,
+        upper: Optional[AxesPoints[Axis]] = None,
+        gap: Optional[np.ndarray] = None,
     ):
         super().__init__(midpoints, lower=lower, upper=upper, gap=gap)
         # Override first element of gap to be True, as subsequent runs
@@ -517,7 +517,9 @@ class Path(Generic[Axis]):
         `iterate-a-spec`
     """
 
-    def __init__(self, stack: List[Frames[Axis]], start: int = 0, num: int = None):
+    def __init__(
+        self, stack: List[Frames[Axis]], start: int = 0, num: Optional[int] = None
+    ):
         #: The Frames stack describing the scan, from slowest to fastest moving
         self.stack = stack
         #: Index that is next to be consumed
@@ -530,7 +532,7 @@ class Path(Generic[Axis]):
         if num is not None and start + num < self.end_index:
             self.end_index = start + num
 
-    def consume(self, num: int = None) -> Frames[Axis]:
+    def consume(self, num: Optional[int] = None) -> Frames[Axis]:
         """Consume at most num frames from the Path and return as a Frames object.
 
         >>> fx = SnakedFrames({"x": np.array([1, 2])})
