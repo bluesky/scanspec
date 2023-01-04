@@ -126,7 +126,7 @@ def valid(spec: Mapping[str, Any] = Body(..., example=_EXAMPLE_SPEC)) -> ValidRe
     """Validate wether a ScanSpec can produce a viable scan.
 
     Args:
-        spec (Spec): The scanspec to validate
+        spec: The scanspec to validate
 
     Returns:
         ValidResponse: A canonical version of the spec if it is valid.
@@ -146,7 +146,7 @@ def midpoints(
     """Generate midpoints from a scanspec.
 
     Args:
-        request PointsRequest: Scanspec and formatting info.
+        request: Scanspec and formatting info.
 
     Returns:
         MidpointsResponse: Midpoints of the scan
@@ -170,7 +170,7 @@ def bounds(
     """Generate bounds from a scanspec.
 
     Args:
-        request PointsRequest: Scanspec and formatting info.
+        request: Scanspec and formatting info.
 
     Returns:
         BoundsResponse: Bounds of the scan
@@ -195,7 +195,7 @@ def gap(
     """Generate bounds from a scanspec.
 
     Args:
-        request PointsRequest: Scanspec and formatting info.
+        request: Scanspec and formatting info.
 
     Returns:
         BoundsResponse: Bounds of the scan
@@ -261,8 +261,8 @@ def _format_axes_points(
     """Convert points to a requested format.
 
     Args:
-        axes_points (AxesPoints[str]): The points to convert
-        format (PointsFormat): The target format
+        axes_points: The points to convert
+        format: The target format
 
     Raises:
         KeyError: If the function does not support the given format
