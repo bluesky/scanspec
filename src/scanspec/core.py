@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import field
 from typing import (
     Any,
     Callable,
@@ -140,7 +141,7 @@ def _discriminated_union_of_subclasses(
             **cls.__annotations__,
             discriminator: Literal[cls.__name__],
         }
-        setattr(cls, discriminator, cls.__name__)
+        setattr(cls, discriminator, field(default=cls.__name__, repr=False))
 
     def __get_validators__(cls) -> Any:
         yield cls.__validate__
