@@ -42,12 +42,8 @@ extensions = [
     "sphinx.ext.inheritance_diagram",
     # Adds plotting directives
     "matplotlib.sphinxext.plot_directive",
-    # Graphiql directive
-    "sphinx_graphql.graphiql",
     # OpenAPI directive
     "sphinxcontrib.openapi",
-    # Makes autodoc understand apischema annotated classes/functions
-    "sphinx_apischema",
     # Add example_spec directive
     "scanspec.sphinxext",
     # Add a copy button to each code block

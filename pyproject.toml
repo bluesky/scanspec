@@ -26,7 +26,7 @@ plotting = [
     "scipy>=1.5.4",
     "matplotlib>=3.2.2,<3.6",
 ]
-# GraphQL service support
+# REST service support
 service = ["fastapi", "uvicorn"]
 # For development tests/docs
 dev = [
@@ -42,8 +42,6 @@ dev = [
     "sphinx-autobuild",
     "sphinx-copybutton",
     "sphinx-design",
-    "sphinx-graphql",
-    "sphinx-apischema",
     "sphinxcontrib-openapi",
     "tox-direct",
     "types-mock",

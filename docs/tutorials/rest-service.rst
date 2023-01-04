@@ -1,4 +1,4 @@
-.. _graphql-service:
+.. _rest-service:
 
 Running a REST service for generating points
 ============================================

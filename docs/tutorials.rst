@@ -10,4 +10,4 @@ Tutorials for installation, library and commandline usage. New users start here.
 
     tutorials/installation
     tutorials/creating-a-spec
-    tutorials/graphql-service
+    tutorials/rest-service
