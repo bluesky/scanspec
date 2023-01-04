@@ -4,10 +4,11 @@ from enum import Enum
 from typing import Any, List, Mapping, Optional, Tuple, Union
 
 import numpy as np
-from fastapi import Body, FastAPI
+from fastapi import Body, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from pydantic import Field
+from fastapi.responses import JSONResponse
+from pydantic import Field, ValidationError
 from pydantic.dataclasses import dataclass
 
 from scanspec.core import AxesPoints, Frames, Path
@@ -122,7 +123,9 @@ _EXAMPLE_POINTS_REQUEST = PointsRequest(
 
 
 @app.post("/valid", response_model=ValidResponse)
-def valid(spec: Mapping[str, Any] = Body(..., example=_EXAMPLE_SPEC)) -> ValidResponse:
+def valid(
+    spec: Mapping[str, Any] = Body(..., example=_EXAMPLE_SPEC)
+) -> Union[ValidResponse, JSONResponse]:
     """Validate wether a ScanSpec can produce a viable scan.
 
     Args:
@@ -132,7 +135,16 @@ def valid(spec: Mapping[str, Any] = Body(..., example=_EXAMPLE_SPEC)) -> ValidRe
         ValidResponse: A canonical version of the spec if it is valid.
             An error otherwise.
     """
-    valid_spec = Spec.deserialize(spec)
+    try:
+        valid_spec = Spec.deserialize(spec)
+    except ValidationError:
+        # Only catch the validation error and return a 400 in this specific case,
+        # return a 500 for validation errors at any other endpoint.
+        # This is best practice as described in docs:
+        # https://fastapi.tiangolo.com/nl/tutorial/handling-errors/#requestvalidationerror-vs-validationerror
+        return JSONResponse(
+            status_code=400, content={"message": "spec could not be validated"}
+        )
     return ValidResponse(spec, valid_spec)
 
 
