@@ -6,13 +6,7 @@ import numpy as np
 from pydantic import BaseModel, Field
 from pydantic.dataclasses import dataclass
 
-from .core import (
-    AxesPoints,
-    Axis,
-    ScanspecModelConfig,
-    discriminated_union_of_subclasses,
-    if_instance_do,
-)
+from .core import AxesPoints, Axis, discriminated_union_of_subclasses, if_instance_do
 
 __all__ = [
     "Region",

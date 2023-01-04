@@ -1,20 +1,17 @@
 from __future__ import annotations
 
-import itertools
 from dataclasses import asdict
 from typing import Any, Callable, Dict, Generic, List, Mapping, Optional
 
 import numpy as np
-from pydantic import Extra, Field, parse_obj_as
+from pydantic import Field, parse_obj_as
 from pydantic.dataclasses import dataclass
-from typing_extensions import Annotated
 
 from .core import (
     Axis,
     Frames,
     Midpoints,
     Path,
-    ScanspecModelConfig,
     SnakedFrames,
     discriminated_union_of_subclasses,
     gap_between_frames,

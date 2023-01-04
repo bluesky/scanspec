@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-from dataclasses import dataclass
 from typing import (
     Any,
     Callable,
@@ -18,7 +16,7 @@ from typing import (
 )
 
 import numpy as np
-from pydantic import BaseConfig, Extra, Field, ValidationError, create_model
+from pydantic import BaseConfig, Field, ValidationError, create_model
 from pydantic.error_wrappers import ErrorWrapper
 from typing_extensions import Literal
 
@@ -33,13 +31,7 @@ __all__ = [
     "Path",
     "Midpoints",
     "discriminated_union_of_subclasses",
-    "ScanspecModelConfig",
 ]
-
-
-class ScanspecModelConfig:
-    # extra: Extra.forbid
-    ...
 
 
 def discriminated_union_of_subclasses(
@@ -51,7 +43,8 @@ def discriminated_union_of_subclasses(
     """Add all subclasses of super_cls to a discriminated union.
 
     For all subclasses of super_cls, add a discriminator field to identify
-    the type. Raw JSON should look like {"type": <type name>, params for <type name>...}.
+    the type. Raw JSON should look like {"type": <type name>, params for
+    <type name>...}.
     Add validation methods to super_cls so it can be parsed by pydantic.parse_obj_as.
 
     Example:
@@ -105,18 +98,22 @@ def discriminated_union_of_subclasses(
     )
 
     Args:
-        super_cls (Optional[Type], optional): _description_. Defaults to None.
-        discriminator (str, optional): _description_. Defaults to "type".
-        config (Optional[Type[BaseConfig]], optional): _description_. Defaults to None.
+        super_cls: The superclass of the union, Expression in the above example
+        discriminator: The discriminator that will be inserted into the
+            serialized documents for type determination. Defaults to "type".
+        config: A pydantic config class to be inserted into all
+            subclasses. Defaults to None.
 
     Returns:
-        Union[Type, Callable[[Type], Type]]: A decorator that adds the necessary functionality
-            to a class.
+        Union[Type, Callable[[Type], Type]]: A decorator that adds the necessary
+            functionality to a class.
     """
 
     def wrap(cls):
         return _discriminated_union_of_subclasses(cls, discriminator, config)
 
+    # Work out if the call was @discriminated_union_of_subclasses or
+    # @discriminated_union_of_subclasses(...)
     if super_cls is None:
         return wrap
     else:

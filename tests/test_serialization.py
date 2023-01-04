@@ -1,6 +1,3 @@
-import pytest
-from apischema.validation.errors import ValidationError
-
 from scanspec.regions import Circle, Rectangle, UnionOf
 from scanspec.specs import Line, Mask, Spec, Spiral
 
