@@ -60,6 +60,8 @@ class PointsRequest:
 
 @dataclass
 class GeneratedPointsResponse:
+    """Base class for responses that include generated point data."""
+
     total_frames: int = Field(description="Total number of frames in spec")
     returned_frames: int = Field(
         description="Total of number of frames in this response, may be "
@@ -146,6 +148,10 @@ def midpoints(
 ) -> MidpointsResponse:
     """Generate midpoints from a scanspec.
 
+    A scanspec can produce bounded points (i.e. a point is valid if an
+    axis is between a minimum and and a maximum, see /bounds). The midpoints
+    are the middle of each set of bounds.
+
     Args:
         request: Scanspec and formatting info.
 
@@ -170,6 +176,8 @@ def bounds(
 ) -> BoundsResponse:
     """Generate bounds from a scanspec.
 
+    A scanspec can produce points with lower and upper bounds.
+
     Args:
         request: Scanspec and formatting info.
 
@@ -193,7 +201,11 @@ def gap(
         example=_EXAMPLE_SPEC,
     )
 ) -> GapResponse:
-    """Generate bounds from a scanspec.
+    """Generate gaps from a scanspec.
+
+    A scanspec may indicate if there is a gap between two frames.
+    The array returned corresponds to whether or not there is a gap
+    after each frame.
 
     Args:
         request: Scanspec and formatting info.
