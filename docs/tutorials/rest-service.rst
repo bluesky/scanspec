@@ -30,7 +30,7 @@ which will allow you to send requests to the server using, for example, the ``cu
 Validating a Spec
 -----------------
 
-You can ensure a spec is valid by passing it to the ``/validate`` endpoint.
+You can ensure a spec is valid by passing it to the ``/valid`` endpoint.
 
 .. code:: shell
 
