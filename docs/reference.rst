@@ -9,6 +9,7 @@ Practical step-by-step guides for the more experienced user.
     :caption: Reference
 
     reference/api
+    reference/rest_api
     reference/contributing
     Releases <https://github.com/dls-controls/scanspec/releases>
     Index <genindex.html#http://>
