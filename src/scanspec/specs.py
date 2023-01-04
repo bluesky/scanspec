@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Any, Callable, Dict, Generic, List, Mapping, Optional
+from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, Type
 
 import numpy as np
 from pydantic import Field, parse_obj_as
@@ -519,7 +519,7 @@ class Static(Spec[Axis]):
 
     @classmethod
     def duration(
-        cls,
+        cls: Type[Static],
         duration: float = Field(description="The duration of each static point"),
         num: int = Field(min=1, description="Number of frames to produce", default=1),
     ) -> Static[str]:
