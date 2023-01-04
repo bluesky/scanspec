@@ -1,7 +1,10 @@
+from dataclasses import asdict
+from typing import Any
+
 import pytest
 from fastapi.testclient import TestClient
 
-from scanspec.service import app
+from scanspec.service import PointsFormat, PointsRequest, app
 from scanspec.specs import Line
 
 
@@ -10,48 +13,106 @@ def client() -> TestClient:
     return TestClient(app)
 
 
-# import base64
-# from typing import Any, Mapping
-
-# import graphql
-# import numpy as np
-
-# from graphql.error.graphql_error import GraphQLError
-# from graphql.type.schema import GraphQLSchema, assert_schema
-
-# from scanspec.service import Points, scanspec_schema
-# from scanspec.specs import Line
-
-
-# # Returns a dummy 'points' dataclass for resolver testing
-# @pytest.fixture
-# def points() -> Points:
-#     return Points(np.array([1.5, 0.0, 0.25, 1.0, 0.0]))
-
-
-# # GET_POINTS RESOLVER TEST(S) #
-# def test_float_list(points) -> None:
-#     assert points.float_list() == [1.5, 0.0, 0.25, 1.0, 0.0]
-
-
-# def test_string(points) -> None:
-#     assert points.string() == "[1.5  0.   0.25 1.   0.  ]"
-
-
-# def test_b64(points) -> None:
-#     assert points.b64() == "AAAAAAAA+D8AAAAAAAAAAAAAAAAAANA/AAAAAAAA8D8AAAAAAAAAAA=="
+# MIDPOINTS TEST(S) #
+@pytest.mark.parametrize(
+    "format,expected_midpoints",
+    [
+        (PointsFormat.FLOAT_LIST, [0.0, 0.25, 0.5, 0.75, 1.0]),
+        (PointsFormat.STRING, "[0.   0.25 0.5  0.75 1.  ]"),
+        (
+            PointsFormat.BASE64_ENCODED,
+            "AAAAAAAAAAAAAAAAAADQPwAAAAAAAOA/AAAAAAAA6D8AAAAAAADwPw==",
+        ),
+    ],
+    ids=["float_list", "string", "base64"],
+)
+def test_midpoints(
+    client: TestClient, format: PointsFormat, expected_midpoints: Any
+) -> None:
+    request = PointsRequest(Line("x", 0.0, 1.0, 5), max_frames=5, format=format)
+    response = client.post("/midpoints", json=asdict(request))
+    assert response.status_code == 200
+    assert response.json() == {
+        "total_frames": 5,
+        "returned_frames": 5,
+        "format": format.value,
+        "midpoints": {"x": expected_midpoints},
+    }
 
 
-# def test_decodeb64(points) -> None:
-#     encoded_points = points.b64()
-#     s = base64.decodebytes(encoded_points.encode())
-#     t = np.frombuffer(s, dtype=np.float64)
-#     assert np.array2string(t) == "[1.5  0.   0.25 1.   0.  ]"
+def test_subsampling(client: TestClient) -> None:
+    spec = Line("x", 0, 10, 5) * Line("y", 0, 10, 5)
+    request = PointsRequest(spec, max_frames=8, format=PointsFormat.FLOAT_LIST)
+    response = client.post("/midpoints", json=asdict(request))
+    assert response.status_code == 200
+    assert response.json() == {
+        "total_frames": 25,
+        "returned_frames": 8,
+        "format": "FLOAT_LIST",
+        "midpoints": {"x": [0.0, 0.0, 10.0, 10.0], "y": [0.0, 10.0, 0.0, 10.0]},
+    }
 
-# VALIDATE SPEC QUERY TEST(S) #
+
+# BOUNDS TEST(S) #
+@pytest.mark.parametrize(
+    "format,expected_lower,expected_upper",
+    [
+        (
+            PointsFormat.FLOAT_LIST,
+            [-0.125, 0.125, 0.375, 0.625, 0.875],
+            [0.125, 0.375, 0.625, 0.875, 1.125],
+        ),
+        (
+            PointsFormat.STRING,
+            "[-0.125  0.125  0.375  0.625  0.875]",
+            "[0.125 0.375 0.625 0.875 1.125]",
+        ),
+        (
+            PointsFormat.BASE64_ENCODED,
+            "AAAAAAAAwL8AAAAAAADAPwAAAAAAANg/AAAAAAAA5D8AAAAAAADsPw==",
+            "AAAAAAAAwD8AAAAAAADYPwAAAAAAAOQ/AAAAAAAA7D8AAAAAAADyPw==",
+        ),
+    ],
+    ids=["float_list", "string", "base64"],
+)
+def test_bounds(
+    client: TestClient, format: PointsFormat, expected_lower: Any, expected_upper: Any
+) -> None:
+    request = PointsRequest(Line("x", 0.0, 1.0, 5), max_frames=5, format=format)
+    response = client.post("/bounds", json=asdict(request))
+    assert response.status_code == 200
+    assert response.json() == {
+        "total_frames": 5,
+        "returned_frames": 5,
+        "format": format.value,
+        "lower": {"x": expected_lower},
+        "upper": {"x": expected_upper},
+    }
+
+
+# GAP TEST(S) #
+def test_gap(client: TestClient) -> None:
+    spec = Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 3)
+    response = client.post("/gap", json=spec.serialize())
+    assert response.status_code == 200
+    assert response.json() == {
+        "gap": [True, False, False, True, False, False, True, False, False]
+    }
+
+
+# SMALLEST STEP TEST(S) #
+def test_smallest_step(client: TestClient) -> None:
+    spec = Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 5)
+    response = client.post("/smalleststep", json=spec.serialize())
+    assert response.status_code == 200
+    assert response.json() == {"absolute": 2.5, "per_axis": {"y": 5.0, "x": 2.5}}
+
+
+# VALIDATE SPEC TEST(S) #
 def test_validate_spec(client: TestClient) -> None:
     spec = Line.bounded("x", 0, 1, 5)
     response = client.post("/valid", json=spec.serialize())
+    assert response.status_code == 200
     assert response.json() == {
         "input_spec": {
             "axis": "x",
@@ -68,214 +129,3 @@ def test_validate_spec(client: TestClient) -> None:
             "type": "Line",
         },
     }
-
-
-# # GET POINTS QUERY TEST(S) #
-# GRID = Line("x", 0, 1, 2) * Line("y", 0, 1, 3)
-
-
-# def test_get_points_axis() -> None:
-
-#     query_str = (
-#         """
-# {
-#   getPoints(spec: %s) {
-#     axes {
-#       axis
-#     }
-#   }
-# }
-#     """
-#         % GRID.to_gql_input()
-#     )
-#     assert graphql_exec(scanspec_schema, query_str) == {
-#         "getPoints": {"axes": [{"axis": "x"}, {"axis": "y"}]}
-#     }
-
-
-# def test_get_points_lower() -> None:
-#     query_str = (
-#         """
-# {
-#   getPoints(spec: %s) {
-#     axes {
-#       lower{
-#         floatList
-#       }
-#     }
-#   }
-# }
-#     """
-#         % GRID.to_gql_input()
-#     )
-#     assert graphql_exec(scanspec_schema, query_str) == {
-#         "getPoints": {
-#             "axes": [
-#                 {"lower": {"floatList": [0, 0, 0, 1, 1, 1]}},
-#                 {"lower": {"floatList": [-0.25, 0.25, 0.75, -0.25, 0.25, 0.75]}},
-#             ]
-#         }
-#     }
-
-
-# def test_get_points_midpoints() -> None:
-#     query_str = (
-#         """
-# {
-#   getPoints(spec: %s) {
-#     axes {
-#       midpoints{
-#         floatList
-#       }
-#     }
-#   }
-# }
-#     """
-#         % GRID.to_gql_input()
-#     )
-#     assert graphql_exec(scanspec_schema, query_str) == {
-#         "getPoints": {
-#             "axes": [
-#                 {"midpoints": {"floatList": [0, 0, 0, 1, 1, 1]}},
-#                 {"midpoints": {"floatList": [0, 0.5, 1, 0, 0.5, 1]}},
-#             ]
-#         }
-#     }
-
-
-# def test_get_points_upper() -> None:
-#     query_str = (
-#         """
-# {
-#   getPoints(spec: %s) {
-#     axes {
-#       upper{
-#         floatList
-#       }
-#     }
-#   }
-# }
-#     """
-#         % GRID.to_gql_input()
-#     )
-#     assert graphql_exec(scanspec_schema, query_str) == {
-#         "getPoints": {
-#             "axes": [
-#                 {"upper": {"floatList": [0, 0, 0, 1, 1, 1]}},
-#                 {"upper": {"floatList": [0.25, 0.75, 1.25, 0.25, 0.75, 1.25]}},
-#             ]
-#         }
-#     }
-
-
-# def test_get_points_upper_limited() -> None:
-#     spec = Line("x", 0, 10, 5) * Line("y", 0, 10, 5)
-#     query_str = (
-#         """
-# {
-#   getPoints(spec: %s, maxFrames: 8) {
-#     totalFrames
-#     returnedFrames
-#     axes {
-#       upper{
-#         floatList
-#       }
-#     }
-#   }
-# }
-#     """
-#         % spec.to_gql_input()
-#     )
-#     assert graphql_exec(scanspec_schema, query_str) == {
-#         "getPoints": {
-#             "totalFrames": 25,
-#             "returnedFrames": 4,
-#             "axes": [
-#                 {"upper": {"floatList": [0, 0, 10, 10]}},
-#                 {"upper": {"floatList": [1.25, 11.25, 1.25, 11.25]}},
-#             ],
-#         }
-#     }
-
-
-# def test_get_points_smallest_step() -> None:
-#     query_str = (
-#         """
-# {
-#   getPoints(spec: %s) {
-#     axes {
-#       axis
-#       smallestStep
-#     }
-#   }
-# }
-
-#     """
-#         % GRID.to_gql_input()
-#     )
-#     assert graphql_exec(scanspec_schema, query_str) == {
-#         "getPoints": {
-#             "axes": [
-#                 {"axis": "x", "smallestStep": 0},
-#                 {"axis": "y", "smallestStep": 0.5},
-#             ]
-#         }
-#     }
-
-
-# def test_get_points_total_frames() -> None:
-#     query_str = (
-#         """
-# {
-#   getPoints(spec: %s) {
-#     totalFrames
-#   }
-# }
-#     """
-#         % GRID.to_gql_input()
-#     )
-#     assert graphql_exec(scanspec_schema, query_str) == {"getPoints": {"totalFrames": 6}}
-
-
-# def test_get_points_abs_smallest_step() -> None:
-#     spec = Line("x", 0, 10, 3) * Line("y", 0, 10, 3)
-#     query_str = (
-#         """
-# {
-#   getPoints(spec: %s) {
-#     smallestAbsStep
-#     axes {
-#       midpoints {
-#         floatList
-#       }
-#     }
-#   }
-# }
-#     """
-#         % spec.to_gql_input()
-#     )
-#     assert graphql_exec(scanspec_schema, query_str) == {
-#         "getPoints": {
-#             "smallestAbsStep": 5,
-#             "axes": [
-#                 {"midpoints": {"floatList": [0, 0, 0, 5, 5, 5, 10, 10, 10]}},
-#                 {"midpoints": {"floatList": [0, 5, 10, 0, 5, 10, 0, 5, 10]}},
-#             ],
-#         }
-#     }
-
-
-# def graphql_exec(schema: GraphQLSchema, query: str) -> Mapping[str, Any]:
-#     execution_result = graphql.graphql_sync(schema, query)
-#     if execution_result.errors:
-#         raise GraphQLError(
-#             f"Errors found during GraphQL execution: {execution_result.errors}"
-#         )
-#     elif not execution_result.data:
-#         raise GraphQLError("No data or errors returned from query")
-#     else:
-#         return execution_result.data
-
-
-# def test_schema() -> None:
-#     assert_schema(scanspec_schema)

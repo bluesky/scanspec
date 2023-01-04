@@ -35,7 +35,7 @@ class ValidResponse:
     valid_spec: Spec = Field(description="The validated version of the spec")
 
 
-class PointsFormat(Enum):
+class PointsFormat(str, Enum):
     """Formats in which we can return points."""
 
     STRING = "STRING"
