@@ -220,6 +220,17 @@ def test_plot_3D_line() -> None:
     assert_3d_arrow(arrow_artists[3], 2.5, 2, 6)
 
 
+def test_schema() -> None:
+    # If this test fails, regenerate the schema by running
+    # scanspec schema > schema.json
+
+    runner = CliRunner()
+    result = runner.invoke(cli.schema)
+    assert result.exit_code == 0
+    schema_path = pathlib.Path(__file__).resolve().parent.parent / "schema.json"
+    assert result.output == schema_path.read_text()
+
+
 def test_cli_version():
     cmd = [sys.executable, "-m", "scanspec", "--version"]
     assert (
