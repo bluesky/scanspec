@@ -212,8 +212,10 @@ def smallest_step(
 ) -> SmallestStepResponse:
     """Calculate the smallest step in a scan, both absolutely and per-axis.
 
+    Ignore any steps of size 0.
+
     Args:
-        spec (Spec): The spec of the scan
+        spec: The spec of the scan
 
     Returns:
         SmallestStepResponse: A description of the smallest steps in the spec
@@ -313,10 +315,13 @@ def _sub_sample(frames: Frames[str], ratio: float) -> Frames:
 
 
 def _calc_smallest_step(points: List[np.ndarray]) -> float:
-    # Calc abs diffs of all axes
+    # Calc abs diffs of all axes, ignoring any zero values
     absolute_diffs = [_abs_diffs(axis_midpoints) for axis_midpoints in points]
+    # Normalize and remove zeros
+    norm_diffs = np.linalg.norm(absolute_diffs, axis=0)
+    norm_diffs = norm_diffs[norm_diffs > 0.0]
     # Return the smallest value (Aka. smallest step)
-    return np.amin(np.linalg.norm(absolute_diffs, axis=0))
+    return np.amin(norm_diffs)
 
 
 def _abs_diffs(array: np.ndarray) -> np.ndarray:
