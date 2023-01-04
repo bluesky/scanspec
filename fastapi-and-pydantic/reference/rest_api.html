@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>REST API &#8212; scanspec 0.5.6.dev31+gfa21f80 documentation</title>
+    <title>REST API &#8212; scanspec 0.5.6.dev33+g3ff2e2b documentation</title>
   
   
   
@@ -441,6 +441,9 @@
 <span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/midpoints</span></span><a class="headerlink" href="#post--midpoints" title="Permalink to this definition">#</a></dt>
 <dd><p><strong>Midpoints</strong></p>
 <p>Generate midpoints from a scanspec.</p>
+<p>A scanspec can produce bounded points (i.e. a point is valid if an
+axis is between a minimum and and a maximum, see /bounds). The midpoints
+are the middle of each set of bounds.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>request: Scanspec and formatting info.</p>
 </dd>
@@ -462,6 +465,7 @@
 <span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/bounds</span></span><a class="headerlink" href="#post--bounds" title="Permalink to this definition">#</a></dt>
 <dd><p><strong>Bounds</strong></p>
 <p>Generate bounds from a scanspec.</p>
+<p>A scanspec can produce points with lower and upper bounds.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>request: Scanspec and formatting info.</p>
 </dd>
@@ -482,7 +486,10 @@
 <dt class="sig sig-object http" id="post--gap">
 <span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/gap</span></span><a class="headerlink" href="#post--gap" title="Permalink to this definition">#</a></dt>
 <dd><p><strong>Gap</strong></p>
-<p>Generate bounds from a scanspec.</p>
+<p>Generate gaps from a scanspec.</p>
+<p>A scanspec may indicate if there is a gap between two frames.
+The array returned corresponds to whether or not there is a gap
+after each frame.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>request: Scanspec and formatting info.</p>
 </dd>
