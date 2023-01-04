@@ -1,14 +1,14 @@
 import base64
 import json
 from enum import Enum
-from typing import Any, List, Mapping, Optional, Tuple, Union
+from typing import List, Mapping, Optional, Tuple, Union
 
 import numpy as np
-from fastapi import Body, FastAPI, Request
+from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
-from pydantic import Field, ValidationError
+from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 from scanspec.core import AxesPoints, Frames, Path
