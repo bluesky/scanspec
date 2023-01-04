@@ -1,13 +1,13 @@
 .. _graphql-service:
 
-Running a GraphQL service for generating points
-===============================================
+Running a REST service for generating points
+============================================
 
 The `creating-a-spec` tutorial shows how you would use the commandline client to
 plot a `Spec`. This maps nicely to using scanspec in a commandline utility, but
 not if you want to expose those points to a web GUI. To do this we will bring up
-a GraphQL_ service that allows a web GUI to request the points it would like to
-plot.
+a RESTful service, compatible with OpenAPI_, that allows a web GUI to request the 
+points it would like to plot.
 
 Running the server
 ------------------
@@ -266,3 +266,4 @@ We could query the service for the points information like so:
 
 .. _GraphQL: https://www.graphql.com/
 .. _GraphiQL: https://github.com/graphql/graphiql/tree/main/packages/graphiql#readme
+.. _OpenAPI: https://www.openapis.org/

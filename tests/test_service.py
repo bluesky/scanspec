@@ -134,5 +134,4 @@ def test_validate_spec(client: TestClient) -> None:
 def test_validate_invalid_spec(client: TestClient) -> None:
     spec = {"type": "Line", "axis": "x", "start": 0.0, "num": 10}
     response = client.post("/valid", json=spec)
-    assert response.status_code == 400
-    assert response.json() == {"message": "spec could not be validated"}
+    assert response.status_code == 422

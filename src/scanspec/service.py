@@ -30,9 +30,7 @@ Points = Union[str, List[float]]
 class ValidResponse:
     """Response model for spec validation."""
 
-    input_spec: Mapping[str, Any] = Field(
-        description="The input scanspec, potentially invalid"
-    )
+    input_spec: Spec = Field(description="The input scanspec")
     valid_spec: Spec = Field(description="The validated version of the spec")
 
 
@@ -124,7 +122,7 @@ _EXAMPLE_POINTS_REQUEST = PointsRequest(
 
 @app.post("/valid", response_model=ValidResponse)
 def valid(
-    spec: Mapping[str, Any] = Body(..., example=_EXAMPLE_SPEC)
+    spec: Spec = Body(..., example=_EXAMPLE_SPEC)
 ) -> Union[ValidResponse, JSONResponse]:
     """Validate wether a ScanSpec can produce a viable scan.
 
@@ -135,16 +133,7 @@ def valid(
         ValidResponse: A canonical version of the spec if it is valid.
             An error otherwise.
     """
-    try:
-        valid_spec = Spec.deserialize(spec)
-    except ValidationError:
-        # Only catch the validation error and return a 400 in this specific case,
-        # return a 500 for validation errors at any other endpoint.
-        # This is best practice as described in docs:
-        # https://fastapi.tiangolo.com/nl/tutorial/handling-errors/#requestvalidationerror-vs-validationerror
-        return JSONResponse(
-            status_code=400, content={"message": "spec could not be validated"}
-        )
+    valid_spec = Spec.deserialize(spec.serialize())
     return ValidResponse(spec, valid_spec)
 
 
