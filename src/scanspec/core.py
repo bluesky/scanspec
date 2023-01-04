@@ -47,55 +47,56 @@ def discriminated_union_of_subclasses(
     <type name>...}.
     Add validation methods to super_cls so it can be parsed by pydantic.parse_obj_as.
 
-    Example:
-    @discriminated_union_of_subclasses
-    class Expression(ABC):
-        @abstractmethod
-        def calculate(self) -> int:
-            ...
+    Example::
+
+        @discriminated_union_of_subclasses
+        class Expression(ABC):
+            @abstractmethod
+            def calculate(self) -> int:
+                ...
 
 
-    @dataclass
-    class Add(Expression):
-        left: Expression
-        right: Expression
+        @dataclass
+        class Add(Expression):
+            left: Expression
+            right: Expression
 
-        def calculate(self) -> int:
-            return self.left.calculate() + self.right.calculate()
-
-
-    @dataclass
-    class Subtract(Expression):
-        left: Expression
-        right: Expression
-
-        def calculate(self) -> int:
-            return self.left.calculate() - self.right.calculate()
+            def calculate(self) -> int:
+                return self.left.calculate() + self.right.calculate()
 
 
-    @dataclass
-    class IntLiteral(Expression):
-        value: int
+        @dataclass
+        class Subtract(Expression):
+            left: Expression
+            right: Expression
 
-        def calculate(self) -> int:
-            return self.value
+            def calculate(self) -> int:
+                return self.left.calculate() - self.right.calculate()
 
 
-    my_sum = Add(IntLiteral(5), Subtract(IntLiteral(10), IntLiteral(2)))
-    assert my_sum.calculate() == 13
+        @dataclass
+        class IntLiteral(Expression):
+            value: int
 
-    assert my_sum == parse_obj_as(
-        Expression,
-        {
-            "type": "Add",
-            "left": {"type": "IntLiteral", "value": 5},
-            "right": {
-                "type": "Subtract",
-                "left": {"type": "IntLiteral", "value": 10},
-                "right": {"type": "IntLiteral", "value": 2},
+            def calculate(self) -> int:
+                return self.value
+
+
+        my_sum = Add(IntLiteral(5), Subtract(IntLiteral(10), IntLiteral(2)))
+        assert my_sum.calculate() == 13
+
+        assert my_sum == parse_obj_as(
+            Expression,
+            {
+                "type": "Add",
+                "left": {"type": "IntLiteral", "value": 5},
+                "right": {
+                    "type": "Subtract",
+                    "left": {"type": "IntLiteral", "value": 10},
+                    "right": {"type": "IntLiteral", "value": 2},
+                },
             },
-        },
-    )
+        )
 
     Args:
         super_cls: The superclass of the union, Expression in the above example

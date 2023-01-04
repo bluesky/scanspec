@@ -59,7 +59,7 @@ class PointsRequest:
 
 
 @dataclass
-class _GeneratedPointsResponse:
+class GeneratedPointsResponse:
     total_frames: int = Field(description="Total number of frames in spec")
     returned_frames: int = Field(
         description="Total of number of frames in this response, may be "
@@ -69,7 +69,7 @@ class _GeneratedPointsResponse:
 
 
 @dataclass
-class MidpointsResponse(_GeneratedPointsResponse):
+class MidpointsResponse(GeneratedPointsResponse):
     """Midpoints of a generated scan."""
 
     midpoints: Mapping[str, Points] = Field(
@@ -78,7 +78,7 @@ class MidpointsResponse(_GeneratedPointsResponse):
 
 
 @dataclass
-class BoundsResponse(_GeneratedPointsResponse):
+class BoundsResponse(GeneratedPointsResponse):
     """Bounds of a generated scan."""
 
     lower: Mapping[str, Points] = Field(
@@ -199,7 +199,7 @@ def gap(
         request: Scanspec and formatting info.
 
     Returns:
-        BoundsResponse: Bounds of the scan
+        GapResponse: Bounds of the scan
     """
     dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path

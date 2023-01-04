@@ -44,6 +44,7 @@ dev = [
     "sphinx-design",
     "sphinx-graphql",
     "sphinx-apischema",
+    "sphinxcontrib-openapi",
     "tox-direct",
     "types-mock",
     "httpx",
