@@ -48,11 +48,11 @@
     "url": "https://dls-controls.github.io/scanspec/delete/"
   },
   {
-    "version": "merge",
-    "url": "https://dls-controls.github.io/scanspec/merge/"
+    "version": "fastapi-and-pydantic",
+    "url": "https://dls-controls.github.io/scanspec/fastapi-and-pydantic/"
   },
   {
-    "version": "mypy-update",
-    "url": "https://dls-controls.github.io/scanspec/mypy-update/"
+    "version": "merge",
+    "url": "https://dls-controls.github.io/scanspec/merge/"
   }
 ]
