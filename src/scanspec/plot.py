@@ -136,7 +136,7 @@ def plot_spec(spec: Spec[Any]):
                 )
             elif isinstance(region, Circle):
                 xy = (region.x_middle, region.y_middle)
-                plt_axes.add_patch(patches.Circle(xy, angle=region.radius, fill=False))
+                plt_axes.add_patch(patches.Circle(xy, region.radius, fill=False))
             elif isinstance(region, Ellipse):
                 xy = (region.x_middle, region.y_middle)
                 width = region.x_radius * 2
