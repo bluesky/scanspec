@@ -52,6 +52,10 @@
     "url": "https://dls-controls.github.io/scanspec/fastapi-and-pydantic/"
   },
   {
+    "version": "matplotlib-update",
+    "url": "https://dls-controls.github.io/scanspec/matplotlib-update/"
+  },
+  {
     "version": "merge",
     "url": "https://dls-controls.github.io/scanspec/merge/"
   }
