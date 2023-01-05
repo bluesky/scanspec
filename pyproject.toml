@@ -29,7 +29,7 @@ requires-python = ">=3.8"
 plotting = [
     # make sure a python 3.9 compatible scipy and matplotlib are selected
     "scipy>=1.5.4",
-    "matplotlib>=3.2.2,<3.6",
+    "matplotlib>=3.2.2",
 ]
 # GraphQL service support
 graphql = ["graphql-server[aiohttp]==3.0.0b5", "aiohttp_cors"]

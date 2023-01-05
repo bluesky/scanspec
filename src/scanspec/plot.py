@@ -52,6 +52,7 @@ def _plot_arrow(axes, arrays: List[np.ndarray]):
         a = _Arrow3D(
             *arrows[:3], mutation_scale=10, arrowstyle="-|>", color="lightgrey"
         )
+
         axes.add_artist(a)
 
 
@@ -132,11 +133,11 @@ def plot_spec(spec: Spec[Any]):
                 width = region.x_max - region.x_min
                 height = region.y_max - region.y_min
                 plt_axes.add_patch(
-                    patches.Rectangle(xy, width, height, region.angle, fill=False)
+                    patches.Rectangle(xy, width, height, angle=region.angle, fill=False)
                 )
             elif isinstance(region, Circle):
                 xy = (region.x_middle, region.y_middle)
-                plt_axes.add_patch(patches.Circle(xy, region.radius, fill=False))
+                plt_axes.add_patch(patches.Circle(xy, angle=region.radius, fill=False))
             elif isinstance(region, Ellipse):
                 xy = (region.x_middle, region.y_middle)
                 width = region.x_radius * 2
