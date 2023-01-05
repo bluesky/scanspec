@@ -210,8 +210,14 @@ def test_plot_3D_line() -> None:
     assert_min_max_3d(lines[12], 0.5, 0.5, 2, 2, 6, 6)
     # Arrows
     extra_artists = axes.get_children()
+
     arrow_artists = list(
-        filter(lambda artist: isinstance(artist, _Arrow3D), extra_artists)
+        filter(
+            lambda artist: isinstance(artist, _Arrow3D)
+            and artist.get_visible()
+            and artist.get_in_layout(),
+            extra_artists,
+        )
     )
     assert len(arrow_artists) == 4
     assert_3d_arrow(arrow_artists[0], 0.5, 2, 5)

@@ -52,7 +52,6 @@ def _plot_arrow(axes, arrays: List[np.ndarray]):
         a = _Arrow3D(
             *arrows[:3], mutation_scale=10, arrowstyle="-|>", color="lightgrey"
         )
-
         axes.add_artist(a)
 
 
