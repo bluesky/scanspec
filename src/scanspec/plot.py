@@ -132,7 +132,7 @@ def plot_spec(spec: Spec[Any]):
                 width = region.x_max - region.x_min
                 height = region.y_max - region.y_min
                 plt_axes.add_patch(
-                    patches.Rectangle(xy, width, height, region.angle, fill=False)
+                    patches.Rectangle(xy, width, height, angle=region.angle, fill=False)
                 )
             elif isinstance(region, Circle):
                 xy = (region.x_middle, region.y_middle)
