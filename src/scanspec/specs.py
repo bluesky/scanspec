@@ -107,7 +107,7 @@ class Spec(Generic[Axis]):
         return parse_obj_as(cls, obj)
 
 
-@dataclass(config=StrictConfig())
+@dataclass(config=StrictConfig)
 class Product(Spec[Axis]):
     """Outer product of two Specs, nesting inner within outer.
 
@@ -132,7 +132,7 @@ class Product(Spec[Axis]):
         return frames_outer + frames_inner
 
 
-@dataclass(config=StrictConfig())
+@dataclass(config=StrictConfig)
 class Repeat(Spec[Axis]):
     """Repeat an empty frame num times.
 
@@ -169,7 +169,7 @@ class Repeat(Spec[Axis]):
         return [Frames({}, gap=np.full(self.num, self.gap))]
 
 
-@dataclass(config=StrictConfig())
+@dataclass(config=StrictConfig)
 class Zip(Spec[Axis]):
     """Run two Specs in parallel, merging their midpoints together.
 
@@ -240,7 +240,7 @@ class Zip(Spec[Axis]):
         return frames
 
 
-@dataclass(config=StrictConfig())
+@dataclass(config=StrictConfig)
 class Mask(Spec[Axis]):
     """Restrict Spec to only midpoints that fall inside the given Region.
 
@@ -308,7 +308,7 @@ class Mask(Spec[Axis]):
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
 
 
-@dataclass(config=StrictConfig())
+@dataclass(config=StrictConfig)
 class Snake(Spec[Axis]):
     """Run the Spec in reverse on every other iteration when nested.
 
@@ -335,7 +335,7 @@ class Snake(Spec[Axis]):
         ]
 
 
-@dataclass(config=StrictConfig())
+@dataclass(config=StrictConfig)
 class Concat(Spec[Axis]):
     """Concatenate two Specs together, running one after the other.
 
@@ -382,7 +382,7 @@ class Concat(Spec[Axis]):
         return [dim]
 
 
-@dataclass(config=StrictConfig())
+@dataclass(config=StrictConfig)
 class Squash(Spec[Axis]):
     """Squash a stack of Frames together into a single expanded Frames object.
 
@@ -438,7 +438,7 @@ def _dimensions_from_indexes(
     return [dimension]
 
 
-@dataclass(config=StrictConfig())
+@dataclass(config=StrictConfig)
 class Line(Spec[Axis]):
     """Linearly spaced frames with start and stop as first and last midpoints.
 
@@ -501,7 +501,7 @@ class Line(Spec[Axis]):
         return cls(axis, start, stop, num)
 
 
-@dataclass(config=StrictConfig())
+@dataclass(config=StrictConfig)
 class Static(Spec[Axis]):
     """A static frame, repeated num times, with axis at value.
 
@@ -546,7 +546,7 @@ class Static(Spec[Axis]):
         )
 
 
-@dataclass(config=StrictConfig())
+@dataclass(config=StrictConfig)
 class Spiral(Spec[Axis]):
     """Archimedean spiral of "x_axis" and "y_axis".
 
