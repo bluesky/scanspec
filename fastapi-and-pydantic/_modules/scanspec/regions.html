@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.regions &#8212; scanspec 0.5.6.dev34+g0d08bd5 documentation</title>
+    <title>scanspec.regions &#8212; scanspec 0.5.6.dev36+g74a4de3 documentation</title>
   
   
   
@@ -395,7 +395,13 @@
 <span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
 <span class="kn">from</span> <span class="nn">pydantic.dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
-<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">AxesPoints</span><span class="p">,</span> <span class="n">Axis</span><span class="p">,</span> <span class="n">discriminated_union_of_subclasses</span><span class="p">,</span> <span class="n">if_instance_do</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AxesPoints</span><span class="p">,</span>
+    <span class="n">Axis</span><span class="p">,</span>
+    <span class="n">StrictConfig</span><span class="p">,</span>
+    <span class="n">discriminated_union_of_subclasses</span><span class="p">,</span>
+    <span class="n">if_instance_do</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;Region&quot;</span><span class="p">,</span>
@@ -476,7 +482,7 @@
             <span class="k">yield</span> <span class="n">axis_set</span>
 
 
-<div class="viewcode-block" id="CombinationOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.CombinationOf">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="CombinationOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.CombinationOf">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">CombinationOf</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract baseclass for a combination of two regions, left and right.&quot;&quot;&quot;</span>
 
@@ -491,7 +497,7 @@
 
 
 <span class="c1"># Naming so we don&#39;t clash with typing.Union</span>
-<div class="viewcode-block" id="UnionOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.UnionOf">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="UnionOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.UnionOf">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">UnionOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A point is in UnionOf(a, b) if in either a or b.</span>
 
@@ -507,7 +513,7 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="IntersectionOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.IntersectionOf">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="IntersectionOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.IntersectionOf">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">IntersectionOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A point is in IntersectionOf(a, b) if in both a and b.</span>
 
@@ -523,7 +529,7 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="DifferenceOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.DifferenceOf">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="DifferenceOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.DifferenceOf">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DifferenceOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A point is in DifferenceOf(a, b) if in a and not in b.</span>
 
@@ -541,7 +547,7 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="SymmetricDifferenceOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.SymmetricDifferenceOf">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="SymmetricDifferenceOf"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.SymmetricDifferenceOf">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SymmetricDifferenceOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.</span>
 
@@ -557,7 +563,7 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="Range"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Range">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Range"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Range">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Range</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask contains points of axis &gt;= min and &lt;= max.</span>
 
@@ -579,7 +585,7 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="Rectangle"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Rectangle">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Rectangle"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Rectangle">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Rectangle</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask contains points of axis within a rotated xy rectangle.</span>
 
@@ -620,7 +626,7 @@
         <span class="k">return</span> <span class="n">mask_x</span> <span class="o">&amp;</span> <span class="n">mask_y</span></div>
 
 
-<div class="viewcode-block" id="Polygon"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Polygon">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Polygon"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Polygon">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Polygon</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask contains points of axis within a rotated xy polygon.</span>
 
@@ -663,7 +669,7 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="Circle"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Circle">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Circle"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Circle">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Circle</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask contains points of axis within an xy circle of given radius.</span>
 
@@ -692,7 +698,7 @@
         <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="Ellipse"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Ellipse">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Ellipse"><a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Ellipse">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Ellipse</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask contains points of axis within an xy ellipse of given radius.</span>
 

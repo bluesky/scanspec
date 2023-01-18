@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.specs &#8212; scanspec 0.5.6.dev34+g0d08bd5 documentation</title>
+    <title>scanspec.specs &#8212; scanspec 0.5.6.dev36+g74a4de3 documentation</title>
   
   
   
@@ -402,6 +402,7 @@
     <span class="n">Midpoints</span><span class="p">,</span>
     <span class="n">Path</span><span class="p">,</span>
     <span class="n">SnakedFrames</span><span class="p">,</span>
+    <span class="n">StrictConfig</span><span class="p">,</span>
     <span class="n">discriminated_union_of_subclasses</span><span class="p">,</span>
     <span class="n">gap_between_frames</span><span class="p">,</span>
     <span class="n">if_instance_do</span><span class="p">,</span>
@@ -431,7 +432,7 @@
 <span class="n">DURATION</span> <span class="o">=</span> <span class="s2">&quot;DURATION&quot;</span>
 
 
-<div class="viewcode-block" id="Spec"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec">[docs]</a><span class="nd">@discriminated_union_of_subclasses</span>
+<div class="viewcode-block" id="Spec"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spec">[docs]</a><span class="nd">@discriminated_union_of_subclasses</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Spec</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A serializable representation of the type and parameters of a scan.</span>
 
@@ -495,7 +496,7 @@
         <span class="k">return</span> <span class="n">parse_obj_as</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="Product"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Product">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Product"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Product">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Product</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Outer product of two Specs, nesting inner within outer.</span>
 
@@ -520,7 +521,7 @@
         <span class="k">return</span> <span class="n">frames_outer</span> <span class="o">+</span> <span class="n">frames_inner</span></div>
 
 
-<div class="viewcode-block" id="Repeat"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Repeat">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Repeat"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Repeat">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Repeat</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Repeat an empty frame num times.</span>
 
@@ -557,7 +558,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">Frames</span><span class="p">({},</span> <span class="n">gap</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">))]</span></div>
 
 
-<div class="viewcode-block" id="Zip"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Zip">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Zip"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Zip">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Zip</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run two Specs in parallel, merging their midpoints together.</span>
 
@@ -628,7 +629,7 @@
         <span class="k">return</span> <span class="n">frames</span></div>
 
 
-<div class="viewcode-block" id="Mask"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Mask">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Mask"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Mask">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Mask</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Restrict Spec to only midpoints that fall inside the given Region.</span>
 
@@ -696,7 +697,7 @@
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">-</span> <span class="n">o</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="Snake"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Snake">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Snake"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Snake">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Snake</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the Spec in reverse on every other iteration when nested.</span>
 
@@ -723,7 +724,7 @@
         <span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="Concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Concat">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Concat"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Concat">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Concat</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Concatenate two Specs together, running one after the other.</span>
 
@@ -770,7 +771,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">dim</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="Squash"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Squash">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Squash"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Squash">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Squash</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Squash a stack of Frames together into a single expanded Frames object.</span>
 
@@ -826,7 +827,7 @@
     <span class="k">return</span> <span class="p">[</span><span class="n">dimension</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="Line"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Line">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Line"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Line">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Line</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Linearly spaced frames with start and stop as first and last midpoints.</span>
 
@@ -889,7 +890,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">num</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="Static"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Static">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Static"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Static">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Static</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A static frame, repeated num times, with axis at value.</span>
 
@@ -934,7 +935,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Spiral"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spiral">[docs]</a><span class="nd">@dataclass</span>
+<div class="viewcode-block" id="Spiral"><a class="viewcode-back" href="../../reference/api.html#scanspec.specs.Spiral">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Spiral</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Archimedean spiral of &quot;x_axis&quot; and &quot;y_axis&quot;.</span>
 
