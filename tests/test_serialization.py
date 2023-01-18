@@ -1,3 +1,6 @@
+import pytest
+from pydantic import ValidationError
+
 from scanspec.regions import Circle, Rectangle, UnionOf
 from scanspec.specs import Line, Mask, Spec, Spiral
 
@@ -99,14 +102,14 @@ def test_complex_nested_serializes() -> None:
 
 
 def test_extra_arg_fails() -> None:
-    # with pytest.raises(ValidationError):
-    serialized = {
-        "axis": "x",
-        "start": 0.0,
-        "stop": 1.0,
-        "num": 4,
-        "foo": "bar",
-        "type": "Line",
-    }
+    with pytest.raises(ValidationError):
+        serialized = {
+            "axis": "x",
+            "start": 0.0,
+            "stop": 1.0,
+            "num": 4,
+            "foo": "bar",
+            "type": "Line",
+        }
 
-    Spec.deserialize(serialized)
+        Spec.deserialize(serialized)

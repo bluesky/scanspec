@@ -17,7 +17,7 @@ from typing import (
 )
 
 import numpy as np
-from pydantic import BaseConfig, Field, ValidationError, create_model
+from pydantic import BaseConfig, Extra, Field, ValidationError, create_model
 from pydantic.error_wrappers import ErrorWrapper
 from typing_extensions import Literal
 
@@ -32,7 +32,14 @@ __all__ = [
     "Path",
     "Midpoints",
     "discriminated_union_of_subclasses",
+    "StrictConfig",
 ]
+
+
+class StrictConfig(BaseConfig):
+    """Pydantic configuration for scanspecs and regions."""
+
+    extra: Extra = Extra.forbid
 
 
 def discriminated_union_of_subclasses(
