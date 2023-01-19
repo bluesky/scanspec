@@ -1,3 +1,5 @@
+from typing import Any, Mapping
+
 import pytest
 from pydantic import ValidationError
 
@@ -101,15 +103,45 @@ def test_complex_nested_serializes() -> None:
     assert Spec.deserialize(serialized) == ob
 
 
-def test_extra_arg_fails() -> None:
-    with pytest.raises(ValidationError):
-        serialized = {
+@pytest.mark.parametrize(
+    "serialized",
+    [
+        {
             "axis": "x",
             "start": 0.0,
             "stop": 1.0,
             "num": 4,
             "foo": "bar",
             "type": "Line",
-        }
-
+        },
+        {
+            "axis": "x",
+            "start": 0.0,
+            "stop": 1.0,
+            "type": "Line",
+        },
+        {
+            "axis": "x",
+            "start": 0.0,
+            "stop": {},
+            "num": 4,
+            "type": "Line",
+        },
+        {
+            "axis": "x",
+            "start": 0.0,
+            "stop": None,
+            "num": 4,
+            "type": "Line",
+        },
+        {
+            "type": "Product",
+            "outer": None,
+            "inner": {"type": "Line", "axis": "x", "start": 0.0, "stop": 1.0, "num": 4},
+        },
+    ],
+    ids=["extra arg", "missing arg", "wrong type", "null value", "null spec"],
+)
+def test_detects_invalid_serialized(serialized: Mapping[str, Any]) -> None:
+    with pytest.raises(ValidationError):
         Spec.deserialize(serialized)
