@@ -1,0 +1,654 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Reference &#8212; scanspec 0.6.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="_static/styles/bootstrap.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94">
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script src="_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://dls-controls.github.io/scanspec/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.6.0';
+        </script>
+    <link rel="shortcut icon" href="_static/scanspec-logo.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API" href="reference/api.html" />
+    <link rel="prev" title="Why Squash (and Mask) can change the Path" href="explanations/why-squash-can-change-path.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="docsearch:language" content="en">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__primary" id="__primary">
+  <label class="overlay overlay-primary" for="__primary"></label>
+
+  
+  <input type="checkbox" class="sidebar-toggle" name="__secondary" id="__secondary">
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+      
+<form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+    </div>
+  </div>
+
+  
+  <nav class="bd-header navbar navbar-expand-lg bd-navbar" id="navbar-main"><div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+      <span class="fa-solid fa-bars"></span>
+  </label>
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="index.html">
+
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <img src="_static/scanspec-logo.svg" class="logo__image only-light" alt="Logo image">
+    <img src="_static/scanspec-logo.svg" class="logo__image only-dark" alt="Logo image">
+  
+  
+    <p class="title logo__title">scanspec</p>
+  
+</a>
+    
+  </div>
+
+  
+  <div class="col-lg-9 navbar-header-items">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="tutorials.html">
+                        Tutorials
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="how-to.html">
+                        How-to Guides
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="explanations.html">
+                        Explanations
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="#">
+                        Reference
+                      </a>
+                    </li>
+                
+
+                <li class="nav-item">
+                  <a class="nav-link nav-external" href="https://github.com/dls-controls/scanspec/releases">
+                    Release Notes
+                  </a>
+                </li>
+                
+    </ul>
+</nav>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+        <div class="navbar-end-item navbar-persistent--container">
+          
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
+        </div>
+      
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dls-controls/scanspec" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fas fa-cube"></i></span>
+            <label class="sr-only">PyPI</label></a>
+        </li>
+      </ul>
+      </div>
+      
+      <div class="navbar-end-item">
+        <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-toggle="dropdown">
+        0.6.0  <!-- this text may get changed later by javascript -->
+        <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+</div>
+      </div>
+      
+    </div>
+  </div>
+
+
+  
+  
+    <div class="navbar-persistent--mobile">
+<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
+  <i class="fa-solid fa-magnifying-glass"></i>
+</button>
+    </div>
+  
+
+  
+  <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+  </label>
+  
+
+</div>
+  </nav>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+      
+      <div class="navbar-center-item">
+        <nav class="navbar-nav">
+    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
+        Site Navigation
+    </p>
+    <ul id="navbar-main-elements" class="navbar-nav">
+        
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="tutorials.html">
+                        Tutorials
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="how-to.html">
+                        How-to Guides
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="explanations.html">
+                        Explanations
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="#">
+                        Reference
+                      </a>
+                    </li>
+                
+
+                <li class="nav-item">
+                  <a class="nav-link nav-external" href="https://github.com/dls-controls/scanspec/releases">
+                    Release Notes
+                  </a>
+                </li>
+                
+    </ul>
+</nav>
+      </div>
+      
+      </div>
+    
+
+    
+    
+    <div class="sidebar-header-items__end">
+      
+      <div class="navbar-end-item">
+        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+</button>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dls-controls/scanspec" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link" rel="noopener" target="_blank" data-toggle="tooltip"><span><i class="fas fa-cube"></i></span>
+            <label class="sr-only">PyPI</label></a>
+        </li>
+      </ul>
+      </div>
+      
+      <div class="navbar-end-item">
+        <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-toggle="dropdown">
+        0.6.0  <!-- this text may get changed later by javascript -->
+        <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+</div>
+      </div>
+      
+    </div>
+    
+  </div>
+
+  
+  <div class="sidebar-start-items sidebar-primary__section">
+    <div class="sidebar-start-items__item"><nav class="bd-links" id="bd-docs-nav" aria-label="Section navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">
+    Section Navigation
+  </p>
+  <div class="bd-toc-item navbar-nav">
+    <p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="reference/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/rest_api.html">REST API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/contributing.html">Contributing to the project</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/releases">Releases</a></li>
+
+</ul>
+
+  </div>
+</nav>
+    </div>
+  </div>
+  
+
+  
+  <div class="sidebar-end-items sidebar-primary__section">
+    <div class="sidebar-end-items__item">
+    </div>
+  </div>
+
+  
+  <div id="rtd-footer-container"></div>
+
+      </div>
+      <main id="main-content" class="bd-main">
+        
+        
+        <div class="bd-content">
+          <div class="bd-article-container">
+            
+            <div class="bd-header-article">
+                
+            </div>
+            
+            
+            <article class="bd-article" role="main">
+              
+  <section id="reference">
+<h1>Reference<a class="headerlink" href="#reference" title="Permalink to this heading">#</a></h1>
+<p>Practical step-by-step guides for the more experienced user.</p>
+<div class="toctree-wrapper compound">
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="reference/api.html">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec"><code class="docutils literal notranslate"><span class="pre">scanspec</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec.scanspec.__version__"><code class="docutils literal notranslate"><span class="pre">scanspec.__version__</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec-core"><code class="docutils literal notranslate"><span class="pre">scanspec.core</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.if_instance_do"><code class="docutils literal notranslate"><span class="pre">if_instance_do()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.Axis"><code class="docutils literal notranslate"><span class="pre">Axis</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.AxesPoints"><code class="docutils literal notranslate"><span class="pre">AxesPoints</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.Frames"><code class="docutils literal notranslate"><span class="pre">Frames</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.midpoints"><code class="docutils literal notranslate"><span class="pre">Frames.midpoints</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.lower"><code class="docutils literal notranslate"><span class="pre">Frames.lower</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.upper"><code class="docutils literal notranslate"><span class="pre">Frames.upper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.gap"><code class="docutils literal notranslate"><span class="pre">Frames.gap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.axes"><code class="docutils literal notranslate"><span class="pre">Frames.axes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.extract"><code class="docutils literal notranslate"><span class="pre">Frames.extract()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.concat"><code class="docutils literal notranslate"><span class="pre">Frames.concat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.zip"><code class="docutils literal notranslate"><span class="pre">Frames.zip()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.SnakedFrames"><code class="docutils literal notranslate"><span class="pre">SnakedFrames</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.SnakedFrames.from_frames"><code class="docutils literal notranslate"><span class="pre">SnakedFrames.from_frames()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.SnakedFrames.extract"><code class="docutils literal notranslate"><span class="pre">SnakedFrames.extract()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.gap_between_frames"><code class="docutils literal notranslate"><span class="pre">gap_between_frames()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.squash_frames"><code class="docutils literal notranslate"><span class="pre">squash_frames()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.Path"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Path.stack"><code class="docutils literal notranslate"><span class="pre">Path.stack</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Path.index"><code class="docutils literal notranslate"><span class="pre">Path.index</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Path.lengths"><code class="docutils literal notranslate"><span class="pre">Path.lengths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Path.end_index"><code class="docutils literal notranslate"><span class="pre">Path.end_index</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Path.consume"><code class="docutils literal notranslate"><span class="pre">Path.consume()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.Midpoints"><code class="docutils literal notranslate"><span class="pre">Midpoints</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Midpoints.stack"><code class="docutils literal notranslate"><span class="pre">Midpoints.stack</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Midpoints.axes"><code class="docutils literal notranslate"><span class="pre">Midpoints.axes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.discriminated_union_of_subclasses"><code class="docutils literal notranslate"><span class="pre">discriminated_union_of_subclasses()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.StrictConfig"><code class="docutils literal notranslate"><span class="pre">StrictConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec-specs"><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.DURATION"><code class="docutils literal notranslate"><span class="pre">DURATION</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec"><code class="docutils literal notranslate"><span class="pre">Spec</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.axes"><code class="docutils literal notranslate"><span class="pre">Spec.axes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.calculate"><code class="docutils literal notranslate"><span class="pre">Spec.calculate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.frames"><code class="docutils literal notranslate"><span class="pre">Spec.frames()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.midpoints"><code class="docutils literal notranslate"><span class="pre">Spec.midpoints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.zip"><code class="docutils literal notranslate"><span class="pre">Spec.zip()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.concat"><code class="docutils literal notranslate"><span class="pre">Spec.concat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.serialize"><code class="docutils literal notranslate"><span class="pre">Spec.serialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.deserialize"><code class="docutils literal notranslate"><span class="pre">Spec.deserialize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Product"><code class="docutils literal notranslate"><span class="pre">Product</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Repeat"><code class="docutils literal notranslate"><span class="pre">Repeat</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Zip"><code class="docutils literal notranslate"><span class="pre">Zip</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Mask"><code class="docutils literal notranslate"><span class="pre">Mask</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Snake"><code class="docutils literal notranslate"><span class="pre">Snake</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Concat"><code class="docutils literal notranslate"><span class="pre">Concat</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Squash"><code class="docutils literal notranslate"><span class="pre">Squash</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Line"><code class="docutils literal notranslate"><span class="pre">Line</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Line.bounded"><code class="docutils literal notranslate"><span class="pre">Line.bounded()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Static"><code class="docutils literal notranslate"><span class="pre">Static</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Static.duration"><code class="docutils literal notranslate"><span class="pre">Static.duration()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Spiral"><code class="docutils literal notranslate"><span class="pre">Spiral</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spiral.spaced"><code class="docutils literal notranslate"><span class="pre">Spiral.spaced()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.fly"><code class="docutils literal notranslate"><span class="pre">fly()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.step"><code class="docutils literal notranslate"><span class="pre">step()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec-regions"><code class="docutils literal notranslate"><span class="pre">scanspec.regions</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Region"><code class="docutils literal notranslate"><span class="pre">Region</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.regions.Region.axis_sets"><code class="docutils literal notranslate"><span class="pre">Region.axis_sets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.regions.Region.mask"><code class="docutils literal notranslate"><span class="pre">Region.mask()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.get_mask"><code class="docutils literal notranslate"><span class="pre">get_mask()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.CombinationOf"><code class="docutils literal notranslate"><span class="pre">CombinationOf</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.UnionOf"><code class="docutils literal notranslate"><span class="pre">UnionOf</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.IntersectionOf"><code class="docutils literal notranslate"><span class="pre">IntersectionOf</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.DifferenceOf"><code class="docutils literal notranslate"><span class="pre">DifferenceOf</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.SymmetricDifferenceOf"><code class="docutils literal notranslate"><span class="pre">SymmetricDifferenceOf</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Range"><code class="docutils literal notranslate"><span class="pre">Range</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Rectangle"><code class="docutils literal notranslate"><span class="pre">Rectangle</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Polygon"><code class="docutils literal notranslate"><span class="pre">Polygon</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Circle"><code class="docutils literal notranslate"><span class="pre">Circle</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Ellipse"><code class="docutils literal notranslate"><span class="pre">Ellipse</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.find_regions"><code class="docutils literal notranslate"><span class="pre">find_regions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec-plot"><code class="docutils literal notranslate"><span class="pre">scanspec.plot</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.plot.plot_spec"><code class="docutils literal notranslate"><span class="pre">plot_spec()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec-service"><code class="docutils literal notranslate"><span class="pre">scanspec.service</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.Points"><code class="docutils literal notranslate"><span class="pre">Points</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.ValidResponse"><code class="docutils literal notranslate"><span class="pre">ValidResponse</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.PointsFormat"><code class="docutils literal notranslate"><span class="pre">PointsFormat</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.PointsRequest"><code class="docutils literal notranslate"><span class="pre">PointsRequest</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.GeneratedPointsResponse"><code class="docutils literal notranslate"><span class="pre">GeneratedPointsResponse</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.MidpointsResponse"><code class="docutils literal notranslate"><span class="pre">MidpointsResponse</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.BoundsResponse"><code class="docutils literal notranslate"><span class="pre">BoundsResponse</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.GapResponse"><code class="docutils literal notranslate"><span class="pre">GapResponse</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.SmallestStepResponse"><code class="docutils literal notranslate"><span class="pre">SmallestStepResponse</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.valid"><code class="docutils literal notranslate"><span class="pre">valid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.midpoints"><code class="docutils literal notranslate"><span class="pre">midpoints()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.bounds"><code class="docutils literal notranslate"><span class="pre">bounds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.gap"><code class="docutils literal notranslate"><span class="pre">gap()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.smallest_step"><code class="docutils literal notranslate"><span class="pre">smallest_step()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.run_app"><code class="docutils literal notranslate"><span class="pre">run_app()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.scanspec_schema_text"><code class="docutils literal notranslate"><span class="pre">scanspec_schema_text()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reference/rest_api.html">REST API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/contributing.html">Contributing to the project</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference/contributing.html#issue-or-discussion">Issue or Discussion?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/contributing.html#code-coverage">Code coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/contributing.html#developer-guide">Developer guide</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/releases">Releases</a></li>
+<li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
+</ul>
+</div>
+</section>
+
+
+            </article>
+            
+            
+            
+            <footer class="bd-footer-article">
+                <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+  <a class='left-prev' id="prev-link" href="explanations/why-squash-can-change-path.html" title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+          <p class="prev-next-subtitle">previous</p>
+          <p class="prev-next-title">Why Squash (and Mask) can change the Path</p>
+      </div>
+  </a>
+  <a class='right-next' id="next-link" href="reference/api.html" title="next page">
+  <div class="prev-next-info">
+      <p class="prev-next-subtitle">next</p>
+      <p class="prev-next-title">API</p>
+  </div>
+  <i class="fa-solid fa-angle-right"></i>
+  </a>
+</div>
+            </footer>
+            
+          </div>
+          
+          
+          
+            <div class="bd-sidebar-secondary bd-toc">
+              
+<div class="toc-item">
+  
+<div id="searchbox"></div>
+</div>
+
+<div class="toc-item">
+  
+
+<div class="tocsection editthispage">
+    <a href="https://github.com/dls-controls/scanspec/edit/0.6.0/docs/reference.rst">
+        <i class="fa-solid fa-pencil"></i> Edit this page
+    </a>
+</div>
+
+</div>
+
+<div class="toc-item">
+  
+<div class="tocsection sourcelink">
+    <a href="_sources/reference.rst.txt">
+        <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+</div>
+
+</div>
+
+            </div>
+          
+          
+        </div>
+        <footer class="bd-footer-content">
+          <div class="bd-footer-content__inner">
+            
+          </div>
+        </footer>
+        
+      </main>
+    </div>
+  </div>
+
+  
+    
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script>
+
+  <footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    <p class="theme-version">
+    Built with the
+    <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">
+        PyData Sphinx Theme
+    </a>
+    0.12.0.
+</p>
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+  </footer>
+  </body>
+</html>

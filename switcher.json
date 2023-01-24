@@ -4,6 +4,10 @@
     "url": "https://dls-controls.github.io/scanspec/master/"
   },
   {
+    "version": "0.6.0",
+    "url": "https://dls-controls.github.io/scanspec/0.6.0/"
+  },
+  {
     "version": "0.5.5",
     "url": "https://dls-controls.github.io/scanspec/0.5.5/"
   },
@@ -46,10 +50,6 @@
   {
     "version": "delete",
     "url": "https://dls-controls.github.io/scanspec/delete/"
-  },
-  {
-    "version": "fastapi-and-pydantic",
-    "url": "https://dls-controls.github.io/scanspec/fastapi-and-pydantic/"
   },
   {
     "version": "matplotlib-update",
