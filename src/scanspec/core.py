@@ -135,12 +135,12 @@ def _discriminated_union_of_subclasses(
     config: Optional[Type[BaseConfig]] = None,
 ) -> Union[Type, Callable[[Type], Type]]:
 
-    super_cls.__ref_classes__ = set()
-    super_cls.__model__ = None
+    super_cls._ref_classes = set()
+    super_cls._model = None
 
     def __init_subclass__(cls) -> None:
         # Keep track of inherting classes in super class
-        cls.__ref_classes__.add(cls)
+        cls._ref_classes.add(cls)
 
         # Add a discriminator field to the class so it can
         # be identified when deserailizing.
@@ -157,16 +157,16 @@ def _discriminated_union_of_subclasses(
         # Lazily initialize model on first use because this
         # needs to be done once, after all subclasses have been
         # declared
-        if cls.__model__ is None:
-            root = Union[tuple(cls.__ref_classes__)]  # type: ignore
-            cls.__model__ = create_model(
+        if cls._model is None:
+            root = Union[tuple(cls._ref_classes)]  # type: ignore
+            cls._model = create_model(
                 super_cls.__name__,
                 __root__=(root, Field(..., discriminator=discriminator)),
                 __config__=config,
             )
 
         try:
-            return cls.__model__(__root__=v).__root__
+            return cls._model(__root__=v).__root__
         except ValidationError as e:
             for (
                 error
