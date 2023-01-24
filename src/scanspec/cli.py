@@ -46,7 +46,7 @@ def plot(spec: str):
     "--port", default=8080, help="The port that the scanspec service will be hosted on."
 )
 def service(cors, port):
-    """Run up a GraphQL service."""
+    """Run up a REST service."""
     from scanspec.service import run_app
 
     run_app(cors, port)
@@ -54,7 +54,7 @@ def service(cors, port):
 
 @cli.command()
 def schema():
-    """Print the GraphQL schema for the service."""
+    """Print the OpenAPI schema for the service."""
     from scanspec.service import scanspec_schema_text
 
     click.echo(scanspec_schema_text())

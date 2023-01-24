@@ -227,10 +227,13 @@ def test_plot_3D_line() -> None:
 
 
 def test_schema() -> None:
+    # If this test fails, regenerate the schema by running
+    # scanspec schema > schema.json
+
     runner = CliRunner()
     result = runner.invoke(cli.schema)
     assert result.exit_code == 0
-    schema_path = pathlib.Path(__file__).resolve().parent.parent / "schema.gql"
+    schema_path = pathlib.Path(__file__).resolve().parent.parent / "schema.json"
     assert result.output == schema_path.read_text()
 
 

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, Generic, List, Mapping, Optional
+from dataclasses import asdict
+from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, Type
 
 import numpy as np
-from apischema import deserialize, schema, serialize
-from typing_extensions import Annotated as A
+from pydantic import Field, parse_obj_as
+from pydantic.dataclasses import dataclass
 
 from .core import (
     Axis,
@@ -13,12 +13,11 @@ from .core import (
     Midpoints,
     Path,
     SnakedFrames,
-    alternative_constructor,
-    as_tagged_union,
+    StrictConfig,
+    discriminated_union_of_subclasses,
     gap_between_frames,
     if_instance_do,
     squash_frames,
-    to_gql_input,
 )
 from .regions import Region, get_mask
 
@@ -44,8 +43,7 @@ __all__ = [
 DURATION = "DURATION"
 
 
-@as_tagged_union
-@dataclass
+@discriminated_union_of_subclasses(config=StrictConfig)
 class Spec(Generic[Axis]):
     """A serializable representation of the type and parameters of a scan.
 
@@ -101,19 +99,15 @@ class Spec(Generic[Axis]):
 
     def serialize(self) -> Mapping[str, Any]:
         """Serialize the spec to a dictionary."""
-        return serialize(Spec, self)
+        return asdict(self)
 
     @classmethod
-    def deserialize(cls, serialized: Mapping[str, Any]) -> Spec[Axis]:
+    def deserialize(cls, obj):
         """Deserialize the spec from a dictionary."""
-        return deserialize(cls, serialized)
-
-    def to_gql_input(self) -> str:
-        """Convert to the GraphQL input format."""
-        return to_gql_input(self.serialize())
+        return parse_obj_as(cls, obj)
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Product(Spec[Axis]):
     """Outer product of two Specs, nesting inner within outer.
 
@@ -126,8 +120,8 @@ class Product(Spec[Axis]):
         spec = Line("y", 1, 2, 3) * Line("x", 3, 4, 12)
     """
 
-    outer: A[Spec[Axis], schema(description="Will be executed once")]
-    inner: A[Spec[Axis], schema(description="Will be executed len(outer) times")]
+    outer: Spec[Axis] = Field(description="Will be executed once")
+    inner: Spec[Axis] = Field(description="Will be executed len(outer) times")
 
     def axes(self) -> List:
         return self.outer.axes() + self.inner.axes()
@@ -138,10 +132,7 @@ class Product(Spec[Axis]):
         return frames_outer + frames_inner
 
 
-ANum = A[int, schema(min=1, description="Number of frames to produce")]
-
-
-@dataclass
+@dataclass(config=StrictConfig)
 class Repeat(Spec[Axis]):
     """Repeat an empty frame num times.
 
@@ -164,14 +155,12 @@ class Repeat(Spec[Axis]):
     .. note:: There is no turnaround arrow at x=4
     """
 
-    num: ANum
-    gap: A[
-        bool,
-        schema(
-            description="If False and the slowest of the stack of Frames is snaked "
-            "then the end and start of consecutive iterations of Spec will have no gap"
-        ),
-    ] = True
+    num: int = Field(min=1, description="Number of frames to produce")
+    gap: bool = Field(
+        description="If False and the slowest of the stack of Frames is snaked "
+        "then the end and start of consecutive iterations of Spec will have no gap",
+        default=True,
+    )
 
     def axes(self) -> List:
         return []
@@ -180,7 +169,7 @@ class Repeat(Spec[Axis]):
         return [Frames({}, gap=np.full(self.num, self.gap))]
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Zip(Spec[Axis]):
     """Run two Specs in parallel, merging their midpoints together.
 
@@ -203,14 +192,12 @@ class Zip(Spec[Axis]):
         spec = Line("z", 1, 2, 3) * Line("y", 3, 4, 5).zip(Line("x", 4, 5, 5))
     """
 
-    left: A[
-        Spec[Axis],
-        schema(description="The left-hand Spec to Zip, will appear earlier in axes"),
-    ]
-    right: A[
-        Spec[Axis],
-        schema(description="The right-hand Spec to Zip, will appear later in axes"),
-    ]
+    left: Spec[Axis] = Field(
+        description="The left-hand Spec to Zip, will appear earlier in axes"
+    )
+    right: Spec[Axis] = Field(
+        description="The right-hand Spec to Zip, will appear later in axes"
+    )
 
     def axes(self) -> List:
         return self.left.axes() + self.right.axes()
@@ -253,12 +240,7 @@ class Zip(Spec[Axis]):
         return frames
 
 
-ACheckPathChanges = A[
-    bool, schema(description="If True path through scan will not be modified by squash")
-]
-
-
-@dataclass
+@dataclass(config=StrictConfig)
 class Mask(Spec[Axis]):
     """Restrict Spec to only midpoints that fall inside the given Region.
 
@@ -278,11 +260,12 @@ class Mask(Spec[Axis]):
     See Also: `why-squash-can-change-path`
     """
 
-    spec: A[Spec[Axis], schema(description="The Spec containing the source midpoints")]
-    region: A[
-        Region[Axis], schema(description="The Region that midpoints will be inside")
-    ]
-    check_path_changes: ACheckPathChanges = True
+    spec: Spec[Axis] = Field(description="The Spec containing the source midpoints")
+    region: Region[Axis] = Field(description="The Region that midpoints will be inside")
+    check_path_changes: bool = Field(
+        description="If True path through scan will not be modified by squash",
+        default=True,
+    )
 
     def axes(self) -> List:
         return self.spec.axes()
@@ -325,7 +308,7 @@ class Mask(Spec[Axis]):
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Snake(Spec[Axis]):
     """Run the Spec in reverse on every other iteration when nested.
 
@@ -338,10 +321,9 @@ class Snake(Spec[Axis]):
         spec = Line("y", 1, 3, 3) * ~Line("x", 3, 5, 5)
     """
 
-    spec: A[
-        Spec[Axis],
-        schema(description="The Spec to run in reverse every other iteration"),
-    ]
+    spec: Spec[Axis] = Field(
+        description="The Spec to run in reverse every other iteration"
+    )
 
     def axes(self) -> List:
         return self.spec.axes()
@@ -353,7 +335,7 @@ class Snake(Spec[Axis]):
         ]
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Concat(Spec[Axis]):
     """Concatenate two Specs together, running one after the other.
 
@@ -367,22 +349,20 @@ class Concat(Spec[Axis]):
         spec = Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5))
     """
 
-    left: A[
-        Spec[Axis],
-        schema(
-            description="The left-hand Spec to Concat, midpoints will appear earlier"
-        ),
-    ]
-    right: A[
-        Spec[Axis],
-        schema(
-            description="The right-hand Spec to Concat, midpoints will appear later"
-        ),
-    ]
-    gap: A[
-        bool, schema(description="If True, force a gap in the output at the join")
-    ] = False
-    check_path_changes: ACheckPathChanges = True
+    left: Spec[Axis] = Field(
+        description="The left-hand Spec to Concat, midpoints will appear earlier"
+    )
+    right: Spec[Axis] = Field(
+        description="The right-hand Spec to Concat, midpoints will appear later"
+    )
+
+    gap: bool = Field(
+        description="If True, force a gap in the output at the join", default=False
+    )
+    check_path_changes: bool = Field(
+        description="If True path through scan will not be modified by squash",
+        default=True,
+    )
 
     def axes(self) -> List:
         left_axes, right_axes = self.left.axes(), self.right.axes()
@@ -402,7 +382,7 @@ class Concat(Spec[Axis]):
         return [dim]
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Squash(Spec[Axis]):
     """Squash a stack of Frames together into a single expanded Frames object.
 
@@ -416,8 +396,11 @@ class Squash(Spec[Axis]):
         spec = Squash(Line("y", 1, 2, 3) * Line("x", 0, 1, 4))
     """
 
-    spec: A[Spec[Axis], schema(description="The Spec to squash the dimensions of")]
-    check_path_changes: ACheckPathChanges = True
+    spec: Spec[Axis] = Field(description="The Spec to squash the dimensions of")
+    check_path_changes: bool = Field(
+        description="If True path through scan will not be modified by squash",
+        default=True,
+    )
 
     def axes(self) -> List:
         return self.spec.axes()
@@ -455,10 +438,7 @@ def _dimensions_from_indexes(
     return [dimension]
 
 
-AAxis = A[Axis, schema(description="An identifier for what to move")]
-
-
-@dataclass
+@dataclass(config=StrictConfig)
 class Line(Spec[Axis]):
     """Linearly spaced frames with start and stop as first and last midpoints.
 
@@ -469,10 +449,10 @@ class Line(Spec[Axis]):
         spec = Line("x", 1, 2, 5)
     """
 
-    axis: AAxis[Axis]
-    start: A[float, schema(description="Midpoint of the first point of the line")]
-    stop: A[float, schema(description="Midpoint of the last point of the line")]
-    num: ANum
+    axis: Axis = Field(description="An identifier for what to move")
+    start: float = Field(description="Midpoint of the first point of the line")
+    stop: float = Field(description="Midpoint of the last point of the line")
+    num: int = Field(min=1, description="Number of frames to produce")
 
     def axes(self) -> List:
         return [self.axis]
@@ -494,16 +474,13 @@ class Line(Spec[Axis]):
             self._line_from_indexes, self.axes(), self.num, bounds
         )
 
-    @alternative_constructor
+    @classmethod
     def bounded(
-        axis: AAxis[Axis],
-        lower: A[
-            float, schema(description="Lower bound of the first point of the line")
-        ],
-        upper: A[
-            float, schema(description="Upper bound of the last point of the line")
-        ],
-        num: ANum,
+        cls,
+        axis: Axis = Field(description="An identifier for what to move"),
+        lower: float = Field(description="Lower bound of the first point of the line"),
+        upper: float = Field(description="Upper bound of the last point of the line"),
+        num: int = Field(min=1, description="Number of frames to produce"),
     ) -> Line[Axis]:
         """Specify a Line by extreme bounds instead of midpoints.
 
@@ -521,10 +498,10 @@ class Line(Spec[Axis]):
         else:
             # Many points, stop will be produced
             stop = upper - half_step
-        return Line(axis, start, stop, num)
+        return cls(axis, start, stop, num)
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Static(Spec[Axis]):
     """A static frame, repeated num times, with axis at value.
 
@@ -537,14 +514,15 @@ class Static(Spec[Axis]):
         spec = Line("y", 1, 2, 3).zip(Static("x", 3))
     """
 
-    axis: AAxis[Axis]
-    value: A[float, schema(description="The value at each point")]
-    num: ANum = 1
+    axis: Axis = Field(description="An identifier for what to move")
+    value: float = Field(description="The value at each point")
+    num: int = Field(min=1, description="Number of frames to produce", default=1)
 
-    @alternative_constructor
+    @classmethod
     def duration(
-        duration: A[float, schema(description="The duration of each static point")],
-        num: ANum = 1,
+        cls: Type[Static],
+        duration: float = Field(description="The duration of each static point"),
+        num: int = Field(min=1, description="Number of frames to produce", default=1),
     ) -> Static[str]:
         """A static spec with no motion, only a duration repeated "num" times.
 
@@ -554,7 +532,7 @@ class Static(Spec[Axis]):
 
             spec = Line("y", 1, 2, 3).zip(Static.duration(0.1))
         """
-        return Static(DURATION, duration, num)
+        return cls(DURATION, duration, num)
 
     def axes(self) -> List:
         return [self.axis]
@@ -568,7 +546,7 @@ class Static(Spec[Axis]):
         )
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Spiral(Spec[Axis]):
     """Archimedean spiral of "x_axis" and "y_axis".
 
@@ -582,16 +560,18 @@ class Spiral(Spec[Axis]):
         spec = Spiral("x", "y", 1, 5, 10, 50, 30)
     """
 
-    x_axis: A[Axis, schema(description="An identifier for what to move for x")]
-    y_axis: A[Axis, schema(description="An identifier for what to move for y")]
-    x_start: A[float, schema(description="x centre of the spiral")]
-    y_start: A[float, schema(description="y centre of the spiral")]
-    x_range: A[float, schema(description="x width of the spiral")]
-    y_range: A[float, schema(description="y width of the spiral")]
-    num: ANum
-    rotate: A[
-        float, schema(description="How much to rotate the angle of the spiral")
-    ] = 0.0
+    # TODO: Make use of typing.Annotated upon fix of
+    # https://github.com/pydantic/pydantic/issues/3496
+    x_axis: Axis = Field(description="An identifier for what to move for x")
+    y_axis: Axis = Field(description="An identifier for what to move for y")
+    x_start: float = Field(description="x centre of the spiral")
+    y_start: float = Field(description="y centre of the spiral")
+    x_range: float = Field(description="x width of the spiral")
+    y_range: float = Field(description="y width of the spiral")
+    num: int = Field(min=1, description="Number of frames to produce")
+    rotate: float = Field(
+        description="How much to rotate the angle of the spiral", default=0.0
+    )
 
     def axes(self) -> List[Axis]:
         # TODO: reversed from __init__ args, a good idea?
@@ -619,17 +599,18 @@ class Spiral(Spec[Axis]):
             self._spiral_from_indexes, self.axes(), self.num, bounds
         )
 
-    @alternative_constructor
+    @classmethod
     def spaced(
-        x_axis: A[Axis, schema(description="An identifier for what to move for x")],
-        y_axis: A[Axis, schema(description="An identifier for what to move for y")],
-        x_start: A[float, schema(description="x centre of the spiral")],
-        y_start: A[float, schema(description="y centre of the spiral")],
-        radius: A[float, schema(description="radius of the spiral")],
-        dr: A[float, schema(description="difference between each ring")],
-        rotate: A[
-            float, schema(description="How much to rotate the angle of the spiral")
-        ] = 0.0,
+        cls,
+        x_axis: Axis = Field(description="An identifier for what to move for x"),
+        y_axis: Axis = Field(description="An identifier for what to move for y"),
+        x_start: float = Field(description="x centre of the spiral"),
+        y_start: float = Field(description="y centre of the spiral"),
+        radius: float = Field(description="radius of the spiral"),
+        dr: float = Field(description="difference between each ring"),
+        rotate: float = Field(
+            description="How much to rotate the angle of the spiral", default=0.0
+        ),
     ) -> Spiral[Axis]:
         """Specify a Spiral equally spaced in "x_axis" and "y_axis".
 
@@ -645,7 +626,7 @@ class Spiral(Spec[Axis]):
         # so: num = n_rings^2 * pi
         n_rings = radius / dr
         num = int(n_rings**2 * np.pi)
-        return Spiral(
+        return cls(
             x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate
         )
 

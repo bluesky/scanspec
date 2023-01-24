@@ -42,10 +42,8 @@ extensions = [
     "sphinx.ext.inheritance_diagram",
     # Adds plotting directives
     "matplotlib.sphinxext.plot_directive",
-    # Graphiql directive
-    "sphinx_graphql.graphiql",
-    # Makes autodoc understand apischema annotated classes/functions
-    "sphinx_apischema",
+    # OpenAPI directive
+    "sphinxcontrib.openapi",
     # Add example_spec directive
     "scanspec.sphinxext",
     # Add a copy button to each code block
@@ -77,6 +75,8 @@ nitpick_ignore = [
     ("py:class", "'object'"),
     ("py:class", "'id'"),
     ("py:class", "typing_extensions.Literal"),
+    ("py:class", "pydantic.config.BaseConfig"),
+    ("py:class", "starlette.responses.JSONResponse"),
 ]
 
 # Both the class’ and the __init__ method’s docstring are concatenated and

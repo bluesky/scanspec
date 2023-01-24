@@ -1,139 +1,257 @@
 import base64
-from dataclasses import dataclass
-from typing import Any, List, Optional
+import json
+from enum import Enum
+from typing import List, Mapping, Optional, Tuple, Union
 
-import aiohttp_cors
-import graphql
 import numpy as np
-from aiohttp import web
-from apischema import schema
-from apischema.graphql import graphql_schema, resolver
-from graphql_server.aiohttp.graphqlview import GraphQLView, _asyncify
-from typing_extensions import Annotated as A
+from fastapi import Body, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import JSONResponse
+from pydantic import Field
+from pydantic.dataclasses import dataclass
 
-from scanspec.core import Frames, Path
-from scanspec.specs import Spec
+from scanspec.core import AxesPoints, Frames, Path
+
+from .specs import Line, Spec
+
+app = FastAPI()
+
+#
+# Data Model
+#
 
 
-@dataclass
-class Points:
-    """A collection of singular or multidimensional points in scan space."""
-
-    def __init__(self, points: np.ndarray):
-        self._points = points
-
-    @resolver
-    def string(self) -> str:
-        """Truncated string representation of array for debugging."""
-        return np.array2string(self._points)
-
-    @resolver
-    def float_list(self) -> List[float]:
-        """Float list representation of array."""
-        return self._points.tolist()
-
-    @resolver
-    def b64(self) -> str:
-        """Base64 encoded string representation of array."""
-        # make sure the data is sent as float64
-        assert self._points.dtype == np.dtype(np.float64)
-        return base64.b64encode(self._points.tobytes()).decode()
-
-    def get_points(self) -> np.ndarray:
-        return self._points
+#: A set of points, that can be returned in various formats
+Points = Union[str, List[float]]
 
 
 @dataclass
-class AxisFrames:
-    """The scan points restricted to one particular axis."""
+class ValidResponse:
+    """Response model for spec validation."""
 
-    axis: A[str, schema(description="An identifier for what to move")]
-    lower: A[
-        Points, schema(description="The lower bounds of each scan frame in each axis")
-    ]
-    midpoints: A[
-        Points, schema(description="The midpoints of scan frames for each axis")
-    ]
-    upper: A[
-        Points, schema(description="The upper bounds of each scan frame in each axis")
-    ]
+    input_spec: Spec = Field(description="The input scanspec")
+    valid_spec: Spec = Field(description="The validated version of the spec")
 
-    @resolver
-    def smallest_step(self) -> float:
-        """The smallest step between midpoints in this axis."""
-        return _calc_smallest_step([self.midpoints.get_points()])
+
+class PointsFormat(str, Enum):
+    """Formats in which we can return points."""
+
+    STRING = "STRING"
+    FLOAT_LIST = "FLOAT_LIST"
+    BASE64_ENCODED = "BASE64_ENCODED"
 
 
 @dataclass
-class PointsResponse:
-    """Information about the points provided by a spec."""
+class PointsRequest:
+    """A request for generated scan points."""
 
-    total_frames: int
-    returned_frames: int
-
-    def __init__(self, chunk: Frames[str], total_frames: int):
-        self.total_frames = total_frames
-        """The number of frames present across the entire spec"""
-        self.returned_frames = len(chunk)
-        """The number of frames returned by the getPoints query
-        (controlled by the max_points argument)"""
-        self._chunk = chunk
-
-    @resolver
-    def axes(self) -> List[AxisFrames]:
-        """A list of all of the points present in the spec per axis."""
-        return [
-            AxisFrames(
-                axis,
-                Points(self._chunk.lower[axis]),
-                Points(self._chunk.midpoints[axis]),
-                Points(self._chunk.upper[axis]),
-            )
-            for axis in self._chunk.axes()
-        ]
-
-    @resolver
-    def smallest_abs_step(self) -> float:
-        """The smallest step between midpoints across ALL axes in the scan."""
-        return _calc_smallest_step(list(self._chunk.midpoints.values()))
+    spec: Spec = Field(description="The spec from which to generate points")
+    max_frames: Optional[int] = Field(
+        description="The maximum number of points to return, if None will return "
+        "as many as calculated",
+        default=100000,
+    )
+    format: PointsFormat = Field(
+        description="The format in which to output the points data",
+        default=PointsFormat.FLOAT_LIST,
+    )
 
 
-def _calc_smallest_step(points: List[np.ndarray]) -> float:
-    # Calc abs diffs of all axes
-    absolute_diffs = [abs_diffs(axis_midpoints) for axis_midpoints in points]
-    # Return the smallest value (Aka. smallest step)
-    return np.amin(np.linalg.norm(absolute_diffs, axis=0))
+@dataclass
+class GeneratedPointsResponse:
+    """Base class for responses that include generated point data."""
+
+    total_frames: int = Field(description="Total number of frames in spec")
+    returned_frames: int = Field(
+        description="Total of number of frames in this response, may be "
+        "less than total_frames due to downsampling etc."
+    )
+    format: PointsFormat = Field(description="Format of returned point data")
 
 
-def abs_diffs(array: np.ndarray) -> np.ndarray:
-    """Calculates the absolute differences between adjacent elements in the array.
+@dataclass
+class MidpointsResponse(GeneratedPointsResponse):
+    """Midpoints of a generated scan."""
+
+    midpoints: Mapping[str, Points] = Field(
+        description="The midpoints of scan frames for each axis"
+    )
+
+
+@dataclass
+class BoundsResponse(GeneratedPointsResponse):
+    """Bounds of a generated scan."""
+
+    lower: Mapping[str, Points] = Field(
+        description="Lower bounds of scan frames if different from midpoints"
+    )
+    upper: Mapping[str, Points] = Field(
+        description="Upper bounds of scan frames if different from midpoints"
+    )
+
+
+@dataclass
+class GapResponse:
+    """Presence of gaps in a generated scan."""
+
+    gap: List[bool] = Field(
+        description="Boolean array indicating if there is a gap between each frame"
+    )
+
+
+@dataclass
+class SmallestStepResponse:
+    """Information about the smallest steps between points in a spec."""
+
+    absolute: float = Field(
+        description="Absolute smallest distance between two points on a single axis"
+    )
+    per_axis: Mapping[str, float] = Field(
+        description="Smallest distance between two points on each axis"
+    )
+
+
+#
+# API Routes
+#
+
+_EXAMPLE_SPEC = Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 4)
+_EXAMPLE_POINTS_REQUEST = PointsRequest(
+    _EXAMPLE_SPEC, max_frames=1024, format=PointsFormat.FLOAT_LIST
+)
+
+
+@app.post("/valid", response_model=ValidResponse)
+def valid(
+    spec: Spec = Body(..., example=_EXAMPLE_SPEC)
+) -> Union[ValidResponse, JSONResponse]:
+    """Validate wether a ScanSpec can produce a viable scan.
 
     Args:
-        array: A 1xN array of numerical values
+        spec: The scanspec to validate
 
     Returns:
-        A newly constucted array of absolute differences
+        ValidResponse: A canonical version of the spec if it is valid.
+            An error otherwise.
     """
-    # [array[1] - array[0], array[2] - array[1], ...]
-    adjacent_diffs = array[1:] - array[:-1]
-    return np.absolute(adjacent_diffs)
+    valid_spec = Spec.deserialize(spec.serialize())
+    return ValidResponse(spec, valid_spec)
 
 
-# Checks that the spec will produce a valid scan
-def validate_spec(spec: Spec[str]) -> Any:
-    """A query used to confirm whether or not the Spec will produce a viable scan."""
-    # apischema will do all the validation for us
-    return spec.serialize()
+@app.post("/midpoints", response_model=MidpointsResponse)
+def midpoints(
+    request: PointsRequest = Body(
+        ...,
+        example=_EXAMPLE_POINTS_REQUEST,
+    )
+) -> MidpointsResponse:
+    """Generate midpoints from a scanspec.
 
-
-# Returns a full list of points for each axis in the scan
-def get_points(spec: Spec[str], max_frames: Optional[int] = 100000) -> PointsResponse:
-    """Calculate the frames present in the scan plus some metadata about the points.
+    A scanspec can produce bounded points (i.e. a point is valid if an
+    axis is between a minimum and and a maximum, see /bounds). The midpoints
+    are the middle of each set of bounds.
 
     Args:
-        spec: The specification of the scan
-        max_frames: The maximum number of frames the user wishes to receive
+        request: Scanspec and formatting info.
+
+    Returns:
+        MidpointsResponse: Midpoints of the scan
     """
+    chunk, total_frames = _to_chunk(request)
+    return MidpointsResponse(
+        total_frames,
+        request.max_frames or total_frames,
+        request.format,
+        _format_axes_points(chunk.midpoints, request.format),
+    )
+
+
+@app.post("/bounds", response_model=BoundsResponse)
+def bounds(
+    request: PointsRequest = Body(
+        ...,
+        example=_EXAMPLE_POINTS_REQUEST,
+    )
+) -> BoundsResponse:
+    """Generate bounds from a scanspec.
+
+    A scanspec can produce points with lower and upper bounds.
+
+    Args:
+        request: Scanspec and formatting info.
+
+    Returns:
+        BoundsResponse: Bounds of the scan
+    """
+    chunk, total_frames = _to_chunk(request)
+    return BoundsResponse(
+        total_frames,
+        request.max_frames or total_frames,
+        request.format,
+        _format_axes_points(chunk.lower, request.format),
+        _format_axes_points(chunk.upper, request.format),
+    )
+
+
+@app.post("/gap", response_model=GapResponse)
+def gap(
+    spec: Spec = Body(
+        ...,
+        example=_EXAMPLE_SPEC,
+    )
+) -> GapResponse:
+    """Generate gaps from a scanspec.
+
+    A scanspec may indicate if there is a gap between two frames.
+    The array returned corresponds to whether or not there is a gap
+    after each frame.
+
+    Args:
+        request: Scanspec and formatting info.
+
+    Returns:
+        GapResponse: Bounds of the scan
+    """
+    dims = spec.calculate()  # Grab dimensions from spec
+    path = Path(dims)  # Convert to a path
+    gap = list(path.consume().gap)
+    return GapResponse(gap)
+
+
+@app.post("/smalleststep", response_model=SmallestStepResponse)
+def smallest_step(
+    spec: Spec = Body(..., example=_EXAMPLE_SPEC)
+) -> SmallestStepResponse:
+    """Calculate the smallest step in a scan, both absolutely and per-axis.
+
+    Ignore any steps of size 0.
+
+    Args:
+        spec: The spec of the scan
+
+    Returns:
+        SmallestStepResponse: A description of the smallest steps in the spec
+    """
+    dims = spec.calculate()  # Grab dimensions from spec
+    path = Path(dims)  # Convert to a path
+    chunk = path.consume()
+
+    absolute = _calc_smallest_step(list(chunk.midpoints.values()))
+    per_axis = {
+        axis: _calc_smallest_step([chunk.midpoints[axis]]) for axis in chunk.axes()
+    }
+
+    return SmallestStepResponse(absolute, per_axis)
+
+
+#
+# Utility Functions
+#
+
+
+def _to_chunk(request: PointsRequest) -> Tuple[Frames, int]:
+    spec = Spec.deserialize(request.spec)
     dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
 
@@ -142,20 +260,43 @@ def get_points(spec: Spec[str], max_frames: Optional[int] = 100000) -> PointsRes
 
     # MAX FRAMES
     # Limit the consumed data by the max_frames argument
+    max_frames = request.max_frames
     if max_frames and (max_frames < len(path)):
         # Cap the frames by the max limit
-        path = reduce_frames(dims, max_frames)
+        path = _reduce_frames(dims, max_frames)
     # WARNING: path object is consumed after this statement
-    chunk = path.consume(max_frames)
-
-    return PointsResponse(chunk, total_frames)
+    return path.consume(max_frames), total_frames
 
 
-# Define the schema
-scanspec_schema = graphql_schema(query=[validate_spec, get_points])
+def _format_axes_points(
+    axes_points: AxesPoints[str], format: PointsFormat
+) -> Mapping[str, Points]:
+    """Convert points to a requested format.
+
+    Args:
+        axes_points: The points to convert
+        format: The target format
+
+    Raises:
+        KeyError: If the function does not support the given format
+
+    Returns:
+        Mapping[str, Points]: A mapping of axis to formatted points.
+    """
+    if format is PointsFormat.FLOAT_LIST:
+        return {axis: list(points) for axis, points in axes_points.items()}
+    elif format is PointsFormat.STRING:
+        return {axis: str(points) for axis, points in axes_points.items()}
+    elif format is PointsFormat.BASE64_ENCODED:
+        return {
+            axis: base64.b64encode(points.tobytes()).decode()
+            for axis, points in axes_points.items()
+        }
+    else:
+        raise KeyError(f"Unknown format: {format}")
 
 
-def reduce_frames(stack: List[Frames[str]], max_frames: int) -> Path:
+def _reduce_frames(stack: List[Frames[str]], max_frames: int) -> Path:
     """Removes frames from a spec so len(path) < max_frames.
 
     Args:
@@ -170,11 +311,11 @@ def reduce_frames(stack: List[Frames[str]], max_frames: int) -> Path:
     # Need each dim to be this much smaller
     ratio = 1 / np.power(max_frames / num_frames, 1 / len(stack))
 
-    sub_frames = [sub_sample(f, ratio) for f in stack]
+    sub_frames = [_sub_sample(f, ratio) for f in stack]
     return Path(sub_frames)
 
 
-def sub_sample(frames: Frames[str], ratio: float) -> Frames:
+def _sub_sample(frames: Frames[str], ratio: float) -> Frames:
     """Provides a sub-sample Frames object whilst preserving its core structure.
 
     Args:
@@ -186,40 +327,58 @@ def sub_sample(frames: Frames[str], ratio: float) -> Frames:
     return frames.extract(indexes, calculate_gap=False)
 
 
-def scanspec_schema_text() -> str:
-    """Return the text representation of the GraphQL schema."""
-    return graphql.utilities.print_schema(scanspec_schema)
+def _calc_smallest_step(points: List[np.ndarray]) -> float:
+    # Calc abs diffs of all axes, ignoring any zero values
+    absolute_diffs = [_abs_diffs(axis_midpoints) for axis_midpoints in points]
+    # Normalize and remove zeros
+    norm_diffs = np.linalg.norm(absolute_diffs, axis=0)
+    norm_diffs = norm_diffs[norm_diffs > 0.0]
+    # Return the smallest value (Aka. smallest step)
+    return np.amin(norm_diffs)
 
 
-def run_app(cors=False, port=8080):
+def _abs_diffs(array: np.ndarray) -> np.ndarray:
+    """Calculates the absolute differences between adjacent elements in the array.
+
+    Args:
+        array: A 1xN array of numerical values
+
+    Returns:
+        A newly constucted array of absolute differences
+    """
+    # [array[1] - array[0], array[2] - array[1], ...]
+    adjacent_diffs = array[1:] - array[:-1]
+    return np.absolute(adjacent_diffs)
+
+
+def run_app(cors: bool = False, port: int = 8080) -> None:
     """Run an application providing the scanspec service."""
-    app = web.Application()
-
-    view = GraphQLView(schema=scanspec_schema, graphiql=True)
-
-    # Make GraphQLView compatible with aiohttp-cors
-    # https://github.com/aio-libs/aiohttp-cors/issues/241#issuecomment-514278001
-    for method in ("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"):  # no OPTIONS
-        app.router.add_route(method, "/graphql", _asyncify(view), name="graphql")
-
-    # Optional, for adding batch query support (used in Apollo-Client)
-    # GraphQLView.attach(app, schema=schema, batch=True, route_path="/graphql/batch")
-
     if cors:
-        # Configure default CORS settings.
-        cors_config = aiohttp_cors.setup(
-            app,
-            defaults={
-                "*": aiohttp_cors.ResourceOptions(
-                    allow_credentials=True,
-                    expose_headers="*",
-                    allow_headers="*",
-                )
-            },
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
         )
 
-        # Configure CORS on all routes.
-        for route in list(app.router.routes()):
-            cors_config.add(route)
+    import uvicorn
 
-    web.run_app(app, port=port)
+    uvicorn.run(app, port=port)
+
+
+def scanspec_schema_text() -> str:
+    """Generate the OpenAPI schema for the service as a string.
+
+    Returns:
+        str: The OpenAPI schema
+    """
+    return json.dumps(
+        get_openapi(
+            title=app.title,
+            version=app.version,
+            openapi_version=app.openapi_version,
+            description=app.description,
+            routes=app.routes,
+        )
+    )

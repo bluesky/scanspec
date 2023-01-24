@@ -13,12 +13,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 description = "Specify step and flyscan paths in a serializable, efficient and Pythonic way"
-dependencies = [
-    "numpy>=1.19.3",
-    "click",
-    "apischema>=0.17.2",
-    "typing_extensions",
-]
+dependencies = ["numpy>=1.19.3", "click", "pydantic", "typing_extensions"]
 dynamic = ["version"]
 license.file = "LICENSE"
 readme = "README.rst"
@@ -31,8 +26,8 @@ plotting = [
     "scipy>=1.5.4",
     "matplotlib>=3.2.2",
 ]
-# GraphQL service support
-graphql = ["graphql-server[aiohttp]==3.0.0b5", "aiohttp_cors"]
+# REST service support
+service = ["fastapi", "uvicorn"]
 # For development tests/docs
 dev = [
     "black==22.3.0",
@@ -47,10 +42,10 @@ dev = [
     "sphinx-autobuild",
     "sphinx-copybutton",
     "sphinx-design",
-    "sphinx-graphql",
-    "sphinx-apischema",
+    "sphinxcontrib-openapi",
     "tox-direct",
     "types-mock",
+    "httpx",
 ]
 
 [project.scripts]
@@ -68,6 +63,7 @@ name = "Tom Cobb"
 write_to = "src/scanspec/_version.py"
 
 [tool.mypy]
+plugins = "pydantic.mypy"
 ignore_missing_imports = true # Ignore missing stubs in imported modules
 
 [tool.isort]

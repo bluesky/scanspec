@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import json
-from types import new_class
+from dataclasses import field
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -15,19 +13,15 @@ from typing import (
     Sequence,
     Type,
     TypeVar,
+    Union,
 )
 
 import numpy as np
-from apischema import deserializer, serializer, type_name
-from apischema.conversions import Conversion
-from apischema.metadata import conversion
-from apischema.objects import object_deserialization
-from apischema.tagged_unions import Tagged, TaggedUnion, get_tagged
-from apischema.utils import to_pascal_case
+from pydantic import BaseConfig, Extra, Field, ValidationError, create_model
+from pydantic.error_wrappers import ErrorWrapper
+from typing_extensions import Literal
 
 __all__ = [
-    "alternative_constructor",
-    "as_tagged_union",
     "if_instance_do",
     "Axis",
     "AxesPoints",
@@ -37,140 +31,159 @@ __all__ = [
     "squash_frames",
     "Path",
     "Midpoints",
+    "discriminated_union_of_subclasses",
+    "StrictConfig",
 ]
 
 
-def _rec_subclasses(cls: type) -> Iterator[type]:
-    for sub_cls in cls.__subclasses__():
-        yield sub_cls
-        yield from _rec_subclasses(sub_cls)
+class StrictConfig(BaseConfig):
+    """Pydantic configuration for scanspecs and regions."""
+
+    extra: Extra = Extra.forbid
 
 
-# {cls_name: [functions]}
-_alternative_constructors: Dict[str, List[Callable]] = {}
-if TYPE_CHECKING:
-    # Close enough for mypy
-    alternative_constructor = staticmethod
-else:
+def discriminated_union_of_subclasses(
+    super_cls: Optional[Type] = None,
+    *,
+    discriminator: str = "type",
+    config: Optional[Type[BaseConfig]] = None,
+) -> Union[Type, Callable[[Type], Type]]:
+    """Add all subclasses of super_cls to a discriminated union.
 
-    def alternative_constructor(f):
-        """Register an alternative constructor for this class.
+    For all subclasses of super_cls, add a discriminator field to identify
+    the type. Raw JSON should look like {"type": <type name>, params for
+    <type name>...}.
+    Add validation methods to super_cls so it can be parsed by pydantic.parse_obj_as.
 
-        This will be returned as a staticmethod so the signature should not
-        include self/cls.
+    Example::
 
-        >>> import dataclasses
-        >>> @dataclasses.dataclass
-        ... class Foo:
-        ...     a: int
-        ...     @alternative_constructor
-        ...     def doubled(b: int) -> "Foo":
-        ...         return Foo(b * 2)
-        ...
-        >>> Foo.doubled(2)
-        Foo(a=4)
-        """
-        cls_name = f.__qualname__.split(".")[0]
-        _alternative_constructors.setdefault(cls_name, []).append(f)
-        return staticmethod(f)
+        @discriminated_union_of_subclasses
+        class Expression(ABC):
+            @abstractmethod
+            def calculate(self) -> int:
+                ...
 
 
-generic_name = type_name(lambda cls, *args: cls.__name__)
+        @dataclass
+        class Add(Expression):
+            left: Expression
+            right: Expression
+
+            def calculate(self) -> int:
+                return self.left.calculate() + self.right.calculate()
 
 
-def to_gql_input(ob) -> str:
-    """Convert plain Python objects to their GraphQL representation.
+        @dataclass
+        class Subtract(Expression):
+            left: Expression
+            right: Expression
 
-    >>> to_gql_input({"a": {"b": 1, "c": True, "d": [4.2, 3.4], "e": "e"}})
-    '{a: {b: 1, c: true, d: [4.2, 3.4], e: "e"}}'
+            def calculate(self) -> int:
+                return self.left.calculate() - self.right.calculate()
+
+
+        @dataclass
+        class IntLiteral(Expression):
+            value: int
+
+            def calculate(self) -> int:
+                return self.value
+
+
+        my_sum = Add(IntLiteral(5), Subtract(IntLiteral(10), IntLiteral(2)))
+        assert my_sum.calculate() == 13
+
+        assert my_sum == parse_obj_as(
+            Expression,
+            {
+                "type": "Add",
+                "left": {"type": "IntLiteral", "value": 5},
+                "right": {
+                    "type": "Subtract",
+                    "left": {"type": "IntLiteral", "value": 10},
+                    "right": {"type": "IntLiteral", "value": 2},
+                },
+            },
+        )
+
+    Args:
+        super_cls: The superclass of the union, Expression in the above example
+        discriminator: The discriminator that will be inserted into the
+            serialized documents for type determination. Defaults to "type".
+        config: A pydantic config class to be inserted into all
+            subclasses. Defaults to None.
+
+    Returns:
+        Union[Type, Callable[[Type], Type]]: A decorator that adds the necessary
+            functionality to a class.
     """
-    if isinstance(ob, dict):
-        inner = ", ".join(f"{k}: {to_gql_input(v)}" for k, v in ob.items())
-        return "{%s}" % inner
-    elif isinstance(ob, list):
-        inner = ", ".join(to_gql_input(v) for v in ob)
-        return "[%s]" % inner
-    elif isinstance(ob, (str, int, float, bool)):
-        return json.dumps(ob)
+
+    def wrap(cls):
+        return _discriminated_union_of_subclasses(cls, discriminator, config)
+
+    # Work out if the call was @discriminated_union_of_subclasses or
+    # @discriminated_union_of_subclasses(...)
+    if super_cls is None:
+        return wrap
     else:
-        raise ValueError("Cannot format %r" % ob)
+        return wrap(super_cls)
 
 
-def as_tagged_union(cls: Type):
-    """Used by `Spec` and `Region` so they serialize as a tagged union."""
-    params = tuple(getattr(cls, "__parameters__", ()))
-    tagged_union_bases: tuple = (TaggedUnion,)
-    if params:
-        tagged_union_bases = (TaggedUnion, Generic[params])  # type: ignore
-        generic_name(cls)
-        prev_init_subclass = getattr(cls, "__init_subclass__", None)
+def _discriminated_union_of_subclasses(
+    super_cls: Type,
+    discriminator: str,
+    config: Optional[Type[BaseConfig]] = None,
+) -> Union[Type, Callable[[Type], Type]]:
 
-        def __init_subclass__(cls, **kwargs):
-            if prev_init_subclass is not None:
-                prev_init_subclass(**kwargs)
-            generic_name(cls)
+    super_cls._ref_classes = set()
+    super_cls._model = None
 
-        cls.__init_subclass__ = classmethod(__init_subclass__)  # type: ignore
+    def __init_subclass__(cls) -> None:
+        # Keep track of inherting classes in super class
+        cls._ref_classes.add(cls)
 
-    def with_params(cls: type) -> Any:
-        return cls[params] if params else cls  # type: ignore
-
-    def serialization() -> Conversion:
-        annotations = {
-            # Assume that subclasses have same generic parameters than cls
-            sub.__name__: Tagged[with_params(sub)]  # type: ignore
-            for sub in _rec_subclasses(cls)
+        # Add a discriminator field to the class so it can
+        # be identified when deserailizing.
+        cls.__annotations__ = {
+            **cls.__annotations__,
+            discriminator: Literal[cls.__name__],
         }
-        namespace = {"__annotations__": annotations}
-        tagged_union = new_class(
-            cls.__name__, tagged_union_bases, exec_body=lambda ns: ns.update(namespace)
-        )
-        return Conversion(
-            lambda obj: tagged_union(**{obj.__class__.__name__: obj}),
-            source=with_params(cls),
-            target=with_params(tagged_union),
-            # Conversion must not be inherited because it would lead to
-            # infinite recursion otherwise
-            inherited=False,
-        )
+        setattr(cls, discriminator, field(default=cls.__name__, repr=False))
 
-    def type_name_factory_for_subclass(sub):
-        return type_name(lambda cls, *args: to_pascal_case(cls.__name__ + sub.__name__))
+    def __get_validators__(cls) -> Any:
+        yield cls.__validate__
 
-    def deserialization() -> Conversion:
-        annotations: Dict[str, Any] = {}
-        namespace: Dict[str, Any] = {"__annotations__": annotations}
-        for sub in _rec_subclasses(cls):
-            # Assume that subclasses have same generic parameters than cls
-            annotations[sub.__name__] = Tagged[with_params(sub)]  # type: ignore
-            # Add tagged fields for all its alternative constructors
-            for constructor in _alternative_constructors.get(sub.__name__, ()):
-                # Build the alias of the field
-                alias = to_pascal_case(constructor.__name__ + sub.__name__)
-                # object_deserialization uses get_type_hints, but the constructor
-                # return type is stringified and the class not defined yet,
-                # so it must be assigned manually
-                constructor.__annotations__["return"] = with_params(sub)
-                # Use object_deserialization to wrap constructor as deserializer
-                deserialization = object_deserialization(
-                    constructor, type_name_factory_for_subclass(sub)
-                )
-                # Add constructor tagged field with its conversion
-                annotations[alias] = Tagged[with_params(sub)]  # type: ignore
-                namespace[alias] = Tagged(conversion(deserialization=deserialization))
-        # Create the deserialization tagged union class
-        tagged_union = new_class(
-            cls.__name__, tagged_union_bases, exec_body=lambda ns: ns.update(namespace)
-        )
-        return Conversion(
-            lambda obj: get_tagged(obj)[1],
-            source=with_params(tagged_union),
-            target=with_params(cls),
-        )
+    def __validate__(cls, v: Any) -> Any:
+        # Lazily initialize model on first use because this
+        # needs to be done once, after all subclasses have been
+        # declared
+        if cls._model is None:
+            root = Union[tuple(cls._ref_classes)]  # type: ignore
+            cls._model = create_model(
+                super_cls.__name__,
+                __root__=(root, Field(..., discriminator=discriminator)),
+                __config__=config,
+            )
 
-    deserializer(lazy=deserialization, target=cls)
-    serializer(lazy=serialization, source=cls)
-    return cls
+        try:
+            return cls._model(__root__=v).__root__
+        except ValidationError as e:
+            for (
+                error
+            ) in e.raw_errors:  # need in to remove redundant __root__ from error path
+                if (
+                    isinstance(error, ErrorWrapper)
+                    and error.loc_tuple()[0] == "__root__"
+                ):
+                    error._loc = error.loc_tuple()[1:]
+
+            raise e
+
+    # Inject magic methods into super_cls
+    for method in __init_subclass__, __get_validators__, __validate__:
+        setattr(super_cls, method.__name__, classmethod(method))  # type: ignore
+
+    return super_cls
 
 
 def if_instance_do(x: Any, cls: Type, func: Callable):

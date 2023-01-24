@@ -14,7 +14,7 @@ from code:
 - `scanspec.specs`: `Spec` and its subclasses
 - `scanspec.regions`: `Region` and its subclasses
 - `scanspec.plot`: `plot_spec` to visualize a scan
-- `scanspec.service`: Defines queries and field structure in graphQL such as `PointsResponse`
+- `scanspec.service`: Defines queries and field structure in REST such as `MidpointsResponse`
 
 .. data:: scanspec.__version__
     :type: str
@@ -55,16 +55,6 @@ from code:
 
 .. automodule:: scanspec.service
     :members:
-    :exclude-members: abs_diffs, Points, AxisFrames, PointsResponse
 
     ``scanspec.service``
     --------------------
-
-    .. autoclass:: scanspec.service.Points
-        :members:
-
-    .. autoclass:: scanspec.service.AxisFrames
-        :members:
-
-    .. autoclass:: scanspec.service.PointsResponse
-        :members:

@@ -1,13 +1,18 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, is_dataclass
 from typing import Generic, Iterator, List, Set
 
 import numpy as np
-from apischema import schema
-from typing_extensions import Annotated as A
+from pydantic import BaseModel, Field
+from pydantic.dataclasses import dataclass
 
-from .core import AxesPoints, Axis, as_tagged_union, if_instance_do
+from .core import (
+    AxesPoints,
+    Axis,
+    StrictConfig,
+    discriminated_union_of_subclasses,
+    if_instance_do,
+)
 
 __all__ = [
     "Region",
@@ -26,8 +31,7 @@ __all__ = [
 ]
 
 
-@as_tagged_union
-@dataclass
+@discriminated_union_of_subclasses
 class Region(Generic[Axis]):
     """Abstract baseclass for a Region that can `Mask` a `Spec`.
 
@@ -89,12 +93,12 @@ def _merge_axis_sets(axis_sets: List[Set[Axis]]) -> Iterator[Set[Axis]]:
             yield axis_set
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class CombinationOf(Region[Axis]):
     """Abstract baseclass for a combination of two regions, left and right."""
 
-    left: A[Region[Axis], schema(description="The left-hand Region to combine")]
-    right: A[Region[Axis], schema(description="The right-hand Region to combine")]
+    left: Region[Axis] = Field(description="The left-hand Region to combine")
+    right: Region[Axis] = Field(description="The right-hand Region to combine")
 
     def axis_sets(self) -> List[Set[Axis]]:
         axis_sets = list(
@@ -104,7 +108,7 @@ class CombinationOf(Region[Axis]):
 
 
 # Naming so we don't clash with typing.Union
-@dataclass
+@dataclass(config=StrictConfig)
 class UnionOf(CombinationOf[Axis]):
     """A point is in UnionOf(a, b) if in either a or b.
 
@@ -120,7 +124,7 @@ class UnionOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class IntersectionOf(CombinationOf[Axis]):
     """A point is in IntersectionOf(a, b) if in both a and b.
 
@@ -136,7 +140,7 @@ class IntersectionOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class DifferenceOf(CombinationOf[Axis]):
     """A point is in DifferenceOf(a, b) if in a and not in b.
 
@@ -154,7 +158,7 @@ class DifferenceOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class SymmetricDifferenceOf(CombinationOf[Axis]):
     """A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.
 
@@ -170,7 +174,7 @@ class SymmetricDifferenceOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Range(Region[Axis]):
     """Mask contains points of axis >= min and <= max.
 
@@ -179,9 +183,9 @@ class Range(Region[Axis]):
     array([False,  True,  True, False, False])
     """
 
-    axis: A[Axis, schema(description="The name matching the axis to mask in spec")]
-    min: A[float, schema(description="The minimum inclusive value in the region")]
-    max: A[float, schema(description="The minimum inclusive value in the region")]
+    axis: Axis = Field(description="The name matching the axis to mask in spec")
+    min: float = Field(description="The minimum inclusive value in the region")
+    max: float = Field(description="The minimum inclusive value in the region")
 
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.axis}]
@@ -192,7 +196,7 @@ class Range(Region[Axis]):
         return mask
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Rectangle(Region[Axis]):
     """Mask contains points of axis within a rotated xy rectangle.
 
@@ -205,15 +209,15 @@ class Rectangle(Region[Axis]):
         spec = grid & Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30)
     """
 
-    x_axis: A[Axis, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[Axis, schema(description="The name matching the y axis of the spec")]
-    x_min: A[float, schema(description="Minimum inclusive x value in the region")]
-    y_min: A[float, schema(description="Minimum inclusive y value in the region")]
-    x_max: A[float, schema(description="Maximum inclusive x value in the region")]
-    y_max: A[float, schema(description="Maximum inclusive y value in the region")]
-    angle: A[
-        float, schema(description="Clockwise rotation angle of the rectangle")
-    ] = 0.0
+    x_axis: Axis = Field(description="The name matching the x axis of the spec")
+    y_axis: Axis = Field(description="The name matching the y axis of the spec")
+    x_min: float = Field(description="Minimum inclusive x value in the region")
+    y_min: float = Field(description="Minimum inclusive y value in the region")
+    x_max: float = Field(description="Maximum inclusive x value in the region")
+    y_max: float = Field(description="Maximum inclusive y value in the region")
+    angle: float = Field(
+        description="Clockwise rotation angle of the rectangle", default=0.0
+    )
 
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]
@@ -233,7 +237,7 @@ class Rectangle(Region[Axis]):
         return mask_x & mask_y
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Polygon(Region[Axis]):
     """Mask contains points of axis within a rotated xy polygon.
 
@@ -246,16 +250,14 @@ class Polygon(Region[Axis]):
         spec = grid & Polygon("x", "y", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])
     """
 
-    x_axis: A[Axis, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[Axis, schema(description="The name matching the y axis of the spec")]
-    x_verts: A[
-        List[float],
-        schema(description="The Nx1 x coordinates of the polygons vertices", min_len=3),
-    ]
-    y_verts: A[
-        List[float],
-        schema(description="The Nx1 y coordinates of the polygons vertices", min_len=3),
-    ]
+    x_axis: Axis = Field(description="The name matching the x axis of the spec")
+    y_axis: Axis = Field(description="The name matching the y axis of the spec")
+    x_verts: List[float] = Field(
+        description="The Nx1 x coordinates of the polygons vertices", min_len=3
+    )
+    y_verts: List[float] = Field(
+        description="The Nx1 y coordinates of the polygons vertices", min_len=3
+    )
 
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]
@@ -278,7 +280,7 @@ class Polygon(Region[Axis]):
         return mask
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Circle(Region[Axis]):
     """Mask contains points of axis within an xy circle of given radius.
 
@@ -291,11 +293,11 @@ class Circle(Region[Axis]):
         spec = grid & Circle("x", "y", 1, 2, 0.9)
     """
 
-    x_axis: A[Axis, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[Axis, schema(description="The name matching the y axis of the spec")]
-    x_middle: A[float, schema(description="The central x point of the circle")]
-    y_middle: A[float, schema(description="The central y point of the circle")]
-    radius: A[float, schema(description="Radius of the circle", exc_min=0)]
+    x_axis: Axis = Field(description="The name matching the x axis of the spec")
+    y_axis: Axis = Field(description="The name matching the y axis of the spec")
+    x_middle: float = Field(description="The central x point of the circle")
+    y_middle: float = Field(description="The central y point of the circle")
+    radius: float = Field(description="Radius of the circle", exc_min=0)
 
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]
@@ -307,7 +309,7 @@ class Circle(Region[Axis]):
         return mask
 
 
-@dataclass
+@dataclass(config=StrictConfig)
 class Ellipse(Region[Axis]):
     """Mask contains points of axis within an xy ellipse of given radius.
 
@@ -320,19 +322,17 @@ class Ellipse(Region[Axis]):
         spec = grid & Ellipse("x", "y", 5, 5, 2, 3, 75)
     """
 
-    x_axis: A[Axis, schema(description="The name matching the x axis of the spec")]
-    y_axis: A[Axis, schema(description="The name matching the y axis of the spec")]
-    x_middle: A[float, schema(description="The central x point of the ellipse")]
-    y_middle: A[float, schema(description="The central y point of the ellipse")]
-    x_radius: A[
-        float,
-        schema(description="The radius along the x axis of the ellipse", exc_min=0),
-    ]
-    y_radius: A[
-        float,
-        schema(description="The radius along the y axis of the ellipse", exc_min=0),
-    ]
-    angle: A[float, schema(description="The angle of the ellipse (degrees)")] = 0.0
+    x_axis: Axis = Field(description="The name matching the x axis of the spec")
+    y_axis: Axis = Field(description="The name matching the y axis of the spec")
+    x_middle: float = Field(description="The central x point of the ellipse")
+    y_middle: float = Field(description="The central y point of the ellipse")
+    x_radius: float = Field(
+        description="The radius along the x axis of the ellipse", exc_min=0
+    )
+    y_radius: float = Field(
+        description="The radius along the y axis of the ellipse", exc_min=0
+    )
+    angle: float = Field(description="The angle of the ellipse (degrees)", default=0.0)
 
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]
@@ -353,7 +353,9 @@ class Ellipse(Region[Axis]):
 
 def find_regions(obj) -> Iterator[Region[Axis]]:
     """Recursively yield Regions from obj and its children."""
-    if is_dataclass(obj):
+    if hasattr(obj, "__pydantic_model__") and issubclass(
+        obj.__pydantic_model__, BaseModel
+    ):
         if isinstance(obj, Region):
             yield obj
         for name in obj.__dict__.keys():
