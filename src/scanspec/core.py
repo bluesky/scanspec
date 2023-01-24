@@ -130,7 +130,7 @@ def discriminated_union_of_subclasses(
         return wrap(super_cls)
 
 
-_models: Dict[Type, Optional[BaseModel]] = {}
+_models: Dict[Type, Optional[Type[BaseModel]]] = {}
 _ref_classes: Dict[Type, Set[Type]] = {}
 
 
@@ -172,7 +172,9 @@ def _discriminated_union_of_subclasses(
             )
 
         try:
-            return _models[super_cls](__root__=v).__root__
+            model = _models[super_cls]
+            assert model is not None
+            return model(__root__=v).__root__  # type: ignore
         except ValidationError as e:
             for (
                 error
