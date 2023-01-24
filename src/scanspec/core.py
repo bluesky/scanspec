@@ -11,13 +11,14 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Set,
     Type,
     TypeVar,
     Union,
 )
 
 import numpy as np
-from pydantic import BaseConfig, Extra, Field, ValidationError, create_model
+from pydantic import BaseConfig, BaseModel, Extra, Field, ValidationError, create_model
 from pydantic.error_wrappers import ErrorWrapper
 from typing_extensions import Literal
 
@@ -129,18 +130,23 @@ def discriminated_union_of_subclasses(
         return wrap(super_cls)
 
 
+_models: Dict[Type, Optional[BaseModel]] = {}
+_ref_classes: Dict[Type, Set[Type]] = {}
+
+
 def _discriminated_union_of_subclasses(
     super_cls: Type,
     discriminator: str,
     config: Optional[Type[BaseConfig]] = None,
 ) -> Union[Type, Callable[[Type], Type]]:
 
-    super_cls.__ref_classes__ = set()
-    super_cls.__model__ = None
+    # super_cls.__ref_classes__ = set()
+    # super_cls.__model__ = None
+    _ref_classes[super_cls] = set()
 
     def __init_subclass__(cls) -> None:
         # Keep track of inherting classes in super class
-        cls.__ref_classes__.add(cls)
+        _ref_classes[super_cls].add(cls)
 
         # Add a discriminator field to the class so it can
         # be identified when deserailizing.
@@ -157,16 +163,16 @@ def _discriminated_union_of_subclasses(
         # Lazily initialize model on first use because this
         # needs to be done once, after all subclasses have been
         # declared
-        if cls.__model__ is None:
-            root = Union[tuple(cls.__ref_classes__)]  # type: ignore
-            cls.__model__ = create_model(
+        if _models.get(super_cls) is None:
+            root = Union[tuple(_ref_classes[super_cls])]  # type: ignore
+            _models[super_cls] = create_model(
                 super_cls.__name__,
                 __root__=(root, Field(..., discriminator=discriminator)),
                 __config__=config,
             )
 
         try:
-            return cls.__model__(__root__=v).__root__
+            return _models[super_cls](__root__=v).__root__
         except ValidationError as e:
             for (
                 error
