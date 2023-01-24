@@ -560,6 +560,8 @@ class Spiral(Spec[Axis]):
         spec = Spiral("x", "y", 1, 5, 10, 50, 30)
     """
 
+    # TODO: Make use of typing.Annotated upon fix of
+    # https://github.com/pydantic/pydantic/issues/3496
     x_axis: Axis = Field(description="An identifier for what to move for x")
     y_axis: Axis = Field(description="An identifier for what to move for y")
     x_start: float = Field(description="x centre of the spiral")
