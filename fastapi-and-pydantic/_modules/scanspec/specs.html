@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.specs &#8212; scanspec 0.5.6.dev39+ga84187f documentation</title>
+    <title>scanspec.specs &#8212; scanspec 0.5.6.dev40+gc6cd016 documentation</title>
   
   
   
@@ -949,6 +949,8 @@
 <span class="sd">        spec = Spiral(&quot;x&quot;, &quot;y&quot;, 1, 5, 10, 50, 30)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="c1"># TODO: Make use of typing.Annotated upon fix of</span>
+    <span class="c1"># https://github.com/pydantic/pydantic/issues/3496</span>
     <span class="n">x_axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for x&quot;</span><span class="p">)</span>
     <span class="n">y_axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for y&quot;</span><span class="p">)</span>
     <span class="n">x_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;x centre of the spiral&quot;</span><span class="p">)</span>
