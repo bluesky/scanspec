@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; scanspec 0.5.6.dev7+g6a8b77e documentation</title>
+    <title>Index &#8212; scanspec 0.5.6.dev8+g7461cef documentation</title>
   
   
   
@@ -28,7 +28,6 @@
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.css" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
   
@@ -42,10 +41,6 @@
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react@16.13.1/umd/react.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/graphiql@1.0.3/graphiql.min.js"></script>
-    <script src="_static/attachGraphiQL.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>
     <script src="_static/design-tabs.js"></script>
@@ -408,7 +403,6 @@
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
- | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
  | <a href="#Z"><strong>Z</strong></a>
@@ -417,17 +411,11 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.core.alternative_constructor">alternative_constructor() (in module scanspec.core)</a>
-</li>
-      <li><a href="reference/api.html#scanspec.core.as_tagged_union">as_tagged_union() (in module scanspec.core)</a>
-</li>
       <li><a href="reference/api.html#scanspec.core.Midpoints.axes">axes (scanspec.core.Midpoints property)</a>
 </li>
       <li><a href="reference/api.html#scanspec.core.Frames.axes">axes() (scanspec.core.Frames method)</a>
 
       <ul>
-        <li><a href="reference/api.html#scanspec.service.PointsResponse.axes">(scanspec.service.PointsResponse method)</a>
-</li>
         <li><a href="reference/api.html#scanspec.specs.Spec.axes">(scanspec.specs.Spec method)</a>
 </li>
       </ul></li>
@@ -439,19 +427,19 @@
 </li>
       <li><a href="reference/api.html#scanspec.regions.Region.axis_sets">axis_sets() (scanspec.regions.Region method)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.service.AxisFrames">AxisFrames (class in scanspec.service)</a>
-</li>
   </ul></td>
 </tr></table>
 
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.service.Points.b64">b64() (scanspec.service.Points method)</a>
+      <li><a href="reference/api.html#scanspec.specs.Line.bounded">bounded() (scanspec.specs.Line class method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.specs.Line.bounded">bounded() (scanspec.specs.Line static method)</a>
+      <li><a href="reference/api.html#scanspec.service.bounds">bounds() (in module scanspec.service)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.BoundsResponse">BoundsResponse (class in scanspec.service)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -489,9 +477,11 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.core.discriminated_union_of_subclasses">discriminated_union_of_subclasses() (in module scanspec.core)</a>
+</li>
       <li><a href="reference/api.html#scanspec.specs.DURATION">DURATION (in module scanspec.specs)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.specs.Static.duration">duration() (scanspec.specs.Static static method)</a>
+      <li><a href="reference/api.html#scanspec.specs.Static.duration">duration() (scanspec.specs.Static class method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -519,8 +509,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.regions.find_regions">find_regions() (in module scanspec.regions)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.service.Points.float_list">float_list() (scanspec.service.Points method)</a>
-</li>
       <li><a href="reference/api.html#scanspec.specs.fly">fly() (in module scanspec.specs)</a>
 </li>
   </ul></td>
@@ -539,13 +527,17 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.core.Frames.gap">gap (scanspec.core.Frames attribute)</a>
 </li>
+      <li><a href="reference/api.html#scanspec.service.gap">gap() (in module scanspec.service)</a>
+</li>
       <li><a href="reference/api.html#scanspec.core.gap_between_frames">gap_between_frames() (in module scanspec.core)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.regions.get_mask">get_mask() (in module scanspec.regions)</a>
+      <li><a href="reference/api.html#scanspec.service.GapResponse">GapResponse (class in scanspec.service)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.service.get_points">get_points() (in module scanspec.service)</a>
+      <li><a href="reference/api.html#scanspec.service.GeneratedPointsResponse">GeneratedPointsResponse (class in scanspec.service)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.regions.get_mask">get_mask() (in module scanspec.regions)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -589,8 +581,16 @@
 </li>
       <li><a href="reference/api.html#scanspec.core.Frames.midpoints">midpoints (scanspec.core.Frames attribute)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.specs.Spec.midpoints">midpoints() (scanspec.specs.Spec method)</a>
+      <li><a href="reference/api.html#scanspec.service.midpoints">midpoints() (in module scanspec.service)</a>
+
+      <ul>
+        <li><a href="reference/api.html#scanspec.specs.Spec.midpoints">(scanspec.specs.Spec method)</a>
 </li>
+      </ul></li>
+      <li><a href="reference/api.html#scanspec.service.MidpointsResponse">MidpointsResponse (class in scanspec.service)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     module
 
@@ -618,11 +618,13 @@
 </li>
       <li><a href="reference/api.html#scanspec.plot.plot_spec">plot_spec() (in module scanspec.plot)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.service.Points">Points (class in scanspec.service)</a>
+      <li><a href="reference/api.html#scanspec.service.Points">Points (in module scanspec.service)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.service.PointsResponse">PointsResponse (class in scanspec.service)</a>
+      <li><a href="reference/api.html#scanspec.service.PointsFormat">PointsFormat (class in scanspec.service)</a>
+</li>
+      <li><a href="reference/api.html#scanspec.service.PointsRequest">PointsRequest (class in scanspec.service)</a>
 </li>
       <li><a href="reference/api.html#scanspec.regions.Polygon">Polygon (class in scanspec.regions)</a>
 </li>
@@ -638,15 +640,11 @@
 </li>
       <li><a href="reference/api.html#scanspec.regions.Rectangle">Rectangle (class in scanspec.regions)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.service.reduce_frames">reduce_frames() (in module scanspec.service)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/api.html#scanspec.regions.Region">Region (class in scanspec.regions)</a>
 </li>
       <li><a href="reference/api.html#scanspec.specs.Repeat">Repeat (class in scanspec.specs)</a>
-</li>
-      <li><a href="reference/api.html#scanspec.service.PointsResponse.returned_frames">returned_frames (scanspec.service.PointsResponse attribute)</a>
 </li>
       <li><a href="reference/api.html#scanspec.service.run_app">run_app() (in module scanspec.service)</a>
 </li>
@@ -706,15 +704,15 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.service.PointsResponse.smallest_abs_step">smallest_abs_step() (scanspec.service.PointsResponse method)</a>
+      <li><a href="reference/api.html#scanspec.service.smallest_step">smallest_step() (in module scanspec.service)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.service.AxisFrames.smallest_step">smallest_step() (scanspec.service.AxisFrames method)</a>
+      <li><a href="reference/api.html#scanspec.service.SmallestStepResponse">SmallestStepResponse (class in scanspec.service)</a>
 </li>
       <li><a href="reference/api.html#scanspec.specs.Snake">Snake (class in scanspec.specs)</a>
 </li>
       <li><a href="reference/api.html#scanspec.core.SnakedFrames">SnakedFrames (class in scanspec.core)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.specs.Spiral.spaced">spaced() (scanspec.specs.Spiral static method)</a>
+      <li><a href="reference/api.html#scanspec.specs.Spiral.spaced">spaced() (scanspec.specs.Spiral class method)</a>
 </li>
       <li><a href="reference/api.html#scanspec.specs.Spec">Spec (class in scanspec.specs)</a>
 </li>
@@ -734,23 +732,9 @@
 </li>
       <li><a href="reference/api.html#scanspec.specs.step">step() (in module scanspec.specs)</a>
 </li>
-      <li><a href="reference/api.html#scanspec.service.Points.string">string() (scanspec.service.Points method)</a>
-</li>
-      <li><a href="reference/api.html#scanspec.service.sub_sample">sub_sample() (in module scanspec.service)</a>
+      <li><a href="reference/api.html#scanspec.core.StrictConfig">StrictConfig (class in scanspec.core)</a>
 </li>
       <li><a href="reference/api.html#scanspec.regions.SymmetricDifferenceOf">SymmetricDifferenceOf (class in scanspec.regions)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="T">T</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.specs.Spec.to_gql_input">to_gql_input() (scanspec.specs.Spec method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.service.PointsResponse.total_frames">total_frames (scanspec.service.PointsResponse attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -770,7 +754,11 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/api.html#scanspec.service.validate_spec">validate_spec() (in module scanspec.service)</a>
+      <li><a href="reference/api.html#scanspec.service.valid">valid() (in module scanspec.service)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/api.html#scanspec.service.ValidResponse">ValidResponse (class in scanspec.service)</a>
 </li>
   </ul></td>
 </tr></table>
