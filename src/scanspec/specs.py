@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, Type
+from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, Tuple, Type
 
 import numpy as np
 from pydantic import Field, parse_obj_as
@@ -76,6 +76,10 @@ class Spec(Generic[Axis]):
     def midpoints(self) -> Midpoints[Axis]:
         """Return `Midpoints` that can be iterated point by point."""
         return Midpoints(self.calculate(bounds=False))
+
+    def shape(self) -> Tuple[int, ...]:
+        """Return the final, simplified shape of the scan."""
+        return tuple(len(dim) for dim in self.calculate())
 
     def __rmul__(self, other) -> Product[Axis]:
         return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
