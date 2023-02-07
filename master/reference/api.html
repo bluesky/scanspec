@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>API &#8212; scanspec 0.6.1.dev2+g6752d0a documentation</title>
+    <title>API &#8212; scanspec 0.6.1.dev3+g52f90b9 documentation</title>
   
   
   
@@ -877,6 +877,12 @@ If the first operand is an integer, wrap it in a <a class="reference internal" h
 <dt class="sig sig-object py" id="scanspec.specs.Spec.midpoints">
 <span class="sig-name descname"><span class="pre">midpoints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.core.Midpoints" title="scanspec.core.Midpoints"><span class="pre">Midpoints</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Axis</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/specs.html#Spec.midpoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Spec.midpoints" title="Permalink to this definition">#</a></dt>
 <dd><p>Return <a class="reference internal" href="#scanspec.core.Midpoints" title="scanspec.core.Midpoints"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Midpoints</span></code></a> that can be iterated point by point.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scanspec.specs.Spec.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.11)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/specs.html#Spec.shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Spec.shape" title="Permalink to this definition">#</a></dt>
+<dd><p>Return the final, simplified shape of the scan.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2067,6 +2073,15 @@ after each frame.</p>
        <code class="docutils literal notranslate">
         <span class="pre">
          Spec.midpoints()
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#scanspec.specs.Spec.shape">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         Spec.shape()
         </span>
        </code>
       </a>
