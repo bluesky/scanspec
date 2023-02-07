@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Tuple
 
 import pytest
 
@@ -14,6 +14,7 @@ from scanspec.specs import (
     Spiral,
     Squash,
     Static,
+    Zip,
     fly,
     step,
 )
@@ -527,3 +528,33 @@ def test_multiple_statics_with_grid():
         {"x": 10.0, "y": 10.0, "a": 4, "b": 5},
     ]
     assert spec.frames().gap == ints("10101010")
+
+
+@pytest.mark.parametrize(
+    "spec,expected_shape",
+    [
+        (Line("x", 0.0, 1.0, 1), (1,)),
+        (Line("x", 0.0, 1.0, 5), (5,)),
+        (Spiral("x", "y", 0.0, 0.0, 1.0, 1.0, 5, 0.0), (5,)),
+        (Line("x", 0.0, 1.0, 2) * Line("y", 0.0, 1.0, 2), (2, 2)),
+        (Squash(Line("x", 0.0, 1.0, 2) * Line("y", 0.0, 1.0, 2)), (4,)),
+        (Zip(Line("x", 0.0, 1.0, 2), Line("y", 0.0, 1.0, 2)), (2,)),
+        (Concat(Line("x", 0.0, 1.0, 2), Line("x", 0.0, 1.0, 2)), (4,)),
+        (
+            Line("x", 0.0, 1.0, 2) * Line("y", 0.0, 1.0, 2) * Line("z", 0.0, 2.0, 2),
+            (2, 2, 2),
+        ),
+        (
+            Zip(Line("x", 0.0, 1.0, 2), Line("y", 0.0, 1.0, 2))
+            * Line("z", 0.0, 2.0, 2),
+            (2, 2),
+        ),
+        (
+            Concat(Line("x", 0.0, 1.0, 2), Line("x", 0.0, 1.0, 2))
+            * Line("z", 0.0, 2.0, 2),
+            (4, 2),
+        ),
+    ],
+)
+def test_shape(spec: Spec, expected_shape: Tuple[int, ...]):
+    assert expected_shape == spec.shape()
