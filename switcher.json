@@ -62,5 +62,9 @@
   {
     "version": "merge",
     "url": "https://dls-controls.github.io/scanspec/merge/"
+  },
+  {
+    "version": "pydantic1",
+    "url": "https://dls-controls.github.io/scanspec/pydantic1/"
   }
 ]

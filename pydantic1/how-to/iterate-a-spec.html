@@ -1,0 +1,684 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>How to Iterate a Spec &#8212; scanspec 0.6.2.dev2+g3d404c0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'how-to/iterate-a-spec';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://dls-controls.github.io/scanspec/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'pydantic1';
+        </script>
+    <link rel="icon" href="../_static/scanspec-logo.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="How to Serialize and Deserialize a Spec" href="serialize-a-spec.html" />
+    <link rel="prev" title="How-to Guides" href="../how-to.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/scanspec-logo.svg" class="logo__image only-light" alt="Logo image"/>
+    <script>document.write(`<img src="../_static/scanspec-logo.svg" class="logo__image only-dark" alt="Logo image"/>`);</script>
+  
+  
+    <p class="title logo__title">scanspec</p>
+  
+</a></div>
+    
+  </div>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../tutorials.html">
+                        Tutorials
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../how-to.html">
+                        How-to Guides
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../explanations.html">
+                        Explanations
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../reference.html">
+                        Reference
+                      </a>
+                    </li>
+                
+
+                <li class="nav-item">
+                  <a class="nav-link nav-external" href="https://github.com/dls-controls/scanspec/releases">
+                    Release Notes
+                  </a>
+                </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dls-controls/scanspec" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fas fa-cube"></i></span>
+            <label class="sr-only">PyPI</label></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      pydantic1  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../tutorials.html">
+                        Tutorials
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../how-to.html">
+                        How-to Guides
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../explanations.html">
+                        Explanations
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../reference.html">
+                        Reference
+                      </a>
+                    </li>
+                
+
+                <li class="nav-item">
+                  <a class="nav-link nav-external" href="https://github.com/dls-controls/scanspec/releases">
+                    Release Notes
+                  </a>
+                </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/dls-controls/scanspec" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fas fa-cube"></i></span>
+            <label class="sr-only">PyPI</label></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      pydantic1  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">How-to Guides</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">How to Iterate a Spec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumbs">
+  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../how-to.html" class="nav-link">How-to Guides</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">How to Iterate a Spec</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section id="how-to-iterate-a-spec">
+<span id="iterate-a-spec"></span><h1>How to Iterate a Spec<a class="headerlink" href="#how-to-iterate-a-spec" title="Permalink to this heading">#</a></h1>
+<p>A Spec is only the specification for a scan. To execute the scan we need the
+<a class="reference internal" href="../explanations/technical-terms.html#frame"><span class="std std-ref">Frames</span></a>. We can do this in a few ways.</p>
+<section id="if-you-only-need-the-midpoints">
+<h2>If you only need the midpoints<a class="headerlink" href="#if-you-only-need-the-midpoints" title="Permalink to this heading">#</a></h2>
+<p>If you are conducting a step scan, you only need the midpoints of each scan
+frame. You can get these by using the <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.midpoints" title="scanspec.specs.Spec.midpoints"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.midpoints()</span></code></a> method to produce a
+<a class="reference internal" href="../reference/api.html#scanspec.core.Midpoints" title="scanspec.core.Midpoints"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Midpoints</span></code></a> iterator of scan <a class="reference internal" href="../explanations/technical-terms.html#point"><span class="std std-ref">Points</span></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">midpoints</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">{&#39;x&#39;: 1.0}</span>
+<span class="go">{&#39;x&#39;: 1.5}</span>
+<span class="go">{&#39;x&#39;: 2.0}</span>
+</pre></div>
+</div>
+<p>This is simple, but not particularly performant, as the numpy arrays of
+points are unpacked point by point into point dictionaries</p>
+</section>
+<section id="if-you-need-to-do-a-fly-scan">
+<h2>If you need to do a fly scan<a class="headerlink" href="#if-you-need-to-do-a-fly-scan" title="Permalink to this heading">#</a></h2>
+<p>If you are conducting a fly scan then you need the frames that the motor moves
+through. You can get that from the lower and upper bounds of each point. If the
+scan is small enough to fit in memory on the machine you can use the <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.frames" title="scanspec.specs.Spec.frames"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.frames()</span></code></a>
+method to produce a single <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> object containing the entire scan:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">frames</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span><span class="o">.</span><span class="n">lower</span>
+<span class="go">{&#39;x&#39;: array([0.75, 1.25, 1.75])}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span><span class="o">.</span><span class="n">midpoints</span>
+<span class="go">{&#39;x&#39;: array([1. , 1.5, 2. ])}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span><span class="o">.</span><span class="n">upper</span>
+<span class="go">{&#39;x&#39;: array([1.25, 1.75, 2.25])}</span>
+</pre></div>
+</div>
+</section>
+<section id="if-you-want-the-most-performant-option">
+<h2>If you want the most performant option<a class="headerlink" href="#if-you-want-the-most-performant-option" title="Permalink to this heading">#</a></h2>
+<p>A <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> instance is a one-shot consumable view of the stack of <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a>
+objects created by <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.calculate" title="scanspec.specs.Spec.calculate"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.calculate()</span></code></a>. Once you have consumed it you
+should create a new instance of it. For performance reasons, you can keep the
+intermediate <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> stack and create as many <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> wrappers to them
+as you need. You can also give a maximum size to <a class="reference internal" href="../reference/api.html#scanspec.core.Path.consume" title="scanspec.core.Path.consume"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Path.consume()</span></code></a></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.core</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>You can also use this method to only run a subset of the scan:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">stack</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../explanations/why-stack-frames.html"><span class="doc">Why create a stack of Frames?</span></a></p>
+</div>
+</section>
+<section id="if-you-need-to-know-whether-there-is-a-gap-between-points">
+<h2>If you need to know whether there is a gap between points<a class="headerlink" href="#if-you-need-to-know-whether-there-is-a-gap-between-points" title="Permalink to this heading">#</a></h2>
+<p>You may need to know where there is a gap between points, so that you can do
+something in the turnaround. For example, if we take the x axis of a grid scan,
+you can see it snakes back and forth:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">fly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span> <span class="o">=</span> <span class="n">fly</span><span class="p">(</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">frames</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+<span class="go">array([1. , 1.5, 2. , 2. , 1.5, 1. ])</span>
+</pre></div>
+</div>
+<p>You can check where the gaps are by using the <a class="reference internal" href="../reference/api.html#scanspec.core.Frames.gap" title="scanspec.core.Frames.gap"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.gap</span></code></a> attribute:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">gap</span>
+<span class="go">array([ True, False, False,  True, False, False])</span>
+</pre></div>
+</div>
+<p>This says whether there is a gap between this frame and the previous frame. In
+the example we see 2 gaps:</p>
+<ul class="simple">
+<li><p>On the very first frame (as there is a gap between the last and first frames)</p></li>
+<li><p>Between the 2 frames with midpoint of 2.0</p></li>
+</ul>
+<p>You could use this information to work out when to insert turnaround between
+rows for the motors</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../how-to.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">How-to Guides</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="serialize-a-spec.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">How to Serialize and Deserialize a Spec</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#if-you-only-need-the-midpoints">If you only need the midpoints</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#if-you-need-to-do-a-fly-scan">If you need to do a fly scan</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#if-you-want-the-most-performant-option">If you want the most performant option</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#if-you-need-to-know-whether-there-is-a-gap-between-points">If you need to know whether there is a gap between points</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/dls-controls/scanspec/edit/pydantic1/docs/how-to/iterate-a-spec.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div class="tocsection sourcelink">
+    <a href="../_sources/how-to/iterate-a-spec.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
