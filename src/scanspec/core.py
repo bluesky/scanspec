@@ -507,7 +507,7 @@ def squash_frames(stack: List[Frames[Axis]], check_path_changes=True) -> Frames[
         for i, frames in enumerate(stack):
             # A SnakedFrames within a non-snaking top level must repeat
             # an even number of times
-            if isinstance(frames, SnakedFrames) and np.product(path.lengths[:i]) % 2:
+            if isinstance(frames, SnakedFrames) and np.prod(path.lengths[:i]) % 2:
                 raise ValueError(
                     f"Cannot squash SnakingFrames inside a non-snaking Frames "
                     f"when they do not repeat an even number of times "
@@ -541,7 +541,8 @@ class Path(Generic[Axis]):
         self.lengths = np.array([len(f) for f in stack])
         #: Index of the end frame, one more than the last index that will be
         #: produced
-        self.end_index = np.product(self.lengths)
+        self.end_index = np.prod(self.lengths)
+        self.end_index = np.prod(self.lengths)
         if num is not None and start + num < self.end_index:
             self.end_index = start + num
 
@@ -570,7 +571,7 @@ class Path(Generic[Axis]):
         # Example numbers below from a 2x3x4 ZxYxX scan
         for i, frames in enumerate(self.stack):
             # Number of times each frame will repeat: Z:12, Y:4, X:1
-            repeats = np.product(self.lengths[i + 1 :])
+            repeats = np.prod(self.lengths[i + 1 :])
             # Scan indices mapped to indices within Frames object:
             # Z:000000000000111111111111
             # Y:000011112222000011112222
@@ -634,7 +635,7 @@ class Midpoints(Generic[Axis]):
 
     def __len__(self) -> int:
         """The number of dictionaries that will be produced if iterated over."""
-        return int(np.product([len(frames) for frames in self.stack]))
+        return int(np.prod([len(frames) for frames in self.stack]))
 
     def __iter__(self) -> Iterator[Dict[Axis, float]]:
         """Yield {axis: midpoint} for each frame in the scan."""
