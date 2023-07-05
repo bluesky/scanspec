@@ -17,8 +17,7 @@ from typing import (
 )
 
 import numpy as np
-from pydantic import BaseConfig, Extra, Field, ValidationError, create_model
-from pydantic.error_wrappers import ErrorWrapper
+from pydantic import BaseConfig, Extra, Field, create_model
 from typing_extensions import Literal
 
 __all__ = [
@@ -165,19 +164,7 @@ def _discriminated_union_of_subclasses(
                 __config__=config,
             )
 
-        try:
-            return cls._model(__root__=v).__root__
-        except ValidationError as e:
-            for (
-                error
-            ) in e.raw_errors:  # need in to remove redundant __root__ from error path
-                if (
-                    isinstance(error, ErrorWrapper)
-                    and error.loc_tuple()[0] == "__root__"
-                ):
-                    error._loc = error.loc_tuple()[1:]
-
-            raise e
+        return cls._model(__root__=v).__root__
 
     # Inject magic methods into super_cls
     for method in __init_subclass__, __get_validators__, __validate__:
