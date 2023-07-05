@@ -66,5 +66,9 @@
   {
     "version": "pydantic1",
     "url": "https://dls-controls.github.io/scanspec/pydantic1/"
+  },
+  {
+    "version": "pydantic1.0",
+    "url": "https://dls-controls.github.io/scanspec/pydantic1.0/"
   }
 ]
