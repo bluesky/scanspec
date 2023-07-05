@@ -281,8 +281,8 @@ class Mask(Spec[Axis]):
                 # If the spec to be squashed is nested (inside the Mask or outside)
                 # then check the path changes if requested
                 check_path_changes = (nested or si) and self.check_path_changes
-                squashed = squash_frames(frames[si : ei + 1], check_path_changes)
-                frames = frames[:si] + [squashed] + frames[ei + 1 :]
+                squashed = squash_frames(frames[si: ei + 1], check_path_changes)
+                frames = frames[:si] + [squashed] + frames[ei + 1:]
         # Generate masks from the midpoints showing what's inside
         masked_frames = []
         for f in frames:
@@ -516,7 +516,7 @@ class Static(Spec[Axis]):
     def duration(
         cls: Type[Static],
         duration: float = Field(description="The duration of each static point"),
-        num: int = Field(description="Number of frames to produce", default=1,json_schema_extra={"min": 1}),
+        num: int = Field(description="Number of frames to produce", default=1, json_schema_extra={"min": 1}),
     ) -> Static[str]:
         """A static spec with no motion, only a duration repeated "num" times.
 
@@ -577,7 +577,7 @@ class Spiral(Spec[Axis]):
         # so: sqrt(pi * phi^2 / num) = 2 * pi
         # so: phi = sqrt(4 * pi * num)
         phi = np.sqrt(4 * np.pi * indexes)
-        # indexes are 0..num inclusive, and diameter is 2x biggest phi
+        # indexes are [0..num] inclusive, and diameter is 2x biggest phi
         diameter = 2 * np.sqrt(4 * np.pi * self.num)
         # scale so that the spiral is strictly smaller than the range
         x_scale = self.x_range / diameter
