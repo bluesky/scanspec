@@ -108,7 +108,7 @@ class Spec(BaseModel, Generic[Axis]):
     @classmethod
     def deserialize(cls, obj):
         """Deserialize the spec from a dictionary."""
-        return parse_obj_as(cls, obj)
+        return cls.model_validate(obj)
 
 
 class Product(Spec[Axis]):
