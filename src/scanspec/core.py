@@ -17,7 +17,7 @@ from typing import (
 )
 
 import numpy as np
-from pydantic import BaseConfig, Field, create_model, ConfigDict
+from pydantic import Field, create_model, ConfigDict
 from typing_extensions import Literal
 
 __all__ = [
@@ -40,9 +40,6 @@ StrictConfig = ConfigDict(extra="forbid")
 
 def discriminated_union_of_subclasses(
     super_cls: Optional[Type] = None,
-    *,
-    discriminator: str = "type",
-    config: Optional[Type[BaseConfig]] = None,
 ) -> Union[Type, Callable[[Type], Type]]:
     """Add all subclasses of super_cls to a discriminated union.
 
@@ -115,7 +112,7 @@ def discriminated_union_of_subclasses(
     """
 
     def wrap(cls):
-        return _discriminated_union_of_subclasses(cls, discriminator, config)
+        return _discriminated_union_of_subclasses(cls)
 
     # Work out if the call was @discriminated_union_of_subclasses or
     # @discriminated_union_of_subclasses(...)
@@ -127,8 +124,6 @@ def discriminated_union_of_subclasses(
 
 def _discriminated_union_of_subclasses(
     super_cls: Type,
-    discriminator: str,
-    config: Optional[Type[BaseConfig]] = None,
 ) -> Union[Type, Callable[[Type], Type]]:
 
     super_cls._ref_classes = set()
@@ -142,9 +137,9 @@ def _discriminated_union_of_subclasses(
         # be identified when deserailizing.
         cls.__annotations__ = {
             **cls.__annotations__,
-            discriminator: Literal[cls.__name__],
+            "type": Literal[cls.__name__],
         }
-        setattr(cls, discriminator, field(default=cls.__name__, repr=False))
+        setattr(cls, "type", field(default=cls.__name__, repr=False))
 
     def __get_validators__(cls) -> Any:
         yield cls.__validate__
@@ -157,8 +152,7 @@ def _discriminated_union_of_subclasses(
             root = Union[tuple(cls._ref_classes)]  # type: ignore
             cls._model = create_model(
                 super_cls.__name__,
-                __root__=(root, Field(..., discriminator=discriminator)),
-                __config__=config,
+                __root__=(root, Field(..., discriminator="type")),
             )
 
         return cls._model(__root__=v).__root__
