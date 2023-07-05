@@ -17,7 +17,7 @@ from typing import (
 )
 
 import numpy as np
-from pydantic import BaseConfig, Extra, Field, create_model
+from pydantic import BaseConfig, Field, create_model, ConfigDict
 from typing_extensions import Literal
 
 __all__ = [
@@ -34,11 +34,8 @@ __all__ = [
     "StrictConfig",
 ]
 
-
-class StrictConfig(BaseConfig):
-    """Pydantic configuration for scanspecs and regions."""
-
-    extra: Extra = Extra.forbid
+"""Pydantic configuration for scanspecs and regions."""
+StrictConfig = ConfigDict(extra="forbid")
 
 
 def discriminated_union_of_subclasses(
