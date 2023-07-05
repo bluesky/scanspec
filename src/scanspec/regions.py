@@ -4,7 +4,6 @@ from typing import Generic, Iterator, List, Set
 
 import numpy as np
 from pydantic import BaseModel, Field
-from pydantic.dataclasses import dataclass
 
 from .core import (
     AxesPoints,
@@ -32,7 +31,7 @@ __all__ = [
 
 
 @discriminated_union_of_subclasses
-class Region(Generic[Axis]):
+class Region(BaseModel, Generic[Axis]):
     """Abstract baseclass for a Region that can `Mask` a `Spec`.
 
     Supports operators:
@@ -42,6 +41,8 @@ class Region(Generic[Axis]):
     - ``-``: `DifferenceOf` two Regions, midpoints present in first not second
     - ``^``: `SymmetricDifferenceOf` two Regions, midpoints present in one not both
     """
+
+    config = StrictConfig
 
     def axis_sets(self) -> List[Set[Axis]]:
         """Produce the non-overlapping sets of axes this region spans."""
@@ -93,7 +94,6 @@ def _merge_axis_sets(axis_sets: List[Set[Axis]]) -> Iterator[Set[Axis]]:
             yield axis_set
 
 
-@dataclass(config=StrictConfig)
 class CombinationOf(Region[Axis]):
     """Abstract baseclass for a combination of two regions, left and right."""
 
@@ -108,7 +108,6 @@ class CombinationOf(Region[Axis]):
 
 
 # Naming so we don't clash with typing.Union
-@dataclass(config=StrictConfig)
 class UnionOf(CombinationOf[Axis]):
     """A point is in UnionOf(a, b) if in either a or b.
 
@@ -124,7 +123,6 @@ class UnionOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class IntersectionOf(CombinationOf[Axis]):
     """A point is in IntersectionOf(a, b) if in both a and b.
 
@@ -140,7 +138,6 @@ class IntersectionOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class DifferenceOf(CombinationOf[Axis]):
     """A point is in DifferenceOf(a, b) if in a and not in b.
 
@@ -158,7 +155,6 @@ class DifferenceOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class SymmetricDifferenceOf(CombinationOf[Axis]):
     """A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.
 
@@ -174,7 +170,6 @@ class SymmetricDifferenceOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class Range(Region[Axis]):
     """Mask contains points of axis >= min and <= max.
 
@@ -196,7 +191,6 @@ class Range(Region[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class Rectangle(Region[Axis]):
     """Mask contains points of axis within a rotated xy rectangle.
 
@@ -237,7 +231,6 @@ class Rectangle(Region[Axis]):
         return mask_x & mask_y
 
 
-@dataclass(config=StrictConfig)
 class Polygon(Region[Axis]):
     """Mask contains points of axis within a rotated xy polygon.
 
@@ -280,7 +273,6 @@ class Polygon(Region[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class Circle(Region[Axis]):
     """Mask contains points of axis within an xy circle of given radius.
 
@@ -309,7 +301,6 @@ class Circle(Region[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class Ellipse(Region[Axis]):
     """Mask contains points of axis within an xy ellipse of given radius.
 
