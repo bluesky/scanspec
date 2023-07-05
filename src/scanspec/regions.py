@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Generic, Iterator, List, Set
 
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from .core import (
     AxesPoints,
@@ -42,7 +42,7 @@ class Region(BaseModel, Generic[Axis]):
     - ``^``: `SymmetricDifferenceOf` two Regions, midpoints present in one not both
     """
 
-    config = StrictConfig
+    model_config: ConfigDict = StrictConfig
 
     def axis_sets(self) -> List[Set[Axis]]:
         """Produce the non-overlapping sets of axes this region spans."""

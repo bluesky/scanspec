@@ -4,8 +4,7 @@ from dataclasses import asdict
 from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, Tuple, Type
 
 import numpy as np
-from pydantic import Field, parse_obj_as, BaseModel
-from pydantic.dataclasses import dataclass
+from pydantic import Field, parse_obj_as, BaseModel, ConfigDict
 
 from .core import (
     Axis,
@@ -54,7 +53,7 @@ class Spec(BaseModel, Generic[Axis]):
     - ``&``: `Mask` the Spec with a `Region`, excluding midpoints outside of it
     - ``~``: `Snake` the Spec, reversing every other iteration of it
     """
-    config = StrictConfig
+    model_config: ConfigDict = StrictConfig
 
     def axes(self) -> List[Axis]:
         """Return the list of axes that are present in the scan.
