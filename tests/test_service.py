@@ -29,7 +29,7 @@ def client() -> TestClient:
 def test_midpoints(
     client: TestClient, format: PointsFormat, expected_midpoints: Any
 ) -> None:
-    request = PointsRequest(Line("x", 0.0, 1.0, 5), max_frames=5, format=format)
+    request = PointsRequest(Line(axis="x", start=0.0, stop=1.0, num=5), max_frames=5, format=format)
     response = client.post("/midpoints", json=asdict(request))
     assert response.status_code == 200
     assert response.json() == {
@@ -41,7 +41,7 @@ def test_midpoints(
 
 
 def test_subsampling(client: TestClient) -> None:
-    spec = Line("x", 0, 10, 5) * Line("y", 0, 10, 5)
+    spec = Line(axis="x", start=0, stop=10, num=5) * Line(axis="y", start=0, stop=10, num=5)
     request = PointsRequest(spec, max_frames=8, format=PointsFormat.FLOAT_LIST)
     response = client.post("/midpoints", json=asdict(request))
     assert response.status_code == 200
@@ -78,7 +78,7 @@ def test_subsampling(client: TestClient) -> None:
 def test_bounds(
     client: TestClient, format: PointsFormat, expected_lower: Any, expected_upper: Any
 ) -> None:
-    request = PointsRequest(Line("x", 0.0, 1.0, 5), max_frames=5, format=format)
+    request = PointsRequest(Line(axis="x", start=0.0, stop=1.0, num=5), max_frames=5, format=format)
     response = client.post("/bounds", json=asdict(request))
     assert response.status_code == 200
     assert response.json() == {
@@ -92,7 +92,7 @@ def test_bounds(
 
 # GAP TEST(S) #
 def test_gap(client: TestClient) -> None:
-    spec = Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 3)
+    spec = Line(axis="y", start=0.0, stop=10.0, num=3) * Line(axis="x", start=0.0, stop=10.0, num=3)
     response = client.post("/gap", json=spec.serialize())
     assert response.status_code == 200
     assert response.json() == {
@@ -102,7 +102,7 @@ def test_gap(client: TestClient) -> None:
 
 # SMALLEST STEP TEST(S) #
 def test_smallest_step(client: TestClient) -> None:
-    spec = Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 5)
+    spec = Line(axis="y", start=0.0, stop=10.0, num=3) * Line(axis="x", start=0.0, stop=10.0, num=5)
     response = client.post("/smalleststep", json=spec.serialize())
     assert response.status_code == 200
     assert response.json() == {"absolute": 2.5, "per_axis": {"y": 5.0, "x": 2.5}}

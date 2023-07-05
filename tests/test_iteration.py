@@ -6,7 +6,7 @@ from scanspec.specs import Line
 
 def test_line_path() -> None:
     x = "x"
-    inst = Line(x, 0, 1, 5)
+    inst = Line(axis=x, start=0, stop=1, num=5)
     dims = inst.calculate()
     path = Path(dims)
     assert len(path) == 5
@@ -17,7 +17,7 @@ def test_line_path() -> None:
 
 def test_line_midpoints() -> None:
     x = "x"
-    inst = Line(x, 0, 1, 5)
+    inst = Line(axis=x, start=0, stop=1, num=5)
     it = inst.midpoints()
     assert it.axes == [x]
     assert len(it) == 5

@@ -53,16 +53,16 @@ class Region(BaseModel, Generic[Axis]):
         raise NotImplementedError(self)
 
     def __or__(self, other) -> UnionOf[Axis]:
-        return if_instance_do(other, Region, lambda o: UnionOf(self, o))
+        return if_instance_do(other, Region, lambda o: UnionOf(left=self, right=o))
 
     def __and__(self, other) -> IntersectionOf[Axis]:
-        return if_instance_do(other, Region, lambda o: IntersectionOf(self, o))
+        return if_instance_do(other, Region, lambda o: IntersectionOf(left=self, right=o))
 
     def __sub__(self, other) -> DifferenceOf[Axis]:
-        return if_instance_do(other, Region, lambda o: DifferenceOf(self, o))
+        return if_instance_do(other, Region, lambda o: DifferenceOf(left=self, right=o))
 
     def __xor__(self, other) -> SymmetricDifferenceOf[Axis]:
-        return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(self, o))
+        return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(left=self, right=o))
 
 
 def get_mask(region: Region[Axis], points: AxesPoints[Axis]) -> np.ndarray:

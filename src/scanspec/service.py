@@ -8,8 +8,7 @@ from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
-from pydantic import Field
-from pydantic.dataclasses import dataclass
+from pydantic import Field, BaseModel
 
 from scanspec.core import AxesPoints, Frames, Path
 
@@ -26,8 +25,7 @@ app = FastAPI()
 Points = Union[str, List[float]]
 
 
-@dataclass
-class ValidResponse:
+class ValidResponse(BaseModel):
     """Response model for spec validation."""
 
     input_spec: Spec = Field(description="The input scanspec")
@@ -42,8 +40,7 @@ class PointsFormat(str, Enum):
     BASE64_ENCODED = "BASE64_ENCODED"
 
 
-@dataclass
-class PointsRequest:
+class PointsRequest(BaseModel):
     """A request for generated scan points."""
 
     spec: Spec = Field(description="The spec from which to generate points")
@@ -58,8 +55,7 @@ class PointsRequest:
     )
 
 
-@dataclass
-class GeneratedPointsResponse:
+class GeneratedPointsResponse(BaseModel):
     """Base class for responses that include generated point data."""
 
     total_frames: int = Field(description="Total number of frames in spec")
@@ -70,7 +66,6 @@ class GeneratedPointsResponse:
     format: PointsFormat = Field(description="Format of returned point data")
 
 
-@dataclass
 class MidpointsResponse(GeneratedPointsResponse):
     """Midpoints of a generated scan."""
 
@@ -79,7 +74,6 @@ class MidpointsResponse(GeneratedPointsResponse):
     )
 
 
-@dataclass
 class BoundsResponse(GeneratedPointsResponse):
     """Bounds of a generated scan."""
 
@@ -91,8 +85,7 @@ class BoundsResponse(GeneratedPointsResponse):
     )
 
 
-@dataclass
-class GapResponse:
+class GapResponse(BaseModel):
     """Presence of gaps in a generated scan."""
 
     gap: List[bool] = Field(
@@ -100,8 +93,7 @@ class GapResponse:
     )
 
 
-@dataclass
-class SmallestStepResponse:
+class SmallestStepResponse(BaseModel):
     """Information about the smallest steps between points in a spec."""
 
     absolute: float = Field(
@@ -116,9 +108,9 @@ class SmallestStepResponse:
 # API Routes
 #
 
-_EXAMPLE_SPEC = Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 4)
+_EXAMPLE_SPEC = Line(axis="y", start=0.0, stop=10.0, num=3) * Line(axis="x", start=0.0, stop=10.0, num=4)
 _EXAMPLE_POINTS_REQUEST = PointsRequest(
-    _EXAMPLE_SPEC, max_frames=1024, format=PointsFormat.FLOAT_LIST
+    spec=_EXAMPLE_SPEC, max_frames=1024, format=PointsFormat.FLOAT_LIST
 )
 
 
@@ -136,7 +128,7 @@ def valid(
             An error otherwise.
     """
     valid_spec = Spec.deserialize(spec.serialize())
-    return ValidResponse(spec, valid_spec)
+    return ValidResponse(input_spec=spec, valid_spec=valid_spec)
 
 
 @app.post("/midpoints", response_model=MidpointsResponse)
@@ -160,10 +152,10 @@ def midpoints(
     """
     chunk, total_frames = _to_chunk(request)
     return MidpointsResponse(
-        total_frames,
-        request.max_frames or total_frames,
-        request.format,
-        _format_axes_points(chunk.midpoints, request.format),
+        total_frames=total_frames,
+        returned_frames=request.max_frames or total_frames,
+        format=request.format,
+        midpoints=_format_axes_points(chunk.midpoints, request.format),
     )
 
 
@@ -186,11 +178,11 @@ def bounds(
     """
     chunk, total_frames = _to_chunk(request)
     return BoundsResponse(
-        total_frames,
-        request.max_frames or total_frames,
-        request.format,
-        _format_axes_points(chunk.lower, request.format),
-        _format_axes_points(chunk.upper, request.format),
+        total_frames=total_frames,
+        returned_frames=request.max_frames or total_frames,
+        format=request.format,
+        lower=_format_axes_points(chunk.lower, request.format),
+        upper=_format_axes_points(chunk.upper, request.format),
     )
 
 
@@ -208,7 +200,7 @@ def gap(
     after each frame.
 
     Args:
-        request: Scanspec and formatting info.
+        spec: Scanspec and formatting info.
 
     Returns:
         GapResponse: Bounds of the scan
@@ -216,7 +208,7 @@ def gap(
     dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
     gap = list(path.consume().gap)
-    return GapResponse(gap)
+    return GapResponse(gap=gap)
 
 
 @app.post("/smalleststep", response_model=SmallestStepResponse)
@@ -242,7 +234,7 @@ def smallest_step(
         axis: _calc_smallest_step([chunk.midpoints[axis]]) for axis in chunk.axes()
     }
 
-    return SmallestStepResponse(absolute, per_axis)
+    return SmallestStepResponse(absolute=absolute, per_axis=per_axis)
 
 
 #

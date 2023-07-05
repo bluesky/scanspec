@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, Tuple, Type
 
 import numpy as np
-from pydantic import Field, parse_obj_as, BaseModel, ConfigDict
+from pydantic import Field, BaseModel, ConfigDict
 
 from .core import (
     Axis,
@@ -82,28 +81,28 @@ class Spec(BaseModel, Generic[Axis]):
         return tuple(len(dim) for dim in self.calculate())
 
     def __rmul__(self, other) -> Product[Axis]:
-        return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
+        return if_instance_do(other, int, lambda o: Product(outer=Repeat(spec=o), inner=self))
 
     def __mul__(self, other) -> Product[Axis]:
-        return if_instance_do(other, Spec, lambda o: Product(self, o))
+        return if_instance_do(other, Spec, lambda o: Product(outer=self, inner=o))
 
     def __and__(self, other) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self, o))
+        return if_instance_do(other, Region, lambda o: Mask(outer=self, inner=o))
 
     def __invert__(self) -> Snake[Axis]:
-        return Snake(self)
+        return Snake(spec=self)
 
     def zip(self, other: Spec) -> Zip[Axis]:
         """`Zip` the Spec with another, iterating in tandem."""
-        return Zip(self, other)
+        return Zip(left=self, right=other)
 
     def concat(self, other: Spec) -> Concat[Axis]:
         """`Concat` the Spec with another, iterating one after the other."""
-        return Concat(self, other)
+        return Concat(left=self, right=other)
 
     def serialize(self) -> Mapping[str, Any]:
         """Serialize the spec to a dictionary."""
-        return asdict(self)
+        return self.model_dump()
 
     @classmethod
     def deserialize(cls, obj):
@@ -294,18 +293,18 @@ class Mask(Spec[Axis]):
     # *+ bind more tightly than &|^ so without these overrides we
     # would need to add brackets to all combinations of Regions
     def __or__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region | o))
+        return if_instance_do(other, Region, lambda o: Mask(spec=self.spec, region=self.region | o))
 
     def __and__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region & o))
+        return if_instance_do(other, Region, lambda o: Mask(spec=self.spec, region=self.region & o))
 
     def __xor__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region ^ o))
+        return if_instance_do(other, Region, lambda o: Mask(spec=self.spec, region=self.region ^ o))
 
     # This is here for completeness, tends not to be called as - binds
     # tighter than &
     def __sub__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
+        return if_instance_do(other, Region, lambda o: Mask(spec=self.spec, region=self.region - o))
 
 
 class Snake(Spec[Axis]):
@@ -494,7 +493,7 @@ class Line(Spec[Axis]):
         else:
             # Many points, stop will be produced
             stop = upper - half_step
-        return cls(axis, start, stop, num)
+        return cls(axis=axis, start=start, stop=stop, num=num)
 
 
 class Static(Spec[Axis]):
@@ -527,7 +526,7 @@ class Static(Spec[Axis]):
 
             spec = Line("y", 1, 2, 3).zip(Static.duration(0.1))
         """
-        return cls(DURATION, duration, num)
+        return cls(axis=DURATION, value=duration, num=num)
 
     def axes(self) -> List:
         return [self.axis]
@@ -620,8 +619,10 @@ class Spiral(Spec[Axis]):
         # so: num = n_rings^2 * pi
         n_rings = radius / dr
         num = int(n_rings**2 * np.pi)
+        range = radius * 2
         return cls(
-            x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate
+            x_axis=x_axis,
+            y_axis=y_axis, x_start=x_start, y_start=y_start, x_range=range, y_range=range, num=num, rotate=rotate
         )
 
 
