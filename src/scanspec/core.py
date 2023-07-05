@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import field
 from typing import (
     Any,
     Callable,
@@ -17,8 +16,7 @@ from typing import (
 )
 
 import numpy as np
-from pydantic import Field, create_model, ConfigDict
-from typing_extensions import Literal
+from pydantic import ConfigDict, Field, BaseModel, GetCoreSchemaHandler
 
 __all__ = [
     "if_instance_do",
@@ -34,13 +32,19 @@ __all__ = [
     "StrictConfig",
 ]
 
+from pydantic._internal import _annotated_handlers
+
+from pydantic_core.core_schema import tagged_union_schema
+
 """Pydantic configuration for scanspecs and regions."""
 StrictConfig = ConfigDict(extra="forbid")
 
+T = TypeVar("T")
+
 
 def discriminated_union_of_subclasses(
-    super_cls: Optional[Type] = None,
-) -> Union[Type, Callable[[Type], Type]]:
+        super_cls: Optional[Type[T]] = None,
+) -> Union[Type[T], Callable[[Type[T]], Type[T]]]:
     """Add all subclasses of super_cls to a discriminated union.
 
     For all subclasses of super_cls, add a discriminator field to identify
@@ -123,43 +127,36 @@ def discriminated_union_of_subclasses(
 
 
 def _discriminated_union_of_subclasses(
-    super_cls: Type,
+        super_cls: Type,
 ) -> Union[Type, Callable[[Type], Type]]:
-
     super_cls._ref_classes = set()
-    super_cls._model = None
+    super_cls._schema = None
+    orig = super_cls.__get_pydantic_core_schema__
 
-    def __init_subclass__(cls) -> None:
+    def __get_pydantic_core_schema__(cls, __source: type[BaseModel], __handler: GetCoreSchemaHandler):
+        if cls == super_cls and "__pydantic_core_schema__" not in cls.__dict__:
+            cls.__pydantic_core_schema__ = tagged_union_schema({
+                subclass.__name__: __handler.generate_schema(subclass) for subclass in super_cls._ref_classes}, "type")
+        return orig(__source, __handler)
+
+    def __init_subclass__(subclass) -> None:
+        subclass_name: str = subclass.__name__
         # Keep track of inherting classes in super class
-        cls._ref_classes.add(cls)
+        super_cls._ref_classes.add(subclass)
 
         # Add a discriminator field to the class so it can
         # be identified when deserailizing.
-        cls.__annotations__ = {
-            **cls.__annotations__,
-            "type": Literal[cls.__name__],
+        subclass.__annotations__ = {
+            **subclass.__annotations__,
+            "type": subclass_name,
         }
-        setattr(cls, "type", field(default=cls.__name__, repr=False))
-
-    def __get_validators__(cls) -> Any:
-        yield cls.__validate__
-
-    def __validate__(cls, v: Any) -> Any:
-        # Lazily initialize model on first use because this
-        # needs to be done once, after all subclasses have been
-        # declared
-        if cls._model is None:
-            root = Union[tuple(cls._ref_classes)]  # type: ignore
-            cls._model = create_model(
-                super_cls.__name__,
-                __root__=(root, Field(..., discriminator="type")),
-            )
-
-        return cls._model(__root__=v).__root__
+        setattr(subclass, "type", Field(default=subclass_name, repr=False))
 
     # Inject magic methods into super_cls
-    for method in __init_subclass__, __get_validators__, __validate__:
+    for method in __init_subclass__, __get_pydantic_core_schema__:
         setattr(super_cls, method.__name__, classmethod(method))  # type: ignore
+
+    delattr(super_cls, "__pydantic_core_schema__")
 
     return super_cls
 
@@ -211,11 +208,11 @@ class Frames(Generic[Axis]):
     """
 
     def __init__(
-        self,
-        midpoints: AxesPoints[Axis],
-        lower: Optional[AxesPoints[Axis]] = None,
-        upper: Optional[AxesPoints[Axis]] = None,
-        gap: Optional[np.ndarray] = None,
+            self,
+            midpoints: AxesPoints[Axis],
+            lower: Optional[AxesPoints[Axis]] = None,
+            upper: Optional[AxesPoints[Axis]] = None,
+            gap: Optional[np.ndarray] = None,
     ):
         #: The midpoints of scan frames for each axis
         self.midpoints = midpoints
@@ -348,9 +345,9 @@ class Frames(Generic[Axis]):
 
 
 def _merge_frames(
-    *stack: Frames[Axis],
-    dict_merge=Callable[[Sequence[AxesPoints[Axis]]], AxesPoints[Axis]],
-    gap_merge=Callable[[Sequence[np.ndarray]], Optional[np.ndarray]],
+        *stack: Frames[Axis],
+        dict_merge=Callable[[Sequence[AxesPoints[Axis]]], AxesPoints[Axis]],
+        gap_merge=Callable[[Sequence[np.ndarray]], Optional[np.ndarray]],
 ) -> Frames[Axis]:
     types = set(type(fs) for fs in stack)
     assert len(types) == 1, f"Mismatching types for {stack}"
@@ -374,11 +371,11 @@ class SnakedFrames(Frames[Axis]):
     """Like a `Frames` object, but each alternate repetition will run in reverse."""
 
     def __init__(
-        self,
-        midpoints: AxesPoints[Axis],
-        lower: Optional[AxesPoints[Axis]] = None,
-        upper: Optional[AxesPoints[Axis]] = None,
-        gap: Optional[np.ndarray] = None,
+            self,
+            midpoints: AxesPoints[Axis],
+            lower: Optional[AxesPoints[Axis]] = None,
+            upper: Optional[AxesPoints[Axis]] = None,
+            gap: Optional[np.ndarray] = None,
     ):
         super().__init__(midpoints, lower=lower, upper=upper, gap=gap)
         # Override first element of gap to be True, as subsequent runs
@@ -509,7 +506,7 @@ class Path(Generic[Axis]):
     """
 
     def __init__(
-        self, stack: List[Frames[Axis]], start: int = 0, num: Optional[int] = None
+            self, stack: List[Frames[Axis]], start: int = 0, num: Optional[int] = None
     ):
         #: The Frames stack describing the scan, from slowest to fastest moving
         self.stack = stack
@@ -548,7 +545,7 @@ class Path(Generic[Axis]):
         # Example numbers below from a 2x3x4 ZxYxX scan
         for i, frames in enumerate(self.stack):
             # Number of times each frame will repeat: Z:12, Y:4, X:1
-            repeats = np.prod(self.lengths[i + 1 :])
+            repeats = np.prod(self.lengths[i + 1:])
             # Scan indices mapped to indices within Frames object:
             # Z:000000000000111111111111
             # Y:000011112222000011112222
