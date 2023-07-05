@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Generic, Iterator, List, Set
+from typing import Generic, Iterator, List, Set, Mapping, Any
 
 import numpy as np
 from pydantic import BaseModel, Field, ConfigDict
@@ -64,6 +64,15 @@ class Region(BaseModel, Generic[Axis]):
     def __xor__(self, other) -> SymmetricDifferenceOf[Axis]:
         return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(left=self, right=o))
 
+    def serialize(self) -> Mapping[str, Any]:
+        """Serialize the spec to a dictionary."""
+        return self.model_dump()
+
+    @classmethod
+    def deserialize(cls, obj):
+        """Deserialize the spec from a dictionary."""
+        return cls.model_validate(obj)
+
 
 def get_mask(region: Region[Axis], points: AxesPoints[Axis]) -> np.ndarray:
     """Return a mask of the points inside the region.
@@ -94,7 +103,7 @@ def _merge_axis_sets(axis_sets: List[Set[Axis]]) -> Iterator[Set[Axis]]:
             yield axis_set
 
 
-class CombinationOf(Region[Axis]):
+class CombinationOf(Region[Axis], Generic[Axis]):
     """Abstract baseclass for a combination of two regions, left and right."""
 
     left: Region[Axis] = Field(description="The left-hand Region to combine")
@@ -108,7 +117,7 @@ class CombinationOf(Region[Axis]):
 
 
 # Naming so we don't clash with typing.Union
-class UnionOf(CombinationOf[Axis]):
+class UnionOf(CombinationOf[Axis], Generic[Axis]):
     """A point is in UnionOf(a, b) if in either a or b.
 
     Typically created with the ``|`` operator
@@ -123,7 +132,7 @@ class UnionOf(CombinationOf[Axis]):
         return mask
 
 
-class IntersectionOf(CombinationOf[Axis]):
+class IntersectionOf(CombinationOf[Axis], Generic[Axis]):
     """A point is in IntersectionOf(a, b) if in both a and b.
 
     Typically created with the ``&`` operator.
@@ -138,7 +147,7 @@ class IntersectionOf(CombinationOf[Axis]):
         return mask
 
 
-class DifferenceOf(CombinationOf[Axis]):
+class DifferenceOf(CombinationOf[Axis], Generic[Axis]):
     """A point is in DifferenceOf(a, b) if in a and not in b.
 
     Typically created with the ``-`` operator.
@@ -155,7 +164,7 @@ class DifferenceOf(CombinationOf[Axis]):
         return mask
 
 
-class SymmetricDifferenceOf(CombinationOf[Axis]):
+class SymmetricDifferenceOf(CombinationOf[Axis], Generic[Axis]):
     """A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.
 
     Typically created with the ``^`` operator.
@@ -170,7 +179,7 @@ class SymmetricDifferenceOf(CombinationOf[Axis]):
         return mask
 
 
-class Range(Region[Axis]):
+class Range(Region[Axis], Generic[Axis]):
     """Mask contains points of axis >= min and <= max.
 
     >>> r = Range("x", 1, 2)
@@ -191,7 +200,7 @@ class Range(Region[Axis]):
         return mask
 
 
-class Rectangle(Region[Axis]):
+class Rectangle(Region[Axis], Generic[Axis]):
     """Mask contains points of axis within a rotated xy rectangle.
 
     .. example_spec::
@@ -231,7 +240,7 @@ class Rectangle(Region[Axis]):
         return mask_x & mask_y
 
 
-class Polygon(Region[Axis]):
+class Polygon(Region[Axis], Generic[Axis]):
     """Mask contains points of axis within a rotated xy polygon.
 
     .. example_spec::
@@ -273,7 +282,7 @@ class Polygon(Region[Axis]):
         return mask
 
 
-class Circle(Region[Axis]):
+class Circle(Region[Axis], Generic[Axis]):
     """Mask contains points of axis within an xy circle of given radius.
 
     .. example_spec::
@@ -301,7 +310,7 @@ class Circle(Region[Axis]):
         return mask
 
 
-class Ellipse(Region[Axis]):
+class Ellipse(Region[Axis], Generic[Axis]):
     """Mask contains points of axis within an xy ellipse of given radius.
 
     .. example_spec::

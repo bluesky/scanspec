@@ -1,4 +1,3 @@
-from dataclasses import asdict
 from typing import Any
 
 import pytest
@@ -29,8 +28,8 @@ def client() -> TestClient:
 def test_midpoints(
     client: TestClient, format: PointsFormat, expected_midpoints: Any
 ) -> None:
-    request = PointsRequest(Line(axis="x", start=0.0, stop=1.0, num=5), max_frames=5, format=format)
-    response = client.post("/midpoints", json=asdict(request))
+    request = PointsRequest(spec=Line(axis="x", start=0.0, stop=1.0, num=5), max_frames=5, format=format)
+    response = client.post("/midpoints", json=request.model_dump_json())
     assert response.status_code == 200
     assert response.json() == {
         "total_frames": 5,
@@ -42,8 +41,8 @@ def test_midpoints(
 
 def test_subsampling(client: TestClient) -> None:
     spec = Line(axis="x", start=0, stop=10, num=5) * Line(axis="y", start=0, stop=10, num=5)
-    request = PointsRequest(spec, max_frames=8, format=PointsFormat.FLOAT_LIST)
-    response = client.post("/midpoints", json=asdict(request))
+    request = PointsRequest(spec=spec, max_frames=8, format=PointsFormat.FLOAT_LIST)
+    response = client.post("/midpoints", json=request.model_dump_json())
     assert response.status_code == 200
     assert response.json() == {
         "total_frames": 25,
@@ -78,8 +77,8 @@ def test_subsampling(client: TestClient) -> None:
 def test_bounds(
     client: TestClient, format: PointsFormat, expected_lower: Any, expected_upper: Any
 ) -> None:
-    request = PointsRequest(Line(axis="x", start=0.0, stop=1.0, num=5), max_frames=5, format=format)
-    response = client.post("/bounds", json=asdict(request))
+    request = PointsRequest(spec=Line(axis="x", start=0.0, stop=1.0, num=5), max_frames=5, format=format)
+    response = client.post("/bounds", json=request.model_dump_json())
     assert response.status_code == 200
     assert response.json() == {
         "total_frames": 5,

@@ -346,7 +346,8 @@ def test_rect_region_difference() -> None:
 
 def test_rect_region_symmetricdifference() -> None:
     inst = Line(axis=y, start=1, stop=3, num=5) * Line(axis=x, start=0, stop=2, num=3) & \
-           Rectangle(x_axis=x, y_axis=y, x_min=0, y_min=1, x_max=1.5, y_max=2.2)  ^ Rectangle(x_axis=x, y_axis=y, x_min=0.5, y_min=1.5, x_max=2, y_max=2.5)
+           Rectangle(x_axis=x, y_axis=y, x_min=0, y_min=1, x_max=1.5, y_max=2.2)  ^ \
+           Rectangle(x_axis=x, y_axis=y, x_min=0.5, y_min=1.5, x_max=2, y_max=2.5)
     assert inst.axes() == [y, x]
     (dim,) = inst.calculate()
     assert dim.midpoints == {

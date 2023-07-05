@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, Tuple, Type
+from typing import Callable, Dict, Generic, List, Optional, Tuple, Type, Mapping, Any
 
 import numpy as np
 from pydantic import Field, BaseModel, ConfigDict
@@ -81,13 +81,13 @@ class Spec(BaseModel, Generic[Axis]):
         return tuple(len(dim) for dim in self.calculate())
 
     def __rmul__(self, other) -> Product[Axis]:
-        return if_instance_do(other, int, lambda o: Product(outer=Repeat(spec=o), inner=self))
+        return if_instance_do(other, int, lambda o: Product(outer=Repeat(num=o), inner=self))
 
     def __mul__(self, other) -> Product[Axis]:
         return if_instance_do(other, Spec, lambda o: Product(outer=self, inner=o))
 
     def __and__(self, other) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(outer=self, inner=o))
+        return if_instance_do(other, Region, lambda o: Mask(spec=self, region=o))
 
     def __invert__(self) -> Snake[Axis]:
         return Snake(spec=self)
@@ -110,7 +110,7 @@ class Spec(BaseModel, Generic[Axis]):
         return cls.model_validate(obj)
 
 
-class Product(Spec[Axis]):
+class Product(Spec[Axis], Generic[Axis]):
     """Outer product of two Specs, nesting inner within outer.
 
     This means that inner will run in its entirety at each point in outer.
@@ -134,7 +134,7 @@ class Product(Spec[Axis]):
         return frames_outer + frames_inner
 
 
-class Repeat(Spec[Axis]):
+class Repeat(Spec[Axis], Generic[Axis]):
     """Repeat an empty frame num times.
 
     Can be used on the outside of a scan to repeat the same scan many times.
@@ -170,7 +170,7 @@ class Repeat(Spec[Axis]):
         return [Frames({}, gap=np.full(self.num, self.gap))]
 
 
-class Zip(Spec[Axis]):
+class Zip(Spec[Axis], Generic[Axis]):
     """Run two Specs in parallel, merging their midpoints together.
 
     Typically formed using `Spec.zip`.
@@ -240,7 +240,7 @@ class Zip(Spec[Axis]):
         return frames
 
 
-class Mask(Spec[Axis]):
+class Mask(Spec[Axis], Generic[Axis]):
     """Restrict Spec to only midpoints that fall inside the given Region.
 
     Typically created with the ``&`` operator. It also pushes down the
@@ -307,7 +307,7 @@ class Mask(Spec[Axis]):
         return if_instance_do(other, Region, lambda o: Mask(spec=self.spec, region=self.region - o))
 
 
-class Snake(Spec[Axis]):
+class Snake(Spec[Axis], Generic[Axis]):
     """Run the Spec in reverse on every other iteration when nested.
 
     Typically created with the ``~`` operator.
@@ -333,7 +333,7 @@ class Snake(Spec[Axis]):
         ]
 
 
-class Concat(Spec[Axis]):
+class Concat(Spec[Axis], Generic[Axis]):
     """Concatenate two Specs together, running one after the other.
 
     Each Dimension of left and right must contain the same axes. Typically
@@ -379,7 +379,7 @@ class Concat(Spec[Axis]):
         return [dim]
 
 
-class Squash(Spec[Axis]):
+class Squash(Spec[Axis], Generic[Axis]):
     """Squash a stack of Frames together into a single expanded Frames object.
 
     See Also:
@@ -434,7 +434,7 @@ def _dimensions_from_indexes(
     return [dimension]
 
 
-class Line(Spec[Axis]):
+class Line(Spec[Axis], Generic[Axis]):
     """Linearly spaced frames with start and stop as first and last midpoints.
 
     .. example_spec::
@@ -496,7 +496,7 @@ class Line(Spec[Axis]):
         return cls(axis=axis, start=start, stop=stop, num=num)
 
 
-class Static(Spec[Axis]):
+class Static(Spec[Axis], Generic[Axis]):
     """A static frame, repeated num times, with axis at value.
 
     Can be used to set axis=value at every point in a scan.
@@ -540,7 +540,7 @@ class Static(Spec[Axis]):
         )
 
 
-class Spiral(Spec[Axis]):
+class Spiral(Spec[Axis], Generic[Axis]):
     """Archimedean spiral of "x_axis" and "y_axis".
 
     Starts at centre point ("x_start", "y_start") with angle "rotate". Produces

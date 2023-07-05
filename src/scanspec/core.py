@@ -12,11 +12,11 @@ from typing import (
     Sequence,
     Type,
     TypeVar,
-    Union,
+    Union, Literal,
 )
 
 import numpy as np
-from pydantic import ConfigDict, Field, BaseModel, GetCoreSchemaHandler
+from pydantic import ConfigDict, Field, BaseModel, TypeAdapter
 
 __all__ = [
     "if_instance_do",
@@ -32,19 +32,16 @@ __all__ = [
     "StrictConfig",
 ]
 
-from pydantic._internal import _annotated_handlers
-
-from pydantic_core.core_schema import tagged_union_schema
-
 """Pydantic configuration for scanspecs and regions."""
 StrictConfig = ConfigDict(extra="forbid")
 
-T = TypeVar("T")
-
 
 def discriminated_union_of_subclasses(
-        super_cls: Optional[Type[T]] = None,
-) -> Union[Type[T], Callable[[Type[T]], Type[T]]]:
+    super_cls: Optional[Type[BaseModel]] = None,
+    *,
+    discriminator: str = "type",
+    config: Optional[ConfigDict] = None,
+) -> Union[Type[BaseModel], Callable[[Type[BaseModel]], Type[BaseModel]]]:
     """Add all subclasses of super_cls to a discriminated union.
 
     For all subclasses of super_cls, add a discriminator field to identify
@@ -116,7 +113,7 @@ def discriminated_union_of_subclasses(
     """
 
     def wrap(cls):
-        return _discriminated_union_of_subclasses(cls)
+        return _discriminated_union_of_subclasses(cls, discriminator, config)
 
     # Work out if the call was @discriminated_union_of_subclasses or
     # @discriminated_union_of_subclasses(...)
@@ -127,36 +124,37 @@ def discriminated_union_of_subclasses(
 
 
 def _discriminated_union_of_subclasses(
-        super_cls: Type,
+    super_cls: Type[BaseModel],
+    discriminator: str,
+    config: Optional[ConfigDict] = None,
 ) -> Union[Type, Callable[[Type], Type]]:
-    super_cls._ref_classes = set()
-    super_cls._schema = None
-    orig = super_cls.__get_pydantic_core_schema__
+    ref_classes: dict[str, Type[BaseModel]] = {}
 
-    def __get_pydantic_core_schema__(cls, __source: type[BaseModel], __handler: GetCoreSchemaHandler):
-        if cls == super_cls and "__pydantic_core_schema__" not in cls.__dict__:
-            cls.__pydantic_core_schema__ = tagged_union_schema({
-                subclass.__name__: __handler.generate_schema(subclass) for subclass in super_cls._ref_classes}, "type")
-        return orig(__source, __handler)
-
-    def __init_subclass__(subclass) -> None:
-        subclass_name: str = subclass.__name__
+    def __init_subclass__(cls) -> None:
+        subclass_name = cls.__name__
         # Keep track of inherting classes in super class
-        super_cls._ref_classes.add(subclass)
+        ref_classes[subclass_name] = cls
 
         # Add a discriminator field to the class so it can
         # be identified when deserailizing.
-        subclass.__annotations__ = {
-            **subclass.__annotations__,
-            "type": subclass_name,
+        cls.__annotations__ = {
+            **cls.__annotations__,
+            discriminator: Literal[subclass_name],
         }
-        setattr(subclass, "type", Field(default=subclass_name, repr=False))
+        setattr(cls, discriminator, Field(default=subclass_name, repr=False))
 
+    def model_validate(
+            cls: type[BaseModel],
+            obj: dict[str, Any],
+            **kwargs,
+    ) -> BaseModel:
+        if cls == super_cls:
+            return ref_classes[obj.get("type")].model_validate(obj, **kwargs)
+        return TypeAdapter(cls).validate_python(obj, **kwargs)
+    #
     # Inject magic methods into super_cls
-    for method in __init_subclass__, __get_pydantic_core_schema__:
+    for method in __init_subclass__, model_validate:
         setattr(super_cls, method.__name__, classmethod(method))  # type: ignore
-
-    delattr(super_cls, "__pydantic_core_schema__")
 
     return super_cls
 

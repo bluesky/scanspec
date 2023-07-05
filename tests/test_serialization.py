@@ -10,7 +10,7 @@ from scanspec.specs import Line, Mask, Spec, Spiral
 def test_line_serializes() -> None:
     ob = Line(axis="x", start=0, stop=1, num=4)
     serialized = {"type": "Line", "axis": "x", "start": 0.0, "stop": 1.0, "num": 4}
-    assert ob.serialize() == serialized
+    assert ob.model_dump() == serialized
     assert Spec.deserialize(serialized) == ob
 
 
@@ -31,7 +31,7 @@ def test_masked_circle_serializes() -> None:
         "check_path_changes": True,
     }
     assert ob.serialize() == serialized
-    assert Spec.deserialize(serialized) == ob
+    assert Spec.model_validate(serialized) == ob
 
 
 def test_product_lines_serializes() -> None:
@@ -55,7 +55,7 @@ def test_product_lines_serializes() -> None:
     }
 
     assert ob.serialize() == serialized
-    assert Spec.deserialize(serialized) == ob
+    assert Spec.model_validate(serialized) == ob
 
 
 def test_complex_nested_serializes() -> None:
@@ -103,7 +103,7 @@ def test_complex_nested_serializes() -> None:
         "type": "Mask",
     }
     assert ob.serialize() == serialized
-    assert Spec.deserialize(serialized) == ob
+    assert Spec.model_validate(serialized) == ob
 
 
 @pytest.mark.parametrize(
@@ -147,4 +147,4 @@ def test_complex_nested_serializes() -> None:
 )
 def test_detects_invalid_serialized(serialized: Mapping[str, Any]) -> None:
     with pytest.raises(ValidationError):
-        Spec.deserialize(serialized)
+        Spec.model_validate(serialized)
