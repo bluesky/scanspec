@@ -157,7 +157,7 @@ class Repeat(Spec[Axis]):
     .. note:: There is no turnaround arrow at x=4
     """
 
-    num: int = Field(min=1, description="Number of frames to produce")
+    num: int = Field(description="Number of frames to produce", json_schema_extra={"min": 1})
     gap: bool = Field(
         description="If False and the slowest of the stack of Frames is snaked "
         "then the end and start of consecutive iterations of Spec will have no gap",
@@ -448,7 +448,7 @@ class Line(Spec[Axis]):
     axis: Axis = Field(description="An identifier for what to move")
     start: float = Field(description="Midpoint of the first point of the line")
     stop: float = Field(description="Midpoint of the last point of the line")
-    num: int = Field(min=1, description="Number of frames to produce")
+    num: int = Field(description="Number of frames to produce", json_schema_extra={"min": 1})
 
     def axes(self) -> List:
         return [self.axis]
@@ -476,7 +476,7 @@ class Line(Spec[Axis]):
         axis: Axis = Field(description="An identifier for what to move"),
         lower: float = Field(description="Lower bound of the first point of the line"),
         upper: float = Field(description="Upper bound of the last point of the line"),
-        num: int = Field(min=1, description="Number of frames to produce"),
+        num: int = Field(description="Number of frames to produce", json_schema_extra={"min": 1}),
     ) -> Line[Axis]:
         """Specify a Line by extreme bounds instead of midpoints.
 
@@ -511,13 +511,13 @@ class Static(Spec[Axis]):
 
     axis: Axis = Field(description="An identifier for what to move")
     value: float = Field(description="The value at each point")
-    num: int = Field(min=1, description="Number of frames to produce", default=1)
+    num: int = Field(description="Number of frames to produce", default=1, json_schema_extra={"min": 1})
 
     @classmethod
     def duration(
         cls: Type[Static],
         duration: float = Field(description="The duration of each static point"),
-        num: int = Field(min=1, description="Number of frames to produce", default=1),
+        num: int = Field(description="Number of frames to produce", default=1,json_schema_extra={"min": 1}),
     ) -> Static[str]:
         """A static spec with no motion, only a duration repeated "num" times.
 
@@ -562,7 +562,7 @@ class Spiral(Spec[Axis]):
     y_start: float = Field(description="y centre of the spiral")
     x_range: float = Field(description="x width of the spiral")
     y_range: float = Field(description="y width of the spiral")
-    num: int = Field(min=1, description="Number of frames to produce")
+    num: int = Field(description="Number of frames to produce", json_schema_extra={"min": 1})
     rotate: float = Field(
         description="How much to rotate the angle of the spiral", default=0.0
     )
