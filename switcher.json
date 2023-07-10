@@ -4,6 +4,10 @@
     "url": "https://dls-controls.github.io/scanspec/master/"
   },
   {
+    "version": "0.6.3",
+    "url": "https://dls-controls.github.io/scanspec/0.6.3/"
+  },
+  {
     "version": "0.6.2",
     "url": "https://dls-controls.github.io/scanspec/0.6.2/"
   },
@@ -74,9 +78,5 @@
   {
     "version": "pydantic1.0",
     "url": "https://dls-controls.github.io/scanspec/pydantic1.0/"
-  },
-  {
-    "version": "workingRelease",
-    "url": "https://dls-controls.github.io/scanspec/workingRelease/"
   }
 ]
