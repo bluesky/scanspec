@@ -60,7 +60,7 @@ def test_plot_1D_line() -> None:
     # Arrows
     texts = axes.texts
     assert len(texts) == 1
-    assert texts[0].xy == [0.5, 0]
+    assert texts[0].xy == (0.5, 0)
 
 
 def test_plot_1D_line_snake_repeat() -> None:
@@ -85,7 +85,7 @@ def test_plot_1D_line_snake_repeat() -> None:
     # Arrows
     texts = axes.texts
     assert len(texts) == 2
-    assert texts[0].xy == [1, 0]
+    assert texts[0].xy == (1, 0)
     assert texts[1].xy == pytest.approx([2, 0])
 
 
@@ -109,7 +109,7 @@ def test_plot_1D_step() -> None:
     # Arrows
     texts = axes.texts
     assert len(texts) == 1
-    assert texts[0].xy == [2, 0]
+    assert texts[0].xy == (2, 0)
 
 
 def test_plot_2D_line() -> None:
@@ -136,7 +136,7 @@ def test_plot_2D_line() -> None:
     # Arrows
     texts = axes.texts
     assert len(texts) == 2
-    assert texts[0].xy == [0.5, 2]
+    assert texts[0].xy == (0.5, 2)
     assert texts[1].xy == pytest.approx([2.5, 3])
 
 
@@ -163,8 +163,8 @@ def test_plot_2D_line_rect_region() -> None:
     # Arrows
     texts = axes.texts
     assert len(texts) == 2
-    assert texts[0].xy == [-0.5, 1.5]
-    assert texts[1].xy == [-0.5, 2]
+    assert texts[0].xy == (-0.5, 1.5)
+    assert texts[1].xy == (-0.5, 2)
     # Regions
     patches = axes.patches
     assert len(patches) == 1
