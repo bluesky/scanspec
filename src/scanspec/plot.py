@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterator, List
 import numpy as np
 from matplotlib import colors, patches
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import proj3d
+from mpl_toolkits.mplot3d import Axes3D, proj3d
 from scipy import interpolate
 
 from .core import Path
@@ -105,7 +105,7 @@ def plot_spec(spec: Spec[Any]):
     # Setup axes
     if ndims > 2:
         plt.figure(figsize=(6, 6))
-        plt_axes = plt.axes(projection="3d")
+        plt_axes: Axes3D = plt.axes(projection="3d")
         plt_axes.grid(False)
         plt_axes.set_zlabel(axes[-3])
         plt_axes.set_ylabel(axes[-2])
@@ -143,7 +143,7 @@ def plot_spec(spec: Spec[Any]):
                 height = region.y_radius * 2
                 angle = region.angle
                 plt_axes.add_patch(
-                    patches.Ellipse(xy, width, height, angle, fill=False)
+                    patches.Ellipse(xy, width, height, angle=angle, fill=False)
                 )
             elif isinstance(region, Polygon):
                 # *xy_verts* is a numpy array with shape Nx2.
