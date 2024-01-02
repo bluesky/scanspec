@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Reference &#8212; scanspec 0.6.5.dev5+gd1c9266 documentation</title>
+    <title>Reference &#8212; scanspec 0.6.5.dev6+ge1ad99c documentation</title>
   
   
   
@@ -39,7 +39,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=5b4479735964841361fd" />
   <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=5b4479735964841361fd"></script>
 
-    <script src="_static/documentation_options.js?v=7041af4f"></script>
+    <script src="_static/documentation_options.js?v=51eb998d"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -445,12 +445,10 @@ document.write(`
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
-<ul class="nav bd-sidenav">
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="reference/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reference/rest_api.html">REST API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reference/contributing.html">Contributing to the project</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/releases">Releases</a></li>
 
 </ul>
 </div>
@@ -508,142 +506,12 @@ document.write(`
                   
   <section id="reference">
 <h1>Reference<a class="headerlink" href="#reference" title="Link to this heading">#</a></h1>
-<p>Practical step-by-step guides for the more experienced user.</p>
+<p>Technical reference material including APIs and release notes.</p>
 <div class="toctree-wrapper compound">
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="reference/api.html">API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec"><code class="docutils literal notranslate"><span class="pre">scanspec</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec.scanspec.__version__"><code class="docutils literal notranslate"><span class="pre">scanspec.__version__</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec-core"><code class="docutils literal notranslate"><span class="pre">scanspec.core</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.if_instance_do"><code class="docutils literal notranslate"><span class="pre">if_instance_do()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.Axis"><code class="docutils literal notranslate"><span class="pre">Axis</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.AxesPoints"><code class="docutils literal notranslate"><span class="pre">AxesPoints</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.Frames"><code class="docutils literal notranslate"><span class="pre">Frames</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.midpoints"><code class="docutils literal notranslate"><span class="pre">Frames.midpoints</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.lower"><code class="docutils literal notranslate"><span class="pre">Frames.lower</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.upper"><code class="docutils literal notranslate"><span class="pre">Frames.upper</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.gap"><code class="docutils literal notranslate"><span class="pre">Frames.gap</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.axes"><code class="docutils literal notranslate"><span class="pre">Frames.axes()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.extract"><code class="docutils literal notranslate"><span class="pre">Frames.extract()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.concat"><code class="docutils literal notranslate"><span class="pre">Frames.concat()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Frames.zip"><code class="docutils literal notranslate"><span class="pre">Frames.zip()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.SnakedFrames"><code class="docutils literal notranslate"><span class="pre">SnakedFrames</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.SnakedFrames.from_frames"><code class="docutils literal notranslate"><span class="pre">SnakedFrames.from_frames()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.SnakedFrames.extract"><code class="docutils literal notranslate"><span class="pre">SnakedFrames.extract()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.gap_between_frames"><code class="docutils literal notranslate"><span class="pre">gap_between_frames()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.squash_frames"><code class="docutils literal notranslate"><span class="pre">squash_frames()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.Path"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Path.stack"><code class="docutils literal notranslate"><span class="pre">Path.stack</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Path.index"><code class="docutils literal notranslate"><span class="pre">Path.index</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Path.lengths"><code class="docutils literal notranslate"><span class="pre">Path.lengths</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Path.end_index"><code class="docutils literal notranslate"><span class="pre">Path.end_index</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Path.consume"><code class="docutils literal notranslate"><span class="pre">Path.consume()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.Midpoints"><code class="docutils literal notranslate"><span class="pre">Midpoints</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Midpoints.stack"><code class="docutils literal notranslate"><span class="pre">Midpoints.stack</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.core.Midpoints.axes"><code class="docutils literal notranslate"><span class="pre">Midpoints.axes</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.discriminated_union_of_subclasses"><code class="docutils literal notranslate"><span class="pre">discriminated_union_of_subclasses()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.core.StrictConfig"><code class="docutils literal notranslate"><span class="pre">StrictConfig</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec-specs"><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.DURATION"><code class="docutils literal notranslate"><span class="pre">DURATION</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec"><code class="docutils literal notranslate"><span class="pre">Spec</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.axes"><code class="docutils literal notranslate"><span class="pre">Spec.axes()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.calculate"><code class="docutils literal notranslate"><span class="pre">Spec.calculate()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.frames"><code class="docutils literal notranslate"><span class="pre">Spec.frames()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.midpoints"><code class="docutils literal notranslate"><span class="pre">Spec.midpoints()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.shape"><code class="docutils literal notranslate"><span class="pre">Spec.shape()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.zip"><code class="docutils literal notranslate"><span class="pre">Spec.zip()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.concat"><code class="docutils literal notranslate"><span class="pre">Spec.concat()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.serialize"><code class="docutils literal notranslate"><span class="pre">Spec.serialize()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spec.deserialize"><code class="docutils literal notranslate"><span class="pre">Spec.deserialize()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Product"><code class="docutils literal notranslate"><span class="pre">Product</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Repeat"><code class="docutils literal notranslate"><span class="pre">Repeat</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Zip"><code class="docutils literal notranslate"><span class="pre">Zip</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Mask"><code class="docutils literal notranslate"><span class="pre">Mask</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Snake"><code class="docutils literal notranslate"><span class="pre">Snake</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Concat"><code class="docutils literal notranslate"><span class="pre">Concat</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Squash"><code class="docutils literal notranslate"><span class="pre">Squash</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Line"><code class="docutils literal notranslate"><span class="pre">Line</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Line.bounded"><code class="docutils literal notranslate"><span class="pre">Line.bounded()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Static"><code class="docutils literal notranslate"><span class="pre">Static</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Static.duration"><code class="docutils literal notranslate"><span class="pre">Static.duration()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.Spiral"><code class="docutils literal notranslate"><span class="pre">Spiral</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.specs.Spiral.spaced"><code class="docutils literal notranslate"><span class="pre">Spiral.spaced()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.fly"><code class="docutils literal notranslate"><span class="pre">fly()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.specs.step"><code class="docutils literal notranslate"><span class="pre">step()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec-regions"><code class="docutils literal notranslate"><span class="pre">scanspec.regions</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Region"><code class="docutils literal notranslate"><span class="pre">Region</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.regions.Region.axis_sets"><code class="docutils literal notranslate"><span class="pre">Region.axis_sets()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="reference/api.html#scanspec.regions.Region.mask"><code class="docutils literal notranslate"><span class="pre">Region.mask()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.get_mask"><code class="docutils literal notranslate"><span class="pre">get_mask()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.CombinationOf"><code class="docutils literal notranslate"><span class="pre">CombinationOf</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.UnionOf"><code class="docutils literal notranslate"><span class="pre">UnionOf</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.IntersectionOf"><code class="docutils literal notranslate"><span class="pre">IntersectionOf</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.DifferenceOf"><code class="docutils literal notranslate"><span class="pre">DifferenceOf</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.SymmetricDifferenceOf"><code class="docutils literal notranslate"><span class="pre">SymmetricDifferenceOf</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Range"><code class="docutils literal notranslate"><span class="pre">Range</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Rectangle"><code class="docutils literal notranslate"><span class="pre">Rectangle</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Polygon"><code class="docutils literal notranslate"><span class="pre">Polygon</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Circle"><code class="docutils literal notranslate"><span class="pre">Circle</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.Ellipse"><code class="docutils literal notranslate"><span class="pre">Ellipse</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.regions.find_regions"><code class="docutils literal notranslate"><span class="pre">find_regions()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec-plot"><code class="docutils literal notranslate"><span class="pre">scanspec.plot</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.plot.plot_spec"><code class="docutils literal notranslate"><span class="pre">plot_spec()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="reference/api.html#scanspec-service"><code class="docutils literal notranslate"><span class="pre">scanspec.service</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.Points"><code class="docutils literal notranslate"><span class="pre">Points</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.ValidResponse"><code class="docutils literal notranslate"><span class="pre">ValidResponse</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.PointsFormat"><code class="docutils literal notranslate"><span class="pre">PointsFormat</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.PointsRequest"><code class="docutils literal notranslate"><span class="pre">PointsRequest</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.GeneratedPointsResponse"><code class="docutils literal notranslate"><span class="pre">GeneratedPointsResponse</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.MidpointsResponse"><code class="docutils literal notranslate"><span class="pre">MidpointsResponse</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.BoundsResponse"><code class="docutils literal notranslate"><span class="pre">BoundsResponse</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.GapResponse"><code class="docutils literal notranslate"><span class="pre">GapResponse</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.SmallestStepResponse"><code class="docutils literal notranslate"><span class="pre">SmallestStepResponse</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.valid"><code class="docutils literal notranslate"><span class="pre">valid()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.midpoints"><code class="docutils literal notranslate"><span class="pre">midpoints()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.bounds"><code class="docutils literal notranslate"><span class="pre">bounds()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.gap"><code class="docutils literal notranslate"><span class="pre">gap()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.smallest_step"><code class="docutils literal notranslate"><span class="pre">smallest_step()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.run_app"><code class="docutils literal notranslate"><span class="pre">run_app()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="reference/api.html#scanspec.service.scanspec_schema_text"><code class="docutils literal notranslate"><span class="pre">scanspec_schema_text()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="reference/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reference/rest_api.html">REST API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reference/contributing.html">Contributing to the project</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="reference/contributing.html#issue-or-discussion">Issue or Discussion?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference/contributing.html#code-coverage">Code coverage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference/contributing.html#developer-guide">Developer guide</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/releases">Releases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/contributing.html">Contributing to the project</a></li>
 <li class="toctree-l1"><a class="reference external" href="genindex.html#http://">Index</a></li>
 </ul>
 </div>
@@ -690,7 +558,7 @@ document.write(`
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/dls-controls/scanspec/edit/md-conversion/docs/reference.rst">
+    <a href="https://github.com/dls-controls/scanspec/edit/md-conversion/docs/reference.md">
       <i class="fa-solid fa-pencil"></i>
       
       
@@ -705,7 +573,7 @@ document.write(`
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="_sources/reference.rst.txt">
+    <a href="_sources/reference.md.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>
