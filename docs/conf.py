@@ -211,4 +211,4 @@ html_show_copyright = False
 
 # Logo
 html_logo = "images/scanspec-logo.svg"
-html_favicon = "images/scanspec-logo.ico"
+html_favicon = html_logo
