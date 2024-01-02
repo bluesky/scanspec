@@ -5,7 +5,8 @@
 [![PyPI](https://img.shields.io/pypi/v/scanspec.svg)](https://pypi.org/project/scanspec)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-<img src="https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/scanspec-logo.svg" style="background: none; float: right" width="160px" height="160px">
+<img src="https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/scanspec-logo.svg"
+     style="background: none" width="160px" height="160px" align="right">
 
 Specify step and flyscan Paths using combinations of:
 - Specs like Line or Spiral
