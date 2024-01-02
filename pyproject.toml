@@ -21,7 +21,7 @@ dependencies = [
 ]
 dynamic = ["version"]
 license.file = "LICENSE"
-readme = "README.rst"
+readme = "README.md"
 requires-python = ">=3.8"
 
 [project.optional-dependencies]
@@ -55,6 +55,7 @@ dev = [
     "tox-direct",
     "types-mock",
     "httpx",
+    "myst-parser",
 ]
 
 [project.scripts]
