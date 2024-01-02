@@ -72,6 +72,10 @@
     "url": "https://dls-controls.github.io/scanspec/matplotlib-update/"
   },
   {
+    "version": "md-conversion",
+    "url": "https://dls-controls.github.io/scanspec/md-conversion/"
+  },
+  {
     "version": "merge",
     "url": "https://dls-controls.github.io/scanspec/merge/"
   },
