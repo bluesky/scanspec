@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>scanspec &#8212; scanspec 0.6.5.dev1+g57b9c2a documentation</title>
+    <title>scanspec &#8212; scanspec 0.6.5.dev2+g46d2965 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=5b4479735964841361fd" />
   <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=5b4479735964841361fd"></script>
 
-    <script src="_static/documentation_options.js?v=23dd9ee2"></script>
+    <script src="_static/documentation_options.js?v=acfae930"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'md-conversion';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
-    <link rel="icon" href="_static/scanspec-logo.ico"/>
+    <link rel="icon" href="_static/scanspec-logo.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Tutorials" href="tutorials.html" />
@@ -463,11 +463,12 @@ document.write(`
                 <article class="bd-article" role="main">
                   
   <section id="scanspec">
-<h1><img alt="logo" src="_images/scanspec-logo.svg" /> scanspec<a class="headerlink" href="#scanspec" title="Link to this heading">#</a></h1>
+<h1>scanspec<a class="headerlink" href="#scanspec" title="Link to this heading">#</a></h1>
 <p><a class="reference external" href="https://github.com/dls-controls/scanspec/actions/workflows/code.yml"><img alt="CI" src="https://github.com/dls-controls/scanspec/actions/workflows/code.yml/badge.svg" /></a>
 <a class="reference external" href="https://codecov.io/gh/dls-controls/scanspec"><img alt="Coverage" src="https://codecov.io/gh/dls-controls/scanspec/branch/master/graph/badge.svg" /></a>
 <a class="reference external" href="https://pypi.org/project/scanspec"><img alt="PyPI" src="https://img.shields.io/pypi/v/scanspec.svg" /></a>
 <a class="reference external" href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a></p>
+<img src="https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/scanspec-logo.svg" style="margin-right: 40px; background: none" width="150px" height="150px" align="left">
 <p>Specify step and flyscan Paths using combinations of:</p>
 <ul class="simple">
 <li><p>Specs like Line or Spiral</p></li>
@@ -480,24 +481,24 @@ server. It can them be iterated over like a <a class="reference external" href="
 can be produced and expanded Paths created to consume chunk by chunk.</p>
 <table class="table">
 <thead>
-<tr class="row-odd"><th class="head"><p>Source</p></th>
-<th class="head"><p><a class="github reference external" href="https://github.com/dls-controls/scanspec">dls-controls/scanspec</a></p></th>
+<tr class="row-odd"><th class="head text-center"><p>Source</p></th>
+<th class="head text-center"><p><a class="github reference external" href="https://github.com/dls-controls/scanspec">dls-controls/scanspec</a></p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>PyPI</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">scanspec</span></code></p></td>
+<tr class="row-even"><td class="text-center"><p>PyPI</p></td>
+<td class="text-center"><p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">scanspec</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>Documentation</p></td>
-<td><p><a class="reference external" href="https://dls-controls.github.io/scanspec">https://dls-controls.github.io/scanspec</a></p></td>
+<tr class="row-odd"><td class="text-center"><p>Documentation</p></td>
+<td class="text-center"><p><a class="reference external" href="https://dls-controls.github.io/scanspec">https://dls-controls.github.io/scanspec</a></p></td>
 </tr>
-<tr class="row-even"><td><p>Releases</p></td>
-<td><p><a class="github reference external" href="https://github.com/dls-controls/scanspec/releases">dls-controls/scanspec</a></p></td>
+<tr class="row-even"><td class="text-center"><p>Releases</p></td>
+<td class="text-center"><p><a class="github reference external" href="https://github.com/dls-controls/scanspec/releases">dls-controls/scanspec</a></p></td>
 </tr>
 </tbody>
 </table>
 <p>An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
-each point looks like:</p>
+each point:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.specs</span> <span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">fly</span>
 <span class="kn">from</span> <span class="nn">scanspec.regions</span> <span class="kn">import</span> <span class="n">Circle</span>
 
@@ -505,8 +506,9 @@ each point looks like:</p>
 <span class="n">spec</span> <span class="o">=</span> <span class="n">fly</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Which when plotted looks like:</p>
 <p><img alt="plot" src="_images/plot_spec.png" /></p>
-<p>You can then either iterate through the scan positions directly for convenience:</p>
+<p>Scan points can be iterated through directly for convenience:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">midpoints</span><span class="p">():</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
 <span class="c1"># ...</span>
@@ -514,8 +516,8 @@ each point looks like:</p>
 <span class="c1"># {&#39;y&#39;: 3.1818181818181817, &#39;x&#39;: 0.7222222222222222, &#39;DURATION&#39;: 0.4}</span>
 </pre></div>
 </div>
-<p>or create a Path from the stack of Frames and consume chunks of a given length
-from it for performance:</p>
+<p>or a Path created from the stack of Frames and chunks of a given length
+consumed from it for performance:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scanspec.core</span> <span class="kn">import</span> <span class="n">Path</span>
 
 <span class="n">stack</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span>
