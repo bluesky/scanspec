@@ -1,4 +1,3 @@
-
 # scanspec
 
 [![CI](https://github.com/dls-controls/scanspec/actions/workflows/code.yml/badge.svg)](https://github.com/dls-controls/scanspec/actions/workflows/code.yml)
@@ -6,7 +5,7 @@
 [![PyPI](https://img.shields.io/pypi/v/scanspec.svg)](https://pypi.org/project/scanspec)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-<img src="https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/scanspec-logo.svg" style="margin-right: 40px; background: none" width="150px" height="150px" align="left">
+<img src="https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/scanspec-logo.svg" style="background: none; float: right" width="160px" height="160px">
 
 Specify step and flyscan Paths using combinations of:
 - Specs like Line or Spiral
@@ -67,11 +66,8 @@ chunk.midpoints  # {'x': <ndarray len=10>, 'y': <ndarray len=10>, 'DURATION': <n
 chunk.upper  # bounds are same dimensionality as positions
 ```
 
-<!--
-Anything below this line is used when viewing README.md and will be replaced
-when included in index.md
--->
-
-[plot]: https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/plot_spec.png
+<!-- README only content. Anything below this line won't be included in index.md -->
 
 See https://dls-controls.github.io/scanspec for more detailed documentation.
+
+[plot]: https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/plot_spec.png
