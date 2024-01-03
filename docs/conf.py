@@ -32,6 +32,7 @@ else:
 extensions = [
     # Use this for generating API docs
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     # This can parse google style docstrings
     "sphinx.ext.napoleon",
     # For linking to external sphinx documentation
@@ -101,6 +102,16 @@ autodoc_default_options = {"show-inheritance": True}
 # full-qualified object name.
 autodoc_type_aliases = dict(AxesPoints="scanspec.core.AxesPoints")
 
+# If False and a module has the __all__ attribute set, autosummary documents
+# every member listed in __all__ and no others. Default is True
+autosummary_ignore_module_all = False
+
+# Turn on sphinx.ext.autosummary
+autosummary_generate = True
+
+# Add any paths that contain templates here, relative to this directory.
+templates_path = ['_templates']
+
 # Include source in plot directive by default
 plot_include_source = True
 
@@ -117,7 +128,7 @@ master_doc = "index"
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # These patterns also affect html_static_path and html_extra_path
-exclude_patterns = ["_build"]
+exclude_patterns = ["build/html"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
