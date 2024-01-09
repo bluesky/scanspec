@@ -4,6 +4,10 @@
     "url": "https://dls-controls.github.io/scanspec/master/"
   },
   {
+    "version": "0.6.5",
+    "url": "https://dls-controls.github.io/scanspec/0.6.5/"
+  },
+  {
     "version": "0.6.4",
     "url": "https://dls-controls.github.io/scanspec/0.6.4/"
   },
@@ -70,10 +74,6 @@
   {
     "version": "matplotlib-update",
     "url": "https://dls-controls.github.io/scanspec/matplotlib-update/"
-  },
-  {
-    "version": "md-conversion",
-    "url": "https://dls-controls.github.io/scanspec/md-conversion/"
   },
   {
     "version": "merge",

@@ -1,0 +1,164 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="152pt" height="360pt" viewBox="0.00 0.00 152.00 360.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 356)">
+<ns0:title>inheritancec3ef874399</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>Concat</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../reference/api.html#scanspec.specs.Concat" ns1:title="Concatenate two Specs together, running one after the other." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="144,-352 90,-352 90,-333 144,-333 144,-352" />
+<ns0:text text-anchor="middle" x="117" y="-340" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Concat</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>Spec</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../reference/api.html#scanspec.specs.Spec" ns1:title="A serializable representation of the type and parameters of a scan." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="54,-185 0,-185 0,-166 54,-166 54,-185" />
+<ns0:text text-anchor="middle" x="27" y="-173" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Spec</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>Spec-&gt;Concat</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M30.02,-185.19C35.68,-210.49 53.72,-279.61 90,-324.5 91.52,-326.38 93.28,-328.14 95.16,-329.77" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="94.13,-331.19 99.13,-332.93 96.31,-328.45 94.13,-331.19" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>Line</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../reference/api.html#scanspec.specs.Line" ns1:title="Linearly spaced frames with start and stop as first and last midpoints." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="144,-315 90,-315 90,-296 144,-296 144,-315" />
+<ns0:text text-anchor="middle" x="117" y="-303" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Line</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>Spec-&gt;Line</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M31.56,-185.12C39.53,-205.71 60.48,-254.87 90,-287.5 91.66,-289.34 93.55,-291.09 95.52,-292.72" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="94.64,-294.25 99.67,-295.91 96.77,-291.47 94.64,-294.25" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>Mask</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../reference/api.html#scanspec.specs.Mask" ns1:title="Restrict Spec to only midpoints that fall inside the given Region." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="144,-278 90,-278 90,-259 144,-259 144,-278" />
+<ns0:text text-anchor="middle" x="117" y="-266" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Mask</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>Spec-&gt;Mask</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M34.69,-185.22C45.33,-200.25 67.23,-229.59 90,-250.5 92.02,-252.36 94.25,-254.17 96.52,-255.9" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="95.55,-257.36 100.62,-258.89 97.61,-254.53 95.55,-257.36" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>Product</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../reference/api.html#scanspec.specs.Product" ns1:title="Outer product of two Specs, nesting inner within outer." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="144,-241 90,-241 90,-222 144,-222 144,-241" />
+<ns0:text text-anchor="middle" x="117" y="-229" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Product</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>Spec-&gt;Product</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M43.33,-185.25C58.09,-194.65 80.48,-208.9 96.51,-219.1" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="95.69,-220.65 100.85,-221.86 97.57,-217.7 95.69,-220.65" />
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>Repeat</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../reference/api.html#scanspec.specs.Repeat" ns1:title="Repeat an empty frame num times." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="144,-204 90,-204 90,-185 144,-185 144,-204" />
+<ns0:text text-anchor="middle" x="117" y="-192" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Repeat</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>Spec-&gt;Repeat</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M54.4,-181.2C63.97,-183.27 74.87,-185.62 84.82,-187.77" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="84.66,-189.52 89.92,-188.87 85.4,-186.1 84.66,-189.52" />
+</ns0:g>
+
+<ns0:g id="node7" class="node">
+<ns0:title>Snake</ns0:title>
+<ns0:g id="a_node7"><ns0:a ns1:href="../reference/api.html#scanspec.specs.Snake" ns1:title="Run the Spec in reverse on every other iteration when nested." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="144,-167 90,-167 90,-148 144,-148 144,-167" />
+<ns0:text text-anchor="middle" x="117" y="-155" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Snake</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>Spec-&gt;Snake</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M54.4,-170.1C63.97,-168.14 74.87,-165.91 84.82,-163.88" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="85.37,-165.55 89.92,-162.83 84.67,-162.12 85.37,-165.55" />
+</ns0:g>
+
+<ns0:g id="node8" class="node">
+<ns0:title>Spiral</ns0:title>
+<ns0:g id="a_node8"><ns0:a ns1:href="../reference/api.html#scanspec.specs.Spiral" ns1:title="Archimedean spiral of &quot;x_axis&quot; and &quot;y_axis&quot;." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="144,-130 90,-130 90,-111 144,-111 144,-130" />
+<ns0:text text-anchor="middle" x="117" y="-118" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Spiral</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge7" class="edge">
+<ns0:title>Spec-&gt;Spiral</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M43.33,-165.92C58,-156.75 80.21,-142.87 96.21,-132.87" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="97.24,-134.29 100.55,-130.16 95.38,-131.32 97.24,-134.29" />
+</ns0:g>
+
+<ns0:g id="node9" class="node">
+<ns0:title>Squash</ns0:title>
+<ns0:g id="a_node9"><ns0:a ns1:href="../reference/api.html#scanspec.specs.Squash" ns1:title="Squash a stack of Frames together into a single expanded Frames object." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="144,-93 90,-93 90,-74 144,-74 144,-93" />
+<ns0:text text-anchor="middle" x="117" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Squash</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge8" class="edge">
+<ns0:title>Spec-&gt;Squash</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M34.99,-165.89C45.85,-151.31 67.83,-123.1 90,-102.5 92.31,-100.35 94.87,-98.23 97.45,-96.22" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="98.55,-97.58 101.49,-93.18 96.44,-94.79 98.55,-97.58" />
+</ns0:g>
+
+<ns0:g id="node10" class="node">
+<ns0:title>Static</ns0:title>
+<ns0:g id="a_node10"><ns0:a ns1:href="../reference/api.html#scanspec.specs.Static" ns1:title="A static frame, repeated num times, with axis at value." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="144,-56 90,-56 90,-37 144,-37 144,-56" />
+<ns0:text text-anchor="middle" x="117" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Static</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge9" class="edge">
+<ns0:title>Spec-&gt;Static</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M31.79,-165.81C40.06,-145.52 61.31,-97.78 90,-65.5 91.9,-63.36 94.09,-61.31 96.36,-59.41" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="97.66,-60.61 100.51,-56.15 95.5,-57.86 97.66,-60.61" />
+</ns0:g>
+
+<ns0:g id="node11" class="node">
+<ns0:title>Zip</ns0:title>
+<ns0:g id="a_node11"><ns0:a ns1:href="../reference/api.html#scanspec.specs.Zip" ns1:title="Run two Specs in parallel, merging their midpoints together." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="144,-19 90,-19 90,0 144,0 144,-19" />
+<ns0:text text-anchor="middle" x="117" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Zip</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge10" class="edge">
+<ns0:title>Spec-&gt;Zip</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M30.12,-165.99C36.02,-141.16 54.59,-73.24 90,-28.5 91.73,-26.31 93.78,-24.25 95.96,-22.35" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="97.17,-23.62 99.97,-19.12 94.97,-20.9 97.17,-23.62" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>
