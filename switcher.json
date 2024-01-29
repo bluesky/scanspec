@@ -72,6 +72,10 @@
     "url": "https://dls-controls.github.io/scanspec/delete/"
   },
   {
+    "version": "frame-duration",
+    "url": "https://dls-controls.github.io/scanspec/frame-duration/"
+  },
+  {
     "version": "matplotlib-update",
     "url": "https://dls-controls.github.io/scanspec/matplotlib-update/"
   },
