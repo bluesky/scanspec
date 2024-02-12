@@ -30,7 +30,7 @@ jobs:
         run: tox -e pre-commit,mypy
 
       - name: Install minimum python version
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
 
