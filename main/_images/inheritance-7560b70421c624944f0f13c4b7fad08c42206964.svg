@@ -1,0 +1,164 @@
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns:ns1="http://www.w3.org/1999/xlink" width="355pt" height="230pt" viewBox="0.00 0.00 355.00 230.00">
+<ns0:g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 226)">
+<ns0:title>inheritance392524bb86</ns0:title>
+
+<ns0:g id="node1" class="node">
+<ns0:title>Circle</ns0:title>
+<ns0:g id="a_node1"><ns0:a ns1:href="../reference/api.html#scanspec.regions.Circle" ns1:title="Mask contains points of axis within an xy circle of given radius." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="162,-204 108,-204 108,-185 162,-185 162,-204" />
+<ns0:text text-anchor="middle" x="135" y="-192" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Circle</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="node2" class="node">
+<ns0:title>Region</ns0:title>
+<ns0:g id="a_node2"><ns0:a ns1:href="../reference/api.html#scanspec.regions.Region" ns1:title="Abstract baseclass for a Region that can `Mask` a `Spec`." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="54,-111 0,-111 0,-92 54,-92 54,-111" />
+<ns0:text text-anchor="middle" x="27" y="-99" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Region</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge1" class="edge">
+<ns0:title>Region-&gt;Circle</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M33.69,-111.08C43.43,-126.73 64.69,-157.88 90,-176.5 93.99,-179.43 98.53,-181.98 103.13,-184.16" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="102.47,-185.78 107.75,-186.22 103.89,-182.59 102.47,-185.78" />
+</ns0:g>
+
+<ns0:g id="node3" class="node">
+<ns0:title>CombinationOf</ns0:title>
+<ns0:g id="a_node3"><ns0:a ns1:href="../reference/api.html#scanspec.regions.CombinationOf" ns1:title="Abstract baseclass for a combination of two regions, left and right." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="180,-167 90,-167 90,-148 180,-148 180,-167" />
+<ns0:text text-anchor="middle" x="135" y="-155" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">CombinationOf</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge2" class="edge">
+<ns0:title>Region-&gt;CombinationOf</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M42.4,-111.25C54.73,-119.36 73.11,-130.94 90,-139.5 94.42,-141.74 99.18,-143.92 103.89,-145.94" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="103.27,-147.58 108.56,-147.91 104.63,-144.35 103.27,-147.58" />
+</ns0:g>
+
+<ns0:g id="node5" class="node">
+<ns0:title>Ellipse</ns0:title>
+<ns0:g id="a_node5"><ns0:a ns1:href="../reference/api.html#scanspec.regions.Ellipse" ns1:title="Mask contains points of axis within an xy ellipse of given radius." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="162,-130 108,-130 108,-111 162,-111 162,-130" />
+<ns0:text text-anchor="middle" x="135" y="-118" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Ellipse</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge4" class="edge">
+<ns0:title>Region-&gt;Ellipse</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M54.2,-106.2C68.85,-108.82 87.21,-112.11 102.63,-114.88" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="102.5,-116.63 107.73,-115.79 103.12,-113.19 102.5,-116.63" />
+</ns0:g>
+
+<ns0:g id="node7" class="node">
+<ns0:title>Polygon</ns0:title>
+<ns0:g id="a_node7"><ns0:a ns1:href="../reference/api.html#scanspec.regions.Polygon" ns1:title="Mask contains points of axis within a rotated xy polygon." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="163,-93 107,-93 107,-74 163,-74 163,-93" />
+<ns0:text text-anchor="middle" x="135" y="-81" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Polygon</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge6" class="edge">
+<ns0:title>Region-&gt;Polygon</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M54.2,-97.05C68.63,-94.6 86.66,-91.54 101.93,-88.95" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="102.36,-90.65 106.99,-88.09 101.77,-87.2 102.36,-90.65" />
+</ns0:g>
+
+<ns0:g id="node8" class="node">
+<ns0:title>Range</ns0:title>
+<ns0:g id="a_node8"><ns0:a ns1:href="../reference/api.html#scanspec.regions.Range" ns1:title="Mask contains points of axis &gt;= min and &lt;= max." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="162,-56 108,-56 108,-37 162,-37 162,-56" />
+<ns0:text text-anchor="middle" x="135" y="-44" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Range</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge7" class="edge">
+<ns0:title>Region-&gt;Range</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M43.26,-91.96C55.64,-84.38 73.66,-73.73 90,-65.5 95.01,-62.98 100.42,-60.47 105.69,-58.14" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="106.59,-59.65 110.47,-56.05 105.19,-56.45 106.59,-59.65" />
+</ns0:g>
+
+<ns0:g id="node9" class="node">
+<ns0:title>Rectangle</ns0:title>
+<ns0:g id="a_node9"><ns0:a ns1:href="../reference/api.html#scanspec.regions.Rectangle" ns1:title="Mask contains points of axis within a rotated xy rectangle." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="167.5,-19 102.5,-19 102.5,0 167.5,0 167.5,-19" />
+<ns0:text text-anchor="middle" x="135" y="-7" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">Rectangle</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge8" class="edge">
+<ns0:title>Region-&gt;Rectangle</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M34.04,-91.55C43.96,-75.96 65.1,-45.69 90,-27.5 93.12,-25.22 96.56,-23.18 100.11,-21.36" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="101.25,-22.75 105,-19.01 99.73,-19.6 101.25,-22.75" />
+</ns0:g>
+
+<ns0:g id="node4" class="node">
+<ns0:title>DifferenceOf</ns0:title>
+<ns0:g id="a_node4"><ns0:a ns1:href="../reference/api.html#scanspec.regions.DifferenceOf" ns1:title="A point is in DifferenceOf(a, b) if in a and not in b." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="320.5,-222 242.5,-222 242.5,-203 320.5,-203 320.5,-222" />
+<ns0:text text-anchor="middle" x="281.5" y="-210" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">DifferenceOf</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge3" class="edge">
+<ns0:title>CombinationOf-&gt;DifferenceOf</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M158.95,-167.12C165.76,-170.05 173.21,-173.34 180,-176.5 196.22,-184.05 199.31,-188.07 216,-194.5 222.79,-197.12 230.11,-199.53 237.3,-201.68" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="236.96,-203.4 242.25,-203.13 237.94,-200.04 236.96,-203.4" />
+</ns0:g>
+
+<ns0:g id="node6" class="node">
+<ns0:title>IntersectionOf</ns0:title>
+<ns0:g id="a_node6"><ns0:a ns1:href="../reference/api.html#scanspec.regions.IntersectionOf" ns1:title="A point is in IntersectionOf(a, b) if in both a and b." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="324.5,-185 238.5,-185 238.5,-166 324.5,-166 324.5,-185" />
+<ns0:text text-anchor="middle" x="281.5" y="-173" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">IntersectionOf</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge5" class="edge">
+<ns0:title>CombinationOf-&gt;IntersectionOf</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M180.14,-163C196.84,-165.08 215.91,-167.45 232.91,-169.57" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="232.94,-171.34 238.12,-170.22 233.37,-167.87 232.94,-171.34" />
+</ns0:g>
+
+<ns0:g id="node10" class="node">
+<ns0:title>SymmetricDifferenceOf</ns0:title>
+<ns0:g id="a_node10"><ns0:a ns1:href="../reference/api.html#scanspec.regions.SymmetricDifferenceOf" ns1:title="A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="347,-148 216,-148 216,-129 347,-129 347,-148" />
+<ns0:text text-anchor="middle" x="281.5" y="-136" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">SymmetricDifferenceOf</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge9" class="edge">
+<ns0:title>CombinationOf-&gt;SymmetricDifferenceOf</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M180.14,-151.7C189.84,-150.42 200.34,-149.04 210.77,-147.67" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="211.15,-149.38 215.88,-147 210.7,-145.91 211.15,-149.38" />
+</ns0:g>
+
+<ns0:g id="node11" class="node">
+<ns0:title>UnionOf</ns0:title>
+<ns0:g id="a_node11"><ns0:a ns1:href="../reference/api.html#scanspec.regions.UnionOf" ns1:title="A point is in UnionOf(a, b) if in either a or b." target="_top">
+<ns0:polygon fill="white" stroke="black" stroke-width="0.5" points="309.5,-111 253.5,-111 253.5,-92 309.5,-92 309.5,-111" />
+<ns0:text text-anchor="middle" x="281.5" y="-99" font-family="Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans" font-size="10.00">UnionOf</ns0:text>
+</ns0:a>
+</ns0:g>
+</ns0:g>
+
+<ns0:g id="edge10" class="edge">
+<ns0:title>CombinationOf-&gt;UnionOf</ns0:title>
+<ns0:path fill="none" stroke="black" stroke-width="0.5" d="M160.85,-147.83C167.15,-145.24 173.87,-142.36 180,-139.5 196.39,-131.84 199.24,-127.31 216,-120.5 226.32,-116.31 237.9,-112.6 248.37,-109.6" />
+<ns0:polygon fill="black" stroke="black" stroke-width="0.5" points="249.08,-111.22 253.42,-108.19 248.13,-107.85 249.08,-111.22" />
+</ns0:g>
+</ns0:g>
+</ns0:svg>
