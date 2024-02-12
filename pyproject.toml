@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm[toml]>=6.2", "wheel"]
+requires = ["setuptools>=64", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -23,7 +23,7 @@ dependencies = [
 dynamic = ["version"]
 license.file = "LICENSE"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.7"
 
 [project.optional-dependencies]
 # Plotting
@@ -40,11 +40,12 @@ dev = [
     # https://github.com/pypa/pip/issues/10393
     "scanspec[plotting]",
     "scanspec[service]",
-    "black==22.3.0",
-    "mypy<1",
+    "copier",
+    "myst-parser",
     "pipdeptree",
     "pre-commit",
     "pydata-sphinx-theme>=0.12",
+    "pyright",
     "pytest",
     "pytest-cov",
     "ruff",
@@ -72,9 +73,8 @@ name = "Tom Cobb"
 [tool.setuptools_scm]
 write_to = "src/scanspec/_version.py"
 
-[tool.mypy]
-plugins = "pydantic.mypy"
-ignore_missing_imports = true # Ignore missing stubs in imported modules
+[tool.pyright]
+reportMissingImports = false # Ignore missing stubs in imported modules
 
 [tool.pytest.ini_options]
 # Run pytest with all our checkers, and don't spam us with massive tracebacks on error
@@ -100,31 +100,32 @@ legacy_tox_ini = """
 [tox]
 skipsdist=True
 
-[testenv:{pre-commit,mypy,pytest,docs}]
+[testenv:{pre-commit,pyright,pytest,docs}]
 # Don't create a virtualenv for the command, requires tox-direct plugin
 direct = True
 passenv = *
 allowlist_externals =
     pytest
     pre-commit
-    mypy
+    pyright
     sphinx-build
     sphinx-autobuild
 commands =
     pytest: pytest --cov=scanspec --cov-report term --cov-report xml:cov.xml {posargs}
-    mypy: mypy src tests {posargs}
+    pyright: pyright src tests {posargs}
     pre-commit: pre-commit run --all-files {posargs}
     docs: sphinx-{posargs:build -EW --keep-going} -T docs build/html
 """
 
-
 [tool.ruff]
 src = ["src", "tests"]
 line-length = 88
-select = [
-    "C4",   # flake8-comprehensions - https://beta.ruff.rs/docs/rules/#flake8-comprehensions-c4
-    "E",    # pycodestyle errors - https://beta.ruff.rs/docs/rules/#error-e
-    "F",    # pyflakes rules - https://beta.ruff.rs/docs/rules/#pyflakes-f
-    "W",    # pycodestyle warnings - https://beta.ruff.rs/docs/rules/#warning-w
-    "I001", # isort
+lint.select = [
+    "B",  # flake8-bugbear - https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
+    "C4", # flake8-comprehensions - https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+    "E",  # pycodestyle errors - https://docs.astral.sh/ruff/rules/#error-e
+    "F",  # pyflakes rules - https://docs.astral.sh/ruff/rules/#pyflakes-f
+    "W",  # pycodestyle warnings - https://docs.astral.sh/ruff/rules/#warning-w
+    "I",  # isort - https://docs.astral.sh/ruff/rules/#isort-i
+    "UP", # pyupgrade - https://docs.astral.sh/ruff/rules/#pyupgrade-up
 ]

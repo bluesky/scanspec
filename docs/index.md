@@ -12,8 +12,7 @@ html_theme.sidebar_secondary.remove: true
 How the documentation is structured
 -----------------------------------
 
-Documentation is split into four categories, also accessible from links in the
-top bar.
+Documentation is split into [four categories](https://diataxis.fr), also accessible from links in the top bar.
 
 <!-- https://sphinx-design.readthedocs.io/en/latest/grids.html -->
 

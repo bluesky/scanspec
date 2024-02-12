@@ -1,14 +1,14 @@
-[![CI](https://github.com/dls-controls/scanspec/actions/workflows/code.yml/badge.svg)](https://github.com/dls-controls/scanspec/actions/workflows/code.yml)
-[![Coverage](https://codecov.io/gh/dls-controls/scanspec/branch/master/graph/badge.svg)](https://codecov.io/gh/dls-controls/scanspec)
+<img src="https://raw.githubusercontent.com/dls-controls/scanspec/main/docs/images/scanspec-logo.svg"
+     style="background: none" width="200px" height="200px" align="right">
+
+[![CI](https://github.com/dls-controls/scanspec/actions/workflows/ci.yml/badge.svg)](https://github.com/dls-controls/scanspec/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/dls-controls/scanspec/branch/main/graph/badge.svg)](https://codecov.io/gh/dls-controls/scanspec)
 [![PyPI](https://img.shields.io/pypi/v/scanspec.svg)](https://pypi.org/project/scanspec)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # scanspec
 
-<img src="https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/scanspec-logo.svg"
-     style="background: none" width="160px" height="160px" align="right">
-
-Specify step and flyscan Paths using combinations of:
+Specify step and flyscan paths in a serializable, efficient and Pythonic way using combinations of:
 - Specs like Line or Spiral
 - Optionally Snaking
 - Zip, Product and Concat to compose

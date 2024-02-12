@@ -132,15 +132,6 @@ intersphinx_mapping = {
 # A dictionary of graphviz graph attributes for inheritance diagrams.
 inheritance_graph_attrs = {"rankdir": "TB"}
 
-# Common links that should be available on every page
-rst_epilog = """
-.. _Diamond Light Source: http://www.diamond.ac.uk
-.. _black: https://github.com/psf/black
-.. _ruff: https://beta.ruff.rs/docs/
-.. _mypy: http://mypy-lang.org/
-.. _pre-commit: https://pre-commit.com/
-"""
-
 # Ignore localhost links for periodic check that links in docs are valid
 linkcheck_ignore = [r"http://localhost:\d+/"]
 
@@ -196,12 +187,6 @@ html_theme_options = {
     },
     "check_switcher": False,
     "navbar_end": ["theme-switcher", "icon-links", "version-switcher"],
-    "external_links": [
-        {
-            "name": "Release Notes",
-            "url": f"https://github.com/{github_user}/{github_repo}/releases",
-        }
-    ],
     "navigation_with_keys": False,
 }
 
