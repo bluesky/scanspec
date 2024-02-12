@@ -32,7 +32,7 @@ plotting = [
     "matplotlib>=3.2.2",
 ]
 # REST service support
-service = ["fastapi==0.99", "uvicorn"]
+service = ["fastapi==0.109.2", "uvicorn"]
 # For development tests/docs
 dev = [
     # This syntax is supported since pip 21.2
