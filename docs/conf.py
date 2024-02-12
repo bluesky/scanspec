@@ -99,7 +99,7 @@ autodoc_default_options = {"show-inheritance": True}
 
 # A dictionary for users defined type aliases that maps a type name to the
 # full-qualified object name.
-autodoc_type_aliases = dict(AxesPoints="scanspec.core.AxesPoints")
+autodoc_type_aliases = {"AxesPoints": "scanspec.core.AxesPoints"}
 
 # Include source in plot directive by default
 plot_include_source = True
