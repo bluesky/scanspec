@@ -7,6 +7,7 @@ name = "scanspec"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -41,13 +42,12 @@ dev = [
     "scanspec[service]",
     "black==22.3.0",
     "mypy<1",
-    "flake8-isort",
-    "Flake8-pyproject",
     "pipdeptree",
     "pre-commit",
     "pydata-sphinx-theme>=0.12",
+    "pytest",
     "pytest-cov",
-    "pydocstyle",
+    "ruff",
     "sphinx-autobuild",
     "sphinx-copybutton",
     "sphinx-design",
@@ -76,34 +76,10 @@ write_to = "src/scanspec/_version.py"
 plugins = "pydantic.mypy"
 ignore_missing_imports = true # Ignore missing stubs in imported modules
 
-[tool.isort]
-float_to_top = true
-profile = "black"
-
-[tool.flake8]
-extend-ignore = [
-    "E203", # See https://github.com/PyCQA/pycodestyle/issues/373
-    "F811", # support typing.overload decorator
-    "F722", # allow Annotated[typ, some_func("some string")]
-]
-max-line-length = 88 # Respect black's line length (default 88),
-exclude = [".tox", "venv"]
-
-[tool.pydocstyle]
-convention = "google"
-add-ignore = [
-    "D100", # Ignore missing docstring in public modules
-    "D102", # Ignore missing docstring in public method; See: https://github.com/PyCQA/pydocstyle/issues/309
-    "D104", # Ignore missing docstring in public packages
-    "D105", # Ignore missing docstring in magic method
-    "D107", # Ignore missing docstring in __init__
-]
-
 [tool.pytest.ini_options]
 # Run pytest with all our checkers, and don't spam us with massive tracebacks on error
 addopts = """
     --tb=native -vv --doctest-modules --doctest-glob="*.rst"
-    --cov=scanspec --cov-report term --cov-report xml:cov.xml
     """
 # https://iscinumpy.gitlab.io/post/bound-version-constraints/#watch-for-warnings
 filterwarnings = "error"
@@ -128,15 +104,27 @@ skipsdist=True
 # Don't create a virtualenv for the command, requires tox-direct plugin
 direct = True
 passenv = *
-allowlist_externals = 
-    pytest 
+allowlist_externals =
+    pytest
     pre-commit
     mypy
     sphinx-build
     sphinx-autobuild
 commands =
-    pytest: pytest {posargs}
+    pytest: pytest --cov=scanspec --cov-report term --cov-report xml:cov.xml {posargs}
     mypy: mypy src tests {posargs}
     pre-commit: pre-commit run --all-files {posargs}
     docs: sphinx-{posargs:build -EW --keep-going} -T docs build/html
 """
+
+
+[tool.ruff]
+src = ["src", "tests"]
+line-length = 88
+select = [
+    "C4",   # flake8-comprehensions - https://beta.ruff.rs/docs/rules/#flake8-comprehensions-c4
+    "E",    # pycodestyle errors - https://beta.ruff.rs/docs/rules/#error-e
+    "F",    # pyflakes rules - https://beta.ruff.rs/docs/rules/#pyflakes-f
+    "W",    # pycodestyle warnings - https://beta.ruff.rs/docs/rules/#warning-w
+    "I001", # isort
+]
