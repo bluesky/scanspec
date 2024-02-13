@@ -45,7 +45,10 @@ def _plot_arrow(axes, arrays: List[np.ndarray]):
         head = [a[-1] for a in reversed(arrays)]
         tail = [a[-1] - (a[-1] - a[-2]) * 0.1 for a in reversed(arrays)]
         axes.annotate(
-            "", head[:2], tail[:2], arrowprops=dict(color="lightgrey", arrowstyle="-|>")
+            "",
+            head[:2],
+            tail[:2],
+            arrowprops={"color": "lightgrey", "arrowstyle": "-|>"},
         )
     elif len(arrays) == 3:
         arrows = [a[-2:] for a in reversed(arrays)]
@@ -71,7 +74,7 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
         t /= t[-1]
         # Scale the arrays so splines don't favour larger scaled axes
         tck, _ = interpolate.splprep(scaled_arrays, k=2, s=0)
-        starts = sorted(list(index_colours))
+        starts = sorted(index_colours)
         stops = starts[1:] + [len(arrays[0]) - 1]
         for start, stop in zip(starts, stops):
             tnew = np.linspace(t[start], t[stop], num=1001)

@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: scanspec
+  title: scanspec
+  description: Specify step and flyscan paths in a serializable, efficient and Pythonic way
+spec:
+  type: documentation
+  lifecycle: experimental
+  owner: group:default/sscc
