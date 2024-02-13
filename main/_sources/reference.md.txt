@@ -4,9 +4,9 @@ Technical reference material including APIs and release notes.
 
 ```{toctree}
 :maxdepth: 1
+:glob:
 
-reference/api
-reference/rest_api
-reference/contributing
+reference/*
 genindex
+Release Notes <https://github.com/dls-controls/scanspec/releases>
 ```

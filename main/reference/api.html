@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>API &#8212; scanspec 0.6.5 documentation</title>
+    <title>API &#8212; scanspec 0.6.6.dev6+g11e1e20 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script src="../_static/documentation_options.js?v=d7a12d57"></script>
+    <script src="../_static/documentation_options.js?v=c2c85a22"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -49,7 +49,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://dls-controls.github.io/scanspec/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.6.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'main';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="icon" href="../_static/scanspec-logo.svg"/>
@@ -177,13 +177,6 @@
                         Reference
                       </a>
                     </li>
-                
-
-                <li class="nav-item">
-                  <a class="nav-link nav-external" href="https://github.com/dls-controls/scanspec/releases">
-                    Release Notes
-                  </a>
-                </li>
                 
   </ul>
 </nav></div>
@@ -346,13 +339,6 @@ document.write(`
                       </a>
                     </li>
                 
-
-                <li class="nav-item">
-                  <a class="nav-link nav-external" href="https://github.com/dls-controls/scanspec/releases">
-                    Release Notes
-                  </a>
-                </li>
-                
   </ul>
 </nav></div>
         
@@ -438,8 +424,8 @@ document.write(`
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rest_api.html">REST API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to the project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/dls-controls/scanspec/releases">Release Notes</a></li>
 </ul>
 </div>
 </nav></div>
@@ -505,11 +491,11 @@ document.write(`
 <p>The top level scanspec module contains a number of packages that can be used
 from code:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#module-scanspec.core" title="scanspec.core"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">scanspec.core</span></code></a>: Core classes like <a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> and <a class="reference internal" href="#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></p></li>
-<li><p><a class="reference internal" href="#module-scanspec.specs" title="scanspec.specs"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">scanspec.specs</span></code></a>: <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a> and its subclasses</p></li>
-<li><p><a class="reference internal" href="#module-scanspec.regions" title="scanspec.regions"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">scanspec.regions</span></code></a>: <a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> and its subclasses</p></li>
-<li><p><a class="reference internal" href="#module-scanspec.plot" title="scanspec.plot"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">scanspec.plot</span></code></a>: <a class="reference internal" href="#scanspec.plot.plot_spec" title="scanspec.plot.plot_spec"><code class="xref any py py-func docutils literal notranslate"><span class="pre">plot_spec</span></code></a> to visualize a scan</p></li>
-<li><p><a class="reference internal" href="#module-scanspec.service" title="scanspec.service"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">scanspec.service</span></code></a>: Defines queries and field structure in REST such as <a class="reference internal" href="#scanspec.service.MidpointsResponse" title="scanspec.service.MidpointsResponse"><code class="xref any py py-class docutils literal notranslate"><span class="pre">MidpointsResponse</span></code></a></p></li>
+<li><p><a class="reference internal" href="#scanspec-core"><span class="std std-ref">scanspec.core</span></a>: Core classes like <a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref myst py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> and <a class="reference internal" href="#scanspec.core.Path" title="scanspec.core.Path"><code class="xref myst py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></p></li>
+<li><p><a class="reference internal" href="#scanspec-specs"><span class="std std-ref">scanspec.specs</span></a>: <a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref myst py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a> and its subclasses</p></li>
+<li><p><a class="reference internal" href="#scanspec-regions"><span class="std std-ref">scanspec.regions</span></a>: <a class="reference internal" href="#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref myst py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> and its subclasses</p></li>
+<li><p><a class="reference internal" href="#scanspec-plot"><span class="std std-ref">scanspec.plot</span></a>: <a class="reference internal" href="#scanspec.plot.plot_spec" title="scanspec.plot.plot_spec"><code class="xref myst py py-func docutils literal notranslate"><span class="pre">plot_spec</span></code></a> to visualize a scan</p></li>
+<li><p><a class="reference internal" href="#scanspec-service"><span class="std std-ref">scanspec.service</span></a>: Defines queries and field structure in REST such as <a class="reference internal" href="#scanspec.service.MidpointsResponse" title="scanspec.service.MidpointsResponse"><code class="xref myst py py-class docutils literal notranslate"><span class="pre">MidpointsResponse</span></code></a></p></li>
 </ul>
 <dl class="py data">
 <dt class="sig sig-object py" id="scanspec.scanspec.__version__">
@@ -921,7 +907,7 @@ subclasses. Defaults to None.</p></li>
 </section>
 <section id="scanspec-specs">
 <span id="module-scanspec.specs"></span><h2><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code><a class="headerlink" href="#scanspec-specs" title="Link to this heading">#</a></h2>
-<div class="graphviz"><object data="../_images/inheritance-807d9833114b3db56427ec352b753a14e63ff3fd.svg" type="image/svg+xml" class="inheritance graphviz">
+<div class="graphviz"><object data="../_images/inheritance-912426ea7002dfc5798bad76e41322e7af33cb94.svg" type="image/svg+xml" class="inheritance graphviz">
 <p class="warning">Inheritance diagram of scanspec.specs</p></object></div>
 <dl class="py data">
 <dt class="sig sig-object py" id="scanspec.specs.DURATION">
@@ -1361,7 +1347,7 @@ in the spec</p></li>
 </section>
 <section id="scanspec-regions">
 <span id="module-scanspec.regions"></span><h2><code class="docutils literal notranslate"><span class="pre">scanspec.regions</span></code><a class="headerlink" href="#scanspec-regions" title="Link to this heading">#</a></h2>
-<div class="graphviz"><object data="../_images/inheritance-7560b70421c624944f0f13c4b7fad08c42206964.svg" type="image/svg+xml" class="inheritance graphviz">
+<div class="graphviz"><object data="../_images/inheritance-71879fa8c5979d3d8c5ee96fb056aace560c72e4.svg" type="image/svg+xml" class="inheritance graphviz">
 <p class="warning">Inheritance diagram of scanspec.regions</p></object></div>
 <dl class="py class">
 <dt class="sig sig-object py" id="scanspec.regions.Region">
@@ -1484,9 +1470,9 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference download internal" download="" href="../_downloads/1196c5a1d3f6e3ebfd587de4b9ad3ab8/api-17.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/d022f15746f7fd9411859574d137f187/api-17.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/7e03bd6318152a5ef2fc9f8f777a09fb/api-17.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/39c6a274efd0966c49a486fadb2619df/api-17.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
+<p>(<a class="reference download internal" download="" href="../_downloads/b61fec1d185d5d29d1735e1c5f45786d/api-1.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/d63649a5a6f78b5a752e39a4af7c1464/api-1.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/ff9fe3a1c02bde9717bcf50e7f8dd25b/api-1.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/920016fcda583eee66f9e3f3c37d90ca/api-1.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
-<img alt="../_images/api-17.png" class="plot-directive" src="../_images/api-17.png" />
+<img alt="../_images/api-1.png" class="plot-directive" src="../_images/api-1.png" />
 </figure>
 </dd></dl>
 
@@ -1506,9 +1492,9 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference download internal" download="" href="../_downloads/cafe10e32e48a4bdd0001eac84beaf9a/api-18.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/8b5e9b621cb85b9186abb508b0644353/api-18.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/f14e86302c9aa0c1ba37850ec22c308e/api-18.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/904f5336e0d9ec9ed66ef034443f6f65/api-18.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
+<p>(<a class="reference download internal" download="" href="../_downloads/c1cf2d085f7ede85d58df873f9e4588b/api-2.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/577932ffad65c458a1e7d7b06e2d619e/api-2.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/9b910feaa68e0b54f476927a47285377/api-2.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/460d5ecae88292ff9f7461d1ce40d981/api-2.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
-<img alt="../_images/api-18.png" class="plot-directive" src="../_images/api-18.png" />
+<img alt="../_images/api-2.png" class="plot-directive" src="../_images/api-2.png" />
 </figure>
 </dd></dl>
 
@@ -1528,9 +1514,9 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference download internal" download="" href="../_downloads/230186b3633a9f4b80c5e0a62d257a5a/api-19.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/78838f9d67c7edd54f15ce6bb14f6565/api-19.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/85f0d6120e17258c589906635c74454f/api-19.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/70cc095cb48d5ac8f7238a0a9117e378/api-19.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
+<p>(<a class="reference download internal" download="" href="../_downloads/7be99933a51115eeac94ea28dcc94a10/api-3.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/6ac1affbbd25c62f767d0d736dcb9ac6/api-3.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/d710b479db32b9052157f9dc9f9d4f05/api-3.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/7f5d6f98d851a6f87ee17b4e1a2c477d/api-3.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
-<img alt="../_images/api-19.png" class="plot-directive" src="../_images/api-19.png" />
+<img alt="../_images/api-3.png" class="plot-directive" src="../_images/api-3.png" />
 </figure>
 </dd></dl>
 
@@ -1550,9 +1536,9 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference download internal" download="" href="../_downloads/1328d20d2f1f1197b57441e6e3c5744c/api-20.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/b45fd71d937091034bd5ae9a05ef55aa/api-20.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/4bf4512437c120e94b6630677b316278/api-20.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/9b040cc998e60252e63241cf421ff896/api-20.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
+<p>(<a class="reference download internal" download="" href="../_downloads/2978570c668d252b9da1fe49a06ec7ac/api-4.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/f169874319858b7c51d001cb0d90893f/api-4.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/8d1f05c70d13d9eb2d237e906361b08f/api-4.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/46002abc3e44ab78d2ec586ac55ecbd5/api-4.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
-<img alt="../_images/api-20.png" class="plot-directive" src="../_images/api-20.png" />
+<img alt="../_images/api-4.png" class="plot-directive" src="../_images/api-4.png" />
 </figure>
 </dd></dl>
 
@@ -1583,9 +1569,9 @@ them. If the scan is 2D then 2D regions are shown in black.</p>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>(<a class="reference download internal" download="" href="../_downloads/38dd90e16fe49468a45d14588c6fac60/api-21.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/be0898ca638fe5e575dcef190808b2ea/api-21.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/3a1ec0a7c53d4117736e76290f8d5a07/api-21.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/9a6730e0936263bd94ca9edd3a3abedb/api-21.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
+<p>(<a class="reference download internal" download="" href="../_downloads/b61fec1d185d5d29d1735e1c5f45786d/api-1.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/d63649a5a6f78b5a752e39a4af7c1464/api-1.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/ff9fe3a1c02bde9717bcf50e7f8dd25b/api-1.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/920016fcda583eee66f9e3f3c37d90ca/api-1.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
-<img alt="../_images/api-21.png" class="plot-directive" src="../_images/api-21.png" />
+<img alt="../_images/api-1.png" class="plot-directive" src="../_images/api-1.png" />
 </figure>
 </dd></dl>
 
@@ -1608,7 +1594,7 @@ them. If the scan is 2D then 2D regions are shown in black.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="scanspec.service.PointsFormat">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scanspec.service.</span></span><span class="sig-name descname"><span class="pre">PointsFormat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/service.html#PointsFormat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.PointsFormat" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scanspec.service.</span></span><span class="sig-name descname"><span class="pre">PointsFormat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/service.html#PointsFormat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.service.PointsFormat" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
 <p>Formats in which we can return points.</p>
 </dd></dl>
@@ -1949,7 +1935,7 @@ after each frame.</p>
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/dls-controls/scanspec/edit/0.6.5/docs/reference/api.rst">
+    <a href="https://github.com/dls-controls/scanspec/edit/main/docs/reference/api.md">
       <i class="fa-solid fa-pencil"></i>
       
       
@@ -1964,7 +1950,7 @@ after each frame.</p>
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="../_sources/reference/api.rst.txt">
+    <a href="../_sources/reference/api.md.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>

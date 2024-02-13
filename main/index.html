@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>scanspec &#8212; scanspec 0.6.5 documentation</title>
+    <title>scanspec &#8212; scanspec 0.6.6.dev6+g11e1e20 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script src="_static/documentation_options.js?v=d7a12d57"></script>
+    <script src="_static/documentation_options.js?v=c2c85a22"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -49,7 +49,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://dls-controls.github.io/scanspec/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.6.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'main';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="icon" href="_static/scanspec-logo.svg"/>
@@ -176,13 +176,6 @@
                         Reference
                       </a>
                     </li>
-                
-
-                <li class="nav-item">
-                  <a class="nav-link nav-external" href="https://github.com/dls-controls/scanspec/releases">
-                    Release Notes
-                  </a>
-                </li>
                 
   </ul>
 </nav></div>
@@ -343,13 +336,6 @@ document.write(`
                       </a>
                     </li>
                 
-
-                <li class="nav-item">
-                  <a class="nav-link nav-external" href="https://github.com/dls-controls/scanspec/releases">
-                    Release Notes
-                  </a>
-                </li>
-                
   </ul>
 </nav></div>
         
@@ -450,15 +436,15 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <p><a class="reference external" href="https://github.com/dls-controls/scanspec/actions/workflows/code.yml"><img alt="CI" src="https://github.com/dls-controls/scanspec/actions/workflows/code.yml/badge.svg" /></a>
-<a class="reference external" href="https://codecov.io/gh/dls-controls/scanspec"><img alt="Coverage" src="https://codecov.io/gh/dls-controls/scanspec/branch/master/graph/badge.svg" /></a>
+  <p><img src="https://raw.githubusercontent.com/dls-controls/scanspec/main/docs/images/scanspec-logo.svg"
+     style="background: none" width="200px" height="200px" align="right"></p>
+<p><a class="reference external" href="https://github.com/dls-controls/scanspec/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/dls-controls/scanspec/actions/workflows/ci.yml/badge.svg" /></a>
+<a class="reference external" href="https://codecov.io/gh/dls-controls/scanspec"><img alt="Coverage" src="https://codecov.io/gh/dls-controls/scanspec/branch/main/graph/badge.svg" /></a>
 <a class="reference external" href="https://pypi.org/project/scanspec"><img alt="PyPI" src="https://img.shields.io/pypi/v/scanspec.svg" /></a>
 <a class="reference external" href="https://opensource.org/licenses/Apache-2.0"><img alt="License" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a></p>
 <section id="scanspec">
 <h1>scanspec<a class="headerlink" href="#scanspec" title="Link to this heading">#</a></h1>
-<p><img src="https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/scanspec-logo.svg"
-     style="background: none" width="160px" height="160px" align="right"></p>
-<p>Specify step and flyscan Paths using combinations of:</p>
+<p>Specify step and flyscan paths in a serializable, efficient and Pythonic way using combinations of:</p>
 <ul class="simple">
 <li><p>Specs like Line or Spiral</p></li>
 <li><p>Optionally Snaking</p></li>
@@ -521,8 +507,7 @@ consumed from it for performance:</p>
 </div>
 <section id="how-the-documentation-is-structured">
 <h2>How the documentation is structured<a class="headerlink" href="#how-the-documentation-is-structured" title="Link to this heading">#</a></h2>
-<p>Documentation is split into four categories, also accessible from links in the
-top bar.</p>
+<p>Documentation is split into <a class="reference external" href="https://diataxis.fr">four categories</a>, also accessible from links in the top bar.</p>
 <!-- https://sphinx-design.readthedocs.io/en/latest/grids.html -->
 <div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
 <div class="sd-row sd-row-cols-2 sd-row-cols-xs-2 sd-row-cols-sm-2 sd-row-cols-md-2 sd-row-cols-lg-2 sd-g-4 sd-g-xs-4 sd-g-sm-4 sd-g-md-4 sd-g-lg-4 docutils">
@@ -555,7 +540,9 @@ top bar.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="how-to.html">How-to Guides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="how-to/contribute.html">Contribute to the project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how-to/iterate-a-spec.html">How to Iterate a Spec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/run-container.html">Run in a container</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how-to/serialize-a-spec.html">How to Serialize and Deserialize a Spec</a></li>
 </ul>
 </li>
@@ -575,9 +562,10 @@ top bar.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="explanations.html">Explanations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="explanations/decisions.html">Architectural Decision Records</a></li>
 <li class="toctree-l2"><a class="reference internal" href="explanations/technical-terms.html">Technical Terms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="explanations/why-stack-frames.html">Why create a stack of Frames?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="explanations/why-squash-can-change-path.html">Why Squash (and Mask) can change the Path</a></li>
+<li class="toctree-l2"><a class="reference internal" href="explanations/why-stack-frames.html">Why create a stack of Frames?</a></li>
 </ul>
 </li>
 </ul>
@@ -598,8 +586,8 @@ top bar.</p>
 <li class="toctree-l1"><a class="reference internal" href="reference.html">Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="reference/api.html">API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/rest_api.html">REST API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference/contributing.html">Contributing to the project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="genindex.html">Index</a></li>
+<li class="toctree-l2"><a class="reference external" href="https://github.com/dls-controls/scanspec/releases">Release Notes</a></li>
 </ul>
 </li>
 </ul>

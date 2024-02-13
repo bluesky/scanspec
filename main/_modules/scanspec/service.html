@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.service &#8212; scanspec 0.6.5 documentation</title>
+    <title>scanspec.service &#8212; scanspec 0.6.6.dev6+g11e1e20 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
   <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script src="../../_static/documentation_options.js?v=d7a12d57"></script>
+    <script src="../../_static/documentation_options.js?v=c2c85a22"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -48,7 +48,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.15.2';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://dls-controls.github.io/scanspec/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.6.5';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'main';
         DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
         </script>
     <link rel="icon" href="../../_static/scanspec-logo.svg"/>
@@ -174,13 +174,6 @@
                         Reference
                       </a>
                     </li>
-                
-
-                <li class="nav-item">
-                  <a class="nav-link nav-external" href="https://github.com/dls-controls/scanspec/releases">
-                    Release Notes
-                  </a>
-                </li>
                 
   </ul>
 </nav></div>
@@ -340,13 +333,6 @@ document.write(`
                         Reference
                       </a>
                     </li>
-                
-
-                <li class="nav-item">
-                  <a class="nav-link nav-external" href="https://github.com/dls-controls/scanspec/releases">
-                    Release Notes
-                  </a>
-                </li>
                 
   </ul>
 </nav></div>
@@ -630,7 +616,7 @@ document.write(`
 <a class="viewcode-back" href="../../reference/api.html#scanspec.service.valid">[docs]</a>
 <span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/valid&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">ValidResponse</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">valid</span><span class="p">(</span>
-    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="n">_EXAMPLE_SPEC</span><span class="p">])</span>
+    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="n">_EXAMPLE_SPEC</span><span class="p">]),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">ValidResponse</span><span class="p">,</span> <span class="n">JSONResponse</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate wether a ScanSpec can produce a viable scan.</span>
 
@@ -653,7 +639,7 @@ document.write(`
     <span class="n">request</span><span class="p">:</span> <span class="n">PointsRequest</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span>
         <span class="o">...</span><span class="p">,</span>
         <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="n">_EXAMPLE_POINTS_REQUEST</span><span class="p">],</span>
-    <span class="p">)</span>
+    <span class="p">),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MidpointsResponse</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate midpoints from a scanspec.</span>
 
@@ -684,7 +670,7 @@ document.write(`
     <span class="n">request</span><span class="p">:</span> <span class="n">PointsRequest</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span>
         <span class="o">...</span><span class="p">,</span>
         <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="n">_EXAMPLE_POINTS_REQUEST</span><span class="p">],</span>
-    <span class="p">)</span>
+    <span class="p">),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoundsResponse</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate bounds from a scanspec.</span>
 
@@ -714,7 +700,7 @@ document.write(`
     <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span>
         <span class="o">...</span><span class="p">,</span>
         <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="n">_EXAMPLE_SPEC</span><span class="p">],</span>
-    <span class="p">)</span>
+    <span class="p">),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GapResponse</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate gaps from a scanspec.</span>
 
@@ -739,7 +725,7 @@ document.write(`
 <a class="viewcode-back" href="../../reference/api.html#scanspec.service.smallest_step">[docs]</a>
 <span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/smalleststep&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">SmallestStepResponse</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">smallest_step</span><span class="p">(</span>
-    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="n">_EXAMPLE_SPEC</span><span class="p">])</span>
+    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="n">_EXAMPLE_SPEC</span><span class="p">]),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SmallestStepResponse</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the smallest step in a scan, both absolutely and per-axis.</span>
 

@@ -21,17 +21,17 @@ $ source /path/to/venv/bin/activate
 
 ## Installing the library
 
-You can now use `pip` to install the library:
+You can now use `pip` to install the library and its dependencies:
 
 ```
-python3 -m pip install scanspec
+$ python3 -m pip install scanspec
 ```
 
 If you require a feature that is not currently released you can also install
 from github:
 
 ```
-python3 -m pip install git+git://github.com/dls-controls/scanspec.git
+$ python3 -m pip install git+https://github.com/dls-controls/scanspec.git
 ```
 
 If you need to do any plotting (recommended), you should install the `plotting` extra:
@@ -51,5 +51,5 @@ The library should now be installed and the commandline interface on your path.
 You can check the version that has been installed by typing:
 
 ```
-scanspec --version
+$ scanspec --version
 ```

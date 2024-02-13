@@ -1,9 +1,5 @@
 [
   {
-    "version": "master",
-    "url": "https://dls-controls.github.io/scanspec/master/"
-  },
-  {
     "version": "main",
     "url": "https://dls-controls.github.io/scanspec/main/"
   },
