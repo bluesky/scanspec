@@ -370,7 +370,7 @@ class Frames(Generic[Axis]):
 
 def _merge_frames(
     *stack: Frames[Axis],
-    dict_merge=Callable[[Sequence[AxesPoints[Axis]]], AxesPoints[Axis]],
+    dict_merge=Callable[[Sequence[AxesPoints[Axis]]], AxesPoints[Axis]],  # type: ignore
     gap_merge=Callable[[Sequence[np.ndarray]], Optional[np.ndarray]],
 ) -> Frames[Axis]:
     types = {type(fs) for fs in stack}

@@ -103,7 +103,7 @@ class Spec(Generic[Axis]):
 
     def serialize(self) -> Mapping[str, Any]:
         """Serialize the spec to a dictionary."""
-        return asdict(self)
+        return asdict(self)  # type: ignore
 
     @classmethod
     def deserialize(cls, obj):

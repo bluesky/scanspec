@@ -41,11 +41,11 @@ dev = [
     "scanspec[plotting]",
     "scanspec[service]",
     "copier",
+    "mypy",
     "myst-parser",
     "pipdeptree",
     "pre-commit",
     "pydata-sphinx-theme>=0.12",
-    "pyright",
     "pytest",
     "pytest-cov",
     "ruff",
@@ -73,8 +73,8 @@ name = "Tom Cobb"
 [tool.setuptools_scm]
 write_to = "src/scanspec/_version.py"
 
-[tool.pyright]
-reportMissingImports = false # Ignore missing stubs in imported modules
+[tool.mypy]
+ignore_missing_imports = true # Ignore missing stubs in imported modules
 
 [tool.pytest.ini_options]
 # Run pytest with all our checkers, and don't spam us with massive tracebacks on error
@@ -107,12 +107,12 @@ passenv = *
 allowlist_externals =
     pytest
     pre-commit
-    pyright
+    mypy
     sphinx-build
     sphinx-autobuild
 commands =
     pre-commit: pre-commit run --all-files {posargs}
-    type-checking: pyright src tests {posargs}
+    type-checking: mypy src tests {posargs}
     tests: pytest --cov=scanspec --cov-report term --cov-report xml:cov.xml {posargs}
     docs: sphinx-{posargs:build -EW --keep-going} -T docs build/html
 """
