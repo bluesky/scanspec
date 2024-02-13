@@ -100,7 +100,7 @@ legacy_tox_ini = """
 [tox]
 skipsdist=True
 
-[testenv:{pre-commit,pyright,pytest,docs}]
+[testenv:{pre-commit,type-checking,tests,docs}]
 # Don't create a virtualenv for the command, requires tox-direct plugin
 direct = True
 passenv = *
@@ -111,9 +111,9 @@ allowlist_externals =
     sphinx-build
     sphinx-autobuild
 commands =
-    pytest: pytest --cov=scanspec --cov-report term --cov-report xml:cov.xml {posargs}
-    pyright: pyright src tests {posargs}
     pre-commit: pre-commit run --all-files {posargs}
+    type-checking: pyright src tests {posargs}
+    tests: pytest --cov=scanspec --cov-report term --cov-report xml:cov.xml {posargs}
     docs: sphinx-{posargs:build -EW --keep-going} -T docs build/html
 """
 
