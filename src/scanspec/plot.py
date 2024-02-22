@@ -1,5 +1,5 @@
 from itertools import cycle
-from typing import Any, Dict, Iterator, List
+from typing import Any, Dict, Iterator, List, Optional
 
 import numpy as np
 from matplotlib import colors, patches
@@ -85,7 +85,7 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
             yield unscaled_splines
 
 
-def plot_spec(spec: Spec[Any]):
+def plot_spec(spec: Spec[Any], title: Optional[str] = None):
     """Plot a spec, drawing the path taken through the scan.
 
     Uses a different colour for each frame, grey for the turnarounds, and
@@ -124,7 +124,8 @@ def plot_spec(spec: Spec[Any]):
     plt_axes.set_xlabel(axes[-1])
 
     # Title with dimension sizes
-    plt.title(", ".join(f"Dim[{' '.join(d.axes())} len={len(d)}]" for d in dims))
+    title = title or ", ".join(f"Dim[{' '.join(d.axes())} len={len(d)}]" for d in dims)
+    plt.title(title)
 
     # Plot any Regions
     if ndims <= 2:
