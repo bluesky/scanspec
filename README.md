@@ -1,5 +1,5 @@
 <img src="https://raw.githubusercontent.com/dls-controls/scanspec/main/docs/images/scanspec-logo.svg"
-     style="background: none" width="200px" height="200px" align="right">
+     style="background: none" width="120px" height="120px" align="right">
 
 [![CI](https://github.com/dls-controls/scanspec/actions/workflows/ci.yml/badge.svg)](https://github.com/dls-controls/scanspec/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/dls-controls/scanspec/branch/main/graph/badge.svg)](https://codecov.io/gh/dls-controls/scanspec)
