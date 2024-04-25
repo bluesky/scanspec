@@ -124,7 +124,7 @@ _EXAMPLE_POINTS_REQUEST = PointsRequest(
 
 @app.post("/valid", response_model=ValidResponse)
 def valid(
-    spec: Spec = Body(..., examples=[_EXAMPLE_SPEC])
+    spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
 ) -> Union[ValidResponse, JSONResponse]:
     """Validate wether a ScanSpec can produce a viable scan.
 
@@ -144,7 +144,7 @@ def midpoints(
     request: PointsRequest = Body(
         ...,
         examples=[_EXAMPLE_POINTS_REQUEST],
-    )
+    ),
 ) -> MidpointsResponse:
     """Generate midpoints from a scanspec.
 
@@ -172,7 +172,7 @@ def bounds(
     request: PointsRequest = Body(
         ...,
         examples=[_EXAMPLE_POINTS_REQUEST],
-    )
+    ),
 ) -> BoundsResponse:
     """Generate bounds from a scanspec.
 
@@ -199,7 +199,7 @@ def gap(
     spec: Spec = Body(
         ...,
         examples=[_EXAMPLE_SPEC],
-    )
+    ),
 ) -> GapResponse:
     """Generate gaps from a scanspec.
 
@@ -221,7 +221,7 @@ def gap(
 
 @app.post("/smalleststep", response_model=SmallestStepResponse)
 def smallest_step(
-    spec: Spec = Body(..., examples=[_EXAMPLE_SPEC])
+    spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
 ) -> SmallestStepResponse:
     """Calculate the smallest step in a scan, both absolutely and per-axis.
 

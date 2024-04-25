@@ -1,10 +1,10 @@
 from itertools import cycle
-from typing import Any, Dict, Iterator, List
+from typing import Any, Dict, Iterator, List, Optional
 
 import numpy as np
 from matplotlib import colors, patches
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import proj3d
+from mpl_toolkits.mplot3d import Axes3D, proj3d
 from scipy import interpolate
 
 from .core import Path
@@ -45,7 +45,10 @@ def _plot_arrow(axes, arrays: List[np.ndarray]):
         head = [a[-1] for a in reversed(arrays)]
         tail = [a[-1] - (a[-1] - a[-2]) * 0.1 for a in reversed(arrays)]
         axes.annotate(
-            "", head[:2], tail[:2], arrowprops=dict(color="lightgrey", arrowstyle="-|>")
+            "",
+            head[:2],
+            tail[:2],
+            arrowprops={"color": "lightgrey", "arrowstyle": "-|>"},
         )
     elif len(arrays) == 3:
         arrows = [a[-2:] for a in reversed(arrays)]
@@ -71,7 +74,7 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
         t /= t[-1]
         # Scale the arrays so splines don't favour larger scaled axes
         tck, _ = interpolate.splprep(scaled_arrays, k=2, s=0)
-        starts = sorted(list(index_colours))
+        starts = sorted(index_colours)
         stops = starts[1:] + [len(arrays[0]) - 1]
         for start, stop in zip(starts, stops):
             tnew = np.linspace(t[start], t[stop], num=1001)
@@ -82,7 +85,7 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
             yield unscaled_splines
 
 
-def plot_spec(spec: Spec[Any]):
+def plot_spec(spec: Spec[Any], title: Optional[str] = None):
     """Plot a spec, drawing the path taken through the scan.
 
     Uses a different colour for each frame, grey for the turnarounds, and
@@ -105,7 +108,7 @@ def plot_spec(spec: Spec[Any]):
     # Setup axes
     if ndims > 2:
         plt.figure(figsize=(6, 6))
-        plt_axes = plt.axes(projection="3d")
+        plt_axes: Axes3D = plt.axes(projection="3d")
         plt_axes.grid(False)
         plt_axes.set_zlabel(axes[-3])
         plt_axes.set_ylabel(axes[-2])
@@ -121,7 +124,8 @@ def plot_spec(spec: Spec[Any]):
     plt_axes.set_xlabel(axes[-1])
 
     # Title with dimension sizes
-    plt.title(", ".join(f"Dim[{' '.join(d.axes())} len={len(d)}]" for d in dims))
+    title = title or ", ".join(f"Dim[{' '.join(d.axes())} len={len(d)}]" for d in dims)
+    plt.title(title)
 
     # Plot any Regions
     if ndims <= 2:
@@ -143,7 +147,7 @@ def plot_spec(spec: Spec[Any]):
                 height = region.y_radius * 2
                 angle = region.angle
                 plt_axes.add_patch(
-                    patches.Ellipse(xy, width, height, angle, fill=False)
+                    patches.Ellipse(xy, width, height, angle=angle, fill=False)
                 )
             elif isinstance(region, Polygon):
                 # *xy_verts* is a numpy array with shape Nx2.

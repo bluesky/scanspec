@@ -135,7 +135,6 @@ def _discriminated_union_of_subclasses(
     discriminator: str,
     config: Optional[Type[BaseConfig]] = None,
 ) -> Union[Type, Callable[[Type], Type]]:
-
     super_cls._ref_classes = set()
     super_cls._model = None
 
@@ -254,8 +253,8 @@ class Frames(Generic[Axis]):
             # Need to calculate gap as not passed one
             # We have a gap if upper[i] != lower[i+1] for any axes
             axes_gap = [
-                np.roll(u, 1) != l
-                for u, l in zip(self.upper.values(), self.lower.values())
+                np.roll(upper, 1) != lower
+                for upper, lower in zip(self.upper.values(), self.lower.values())
             ]
             self.gap = np.logical_or.reduce(axes_gap)
         # Check all axes and ordering are the same
@@ -264,11 +263,11 @@ class Frames(Generic[Axis]):
             f"{list(self.midpoints)} != {list(self.lower)} != {list(self.upper)}"
         )
         # Check all lengths are the same
-        lengths = set(
+        lengths = {
             len(arr)
             for d in (self.midpoints, self.lower, self.upper)
             for arr in d.values()
-        )
+        }
         lengths.add(len(self.gap))
         assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
 
@@ -372,10 +371,10 @@ class Frames(Generic[Axis]):
 
 def _merge_frames(
     *stack: Frames[Axis],
-    dict_merge=Callable[[Sequence[AxesPoints[Axis]]], AxesPoints[Axis]],
+    dict_merge=Callable[[Sequence[AxesPoints[Axis]]], AxesPoints[Axis]],  # type: ignore
     gap_merge=Callable[[Sequence[np.ndarray]], Optional[np.ndarray]],
 ) -> Frames[Axis]:
-    types = set(type(fs) for fs in stack)
+    types = {type(fs) for fs in stack}
     assert len(types) == 1, f"Mismatching types for {stack}"
     cls = types.pop()
 

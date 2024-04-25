@@ -1,12 +1,15 @@
 import pathlib
 import subprocess
 import sys
+from typing import List, cast
 from unittest.mock import patch
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from click.testing import CliRunner
+from matplotlib.patches import Rectangle
+from matplotlib.text import Annotation
 
 from scanspec import __version__, cli
 from scanspec.plot import _Arrow3D
@@ -58,9 +61,9 @@ def test_plot_1D_line() -> None:
     # End
     assert_min_max_2d(lines[3], 2.5, 2.5, 0, 0)
     # Arrows
-    texts = axes.texts
+    texts = cast(List[Annotation], axes.texts)
     assert len(texts) == 1
-    assert texts[0].xy == [0.5, 0]
+    assert tuple(texts[0].xy) == (0.5, 0)
 
 
 def test_plot_1D_line_snake_repeat() -> None:
@@ -83,10 +86,10 @@ def test_plot_1D_line_snake_repeat() -> None:
     # End
     assert_min_max_2d(lines[4], 1, 1, 0, 0)
     # Arrows
-    texts = axes.texts
+    texts = cast(List[Annotation], axes.texts)
     assert len(texts) == 2
-    assert texts[0].xy == [1, 0]
-    assert texts[1].xy == pytest.approx([2, 0])
+    assert tuple(texts[0].xy) == (1, 0)
+    assert tuple(texts[1].xy) == pytest.approx([2, 0])
 
 
 def test_plot_1D_step() -> None:
@@ -107,9 +110,9 @@ def test_plot_1D_step() -> None:
     # End
     assert_min_max_2d(lines[3], 2, 2, 0, 0)
     # Arrows
-    texts = axes.texts
+    texts = cast(List[Annotation], axes.texts)
     assert len(texts) == 1
-    assert texts[0].xy == [2, 0]
+    assert tuple(texts[0].xy) == (2, 0)
 
 
 def test_plot_2D_line() -> None:
@@ -134,10 +137,10 @@ def test_plot_2D_line() -> None:
     # End
     assert_min_max_2d(lines[6], 0.5, 0.5, 3, 3)
     # Arrows
-    texts = axes.texts
+    texts = cast(List[Annotation], axes.texts)
     assert len(texts) == 2
-    assert texts[0].xy == [0.5, 2]
-    assert texts[1].xy == pytest.approx([2.5, 3])
+    assert tuple(texts[0].xy) == (0.5, 2)
+    assert tuple(texts[1].xy) == pytest.approx([2.5, 3])
 
 
 def test_plot_2D_line_rect_region() -> None:
@@ -161,18 +164,19 @@ def test_plot_2D_line_rect_region() -> None:
     # End
     assert_min_max_2d(lines[5], 1.5, 1.5, 2, 2)
     # Arrows
-    texts = axes.texts
+    texts = cast(List[Annotation], axes.texts)
     assert len(texts) == 2
-    assert texts[0].xy == [-0.5, 1.5]
-    assert texts[1].xy == [-0.5, 2]
+    assert tuple(texts[0].xy) == (-0.5, 1.5)
+    assert tuple(texts[1].xy) == (-0.5, 2)
     # Regions
     patches = axes.patches
     assert len(patches) == 1
-    assert type(patches[0]).__name__ == "Rectangle"
-    assert patches[0].xy == (0, 1.1)
-    assert patches[0].get_height() == 1.0
-    assert patches[0].get_width() == 1.5
-    assert patches[0].angle == 30
+    p = patches[0]
+    assert isinstance(p, Rectangle)
+    assert p.get_xy() == (0, 1.1)
+    assert p.get_height() == 1.0
+    assert p.get_width() == 1.5
+    assert p.angle == 30
 
 
 def test_plot_3D_line() -> None:
@@ -239,7 +243,4 @@ def test_schema() -> None:
 
 def test_cli_version():
     cmd = [sys.executable, "-m", "scanspec", "--version"]
-    assert (
-        subprocess.check_output(cmd).decode().strip()
-        == f"scanspec, version {__version__}"
-    )
+    assert subprocess.check_output(cmd).decode().strip() == __version__

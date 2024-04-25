@@ -1,6 +1,4 @@
-from importlib.metadata import version
-
-__version__ = version("scanspec")
-del version
+from . import regions, specs
+from ._version import __version__
 
 __all__ = ["__version__", "specs", "regions"]

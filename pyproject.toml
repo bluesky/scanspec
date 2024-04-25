@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm[toml]>=6.2", "wheel"]
+requires = ["setuptools>=64", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,6 +7,7 @@ name = "scanspec"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -17,12 +18,12 @@ dependencies = [
     "numpy>=1.19.3",
     "click==8.1.3",
     "pydantic<2.0",
-    "typing_extensions"
+    "typing_extensions",
 ]
 dynamic = ["version"]
 license.file = "LICENSE"
-readme = "README.rst"
-requires-python = ">=3.8"
+readme = "README.md"
+requires-python = ">=3.7"
 
 [project.optional-dependencies]
 # Plotting
@@ -32,21 +33,22 @@ plotting = [
     "matplotlib>=3.2.2",
 ]
 # REST service support
-service = [
-    "fastapi==0.99",
-    "uvicorn"
-]
+service = ["fastapi==0.99", "uvicorn"]
 # For development tests/docs
 dev = [
-    "black==22.3.0",
-    "mypy<1",
-    "flake8-isort",
-    "Flake8-pyproject",
+    # This syntax is supported since pip 21.2
+    # https://github.com/pypa/pip/issues/10393
+    "scanspec[plotting]",
+    "scanspec[service]",
+    "copier",
+    "mypy",
+    "myst-parser",
     "pipdeptree",
     "pre-commit",
     "pydata-sphinx-theme>=0.12",
+    "pytest",
     "pytest-cov",
-    "pydocstyle",
+    "ruff",
     "sphinx-autobuild",
     "sphinx-copybutton",
     "sphinx-design",
@@ -54,6 +56,7 @@ dev = [
     "tox-direct",
     "types-mock",
     "httpx",
+    "myst-parser",
 ]
 
 [project.scripts]
@@ -71,37 +74,12 @@ name = "Tom Cobb"
 write_to = "src/scanspec/_version.py"
 
 [tool.mypy]
-plugins = "pydantic.mypy"
 ignore_missing_imports = true # Ignore missing stubs in imported modules
-
-[tool.isort]
-float_to_top = true
-profile = "black"
-
-[tool.flake8]
-extend-ignore = [
-    "E203", # See https://github.com/PyCQA/pycodestyle/issues/373
-    "F811", # support typing.overload decorator
-    "F722", # allow Annotated[typ, some_func("some string")]
-]
-max-line-length = 88 # Respect black's line length (default 88),
-exclude = [".tox", "venv"]
-
-[tool.pydocstyle]
-convention = "google"
-add-ignore = [
-    "D100", # Ignore missing docstring in public modules
-    "D102", # Ignore missing docstring in public method; See: https://github.com/PyCQA/pydocstyle/issues/309
-    "D104", # Ignore missing docstring in public packages
-    "D105", # Ignore missing docstring in magic method
-    "D107", # Ignore missing docstring in __init__
-]
 
 [tool.pytest.ini_options]
 # Run pytest with all our checkers, and don't spam us with massive tracebacks on error
 addopts = """
     --tb=native -vv --doctest-modules --doctest-glob="*.rst"
-    --cov=scanspec --cov-report term --cov-report xml:cov.xml
     """
 # https://iscinumpy.gitlab.io/post/bound-version-constraints/#watch-for-warnings
 filterwarnings = "error"
@@ -122,19 +100,39 @@ legacy_tox_ini = """
 [tox]
 skipsdist=True
 
-[testenv:{pre-commit,mypy,pytest,docs}]
+[testenv:{pre-commit,type-checking,tests,docs}]
 # Don't create a virtualenv for the command, requires tox-direct plugin
 direct = True
 passenv = *
-allowlist_externals = 
-    pytest 
+allowlist_externals =
+    pytest
     pre-commit
     mypy
     sphinx-build
     sphinx-autobuild
 commands =
-    pytest: pytest {posargs}
-    mypy: mypy src tests {posargs}
     pre-commit: pre-commit run --all-files {posargs}
+    type-checking: mypy src tests {posargs}
+    tests: pytest --cov=scanspec --cov-report term --cov-report xml:cov.xml {posargs}
     docs: sphinx-{posargs:build -EW --keep-going} -T docs build/html
 """
+
+[tool.ruff]
+src = ["src", "tests"]
+line-length = 88
+
+[tool.ruff.lint]
+extend-select = [
+    "B",  # flake8-bugbear - https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
+    "C4", # flake8-comprehensions - https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+    "E",  # pycodestyle errors - https://docs.astral.sh/ruff/rules/#error-e
+    "F",  # pyflakes rules - https://docs.astral.sh/ruff/rules/#pyflakes-f
+    "W",  # pycodestyle warnings - https://docs.astral.sh/ruff/rules/#warning-w
+    "I",  # isort - https://docs.astral.sh/ruff/rules/#isort-i
+    "UP", # pyupgrade - https://docs.astral.sh/ruff/rules/#pyupgrade-up
+]
+# We use pydantic, so don't upgrade to py3.10 syntax yet
+pyupgrade.keep-runtime-typing = true
+ignore = [
+    "B008", # We use function calls in service arguments
+]

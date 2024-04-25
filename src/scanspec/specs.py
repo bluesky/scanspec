@@ -128,7 +128,7 @@ class Spec(Generic[Axis]):
 
     def serialize(self) -> Mapping[str, Any]:
         """Serialize the spec to a dictionary."""
-        return asdict(self)
+        return asdict(self)  # type: ignore
 
     @classmethod
     def deserialize(cls, obj):
@@ -744,3 +744,31 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
         spec = step(Line("x", 1, 2, 3), 0.1)
     """
     return spec * Static.duration(duration, num)
+
+
+def get_constant_duration(frames: List[Frames]) -> Optional[float]:
+    """
+    Returns the duration of a number of ScanSpec frames, if known and consistent.
+
+    Args:
+        frames (List[Frames]): A number of Frame objects
+
+    Returns:
+        duration (float): if all frames have a consistent duration
+        None: otherwise
+
+    """
+    duration_frame = [
+        f for f in frames if DURATION in f.axes() and len(f.midpoints[DURATION])
+    ]
+    if len(duration_frame) != 1 or len(duration_frame[0]) < 1:
+        # Either no frame has DURATION axis,
+        #   the frame with a DURATION axis has 0 points,
+        #   or multiple frames have DURATION axis
+        return None
+    durations = duration_frame[0].midpoints[DURATION]
+    first_duration = durations[0]
+    if np.any(durations != first_duration):
+        # Not all durations are the same
+        return None
+    return first_duration
