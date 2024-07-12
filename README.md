@@ -1,8 +1,8 @@
-<img src="https://raw.githubusercontent.com/dls-controls/scanspec/main/docs/images/scanspec-logo.svg"
+<img src="https://raw.githubusercontent.com/bluesky/scanspec/main/docs/images/scanspec-logo.svg"
      style="background: none" width="120px" height="120px" align="right">
 
-[![CI](https://github.com/dls-controls/scanspec/actions/workflows/ci.yml/badge.svg)](https://github.com/dls-controls/scanspec/actions/workflows/ci.yml)
-[![Coverage](https://codecov.io/gh/dls-controls/scanspec/branch/main/graph/badge.svg)](https://codecov.io/gh/dls-controls/scanspec)
+[![CI](https://github.com/bluesky/scanspec/actions/workflows/ci.yml/badge.svg)](https://github.com/bluesky/scanspec/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/bluesky/scanspec/branch/main/graph/badge.svg)](https://codecov.io/gh/bluesky/scanspec)
 [![PyPI](https://img.shields.io/pypi/v/scanspec.svg)](https://pypi.org/project/scanspec)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -20,11 +20,11 @@ can be produced and expanded Paths created to consume chunk by chunk.
 
 [cycler]: https://matplotlib.org/cycler/
 
-Source          | <https://github.com/dls-controls/scanspec>
+Source          | <https://github.com/bluesky/scanspec>
 :---:           | :---:
 PyPI            | `pip install scanspec`
-Documentation   | <https://dls-controls.github.io/scanspec>
-Releases        | <https://github.com/dls-controls/scanspec/releases>
+Documentation   | <https://bluesky.github.io/scanspec>
+Releases        | <https://github.com/bluesky/scanspec/releases>
 
 An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
 each point:
@@ -69,6 +69,6 @@ chunk.upper  # bounds are same dimensionality as positions
 
 <!-- README only content. Anything below this line won't be included in index.md -->
 
-See https://dls-controls.github.io/scanspec for more detailed documentation.
+See https://bluesky.github.io/scanspec for more detailed documentation.
 
-[plot]: https://raw.githubusercontent.com/dls-controls/scanspec/master/docs/images/plot_spec.png
+[plot]: https://raw.githubusercontent.com/bluesky/scanspec/master/docs/images/plot_spec.png

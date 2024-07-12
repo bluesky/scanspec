@@ -31,7 +31,7 @@ If you require a feature that is not currently released you can also install
 from github:
 
 ```
-$ python3 -m pip install git+https://github.com/dls-controls/scanspec.git
+$ python3 -m pip install git+https://github.com/bluesky/scanspec.git
 ```
 
 If you need to do any plotting (recommended), you should install the `plotting` extra:

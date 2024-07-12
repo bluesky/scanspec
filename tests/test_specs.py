@@ -612,7 +612,7 @@ def test_multiple_duration_frames():
         AssertionError, match=re.escape("Zipping would overwrite axes ['DURATION']")
     ):
         spec.calculate()
-    spec = (  # TODO: refactor when https://github.com/dls-controls/scanspec/issues/90
+    spec = (  # TODO: refactor when https://github.com/bluesky/scanspec/issues/90
         Static.duration(0.1) * Line.bounded(DURATION, 0, 0, 2)
     )
     frames = spec.calculate()

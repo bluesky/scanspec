@@ -8,5 +8,5 @@ Technical reference material including APIs and release notes.
 
 reference/*
 genindex
-Release Notes <https://github.com/dls-controls/scanspec/releases>
+Release Notes <https://github.com/bluesky/scanspec/releases>
 ```

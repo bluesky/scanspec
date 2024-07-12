@@ -63,7 +63,7 @@ dev = [
 scanspec = "scanspec.cli:cli"
 
 [project.urls]
-GitHub = "https://github.com/dls-controls/scanspec"
+GitHub = "https://github.com/bluesky/scanspec"
 
 [[project.authors]] # Further authors may be added by duplicating this section
 email = "tom.cobb@diamond.ac.uk"
