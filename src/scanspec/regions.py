@@ -4,13 +4,11 @@ from typing import Generic, Iterator, List, Set
 
 import numpy as np
 from pydantic import BaseModel, Field
-from pydantic.dataclasses import dataclass
 
 from .core import (
     AxesPoints,
     Axis,
-    StrictConfig,
-    discriminated_union_of_subclasses,
+    TypedModel,
     if_instance_do,
 )
 
@@ -31,8 +29,7 @@ __all__ = [
 ]
 
 
-@discriminated_union_of_subclasses
-class Region(Generic[Axis]):
+class Region(TypedModel, Generic[Axis]):
     """Abstract baseclass for a Region that can `Mask` a `Spec`.
 
     Supports operators:
@@ -52,16 +49,20 @@ class Region(Generic[Axis]):
         raise NotImplementedError(self)
 
     def __or__(self, other) -> UnionOf[Axis]:
-        return if_instance_do(other, Region, lambda o: UnionOf(self, o))
+        return if_instance_do(other, Region, lambda o: UnionOf(left=self, right=o))
 
     def __and__(self, other) -> IntersectionOf[Axis]:
-        return if_instance_do(other, Region, lambda o: IntersectionOf(self, o))
+        return if_instance_do(
+            other, Region, lambda o: IntersectionOf(left=self, right=o)
+        )
 
     def __sub__(self, other) -> DifferenceOf[Axis]:
-        return if_instance_do(other, Region, lambda o: DifferenceOf(self, o))
+        return if_instance_do(other, Region, lambda o: DifferenceOf(left=self, right=o))
 
     def __xor__(self, other) -> SymmetricDifferenceOf[Axis]:
-        return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(self, o))
+        return if_instance_do(
+            other, Region, lambda o: SymmetricDifferenceOf(left=self, right=o)
+        )
 
 
 def get_mask(region: Region[Axis], points: AxesPoints[Axis]) -> np.ndarray:
@@ -93,12 +94,14 @@ def _merge_axis_sets(axis_sets: List[Set[Axis]]) -> Iterator[Set[Axis]]:
             yield axis_set
 
 
-@dataclass(config=StrictConfig)
 class CombinationOf(Region[Axis]):
     """Abstract baseclass for a combination of two regions, left and right."""
 
     left: Region[Axis] = Field(description="The left-hand Region to combine")
     right: Region[Axis] = Field(description="The right-hand Region to combine")
+
+    def __init__(self, left: Region[Axis], right: Region[Axis]):
+        super().__init__(left=left, right=right)
 
     def axis_sets(self) -> List[Set[Axis]]:
         axis_sets = list(
@@ -108,13 +111,14 @@ class CombinationOf(Region[Axis]):
 
 
 # Naming so we don't clash with typing.Union
-@dataclass(config=StrictConfig)
+
+
 class UnionOf(CombinationOf[Axis]):
     """A point is in UnionOf(a, b) if in either a or b.
 
     Typically created with the ``|`` operator
 
-    >>> r = Range("x", 0.5, 2.5) | Range("x", 1.5, 3.5)
+    >>> r = Range(axis="x", min=0.5, max=2.5) | Range(axis="x", min=1.5, max=3.5)
     >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
     array([False,  True,  True,  True, False])
     """
@@ -124,13 +128,12 @@ class UnionOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class IntersectionOf(CombinationOf[Axis]):
     """A point is in IntersectionOf(a, b) if in both a and b.
 
     Typically created with the ``&`` operator.
 
-    >>> r = Range("x", 0.5, 2.5) & Range("x", 1.5, 3.5)
+    >>> r = Range(axis="x", min=0.5, max=2.5) & Range(axis="x", min=1.5, max=3.5)
     >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
     array([False, False,  True, False, False])
     """
@@ -140,13 +143,12 @@ class IntersectionOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class DifferenceOf(CombinationOf[Axis]):
     """A point is in DifferenceOf(a, b) if in a and not in b.
 
     Typically created with the ``-`` operator.
 
-    >>> r = Range("x", 0.5, 2.5) - Range("x", 1.5, 3.5)
+    >>> r = Range(axis="x", min=0.5, max=2.5) - Range(axis="x", min=1.5, max=3.5)
     >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
     array([False,  True, False, False, False])
     """
@@ -158,13 +160,12 @@ class DifferenceOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class SymmetricDifferenceOf(CombinationOf[Axis]):
     """A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.
 
     Typically created with the ``^`` operator.
 
-    >>> r = Range("x", 0.5, 2.5) ^ Range("x", 1.5, 3.5)
+    >>> r = Range(axis="x", min=0.5, max=2.5) ^ Range(axis="x", min=1.5, max=3.5)
     >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
     array([False,  True, False,  True, False])
     """
@@ -174,11 +175,10 @@ class SymmetricDifferenceOf(CombinationOf[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class Range(Region[Axis]):
     """Mask contains points of axis >= min and <= max.
 
-    >>> r = Range("x", 1, 2)
+    >>> r = Range(axis="x", min=1, max=2)
     >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
     array([False,  True,  True, False, False])
     """
@@ -186,6 +186,9 @@ class Range(Region[Axis]):
     axis: Axis = Field(description="The name matching the axis to mask in spec")
     min: float = Field(description="The minimum inclusive value in the region")
     max: float = Field(description="The minimum inclusive value in the region")
+
+    def __init__(self, axis: Axis, min: float, max: float):
+        super().__init__(axis=axis, min=min, max=max)
 
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.axis}]
@@ -196,7 +199,6 @@ class Range(Region[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class Rectangle(Region[Axis]):
     """Mask contains points of axis within a rotated xy rectangle.
 
@@ -219,6 +221,26 @@ class Rectangle(Region[Axis]):
         description="Clockwise rotation angle of the rectangle", default=0.0
     )
 
+    def __init__(
+        self,
+        x_axis: Axis,
+        y_axis: Axis,
+        x_min: float,
+        y_min: float,
+        x_max: float,
+        y_max: float,
+        angle: float = 0.0,
+    ):
+        super().__init__(
+            x_axis=x_axis,
+            y_axis=y_axis,
+            x_min=x_min,
+            y_min=y_min,
+            x_max=x_max,
+            y_max=y_max,
+            angle=angle,
+        )
+
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]
 
@@ -237,7 +259,6 @@ class Rectangle(Region[Axis]):
         return mask_x & mask_y
 
 
-@dataclass(config=StrictConfig)
 class Polygon(Region[Axis]):
     """Mask contains points of axis within a rotated xy polygon.
 
@@ -253,11 +274,16 @@ class Polygon(Region[Axis]):
     x_axis: Axis = Field(description="The name matching the x axis of the spec")
     y_axis: Axis = Field(description="The name matching the y axis of the spec")
     x_verts: List[float] = Field(
-        description="The Nx1 x coordinates of the polygons vertices", min_len=3
+        description="The Nx1 x coordinates of the polygons vertices", min_length=3
     )
     y_verts: List[float] = Field(
-        description="The Nx1 y coordinates of the polygons vertices", min_len=3
+        description="The Nx1 y coordinates of the polygons vertices", min_length=3
     )
+
+    def __init__(
+        self, x_axis: Axis, y_axis: Axis, x_verts: List[float], y_verts: List[float]
+    ):
+        super().__init__(x_axis=x_axis, y_axis=y_axis, x_verts=x_verts, y_verts=y_verts)
 
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]
@@ -280,7 +306,6 @@ class Polygon(Region[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class Circle(Region[Axis]):
     """Mask contains points of axis within an xy circle of given radius.
 
@@ -297,7 +322,23 @@ class Circle(Region[Axis]):
     y_axis: Axis = Field(description="The name matching the y axis of the spec")
     x_middle: float = Field(description="The central x point of the circle")
     y_middle: float = Field(description="The central y point of the circle")
-    radius: float = Field(description="Radius of the circle", exc_min=0)
+    radius: float = Field(description="Radius of the circle", gt=0)
+
+    def __init__(
+        self,
+        x_axis: Axis,
+        y_axis: Axis,
+        x_middle: float,
+        y_middle: float,
+        radius: float,
+    ):
+        super().__init__(
+            x_axis=x_axis,
+            y_axis=y_axis,
+            x_middle=x_middle,
+            y_middle=y_middle,
+            radius=radius,
+        )
 
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]
@@ -309,7 +350,6 @@ class Circle(Region[Axis]):
         return mask
 
 
-@dataclass(config=StrictConfig)
 class Ellipse(Region[Axis]):
     """Mask contains points of axis within an xy ellipse of given radius.
 
@@ -327,12 +367,32 @@ class Ellipse(Region[Axis]):
     x_middle: float = Field(description="The central x point of the ellipse")
     y_middle: float = Field(description="The central y point of the ellipse")
     x_radius: float = Field(
-        description="The radius along the x axis of the ellipse", exc_min=0
+        description="The radius along the x axis of the ellipse", gt=0
     )
     y_radius: float = Field(
-        description="The radius along the y axis of the ellipse", exc_min=0
+        description="The radius along the y axis of the ellipse", gt=0
     )
     angle: float = Field(description="The angle of the ellipse (degrees)", default=0.0)
+
+    def __init__(
+        self,
+        x_axis: Axis,
+        y_axis: Axis,
+        x_middle: float,
+        y_middle: float,
+        x_radius: float,
+        y_radius: float,
+        angle: float = 0.0,
+    ):
+        super().__init__(
+            x_axis=x_axis,
+            y_axis=y_axis,
+            x_middle=x_middle,
+            y_middle=y_middle,
+            x_radius=x_radius,
+            y_radius=y_radius,
+            angle=angle,
+        )
 
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]

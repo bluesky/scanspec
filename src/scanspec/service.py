@@ -116,7 +116,9 @@ class SmallestStepResponse:
 # API Routes
 #
 
-_EXAMPLE_SPEC = Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 4)
+_EXAMPLE_SPEC = Line(axis="y", start=0.0, stop=10.0, num=3) * Line(
+    axis="x", start=0.0, stop=10.0, num=4
+)
 _EXAMPLE_POINTS_REQUEST = PointsRequest(
     _EXAMPLE_SPEC, max_frames=1024, format=PointsFormat.FLOAT_LIST
 )

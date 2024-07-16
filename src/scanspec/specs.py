@@ -1,11 +1,19 @@
 from __future__ import annotations
 
-from dataclasses import asdict
-from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, Tuple, Type
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Type,
+)
 
 import numpy as np
-from pydantic import Field, parse_obj_as
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel, Field
 
 from .core import (
     Axis,
@@ -13,8 +21,7 @@ from .core import (
     Midpoints,
     Path,
     SnakedFrames,
-    StrictConfig,
-    discriminated_union_of_subclasses,
+    TypedModel,
     gap_between_frames,
     if_instance_do,
     squash_frames,
@@ -43,8 +50,7 @@ __all__ = [
 DURATION = "DURATION"
 
 
-@discriminated_union_of_subclasses(config=StrictConfig)
-class Spec(Generic[Axis]):
+class Spec(TypedModel, Generic[Axis]):
     """A serializable representation of the type and parameters of a scan.
 
     Abstract baseclass for the specification of a scan. Supports operators:
@@ -82,36 +88,37 @@ class Spec(Generic[Axis]):
         return tuple(len(dim) for dim in self.calculate())
 
     def __rmul__(self, other) -> Product[Axis]:
-        return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
+        return if_instance_do(
+            other, int, lambda o: Product(outer=Repeat(num=o), inner=self)
+        )
 
     def __mul__(self, other) -> Product[Axis]:
-        return if_instance_do(other, Spec, lambda o: Product(self, o))
+        return if_instance_do(other, Spec, lambda o: Product(outer=self, inner=o))
 
     def __and__(self, other) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self, o))
+        return if_instance_do(other, Region, lambda o: Mask(spec=self, region=o))
 
     def __invert__(self) -> Snake[Axis]:
-        return Snake(self)
+        return Snake(spec=self)
 
-    def zip(self, other: Spec) -> Zip[Axis]:
+    def zip(self, other: Spec[Axis]) -> Zip[Axis]:
         """`Zip` the Spec with another, iterating in tandem."""
-        return Zip(self, other)
+        return Zip(left=self, right=other)
 
-    def concat(self, other: Spec) -> Concat[Axis]:
+    def concat(self, other: Spec[Axis]) -> Concat[Axis]:
         """`Concat` the Spec with another, iterating one after the other."""
-        return Concat(self, other)
+        return Concat(left=self, right=other)
 
     def serialize(self) -> Mapping[str, Any]:
         """Serialize the spec to a dictionary."""
-        return asdict(self)  # type: ignore
+        return self.model_dump()
 
     @classmethod
-    def deserialize(cls, obj):
+    def deserialize(cls: Spec[Axis], obj: Dict[str, Any]):
         """Deserialize the spec from a dictionary."""
-        return parse_obj_as(cls, obj)
+        return cls.model_validate(obj)
 
 
-@dataclass(config=StrictConfig)
 class Product(Spec[Axis]):
     """Outer product of two Specs, nesting inner within outer.
 
@@ -127,6 +134,9 @@ class Product(Spec[Axis]):
     outer: Spec[Axis] = Field(description="Will be executed once")
     inner: Spec[Axis] = Field(description="Will be executed len(outer) times")
 
+    def __init__(self, outer: Spec[Axis], inner: Spec[Axis]):
+        super().__init__(outer=outer, inner=inner)
+
     def axes(self) -> List:
         return self.outer.axes() + self.inner.axes()
 
@@ -136,7 +146,6 @@ class Product(Spec[Axis]):
         return frames_outer + frames_inner
 
 
-@dataclass(config=StrictConfig)
 class Repeat(Spec[Axis]):
     """Repeat an empty frame num times.
 
@@ -154,17 +163,20 @@ class Repeat(Spec[Axis]):
 
         from scanspec.specs import Line, Repeat
 
-        spec = Repeat(2, gap=False) * ~Line.bounded("x", 3, 4, 1)
+        spec = Repeat(num=2, gap=False) * ~Line.bounded("x", 3, 4, 1)
 
     .. note:: There is no turnaround arrow at x=4
     """
 
-    num: int = Field(min=1, description="Number of frames to produce")
+    num: int = Field(ge=1, description="Number of frames to produce")
     gap: bool = Field(
         description="If False and the slowest of the stack of Frames is snaked "
         "then the end and start of consecutive iterations of Spec will have no gap",
         default=True,
     )
+
+    def __init__(self, num: int, gap: bool = True):
+        super().__init__(num=num, gap=gap)
 
     def axes(self) -> List:
         return []
@@ -173,7 +185,6 @@ class Repeat(Spec[Axis]):
         return [Frames({}, gap=np.full(self.num, self.gap))]
 
 
-@dataclass(config=StrictConfig)
 class Zip(Spec[Axis]):
     """Run two Specs in parallel, merging their midpoints together.
 
@@ -181,7 +192,7 @@ class Zip(Spec[Axis]):
 
     Stacks of Frames are merged by:
 
-    - If right creates a stack of a single Frames object of size 1, expand it to
+    - If right creates a stack of a single FGrames object of size 1, expand it to
       the size of the fastest Frames object created by left
     - Merge individual Frames objects together from fastest to slowest
 
@@ -202,6 +213,9 @@ class Zip(Spec[Axis]):
     right: Spec[Axis] = Field(
         description="The right-hand Spec to Zip, will appear later in axes"
     )
+
+    def __init__(self, left: Spec[Axis], right: Spec[Axis]):
+        super().__init__(left=left, right=right)
 
     def axes(self) -> List:
         return self.left.axes() + self.right.axes()
@@ -244,7 +258,6 @@ class Zip(Spec[Axis]):
         return frames
 
 
-@dataclass(config=StrictConfig)
 class Mask(Spec[Axis]):
     """Restrict Spec to only midpoints that fall inside the given Region.
 
@@ -270,6 +283,16 @@ class Mask(Spec[Axis]):
         description="If True path through scan will not be modified by squash",
         default=True,
     )
+
+    def __init__(
+        self,
+        spec: Spec[Axis],
+        region: Region[Axis],
+        check_path_changes: bool = True,
+    ):
+        super().__init__(
+            spec=spec, region=region, check_path_changes=check_path_changes
+        )
 
     def axes(self) -> List:
         return self.spec.axes()
@@ -312,7 +335,6 @@ class Mask(Spec[Axis]):
         return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
 
 
-@dataclass(config=StrictConfig)
 class Snake(Spec[Axis]):
     """Run the Spec in reverse on every other iteration when nested.
 
@@ -339,7 +361,6 @@ class Snake(Spec[Axis]):
         ]
 
 
-@dataclass(config=StrictConfig)
 class Concat(Spec[Axis]):
     """Concatenate two Specs together, running one after the other.
 
@@ -368,6 +389,17 @@ class Concat(Spec[Axis]):
         default=True,
     )
 
+    def __init__(
+        self,
+        left: Spec[Axis],
+        right: Spec[Axis],
+        gap: bool = False,
+        check_path_changes: bool = True,
+    ):
+        super().__init__(
+            left=left, right=right, gap=gap, check_path_changes=check_path_changes
+        )
+
     def axes(self) -> List:
         left_axes, right_axes = self.left.axes(), self.right.axes()
         # Assuming the axes are the same, the order does not matter, we inherit the
@@ -386,7 +418,6 @@ class Concat(Spec[Axis]):
         return [dim]
 
 
-@dataclass(config=StrictConfig)
 class Squash(Spec[Axis]):
     """Squash a stack of Frames together into a single expanded Frames object.
 
@@ -405,6 +436,9 @@ class Squash(Spec[Axis]):
         description="If True path through scan will not be modified by squash",
         default=True,
     )
+
+    def __init__(self, spec: Spec[Axis], check_path_changes: bool = True):
+        super().__init__(spec=spec, check_path_changes=check_path_changes)
 
     def axes(self) -> List:
         return self.spec.axes()
@@ -442,7 +476,6 @@ def _dimensions_from_indexes(
     return [dimension]
 
 
-@dataclass(config=StrictConfig)
 class Line(Spec[Axis]):
     """Linearly spaced frames with start and stop as first and last midpoints.
 
@@ -456,7 +489,10 @@ class Line(Spec[Axis]):
     axis: Axis = Field(description="An identifier for what to move")
     start: float = Field(description="Midpoint of the first point of the line")
     stop: float = Field(description="Midpoint of the last point of the line")
-    num: int = Field(min=1, description="Number of frames to produce")
+    num: int = Field(ge=1, description="Number of frames to produce")
+
+    def __init__(self, axis: Axis, start: float, stop: float, num: int):
+        super().__init__(axis=axis, start=start, stop=stop, num=num)
 
     def axes(self) -> List:
         return [self.axis]
@@ -479,13 +515,7 @@ class Line(Spec[Axis]):
         )
 
     @classmethod
-    def bounded(
-        cls,
-        axis: Axis = Field(description="An identifier for what to move"),
-        lower: float = Field(description="Lower bound of the first point of the line"),
-        upper: float = Field(description="Upper bound of the last point of the line"),
-        num: int = Field(min=1, description="Number of frames to produce"),
-    ) -> Line[Axis]:
+    def bounded(cls, axis: Axis, lower: float, upper: float, num: int) -> Line[Axis]:
         """Specify a Line by extreme bounds instead of midpoints.
 
         .. example_spec::
@@ -502,10 +532,9 @@ class Line(Spec[Axis]):
         else:
             # Many points, stop will be produced
             stop = upper - half_step
-        return cls(axis, start, stop, num)
+        return cls(axis=axis, start=start, stop=stop, num=num)
 
 
-@dataclass(config=StrictConfig)
 class Static(Spec[Axis]):
     """A static frame, repeated num times, with axis at value.
 
@@ -520,14 +549,13 @@ class Static(Spec[Axis]):
 
     axis: Axis = Field(description="An identifier for what to move")
     value: float = Field(description="The value at each point")
-    num: int = Field(min=1, description="Number of frames to produce", default=1)
+    num: int = Field(ge=1, description="Number of frames to produce", default=1)
+
+    def __init__(self, axis: Axis, value: float, num: int = 1):
+        super().__init__(axis=axis, value=value, num=num)
 
     @classmethod
-    def duration(
-        cls: Type[Static],
-        duration: float = Field(description="The duration of each static point"),
-        num: int = Field(min=1, description="Number of frames to produce", default=1),
-    ) -> Static[str]:
+    def duration(cls: Type[Static], duration: float, num: int = 1) -> Static[str]:
         """A static spec with no motion, only a duration repeated "num" times.
 
         .. example_spec::
@@ -536,7 +564,7 @@ class Static(Spec[Axis]):
 
             spec = Line("y", 1, 2, 3).zip(Static.duration(0.1))
         """
-        return cls(DURATION, duration, num)
+        return cls(axis=DURATION, value=duration, num=num)
 
     def axes(self) -> List:
         return [self.axis]
@@ -550,8 +578,7 @@ class Static(Spec[Axis]):
         )
 
 
-@dataclass(config=StrictConfig)
-class Spiral(Spec[Axis]):
+class Spiral(Spec[Axis], BaseModel):
     """Archimedean spiral of "x_axis" and "y_axis".
 
     Starts at centre point ("x_start", "y_start") with angle "rotate". Produces
@@ -572,10 +599,32 @@ class Spiral(Spec[Axis]):
     y_start: float = Field(description="y centre of the spiral")
     x_range: float = Field(description="x width of the spiral")
     y_range: float = Field(description="y width of the spiral")
-    num: int = Field(min=1, description="Number of frames to produce")
+    num: int = Field(ge=1, description="Number of frames to produce")
     rotate: float = Field(
         description="How much to rotate the angle of the spiral", default=0.0
     )
+
+    def __init__(
+        self,
+        x_axis: Axis,
+        y_axis: Axis,
+        x_start: float,
+        y_start: float,
+        x_range: float,
+        y_range: float,
+        num: int,
+        rotate: float = 0.0,
+    ):
+        super().__init__(
+            x_axis=x_axis,
+            y_axis=y_axis,
+            x_start=x_start,
+            y_start=y_start,
+            x_range=x_range,
+            y_range=y_range,
+            num=num,
+            rotate=rotate,
+        )
 
     def axes(self) -> List[Axis]:
         # TODO: reversed from __init__ args, a good idea?
@@ -606,15 +655,13 @@ class Spiral(Spec[Axis]):
     @classmethod
     def spaced(
         cls,
-        x_axis: Axis = Field(description="An identifier for what to move for x"),
-        y_axis: Axis = Field(description="An identifier for what to move for y"),
-        x_start: float = Field(description="x centre of the spiral"),
-        y_start: float = Field(description="y centre of the spiral"),
-        radius: float = Field(description="radius of the spiral"),
-        dr: float = Field(description="difference between each ring"),
-        rotate: float = Field(
-            description="How much to rotate the angle of the spiral", default=0.0
-        ),
+        x_axis: Axis,
+        y_axis: Axis,
+        x_start: float,
+        y_start: float,
+        radius: float,
+        dr: float,
+        rotate: float = 0.0,
     ) -> Spiral[Axis]:
         """Specify a Spiral equally spaced in "x_axis" and "y_axis".
 
@@ -631,7 +678,7 @@ class Spiral(Spec[Axis]):
         n_rings = radius / dr
         num = int(n_rings**2 * np.pi)
         return cls(
-            x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate
+            x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate=rotate
         )
 
 

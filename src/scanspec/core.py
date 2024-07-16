@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import field
 from typing import (
+    Annotated,
     Any,
     Callable,
+    ClassVar,
     Dict,
     Generic,
     Iterable,
@@ -17,9 +18,18 @@ from typing import (
 )
 
 import numpy as np
-from pydantic import BaseConfig, Extra, Field, ValidationError, create_model
-from pydantic.error_wrappers import ErrorWrapper
-from typing_extensions import Literal
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Discriminator,
+    Field,
+    RootModel,
+    computed_field,
+    create_model,
+    model_validator,
+)
+from pydantic.fields import FieldInfo
+from typing_extensions import Annotated, Literal
 
 __all__ = [
     "if_instance_do",
@@ -31,158 +41,70 @@ __all__ = [
     "squash_frames",
     "Path",
     "Midpoints",
-    "discriminated_union_of_subclasses",
-    "StrictConfig",
 ]
 
-
-class StrictConfig(BaseConfig):
-    """Pydantic configuration for scanspecs and regions."""
-
-    extra: Extra = Extra.forbid
+_TYPE_DISCRIMINATOR = "type"
 
 
-def discriminated_union_of_subclasses(
-    super_cls: Optional[Type] = None,
-    *,
-    discriminator: str = "type",
-    config: Optional[Type[BaseConfig]] = None,
-) -> Union[Type, Callable[[Type], Type]]:
-    """Add all subclasses of super_cls to a discriminated union.
+class TypedModel(BaseModel):
+    """A Base class for members of tagged unions discriminated by the class name.
 
-    For all subclasses of super_cls, add a discriminator field to identify
-    the type. Raw JSON should look like {"type": <type name>, params for
-    <type name>...}.
-    Add validation methods to super_cls so it can be parsed by pydantic.parse_obj_as.
+    This class defines some hooks called by pydantic during validation and schema
+    generation.
 
-    Example::
+    Child classes will automatically have a type field defined, which can be used as a
+    discriminator when constructing tagged unions using pydantic `Discriminator` and
+    `Tag`.
 
-        @discriminated_union_of_subclasses
-        class Expression(ABC):
-            @abstractmethod
-            def calculate(self) -> int:
-                ...
-
-
-        @dataclass
-        class Add(Expression):
-            left: Expression
-            right: Expression
-
-            def calculate(self) -> int:
-                return self.left.calculate() + self.right.calculate()
-
-
-        @dataclass
-        class Subtract(Expression):
-            left: Expression
-            right: Expression
-
-            def calculate(self) -> int:
-                return self.left.calculate() - self.right.calculate()
-
-
-        @dataclass
-        class IntLiteral(Expression):
-            value: int
-
-            def calculate(self) -> int:
-                return self.value
-
-
-        my_sum = Add(IntLiteral(5), Subtract(IntLiteral(10), IntLiteral(2)))
-        assert my_sum.calculate() == 13
-
-        assert my_sum == parse_obj_as(
-            Expression,
-            {
-                "type": "Add",
-                "left": {"type": "IntLiteral", "value": 5},
-                "right": {
-                    "type": "Subtract",
-                    "left": {"type": "IntLiteral", "value": 10},
-                    "right": {"type": "IntLiteral", "value": 2},
-                },
-            },
-        )
-
-    Args:
-        super_cls: The superclass of the union, Expression in the above example
-        discriminator: The discriminator that will be inserted into the
-            serialized documents for type determination. Defaults to "type".
-        config: A pydantic config class to be inserted into all
-            subclasses. Defaults to None.
-
-    Returns:
-        Union[Type, Callable[[Type], Type]]: A decorator that adds the necessary
-            functionality to a class.
     """
 
-    def wrap(cls):
-        return _discriminated_union_of_subclasses(cls, discriminator, config)
+    # Do not allow extra fields during validation
+    model_config = ConfigDict(extra="forbid")
 
-    # Work out if the call was @discriminated_union_of_subclasses or
-    # @discriminated_union_of_subclasses(...)
-    if super_cls is None:
-        return wrap
-    else:
-        return wrap(super_cls)
+    # Whether child models have been rebuilt with type field inserted
+    model: ClassVar[TypedModel] = None
+    ref_classes: ClassVar[TypedModel] = set()
 
+    @computed_field  # type: ignore
+    @property
+    def type(self) -> str:
+        """Property to create type field from class name when serializing."""
+        return self.__class__.__name__
 
-def _discriminated_union_of_subclasses(
-    super_cls: Type,
-    discriminator: str,
-    config: Optional[Type[BaseConfig]] = None,
-) -> Union[Type, Callable[[Type], Type]]:
-    super_cls._ref_classes = set()
-    super_cls._model = None
+    @classmethod
+    def __pydantic_init_subclass__(cls):
+        super().__pydantic_init_subclass__()
 
-    def __init_subclass__(cls) -> None:
         # Keep track of inherting classes in super class
-        cls._ref_classes.add(cls)
+        cls.ref_classes.add(cls)
 
         # Add a discriminator field to the class so it can
         # be identified when deserailizing.
-        cls.__annotations__ = {
-            **cls.__annotations__,
-            discriminator: Literal[cls.__name__],
-        }
-        setattr(cls, discriminator, field(default=cls.__name__, repr=False))
+        cls.model_fields["type"] = FieldInfo(
+            annotation=Literal[cls.__name__],  # type: ignore
+            default=cls.__name__,
+        )
 
-    def __get_validators__(cls) -> Any:
-        yield cls.__validate__
+    @classmethod
+    def _rebuild_child_models(cls):
+        """Recursively rebuild all subclass models to add type into core schema."""
+        for subclass in cls.__subclasses__():
+            subclass.model_rebuild(force=True)
+            subclass._rebuild_child_models()
 
-    def __validate__(cls, v: Any) -> Any:
+    @model_validator(mode="after")
+    def _validate(cls, v: Any) -> Any:
         # Lazily initialize model on first use because this
         # needs to be done once, after all subclasses have been
         # declared
-        if cls._model is None:
-            root = Union[tuple(cls._ref_classes)]  # type: ignore
-            cls._model = create_model(
-                super_cls.__name__,
-                __root__=(root, Field(..., discriminator=discriminator)),
-                __config__=config,
-            )
+        if cls.model is None:
+            root = Annotated[
+                Union[tuple(cls.ref_classes)],
+                Field(discriminator=Discriminator(_TYPE_DISCRIMINATOR)),
+            ]
+            cls.model = RootModel.model_construct(root)
 
-        try:
-            return cls._model(__root__=v).__root__
-        except ValidationError as e:
-            for (
-                error
-            ) in e.raw_errors:  # need in to remove redundant __root__ from error path
-                if (
-                    isinstance(error, ErrorWrapper)
-                    and error.loc_tuple()[0] == "__root__"
-                ):
-                    error._loc = error.loc_tuple()[1:]
-
-            raise e
-
-    # Inject magic methods into super_cls
-    for method in __init_subclass__, __get_validators__, __validate__:
-        setattr(super_cls, method.__name__, classmethod(method))  # type: ignore
-
-    return super_cls
+        return cls.model.model_validate(v)
 
 
 def if_instance_do(x: Any, cls: Type, func: Callable):
@@ -613,10 +535,10 @@ class Midpoints(Generic[Axis]):
     >>> fy = Frames({"y": np.array([3, 4])})
     >>> mp = Midpoints([fy, fx])
     >>> for p in mp: print(p)
-    {'y': 3, 'x': 1}
-    {'y': 3, 'x': 2}
-    {'y': 4, 'x': 2}
-    {'y': 4, 'x': 1}
+    {'y': np.int64(3), 'x': np.int64(1)}
+    {'y': np.int64(3), 'x': np.int64(2)}
+    {'y': np.int64(4), 'x': np.int64(2)}
+    {'y': np.int64(4), 'x': np.int64(1)}
     """
 
     def __init__(self, stack: List[Frames[Axis]]):
