@@ -4,11 +4,11 @@ import pytest
 from pydantic import ValidationError
 
 from scanspec.regions import Circle, Rectangle, UnionOf
-from scanspec.specs import Line, Mask, Spec, Spiral
+from scanspec.specs import Line, Mask, Spec, Spiral, line
 
 
 def test_line_serializes() -> None:
-    ob = Line("x", 0, 1, 4)
+    ob = line("x", 0, 1, 4)
     serialized = {"type": "Line", "axis": "x", "start": 0.0, "stop": 1.0, "num": 4}
     assert ob.serialize() == serialized
     assert Spec.deserialize(serialized) == ob
@@ -35,7 +35,7 @@ def test_masked_circle_serializes() -> None:
 
 def test_product_lines_serializes() -> None:
     ob = Line("z", 4, 5, 6) * Line("y", 2, 3, 5) * Line("x", 0, 1, 4)
-    serialized = {
+    expexted_serialized = {
         "type": "Product",
         "outer": {
             "type": "Product",
@@ -50,9 +50,9 @@ def test_product_lines_serializes() -> None:
         },
         "inner": {"type": "Line", "axis": "x", "start": 0.0, "stop": 1.0, "num": 4},
     }
-
-    assert ob.serialize() == serialized
-    assert Spec.deserialize(serialized) == ob
+    serialized = ob.serialize()
+    assert serialized == expexted_serialized
+    assert Spec.deserialize(expexted_serialized) == ob
 
 
 def test_complex_nested_serializes() -> None:
@@ -63,7 +63,7 @@ def test_complex_nested_serializes() -> None:
             Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30),
         ),
     )
-    serialized = {
+    expected_serialized = {
         "spec": {
             "x_axis": "x",
             "y_axis": "y",
@@ -99,8 +99,9 @@ def test_complex_nested_serializes() -> None:
         "check_path_changes": True,
         "type": "Mask",
     }
-    assert ob.serialize() == serialized
-    assert Spec.deserialize(serialized) == ob
+    serialized = ob.serialize()
+    assert serialized == expected_serialized
+    assert Spec.deserialize(expected_serialized) == ob
 
 
 @pytest.mark.parametrize(

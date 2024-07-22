@@ -113,11 +113,6 @@ class Spec(TypedModel, Generic[Axis]):
         """Serialize the spec to a dictionary."""
         return self.model_dump()
 
-    @classmethod
-    def deserialize(cls: Spec[Axis], obj: Dict[str, Any]):
-        """Deserialize the spec from a dictionary."""
-        return cls.model_validate(obj)
-
 
 class Product(Spec[Axis]):
     """Outer product of two Specs, nesting inner within outer.
@@ -491,9 +486,6 @@ class Line(Spec[Axis]):
     stop: float = Field(description="Midpoint of the last point of the line")
     num: int = Field(ge=1, description="Number of frames to produce")
 
-    def __init__(self, axis: Axis, start: float, stop: float, num: int):
-        super().__init__(axis=axis, start=start, stop=stop, num=num)
-
     def axes(self) -> List:
         return [self.axis]
 
@@ -533,6 +525,10 @@ class Line(Spec[Axis]):
             # Many points, stop will be produced
             stop = upper - half_step
         return cls(axis=axis, start=start, stop=stop, num=num)
+
+
+def line(axis: Axis, start: float, stop: float, num: int):
+    return Line(axis=axis, start=start, stop=stop, num=num)
 
 
 class Static(Spec[Axis]):
@@ -578,7 +574,7 @@ class Static(Spec[Axis]):
         )
 
 
-class Spiral(Spec[Axis], BaseModel):
+class Spiral(Spec[Axis]):
     """Archimedean spiral of "x_axis" and "y_axis".
 
     Starts at centre point ("x_start", "y_start") with angle "rotate". Produces

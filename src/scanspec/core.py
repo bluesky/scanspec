@@ -12,6 +12,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Set,
     Type,
     TypeVar,
     Union,
@@ -24,10 +25,12 @@ from pydantic import (
     Discriminator,
     Field,
     RootModel,
+    ValidationError,
     computed_field,
     create_model,
     model_validator,
 )
+from pydantic.dataclasses import dataclass
 from pydantic.fields import FieldInfo
 from typing_extensions import Annotated, Literal
 
@@ -54,18 +57,16 @@ class TypedModel(BaseModel):
 
     Child classes will automatically have a type field defined, which can be used as a
     discriminator when constructing tagged unions using pydantic `Discriminator` and
-    `Tag`.
-
-    """
+    `Tag`."""
 
     # Do not allow extra fields during validation
     model_config = ConfigDict(extra="forbid")
 
     # Whether child models have been rebuilt with type field inserted
-    model: ClassVar[TypedModel] = None
-    ref_classes: ClassVar[TypedModel] = set()
+    model: ClassVar[TypedModel | None] = None
+    ref_classes: ClassVar[dict[str, Type[TypedModel]]] = {}
 
-    @computed_field  # type: ignore
+    @computed_field
     @property
     def type(self) -> str:
         """Property to create type field from class name when serializing."""
@@ -76,7 +77,7 @@ class TypedModel(BaseModel):
         super().__pydantic_init_subclass__()
 
         # Keep track of inherting classes in super class
-        cls.ref_classes.add(cls)
+        cls.ref_classes[cls.__name__] = cls
 
         # Add a discriminator field to the class so it can
         # be identified when deserailizing.
@@ -92,19 +93,15 @@ class TypedModel(BaseModel):
             subclass.model_rebuild(force=True)
             subclass._rebuild_child_models()
 
-    @model_validator(mode="after")
-    def _validate(cls, v: Any) -> Any:
-        # Lazily initialize model on first use because this
-        # needs to be done once, after all subclasses have been
-        # declared
-        if cls.model is None:
-            root = Annotated[
-                Union[tuple(cls.ref_classes)],
-                Field(discriminator=Discriminator(_TYPE_DISCRIMINATOR)),
-            ]
-            cls.model = RootModel.model_construct(root)
-
-        return cls.model.model_validate(v)
+    @classmethod
+    def deserialize(cls, obj: Dict[str, Any]):
+        """Deserialize the spec from a dictionary."""
+        if not (model_type := obj.pop("type")):
+            raise ValidationError(
+                f"Model {cls} could not be initialised with "
+                f"values {obj} due to a missing 'type' argument"
+            )
+        return cls.ref_classes[model_type].model_validate(obj)
 
 
 def if_instance_do(x: Any, cls: Type, func: Callable):
