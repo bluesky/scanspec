@@ -13,14 +13,14 @@ If you are conducting a step scan, you only need the midpoints of each scan
 frame. You can get these by using the `Spec.midpoints()` method to produce a
 `Midpoints` iterator of scan `Points <point_>`:
 
->>> from scanspec.specs import Line
->>> spec = Line("x", 1, 2, 3)
+>>> from scanspec.specs import line
+>>> spec = line("x", 1, 2, 3)
 >>> for d in spec.midpoints():
 ...     print(d)
 ...
-{'x': 1.0}
-{'x': 1.5}
-{'x': 2.0}
+{'x': np.float64(1.0)}
+{'x': np.float64(1.5)}
+{'x': np.float64(2.0)}
 
 This is simple, but not particularly performant, as the numpy arrays of
 points are unpacked point by point into point dictionaries
@@ -89,8 +89,8 @@ You may need to know where there is a gap between points, so that you can do
 something in the turnaround. For example, if we take the x axis of a grid scan,
 you can see it snakes back and forth:
 
->>> from scanspec.specs import Line, fly
->>> grid = fly(Line("y", 0, 1, 2) * ~Line("x", 1, 2, 3), 0.1)
+>>> from scanspec.specs import line, fly
+>>> grid = fly(line("y", 0, 1, 2) * ~line("x", 1, 2, 3), 0.1)
 >>> chunk = grid.frames()
 >>> chunk.midpoints["x"]
 array([1. , 1.5, 2. , 2. , 1.5, 1. ])

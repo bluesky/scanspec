@@ -6,7 +6,6 @@ from typing import (
     Dict,
     Generic,
     List,
-    Literal,
     Mapping,
     Optional,
     Tuple,
@@ -14,7 +13,7 @@ from typing import (
 )
 
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from .core import (
     Axis,
@@ -172,14 +171,15 @@ class Repeat(Spec[Axis]):
         default=True,
     )
 
-    def __init__(self, num: int, gap: bool = True):
-        super().__init__(num=num, gap=gap)
-
     def axes(self) -> List:
         return []
 
     def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
         return [Frames({}, gap=np.full(self.num, self.gap))]
+
+
+def repeat(num: int, gap: bool = True):
+    return Repeat(num=num, gap=gap)
 
 
 class Zip(Spec[Axis]):
@@ -210,9 +210,6 @@ class Zip(Spec[Axis]):
     right: Spec[Axis] = Field(
         description="The right-hand Spec to Zip, will appear later in axes"
     )
-
-    def __init__(self, left: Spec[Axis], right: Spec[Axis]):
-        super().__init__(left=left, right=right)
 
     def axes(self) -> List:
         return self.left.axes() + self.right.axes()
@@ -380,17 +377,6 @@ class Concat(Spec[Axis]):
         default=True,
     )
 
-    def __init__(
-        self,
-        left: Spec[Axis],
-        right: Spec[Axis],
-        gap: bool = False,
-        check_path_changes: bool = True,
-    ):
-        super().__init__(
-            left=left, right=right, gap=gap, check_path_changes=check_path_changes
-        )
-
     def axes(self) -> List:
         left_axes, right_axes = self.left.axes(), self.right.axes()
         # Assuming the axes are the same, the order does not matter, we inherit the
@@ -407,6 +393,17 @@ class Concat(Spec[Axis]):
         )
         dim = dim_left.concat(dim_right, self.gap)
         return [dim]
+
+
+def concat(
+    left: Spec[Axis],
+    right: Spec[Axis],
+    gap: bool = False,
+    check_path_changes: bool = True,
+):
+    return Concat(
+        left=left, right=right, gap=gap, check_path_changes=check_path_changes
+    )
 
 
 class Squash(Spec[Axis]):
@@ -428,9 +425,6 @@ class Squash(Spec[Axis]):
         default=True,
     )
 
-    def __init__(self, spec: Spec[Axis], check_path_changes: bool = True):
-        super().__init__(spec=spec, check_path_changes=check_path_changes)
-
     def axes(self) -> List:
         return self.spec.axes()
 
@@ -438,6 +432,10 @@ class Squash(Spec[Axis]):
         dims = self.spec.calculate(bounds, nested)
         dim = squash_frames(dims, nested and self.check_path_changes)
         return [dim]
+
+
+def squash(spec: Spec[Axis], check_path_changes: bool = True):
+    return Squash(spec=spec, check_path_changes=check_path_changes)
 
 
 def _dimensions_from_indexes(

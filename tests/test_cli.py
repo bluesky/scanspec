@@ -145,7 +145,7 @@ def test_plot_2D_line() -> None:
 
 def test_plot_2D_line_rect_region() -> None:
     runner = CliRunner()
-    spec = "Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(x, y, 0, 1.1, 1.5, 2.1, 30)"
+    spec = "line(y, 1, 3, 5) * line(x, 0, 2, 3) & Rectangle(x, y, 0, 1.1, 1.5, 2.1, 30)"
     with patch("scanspec.plot.plt.show"):
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.exit_code == 0

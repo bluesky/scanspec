@@ -13,7 +13,7 @@ from pydantic.dataclasses import dataclass
 
 from scanspec.core import AxesPoints, Frames, Path
 
-from .specs import Line, Spec
+from .specs import Line, Spec, line
 
 app = FastAPI()
 
@@ -116,7 +116,7 @@ class SmallestStepResponse:
 # API Routes
 #
 
-_EXAMPLE_SPEC = Line(axis="y", start=0.0, stop=10.0, num=3) * Line(
+_EXAMPLE_SPEC = line(axis="y", start=0.0, stop=10.0, num=3) * Line(
     axis="x", start=0.0, stop=10.0, num=4
 )
 _EXAMPLE_POINTS_REQUEST = PointsRequest(

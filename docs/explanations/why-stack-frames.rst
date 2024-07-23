@@ -11,8 +11,8 @@ point in the scan.
 An Example
 ----------
 
->>> from scanspec.specs import Line
->>> spec = Line("y", 4, 5, 6) * Line("x", 1, 2, 3)
+>>> from scanspec.specs import line
+>>> spec = line("y", 4, 5, 6) * line("x", 1, 2, 3)
 >>> stack = spec.calculate()
 >>> len(stack)
 2

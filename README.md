@@ -9,6 +9,7 @@
 # scanspec
 
 Specify step and flyscan paths in a serializable, efficient and Pythonic way using combinations of:
+
 - Specs like Line or Spiral
 - Optionally Snaking
 - Zip, Product and Concat to compose
@@ -20,11 +21,11 @@ can be produced and expanded Paths created to consume chunk by chunk.
 
 [cycler]: https://matplotlib.org/cycler/
 
-Source          | <https://github.com/dls-controls/scanspec>
-:---:           | :---:
-PyPI            | `pip install scanspec`
-Documentation   | <https://dls-controls.github.io/scanspec>
-Releases        | <https://github.com/dls-controls/scanspec/releases>
+|    Source     |     <https://github.com/dls-controls/scanspec>      |
+| :-----------: | :-------------------------------------------------: |
+|     PyPI      |               `pip install scanspec`                |
+| Documentation |      <https://dls-controls.github.io/scanspec>      |
+|   Releases    | <https://github.com/dls-controls/scanspec/releases> |
 
 An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
 each point:
@@ -33,7 +34,7 @@ each point:
 from scanspec.specs import Line, fly
 from scanspec.regions import Circle
 
-grid = Line(y, 2.1, 3.8, 12) * ~Line(x, 0.5, 1.5, 10)
+grid = line(y, 2.1, 3.8, 12) * ~line(x, 0.5, 1.5, 10)
 spec = fly(grid, 0.4) & Circle(x, y, 1.0, 2.8, radius=0.5)
 ```
 

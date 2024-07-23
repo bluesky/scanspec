@@ -10,9 +10,9 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    Mapping,
     Optional,
     Sequence,
-    Set,
     Type,
     TypeVar,
     Union,
@@ -23,18 +23,11 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Discriminator,
-    Field,
-    GetCoreSchemaHandler,
-    RootModel,
     Tag,
     ValidationError,
-    computed_field,
-    create_model,
     model_validator,
 )
-from pydantic.dataclasses import dataclass
 from pydantic.fields import FieldInfo
-from pydantic_core import CoreSchema, core_schema
 from typing_extensions import Annotated, Literal
 
 __all__ = [
@@ -67,6 +60,9 @@ class TypedModel(BaseModel):
     custom_model_finalized: ClassVar[bool | None] = None
     ref_classes: ClassVar[dict[str, Type[TypedModel]]] = {}
 
+    # Will be overridden
+    type: Literal[""] = ""
+
     @classmethod
     def __pydantic_init_subclass__(cls):
         super().__pydantic_init_subclass__()
@@ -81,17 +77,17 @@ class TypedModel(BaseModel):
             default=cls.__name__,
         )
 
-        for field, info in cls.model_fields.items():
-            if info.annotation in cls.ref_classes.values():
-                # if a model field is a registered TypedModel subclass, it could be any:
-                cls.model_fields[field].annotation = cls._get_union_annotation()  # type: ignore
-
     @model_validator(mode="after")
     def _validate(self: TypedModel, _: Any) -> Any:
         # Lazily initialize model on first use because this
-        # needs to be done once, after all subclasses have been
-        # declared
+        # needs to be done once, after all subclasses have been declared
         if self.custom_model_finalized is None:
+            cls = type(self)
+            for field, info in cls.model_fields.items():
+                if info.annotation in cls.ref_classes.values():
+                    # if a model field is a registered TypedModel subclass, it could be any:
+                    cls.model_fields[field].annotation = cls._get_union_annotation()  # type: ignore
+                    cls.model_fields[field].discriminator = Discriminator("type")
             self._rebuild_child_models()
             type(self).custom_model_finalized = self.model_rebuild(force=True)
         self.model_fields_set.add("type")
@@ -102,7 +98,7 @@ class TypedModel(BaseModel):
         return Union[
             tuple(
                 Annotated[_cls, Tag(_name)] for _name, _cls in cls.ref_classes.items()
-            )
+            )  # type: ignore
         ]
 
     @classmethod
@@ -114,18 +110,17 @@ class TypedModel(BaseModel):
 
     @classmethod
     def _discriminate(cls, typestr: str):
-        # raise Exception(typestr)
         return cls.ref_classes[typestr]
 
     @classmethod
-    def deserialize(cls, obj: Dict[str, Any]):
+    def deserialize(cls, obj: Mapping[str, Any]):
         """Deserialize the spec from a dictionary."""
         if not (model_type := obj.get("type")):
             raise ValidationError(
                 f"Model {cls} could not be initialised with "
                 f"values {obj} due to a missing 'type' argument"
             )
-        return cls._discriminate(model_type).model_validate(obj)
+        return cls._discriminate(model_type)(**obj)
 
 
 def if_instance_do(x: Any, cls: Type, func: Callable):

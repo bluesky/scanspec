@@ -4,7 +4,15 @@ from typing import Any, Mapping
 import pytest
 from pydantic import ValidationError
 
-from scanspec.regions import Circle, Rectangle, Region, UnionOf, circle, union_of
+from scanspec.regions import (
+    Circle,
+    Rectangle,
+    Region,
+    UnionOf,
+    circle,
+    rectangle,
+    union_of,
+)
 from scanspec.specs import Line, Mask, Spec, Spiral, line, mask, spiral
 
 
@@ -139,7 +147,7 @@ def test_complex_nested_serializes(assert_serialized_deserialized) -> None:
             Spiral.spaced("x", "y", 0, 0, 10, 3),
             union_of(
                 circle("x", "y", x_middle=0, y_middle=1, radius=4),
-                Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30),
+                rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30),
             ),
         ),
     )

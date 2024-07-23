@@ -197,7 +197,7 @@ def test_zipped_product_lines() -> None:
 
 def test_squashed_product() -> None:
     inst = Squash(
-        Line(axis=y, start=1, stop=2, num=3) * Line(axis=x, start=0, stop=1, num=2)
+        spec=Line(axis=y, start=1, stop=2, num=3) * Line(axis=x, start=0, stop=1, num=2)
     )
     assert inst.axes() == [y, x]
     (dim,) = inst.calculate()
@@ -218,7 +218,7 @@ def test_squashed_product() -> None:
 
 def test_squashed_multiplied_snake_scan() -> None:
     inst = Line(axis=z, start=1, stop=2, num=2) * Squash(
-        Line(axis=y, start=1, stop=2, num=2)
+        spec=Line(axis=y, start=1, stop=2, num=2)
         * ~Line.bounded(x, 3, 7, 2)
         * Static.duration(9, 2)
     )
@@ -257,7 +257,8 @@ def test_product_snaking_lines() -> None:
 
 def test_concat_lines() -> None:
     inst = Concat(
-        Line(axis=x, start=0, stop=1, num=2), Line(axis=x, start=1, stop=2, num=3)
+        left=Line(axis=x, start=0, stop=1, num=2),
+        right=Line(axis=x, start=1, stop=2, num=3),
     )
     assert inst.axes() == [x]
     (dim,) = inst.calculate()
@@ -518,7 +519,7 @@ def test_beam_selector() -> None:
 
 def test_gap_repeat() -> None:
     # Check that no gap propogates to dim.gap for snaked axis
-    spec: Spec[Any] = Repeat(10, gap=False) * ~Line.bounded(x, 11, 19, 1)
+    spec: Spec[Any] = Repeat(num=10, gap=False) * ~Line.bounded(x, 11, 19, 1)
     dim = spec.frames()
     assert len(dim) == 10
     assert dim.lower == {x: pytest.approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19])}
@@ -529,7 +530,7 @@ def test_gap_repeat() -> None:
 
 def test_gap_repeat_non_snake() -> None:
     # Check that no gap doesn't propogate to dim.gap for non-snaked axis
-    spec: Spec[Any] = Repeat(3, gap=False) * Line.bounded(x, 11, 19, 1)
+    spec: Spec[Any] = Repeat(num=3, gap=False) * Line.bounded(x, 11, 19, 1)
     dim = spec.frames()
     assert len(dim) == 3
     assert dim.lower == {x: pytest.approx([11, 11, 11])}
@@ -592,22 +593,22 @@ def test_multiple_statics_with_grid():
         ),
         (
             Squash(
-                Line(axis="x", start=0.0, stop=1.0, num=2)
+                spec=Line(axis="x", start=0.0, stop=1.0, num=2)
                 * Line(axis="y", start=0.0, stop=1.0, num=2)
             ),
             (4,),
         ),
         (
             Zip(
-                Line(axis="x", start=0.0, stop=1.0, num=2),
-                Line(axis="y", start=0.0, stop=1.0, num=2),
+                left=Line(axis="x", start=0.0, stop=1.0, num=2),
+                right=Line(axis="y", start=0.0, stop=1.0, num=2),
             ),
             (2,),
         ),
         (
             Concat(
-                Line(axis="x", start=0.0, stop=1.0, num=2),
-                Line(axis="x", start=0.0, stop=1.0, num=2),
+                left=Line(axis="x", start=0.0, stop=1.0, num=2),
+                right=Line(axis="x", start=0.0, stop=1.0, num=2),
             ),
             (4,),
         ),
@@ -619,16 +620,16 @@ def test_multiple_statics_with_grid():
         ),
         (
             Zip(
-                Line(axis="x", start=0.0, stop=1.0, num=2),
-                Line(axis="y", start=0.0, stop=1.0, num=2),
+                left=Line(axis="x", start=0.0, stop=1.0, num=2),
+                right=Line(axis="y", start=0.0, stop=1.0, num=2),
             )
             * Line(axis="z", start=0.0, stop=2.0, num=2),
             (2, 2),
         ),
         (
             Concat(
-                Line(axis="x", start=0.0, stop=1.0, num=2),
-                Line(axis="x", start=0.0, stop=1.0, num=2),
+                left=Line(axis="x", start=0.0, stop=1.0, num=2),
+                right=Line(axis="x", start=0.0, stop=1.0, num=2),
             )
             * Line(axis="z", start=0.0, stop=2.0, num=2),
             (4, 2),

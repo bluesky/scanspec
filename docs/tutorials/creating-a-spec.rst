@@ -30,7 +30,7 @@ evaluated with variables ``a`` to ``z`` defined and the output plotted.
 
 For example, for the Line example above you would type::
 
-    $ scanspec plot 'Line(x, 1, 2, 5)'
+    $ scanspec plot 'line(x, 1, 2, 5)'
 
 
 Line with 2 axes

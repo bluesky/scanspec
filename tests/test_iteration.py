@@ -1,12 +1,12 @@
 import pytest
 
 from scanspec.core import Path
-from scanspec.specs import Line
+from scanspec.specs import line
 
 
 def test_line_path() -> None:
     x = "x"
-    inst = Line(x, 0, 1, 5)
+    inst = line(x, 0, 1, 5)
     dims = inst.calculate()
     path = Path(dims)
     assert len(path) == 5
@@ -17,7 +17,7 @@ def test_line_path() -> None:
 
 def test_line_midpoints() -> None:
     x = "x"
-    inst = Line(x, 0, 1, 5)
+    inst = line(x, 0, 1, 5)
     it = inst.midpoints()
     assert it.axes == [x]
     assert len(it) == 5
