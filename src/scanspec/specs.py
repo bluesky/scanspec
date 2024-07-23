@@ -6,6 +6,7 @@ from typing import (
     Dict,
     Generic,
     List,
+    Literal,
     Mapping,
     Optional,
     Tuple,
@@ -111,7 +112,7 @@ class Spec(TypedModel, Generic[Axis]):
 
     def serialize(self) -> Mapping[str, Any]:
         """Serialize the spec to a dictionary."""
-        return self.model_dump()
+        return self.model_dump(exclude_defaults=False)
 
 
 class Product(Spec[Axis]):
@@ -129,9 +130,6 @@ class Product(Spec[Axis]):
     outer: Spec[Axis] = Field(description="Will be executed once")
     inner: Spec[Axis] = Field(description="Will be executed len(outer) times")
 
-    def __init__(self, outer: Spec[Axis], inner: Spec[Axis]):
-        super().__init__(outer=outer, inner=inner)
-
     def axes(self) -> List:
         return self.outer.axes() + self.inner.axes()
 
@@ -139,6 +137,10 @@ class Product(Spec[Axis]):
         frames_outer = self.outer.calculate(bounds=False, nested=nested)
         frames_inner = self.inner.calculate(bounds, nested=True)
         return frames_outer + frames_inner
+
+
+def product(outer: Spec[Axis], inner: Spec[Axis]):
+    return Product(outer=outer, inner=inner)
 
 
 class Repeat(Spec[Axis]):
@@ -279,16 +281,6 @@ class Mask(Spec[Axis]):
         default=True,
     )
 
-    def __init__(
-        self,
-        spec: Spec[Axis],
-        region: Region[Axis],
-        check_path_changes: bool = True,
-    ):
-        super().__init__(
-            spec=spec, region=region, check_path_changes=check_path_changes
-        )
-
     def axes(self) -> List:
         return self.spec.axes()
 
@@ -316,18 +308,22 @@ class Mask(Spec[Axis]):
     # *+ bind more tightly than &|^ so without these overrides we
     # would need to add brackets to all combinations of Regions
     def __or__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region | o))
+        return if_instance_do(other, Region, lambda o: mask(self.spec, self.region | o))
 
     def __and__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region & o))
+        return if_instance_do(other, Region, lambda o: mask(self.spec, self.region & o))
 
     def __xor__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region ^ o))
+        return if_instance_do(other, Region, lambda o: mask(self.spec, self.region ^ o))
 
     # This is here for completeness, tends not to be called as - binds
     # tighter than &
     def __sub__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
+        return if_instance_do(other, Region, lambda o: mask(self.spec, self.region - o))
+
+
+def mask(spec: Spec[Axis], region: Region[Axis], check_path_changes: bool = True):
+    return Mask(spec=spec, region=region, check_path_changes=check_path_changes)
 
 
 class Snake(Spec[Axis]):
@@ -547,9 +543,6 @@ class Static(Spec[Axis]):
     value: float = Field(description="The value at each point")
     num: int = Field(ge=1, description="Number of frames to produce", default=1)
 
-    def __init__(self, axis: Axis, value: float, num: int = 1):
-        super().__init__(axis=axis, value=value, num=num)
-
     @classmethod
     def duration(cls: Type[Static], duration: float, num: int = 1) -> Static[str]:
         """A static spec with no motion, only a duration repeated "num" times.
@@ -572,6 +565,10 @@ class Static(Spec[Axis]):
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
         )
+
+
+def static(axis: Axis, value: float, num: int = 1):
+    return Static(axis=axis, value=value, num=num)
 
 
 class Spiral(Spec[Axis]):
@@ -599,28 +596,6 @@ class Spiral(Spec[Axis]):
     rotate: float = Field(
         description="How much to rotate the angle of the spiral", default=0.0
     )
-
-    def __init__(
-        self,
-        x_axis: Axis,
-        y_axis: Axis,
-        x_start: float,
-        y_start: float,
-        x_range: float,
-        y_range: float,
-        num: int,
-        rotate: float = 0.0,
-    ):
-        super().__init__(
-            x_axis=x_axis,
-            y_axis=y_axis,
-            x_start=x_start,
-            y_start=y_start,
-            x_range=x_range,
-            y_range=y_range,
-            num=num,
-            rotate=rotate,
-        )
 
     def axes(self) -> List[Axis]:
         # TODO: reversed from __init__ args, a good idea?
@@ -674,8 +649,37 @@ class Spiral(Spec[Axis]):
         n_rings = radius / dr
         num = int(n_rings**2 * np.pi)
         return cls(
-            x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate=rotate
+            x_axis=x_axis,
+            y_axis=y_axis,
+            x_start=x_start,
+            y_start=y_start,
+            x_range=radius * 2,
+            y_range=radius * 2,
+            num=num,
+            rotate=rotate,
         )
+
+
+def spiral(
+    x_axis: Axis,
+    y_axis: Axis,
+    x_start: float,
+    y_start: float,
+    x_range: float,
+    y_range: float,
+    num: int,
+    rotate: float = 0.0,
+):
+    return Spiral(
+        x_axis=x_axis,
+        y_axis=y_axis,
+        x_start=x_start,
+        y_start=y_start,
+        x_range=x_range,
+        y_range=y_range,
+        num=num,
+        rotate=rotate,
+    )
 
 
 def fly(spec: Spec[Axis], duration: float) -> Spec[Axis]:
@@ -696,7 +700,6 @@ def fly(spec: Spec[Axis], duration: float) -> Spec[Axis]:
 
 def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
     """Step scan, with num frames of given duration at each frame in the spec.
-
     Args:
         spec: The source `Spec` with midpoints to move to and stop
         duration: The duration of each scan frame

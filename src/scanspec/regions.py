@@ -100,9 +100,6 @@ class CombinationOf(Region[Axis]):
     left: Region[Axis] = Field(description="The left-hand Region to combine")
     right: Region[Axis] = Field(description="The right-hand Region to combine")
 
-    def __init__(self, left: Region[Axis], right: Region[Axis]):
-        super().__init__(left=left, right=right)
-
     def axis_sets(self) -> List[Set[Axis]]:
         axis_sets = list(
             _merge_axis_sets(self.left.axis_sets() + self.right.axis_sets())
@@ -128,6 +125,10 @@ class UnionOf(CombinationOf[Axis]):
         return mask
 
 
+def union_of(left: Region, right: Region):
+    return UnionOf(left=left, right=right)
+
+
 class IntersectionOf(CombinationOf[Axis]):
     """A point is in IntersectionOf(a, b) if in both a and b.
 
@@ -141,6 +142,10 @@ class IntersectionOf(CombinationOf[Axis]):
     def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
         mask = get_mask(self.left, points) & get_mask(self.right, points)
         return mask
+
+
+def intersection_of(left: Region, right: Region):
+    return IntersectionOf(left=left, right=right)
 
 
 class DifferenceOf(CombinationOf[Axis]):
@@ -158,6 +163,10 @@ class DifferenceOf(CombinationOf[Axis]):
         # Return the xor restricted to the left region
         mask = left_mask ^ get_mask(self.right, points) & left_mask
         return mask
+
+
+def difference_of(left: Region, right: Region):
+    return DifferenceOf(left=left, right=right)
 
 
 class SymmetricDifferenceOf(CombinationOf[Axis]):
@@ -187,9 +196,6 @@ class Range(Region[Axis]):
     min: float = Field(description="The minimum inclusive value in the region")
     max: float = Field(description="The minimum inclusive value in the region")
 
-    def __init__(self, axis: Axis, min: float, max: float):
-        super().__init__(axis=axis, min=min, max=max)
-
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.axis}]
 
@@ -197,6 +203,10 @@ class Range(Region[Axis]):
         v = points[self.axis]
         mask = np.bitwise_and(v >= self.min, v <= self.max)
         return mask
+
+
+def range(axis: Axis, min: float, max: float):
+    return Range(axis=axis, min=min, max=max)
 
 
 class Rectangle(Region[Axis]):
@@ -221,26 +231,6 @@ class Rectangle(Region[Axis]):
         description="Clockwise rotation angle of the rectangle", default=0.0
     )
 
-    def __init__(
-        self,
-        x_axis: Axis,
-        y_axis: Axis,
-        x_min: float,
-        y_min: float,
-        x_max: float,
-        y_max: float,
-        angle: float = 0.0,
-    ):
-        super().__init__(
-            x_axis=x_axis,
-            y_axis=y_axis,
-            x_min=x_min,
-            y_min=y_min,
-            x_max=x_max,
-            y_max=y_max,
-            angle=angle,
-        )
-
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]
 
@@ -257,6 +247,26 @@ class Rectangle(Region[Axis]):
         mask_x = np.bitwise_and(x >= 0, x <= (self.x_max - self.x_min))
         mask_y = np.bitwise_and(y >= 0, y <= (self.y_max - self.y_min))
         return mask_x & mask_y
+
+
+def rectangle(
+    x_axis: Axis,
+    y_axis: Axis,
+    x_min: float,
+    y_min: float,
+    x_max: float,
+    y_max: float,
+    angle: float = 0.0,
+):
+    return Rectangle(
+        x_axis=x_axis,
+        y_axis=y_axis,
+        x_min=x_min,
+        y_min=y_min,
+        x_max=x_max,
+        y_max=y_max,
+        angle=angle,
+    )
 
 
 class Polygon(Region[Axis]):
@@ -280,11 +290,6 @@ class Polygon(Region[Axis]):
         description="The Nx1 y coordinates of the polygons vertices", min_length=3
     )
 
-    def __init__(
-        self, x_axis: Axis, y_axis: Axis, x_verts: List[float], y_verts: List[float]
-    ):
-        super().__init__(x_axis=x_axis, y_axis=y_axis, x_verts=x_verts, y_verts=y_verts)
-
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]
 
@@ -306,6 +311,10 @@ class Polygon(Region[Axis]):
         return mask
 
 
+def polygon(x_axis: Axis, y_axis: Axis, x_verts: List[float], y_verts: List[float]):
+    return Polygon(x_axis=x_axis, y_axis=y_axis, x_verts=x_verts, y_verts=y_verts)
+
+
 class Circle(Region[Axis]):
     """Mask contains points of axis within an xy circle of given radius.
 
@@ -324,22 +333,6 @@ class Circle(Region[Axis]):
     y_middle: float = Field(description="The central y point of the circle")
     radius: float = Field(description="Radius of the circle", gt=0)
 
-    def __init__(
-        self,
-        x_axis: Axis,
-        y_axis: Axis,
-        x_middle: float,
-        y_middle: float,
-        radius: float,
-    ):
-        super().__init__(
-            x_axis=x_axis,
-            y_axis=y_axis,
-            x_middle=x_middle,
-            y_middle=y_middle,
-            radius=radius,
-        )
-
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]
 
@@ -348,6 +341,16 @@ class Circle(Region[Axis]):
         y = points[self.y_axis] - self.y_middle
         mask = x * x + y * y <= (self.radius * self.radius)
         return mask
+
+
+def circle(x_axis: Axis, y_axis: Axis, x_middle: float, y_middle: float, radius: float):
+    return Circle(
+        x_axis=x_axis,
+        y_axis=y_axis,
+        x_middle=x_middle,
+        y_middle=y_middle,
+        radius=radius,
+    )
 
 
 class Ellipse(Region[Axis]):
@@ -374,26 +377,6 @@ class Ellipse(Region[Axis]):
     )
     angle: float = Field(description="The angle of the ellipse (degrees)", default=0.0)
 
-    def __init__(
-        self,
-        x_axis: Axis,
-        y_axis: Axis,
-        x_middle: float,
-        y_middle: float,
-        x_radius: float,
-        y_radius: float,
-        angle: float = 0.0,
-    ):
-        super().__init__(
-            x_axis=x_axis,
-            y_axis=y_axis,
-            x_middle=x_middle,
-            y_middle=y_middle,
-            x_radius=x_radius,
-            y_radius=y_radius,
-            angle=angle,
-        )
-
     def axis_sets(self) -> List[Set[Axis]]:
         return [{self.x_axis, self.y_axis}]
 
@@ -409,6 +392,26 @@ class Ellipse(Region[Axis]):
             y = ty
         mask = (x / self.x_radius) ** 2 + (y / self.y_radius) ** 2 <= 1
         return mask
+
+
+def ellipse(
+    x_axis: Axis,
+    y_axis: Axis,
+    x_middle: float,
+    y_middle: float,
+    x_radius: float,
+    y_radius: float,
+    angle: float = 0.0,
+):
+    return Ellipse(
+        x_axis=x_axis,
+        y_axis=y_axis,
+        x_middle=x_middle,
+        y_middle=y_middle,
+        x_radius=x_radius,
+        y_radius=y_radius,
+        angle=angle,
+    )
 
 
 def find_regions(obj) -> Iterator[Region[Axis]]:
