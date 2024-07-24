@@ -26,6 +26,7 @@ from pydantic import (
     Discriminator,
     Tag,
     ValidationError,
+    model_serializer,
     model_validator,
 )
 from pydantic.fields import FieldInfo
@@ -111,6 +112,13 @@ class TypedModel(BaseModel):
                 Annotated[_cls, Tag(_name)] for _name, _cls in cls.ref_classes.items()
             )  # type: ignore
         ]
+
+    @model_serializer
+    def ser_model(self) -> Dict[str, Any]:
+        def _dump_if_model(f, v):
+            return (f, v.model_dump()) if isinstance(v, TypedModel) else (f, v)
+
+        return dict(_dump_if_model(f, v) for f, v in self)
 
     @classmethod
     def deserialize(cls, obj: Mapping[str, Any]):
