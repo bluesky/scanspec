@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import UnionType
 from typing import (
     Annotated,
     Any,
@@ -54,13 +55,16 @@ class TypedModel(BaseModel):
     `Tag`."""
 
     # Do not allow extra fields during validation
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
-    # Whether child models have been rebuilt with type field inserted
-    custom_model_finalized: ClassVar[bool | None] = None
+    # subclasses and their names
     ref_classes: ClassVar[dict[str, Type[TypedModel]]] = {}
 
-    # Will be overridden
+    # Whether child models have been rebuilt with type field inserted and TypedModel
+    # fields have been annotated with the discriminated union
+    custom_models_finalized: ClassVar[bool | None] = None
+
+    # Will be overridden for subclasses
     type: Literal[""] = ""
 
     @classmethod
@@ -71,7 +75,7 @@ class TypedModel(BaseModel):
         cls.ref_classes[cls.__name__] = cls
 
         # Add a discriminator field to the class so it can
-        # be identified when deserailizing.
+        # be identified when serializing/deserializing.
         cls.model_fields["type"] = FieldInfo(
             annotation=Literal[cls.__name__],  # type: ignore
             default=cls.__name__,
@@ -79,19 +83,26 @@ class TypedModel(BaseModel):
 
     @model_validator(mode="after")
     def _validate(self: TypedModel, _: Any) -> Any:
-        # Lazily initialize model on first use because this
-        # needs to be done once, after all subclasses have been declared
-        if self.custom_model_finalized is None:
-            cls = type(self)
-            for field, info in cls.model_fields.items():
-                if info.annotation in cls.ref_classes.values():
-                    # if a model field is a registered TypedModel subclass, it could be any:
-                    cls.model_fields[field].annotation = cls._get_union_annotation()  # type: ignore
-                    cls.model_fields[field].discriminator = Discriminator("type")
-            self._rebuild_child_models()
-            type(self).custom_model_finalized = self.model_rebuild(force=True)
-        self.model_fields_set.add("type")
+        # Lazily initialize model on first use because this needs to be done once,
+        # after all subclasses have been declared and the tagged union has been defined
+        if self.custom_models_finalized is None:
+            self._annotate_and_rebuild_child_models()
+            type(self).custom_models_finalized = self.model_rebuild(force=True)
+        self.type = self.__class__.__name__
         return self
+
+    @classmethod
+    def _annotate_and_rebuild_child_models(cls):
+        """Recursively rebuild all subclass models to add type into core schema."""
+        for subclass in cls.__subclasses__():
+            subclass._annotate_and_rebuild_child_models()
+            for field, info in subclass.model_fields.items():
+                if info.annotation in cls.ref_classes.values():
+                    # if a model field is a registered TypedModel subclass, it could be
+                    # any member of our tagged union
+                    cls.model_fields[field].annotation = cls._get_union_annotation()  # type: ignore
+                    cls.model_fields[field].discriminator = "type"
+            subclass.model_rebuild()
 
     @classmethod
     def _get_union_annotation(cls):
@@ -102,17 +113,6 @@ class TypedModel(BaseModel):
         ]
 
     @classmethod
-    def _rebuild_child_models(cls):
-        """Recursively rebuild all subclass models to add type into core schema."""
-        for subclass in cls.__subclasses__():
-            subclass.model_rebuild(force=True)
-            subclass._rebuild_child_models()
-
-    @classmethod
-    def _discriminate(cls, typestr: str):
-        return cls.ref_classes[typestr]
-
-    @classmethod
     def deserialize(cls, obj: Mapping[str, Any]):
         """Deserialize the spec from a dictionary."""
         if not (model_type := obj.get("type")):
@@ -120,7 +120,7 @@ class TypedModel(BaseModel):
                 f"Model {cls} could not be initialised with "
                 f"values {obj} due to a missing 'type' argument"
             )
-        return cls._discriminate(model_type)(**obj)
+        return cls.ref_classes[model_type](**obj)
 
 
 def if_instance_do(x: Any, cls: Type, func: Callable):
