@@ -24,6 +24,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Discriminator,
+    RootModel,
     Tag,
     ValidationError,
     model_serializer,
@@ -65,8 +66,7 @@ class TypedModel(BaseModel):
     # fields have been annotated with the discriminated union
     custom_models_finalized: ClassVar[bool | None] = None
 
-    # Will be overridden for subclasses
-    type: Literal[""] = ""
+    type: Literal[""]
 
     @classmethod
     def __pydantic_init_subclass__(cls):
@@ -82,31 +82,42 @@ class TypedModel(BaseModel):
             default=cls.__name__,
         )
 
-    @model_validator(mode="after")
-    def _validate(self: TypedModel, _: Any) -> Any:
+    @model_validator(mode="before")
+    @classmethod
+    def _finish_building_model(cls, v: Any) -> Any:
         # Lazily initialize model on first use because this needs to be done once,
         # after all subclasses have been declared and the tagged union has been defined
-        if self.custom_models_finalized is None:
-            self._annotate_and_rebuild_child_models()
-            type(self).custom_models_finalized = self.model_rebuild(force=True)
+        if cls.custom_models_finalized is None:
+            cls.custom_models_finalized = (
+                TypedModel._annotate_and_rebuild_child_models()
+            )
+        return v
+
+    @model_validator(mode="after")
+    def _ensure_type(self, _: Any) -> Any:
         self.type = self.__class__.__name__
         return self
 
     @classmethod
     def _annotate_and_rebuild_child_models(cls):
         """Recursively rebuild all subclass models to add type into core schema."""
-        for subclass in cls.__subclasses__():
-            subclass._annotate_and_rebuild_child_models()
+        for subclass in cls.ref_classes.values():
             for field, info in subclass.model_fields.items():
                 if info.annotation in cls.ref_classes.values():
                     # if a model field is a registered TypedModel subclass, it could be
                     # any member of our tagged union
-                    cls.model_fields[field].annotation = cls._get_union_annotation()  # type: ignore
-                    cls.model_fields[field].discriminator = "type"
-            subclass.model_rebuild()
+                    subclass.model_fields[field].annotation = cls._union_anno()  # type: ignore
+                    subclass.model_fields[field].discriminator = "type"
+        return TypedModel._recursive_rebuild()
 
     @classmethod
-    def _get_union_annotation(cls):
+    def _recursive_rebuild(cls):
+        return all(
+            subclass.model_rebuild(force=True) for subclass in cls.__subclasses__()
+        )
+
+    @classmethod
+    def _union_anno(cls):
         return Union[
             tuple(
                 Annotated[_cls, Tag(_name)] for _name, _cls in cls.ref_classes.items()
@@ -114,7 +125,7 @@ class TypedModel(BaseModel):
         ]
 
     @model_serializer
-    def ser_model(self) -> Dict[str, Any]:
+    def _ser_model(self) -> Dict[str, Any]:
         def _dump_if_model(f, v):
             return (f, v.model_dump()) if isinstance(v, TypedModel) else (f, v)
 
