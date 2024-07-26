@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from types import UnionType
 from typing import (
     Annotated,
     Any,
@@ -24,13 +23,11 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Discriminator,
-    RootModel,
     Tag,
     ValidationError,
     model_serializer,
     model_validator,
 )
-from pydantic.fields import FieldInfo
 from typing_extensions import Annotated, Literal
 
 __all__ = [
@@ -61,6 +58,7 @@ class TypedModel(BaseModel):
 
     # subclasses and their names
     ref_classes: ClassVar[dict[str, Type[TypedModel]]] = {}
+    union_type: ClassVar[None | Union[Any, Any]] = None
 
     # Whether child models have been rebuilt with type field inserted and TypedModel
     # fields have been annotated with the discriminated union
@@ -77,26 +75,20 @@ class TypedModel(BaseModel):
 
         # Add a discriminator field to the class so it can
         # be identified when serializing/deserializing.
-        cls.model_fields["type"] = FieldInfo(
-            annotation=Literal[cls.__name__],  # type: ignore
-            default=cls.__name__,
-        )
+        cls.model_fields["type"].annotation = Literal[cls.__name__]  # type: ignore
+        cls.model_fields["type"].default = cls.__name__
 
     @model_validator(mode="before")
     @classmethod
     def _finish_building_model(cls, v: Any) -> Any:
         # Lazily initialize model on first use because this needs to be done once,
         # after all subclasses have been declared and the tagged union has been defined
-        if cls.custom_models_finalized is None:
-            cls.custom_models_finalized = (
+        if TypedModel.custom_models_finalized is None:
+            TypedModel.union_type = TypedModel._union_anno()
+            TypedModel.custom_models_finalized = (
                 TypedModel._annotate_and_rebuild_child_models()
             )
         return v
-
-    @model_validator(mode="after")
-    def _ensure_type(self, _: Any) -> Any:
-        self.type = self.__class__.__name__
-        return self
 
     @classmethod
     def _annotate_and_rebuild_child_models(cls):
@@ -106,15 +98,15 @@ class TypedModel(BaseModel):
                 if info.annotation in cls.ref_classes.values():
                     # if a model field is a registered TypedModel subclass, it could be
                     # any member of our tagged union
-                    subclass.model_fields[field].annotation = cls._union_anno()  # type: ignore
-                    subclass.model_fields[field].discriminator = "type"
+                    subclass.model_fields[field].annotation = cls.union_type
+                    subclass.model_fields[field].discriminator = Discriminator("type")
         return TypedModel._recursive_rebuild()
 
     @classmethod
     def _recursive_rebuild(cls):
-        return all(
-            subclass.model_rebuild(force=True) for subclass in cls.__subclasses__()
-        )
+        for subclass in cls.__subclasses__():
+            subclass._recursive_rebuild()
+        return cls.model_rebuild(force=True)
 
     @classmethod
     def _union_anno(cls):
@@ -126,6 +118,7 @@ class TypedModel(BaseModel):
 
     @model_serializer
     def _ser_model(self) -> Dict[str, Any]:
+        # weirdly pydantic seems to lose the recursive serialization at some point
         def _dump_if_model(f, v):
             return (f, v.model_dump()) if isinstance(v, TypedModel) else (f, v)
 

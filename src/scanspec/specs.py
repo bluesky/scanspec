@@ -278,9 +278,6 @@ class Mask(Spec[Axis]):
         default=True,
     )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def axes(self) -> List:
         return self.spec.axes()
 

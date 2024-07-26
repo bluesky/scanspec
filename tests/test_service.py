@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from scanspec.service import PointsFormat, PointsRequest, app
-from scanspec.specs import line
+from scanspec.specs import Line, line
 
 
 @pytest.fixture
@@ -110,7 +110,7 @@ def test_smallest_step(client: TestClient) -> None:
 
 # VALIDATE SPEC TEST(S) #
 def test_validate_spec(client: TestClient) -> None:
-    spec = line.bounded("x", 0, 1, 5)
+    spec = Line.bounded("x", 0, 1, 5)
     response = client.post("/valid", json=spec.serialize())
     assert response.status_code == 200
     assert response.json() == {
