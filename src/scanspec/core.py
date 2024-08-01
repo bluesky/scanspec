@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import field
+import dataclasses
+from functools import partial
 from typing import (
     Any,
     Callable,
@@ -14,11 +15,20 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    get_origin,
+    get_type_hints,
 )
 
 import numpy as np
-from pydantic import BaseConfig, Extra, Field, ValidationError, create_model
-from pydantic.error_wrappers import ErrorWrapper
+from pydantic import (
+    BaseConfig,
+    Extra,
+    Field,
+    GetCoreSchemaHandler,
+    TypeAdapter,
+)
+from pydantic.dataclasses import rebuild_dataclass
+from pydantic.fields import FieldInfo
 from typing_extensions import Literal
 
 __all__ = [
@@ -42,12 +52,7 @@ class StrictConfig(BaseConfig):
     extra: Extra = Extra.forbid
 
 
-def discriminated_union_of_subclasses(
-    super_cls: Optional[Type] = None,
-    *,
-    discriminator: str = "type",
-    config: Optional[Type[BaseConfig]] = None,
-) -> Union[Type, Callable[[Type], Type]]:
+def discriminated_union_of_subclasses(cls):
     """Add all subclasses of super_cls to a discriminated union.
 
     For all subclasses of super_cls, add a discriminator field to identify
@@ -117,72 +122,98 @@ def discriminated_union_of_subclasses(
         Union[Type, Callable[[Type], Type]]: A decorator that adds the necessary
             functionality to a class.
     """
-
-    def wrap(cls):
-        return _discriminated_union_of_subclasses(cls, discriminator, config)
-
-    # Work out if the call was @discriminated_union_of_subclasses or
-    # @discriminated_union_of_subclasses(...)
-    if super_cls is None:
-        return wrap
-    else:
-        return wrap(super_cls)
+    tagged_union = _TaggedUnion()
+    _tagged_unions[cls] = tagged_union
+    cls.__init_subclass__ = classmethod(__init_subclass__)
+    cls.__get_pydantic_core_schema__ = classmethod(
+        partial(__get_pydantic_core_schema__, tagged_union=tagged_union)
+    )
+    return cls
 
 
-def _discriminated_union_of_subclasses(
-    super_cls: Type,
-    discriminator: str,
-    config: Optional[Type[BaseConfig]] = None,
-) -> Union[Type, Callable[[Type], Type]]:
-    super_cls._ref_classes = set()
-    super_cls._model = None
+class _TaggedUnion:
+    def __init__(self):
+        # The members of the tagged union, i.e. subclasses of the baseclasses
+        self._members: set[type] = set()
+        # Classes and their field names that refer to this tagged union
+        self._referrers: dict[type, set[str]] = {}
+        self.type_adapter = TypeAdapter(None)
 
-    def __init_subclass__(cls) -> None:
-        # Keep track of inherting classes in super class
-        cls._ref_classes.add(cls)
+    def _make_union(self):
+        # Make a union of members
+        # https://docs.pydantic.dev/2.8/concepts/unions/#discriminated-unions-with-str-discriminators
+        if len(self._members) > 1:
+            # Unions are only valid with more than 1 member
+            return Union[tuple(self._members)]  # type: ignore
 
-        # Add a discriminator field to the class so it can
-        # be identified when deserailizing.
-        cls.__annotations__ = {
-            **cls.__annotations__,
-            discriminator: Literal[cls.__name__],
-        }
-        setattr(cls, discriminator, field(default=cls.__name__, repr=False))
+    def _set_discriminator(self, cls: type, field_name: str, field: Any):
+        # Set the field to use the `type` discriminator on deserialize
+        # https://docs.pydantic.dev/2.8/concepts/unions/#discriminated-unions-with-str-discriminators
+        assert isinstance(
+            field, FieldInfo
+        ), f"Expected {cls.__name__}.{field_name} to be a Pydantic field, not {field!r}"
+        field.discriminator = "type"
 
-    def __get_validators__(cls) -> Any:
-        yield cls.__validate__
+    def add_member(self, cls: type):
+        if cls in self._members:
+            # A side effect of hooking to __get_pydantic_core_schema__ is that it is
+            # called muliple times for the same member, do no process if it wouldn't
+            # change the member list
+            return
+        self._members.add(cls)
+        union = self._make_union()
+        if union:
+            # There are more than 1 subclasses in the union, so set all the referrers
+            # to use this union
+            for referrer, fields in self._referrers.items():
+                for field in dataclasses.fields(referrer):
+                    if field.name in fields:
+                        field.type = union
+                        self._set_discriminator(referrer, field.name, field.default)
+                rebuild_dataclass(referrer, force=True)
+            # Make a type adapter for use in deserialization
+            self.type_adapter = TypeAdapter(union)
 
-    def __validate__(cls, v: Any) -> Any:
-        # Lazily initialize model on first use because this
-        # needs to be done once, after all subclasses have been
-        # declared
-        if cls._model is None:
-            root = Union[tuple(cls._ref_classes)]  # type: ignore
-            cls._model = create_model(
-                super_cls.__name__,
-                __root__=(root, Field(..., discriminator=discriminator)),
-                __config__=config,
-            )
+    def add_referrer(self, cls: type, attr_name: str):
+        self._referrers.setdefault(cls, set()).add(attr_name)
+        union = self._make_union()
+        if union:
+            # There are more than 1 subclasses in the union, so set the referrer
+            # (which is currently being constructed) to use it
+            # note that we use annotations as the class has not been turned into
+            # a dataclass yet
+            cls.__annotations__[attr_name] = union
+            self._set_discriminator(cls, attr_name, getattr(cls, attr_name, None))
 
-        try:
-            return cls._model(__root__=v).__root__
-        except ValidationError as e:
-            for (
-                error
-            ) in e.raw_errors:  # need in to remove redundant __root__ from error path
-                if (
-                    isinstance(error, ErrorWrapper)
-                    and error.loc_tuple()[0] == "__root__"
-                ):
-                    error._loc = error.loc_tuple()[1:]
 
-            raise e
+_tagged_unions: dict[type, _TaggedUnion] = {}
 
-    # Inject magic methods into super_cls
-    for method in __init_subclass__, __get_validators__, __validate__:
-        setattr(super_cls, method.__name__, classmethod(method))  # type: ignore
 
-    return super_cls
+def __init_subclass__(cls: type):
+    # Add a discriminator field to the class so it can
+    # be identified when deserailizing, and make sure it is last in the list
+    cls.__annotations__ = {
+        **cls.__annotations__,
+        "type": Literal[cls.__name__],  # type: ignore
+    }
+    cls.type = Field(cls.__name__, repr=False)  # type: ignore
+    # Replace any bare annotation with a discriminated union of subclasses
+    # and register this class as one that refers to that union so it can be updated
+    for k, v in get_type_hints(cls).items():
+        # This works for Expression[T] or Expression
+        tagged_union = _tagged_unions.get(get_origin(v) or v, None)
+        if tagged_union:
+            tagged_union.add_referrer(cls, k)
+
+
+def __get_pydantic_core_schema__(
+    cls, source_type: Any, handler: GetCoreSchemaHandler, tagged_union: _TaggedUnion
+):
+    # Rebuild any dataclass (including this one) that references this union
+    # Note that this has to be done after the creation of the dataclass so that
+    # previously created classes can refer to this newly created class
+    tagged_union.add_member(cls)
+    return handler(source_type)
 
 
 def if_instance_do(x: Any, cls: Type, func: Callable):
