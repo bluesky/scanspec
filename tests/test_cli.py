@@ -1,3 +1,4 @@
+import json
 import pathlib
 import subprocess
 import sys
@@ -238,7 +239,9 @@ def test_schema() -> None:
     result = runner.invoke(cli.schema)
     assert result.exit_code == 0
     schema_path = pathlib.Path(__file__).resolve().parent.parent / "schema.json"
-    assert result.output == schema_path.read_text()
+    with open(schema_path) as file:
+        data = json.load(file)
+        assert data == json.load(result.output)
 
 
 def test_cli_version():

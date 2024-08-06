@@ -164,7 +164,7 @@ class _TaggedUnion:
         if isclass(cls):
             assert isinstance(
                 field, FieldInfo
-            ), f"Expected {cls.__name__}.{field_name} to be a Pydantic field, not {field!r}"
+            ), f"Expected {cls.__name__}.{field_name} to be a Pydantic field, not {field!r}"  # noqa: E501
             field.discriminator = "type"
 
     def add_member(self, cls: type):
