@@ -1,5 +1,5 @@
 import re
-from typing import Any, Tuple
+from typing import Any
 
 import pytest
 
@@ -558,7 +558,7 @@ def test_multiple_statics_with_grid():
         ),
     ],
 )
-def test_shape(spec: Spec, expected_shape: Tuple[int, ...]):
+def test_shape(spec: Spec, expected_shape: tuple[int, ...]):
     assert expected_shape == spec.shape()
 
 

@@ -1,7 +1,7 @@
 import base64
 import json
+from collections.abc import Mapping
 from enum import Enum
-from typing import List, Mapping, Optional, Tuple, Union
 
 import numpy as np
 from fastapi import Body, FastAPI
@@ -23,7 +23,7 @@ app = FastAPI()
 
 
 #: A set of points, that can be returned in various formats
-Points = Union[str, List[float]]
+Points = str | list[float]
 
 
 @dataclass
@@ -47,7 +47,7 @@ class PointsRequest:
     """A request for generated scan points."""
 
     spec: Spec = Field(description="The spec from which to generate points")
-    max_frames: Optional[int] = Field(
+    max_frames: int | None = Field(
         description="The maximum number of points to return, if None will return "
         "as many as calculated",
         default=100000,
@@ -95,7 +95,7 @@ class BoundsResponse(GeneratedPointsResponse):
 class GapResponse:
     """Presence of gaps in a generated scan."""
 
-    gap: List[bool] = Field(
+    gap: list[bool] = Field(
         description="Boolean array indicating if there is a gap between each frame"
     )
 
@@ -125,7 +125,7 @@ _EXAMPLE_POINTS_REQUEST = PointsRequest(
 @app.post("/valid", response_model=ValidResponse)
 def valid(
     spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
-) -> Union[ValidResponse, JSONResponse]:
+) -> ValidResponse | JSONResponse:
     """Validate wether a ScanSpec can produce a viable scan.
 
     Args:
@@ -250,7 +250,7 @@ def smallest_step(
 #
 
 
-def _to_chunk(request: PointsRequest) -> Tuple[Frames, int]:
+def _to_chunk(request: PointsRequest) -> tuple[Frames, int]:
     spec = Spec.deserialize(request.spec)
     dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
@@ -296,7 +296,7 @@ def _format_axes_points(
         raise KeyError(f"Unknown format: {format}")
 
 
-def _reduce_frames(stack: List[Frames[str]], max_frames: int) -> Path:
+def _reduce_frames(stack: list[Frames[str]], max_frames: int) -> Path:
     """Removes frames from a spec so len(path) < max_frames.
 
     Args:
@@ -327,7 +327,7 @@ def _sub_sample(frames: Frames[str], ratio: float) -> Frames:
     return frames.extract(indexes, calculate_gap=False)
 
 
-def _calc_smallest_step(points: List[np.ndarray]) -> float:
+def _calc_smallest_step(points: list[np.ndarray]) -> float:
     # Calc abs diffs of all axes, ignoring any zero values
     absolute_diffs = [_abs_diffs(axis_midpoints) for axis_midpoints in points]
     # Normalize and remove zeros

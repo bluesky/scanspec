@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
 from dataclasses import asdict
-from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, Tuple, Type
+from typing import Any, Generic
 
 import numpy as np
 from pydantic import Field, parse_obj_as
@@ -55,14 +56,14 @@ class Spec(Generic[Axis]):
     - ``~``: `Snake` the Spec, reversing every other iteration of it
     """
 
-    def axes(self) -> List[Axis]:
+    def axes(self) -> list[Axis]:
         """Return the list of axes that are present in the scan.
 
         Ordered from slowest moving to fastest moving.
         """
         raise NotImplementedError(self)
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         """Produce a stack of nested `Frames` that form the scan.
 
         Ordered from slowest moving to fastest moving.
@@ -77,7 +78,7 @@ class Spec(Generic[Axis]):
         """Return `Midpoints` that can be iterated point by point."""
         return Midpoints(self.calculate(bounds=False))
 
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """Return the final, simplified shape of the scan."""
         return tuple(len(dim) for dim in self.calculate())
 
@@ -127,10 +128,10 @@ class Product(Spec[Axis]):
     outer: Spec[Axis] = Field(description="Will be executed once")
     inner: Spec[Axis] = Field(description="Will be executed len(outer) times")
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         return self.outer.axes() + self.inner.axes()
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         frames_outer = self.outer.calculate(bounds=False, nested=nested)
         frames_inner = self.inner.calculate(bounds, nested=True)
         return frames_outer + frames_inner
@@ -166,10 +167,10 @@ class Repeat(Spec[Axis]):
         default=True,
     )
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         return []
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         return [Frames({}, gap=np.full(self.num, self.gap))]
 
 
@@ -203,10 +204,10 @@ class Zip(Spec[Axis]):
         description="The right-hand Spec to Zip, will appear later in axes"
     )
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         return self.left.axes() + self.right.axes()
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         frames_left = self.left.calculate(bounds, nested)
         frames_right = self.right.calculate(bounds, nested)
         assert len(frames_left) >= len(
@@ -225,14 +226,14 @@ class Zip(Spec[Axis]):
 
         # Left pad frames_right with Nones so they are the same size
         npad = len(frames_left) - len(frames_right)
-        padded_right: List[Optional[Frames[Axis]]] = [None] * npad
+        padded_right: list[Frames[Axis] | None] = [None] * npad
         # Mypy doesn't like this because lists are invariant:
         # https://github.com/python/mypy/issues/4244
         padded_right += frames_right  # type: ignore
 
         # Work through, zipping them together one by one
         frames = []
-        for left, right in zip(frames_left, padded_right):
+        for left, right in zip(frames_left, padded_right, strict=False):
             if right is None:
                 combined = left
             else:
@@ -271,10 +272,10 @@ class Mask(Spec[Axis]):
         default=True,
     )
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         return self.spec.axes()
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         frames = self.spec.calculate(bounds, nested)
         for axis_set in self.region.axis_sets():
             # Find the start and end index of any dimensions containing these axes
@@ -329,10 +330,10 @@ class Snake(Spec[Axis]):
         description="The Spec to run in reverse every other iteration"
     )
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         return self.spec.axes()
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         return [
             SnakedFrames.from_frames(segment)
             for segment in self.spec.calculate(bounds, nested)
@@ -368,14 +369,14 @@ class Concat(Spec[Axis]):
         default=True,
     )
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         left_axes, right_axes = self.left.axes(), self.right.axes()
         # Assuming the axes are the same, the order does not matter, we inherit the
         # order from the left-hand side. See also scanspec.core.concat.
         assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
         return left_axes
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         dim_left = squash_frames(
             self.left.calculate(bounds, nested), nested and self.check_path_changes
         )
@@ -406,21 +407,21 @@ class Squash(Spec[Axis]):
         default=True,
     )
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         return self.spec.axes()
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         dims = self.spec.calculate(bounds, nested)
         dim = squash_frames(dims, nested and self.check_path_changes)
         return [dim]
 
 
 def _dimensions_from_indexes(
-    func: Callable[[np.ndarray], Dict[Axis, np.ndarray]],
-    axes: List,
+    func: Callable[[np.ndarray], dict[Axis, np.ndarray]],
+    axes: list,
     num: int,
     bounds: bool,
-) -> List[Frames[Axis]]:
+) -> list[Frames[Axis]]:
     # Calc num midpoints (fences) from 0.5 .. num - 0.5
     midpoints_calc = func(np.linspace(0.5, num - 0.5, num))
     midpoints = {a: midpoints_calc[a] for a in axes}
@@ -458,10 +459,10 @@ class Line(Spec[Axis]):
     stop: float = Field(description="Midpoint of the last point of the line")
     num: int = Field(min=1, description="Number of frames to produce")
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         return [self.axis]
 
-    def _line_from_indexes(self, indexes: np.ndarray) -> Dict[Axis, np.ndarray]:
+    def _line_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
         if self.num == 1:
             # Only one point, stop-start gives length of one point
             step = self.stop - self.start
@@ -473,7 +474,7 @@ class Line(Spec[Axis]):
         first = self.start - step / 2
         return {self.axis: indexes * step + first}
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         return _dimensions_from_indexes(
             self._line_from_indexes, self.axes(), self.num, bounds
         )
@@ -524,7 +525,7 @@ class Static(Spec[Axis]):
 
     @classmethod
     def duration(
-        cls: Type[Static],
+        cls: type[Static],
         duration: float = Field(description="The duration of each static point"),
         num: int = Field(min=1, description="Number of frames to produce", default=1),
     ) -> Static[str]:
@@ -538,13 +539,13 @@ class Static(Spec[Axis]):
         """
         return cls(DURATION, duration, num)
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         return [self.axis]
 
-    def _repeats_from_indexes(self, indexes: np.ndarray) -> Dict[Axis, np.ndarray]:
+    def _repeats_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
         return {self.axis: np.full(len(indexes), self.value)}
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
         )
@@ -577,11 +578,11 @@ class Spiral(Spec[Axis]):
         description="How much to rotate the angle of the spiral", default=0.0
     )
 
-    def axes(self) -> List[Axis]:
+    def axes(self) -> list[Axis]:
         # TODO: reversed from __init__ args, a good idea?
         return [self.y_axis, self.x_axis]
 
-    def _spiral_from_indexes(self, indexes: np.ndarray) -> Dict[Axis, np.ndarray]:
+    def _spiral_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
         # simplest spiral equation: r = phi
         # we want point spacing across area to be the same as between rings
         # so: sqrt(area / num) = ring_spacing
@@ -598,7 +599,7 @@ class Spiral(Spec[Axis]):
             self.x_axis: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
         }
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self.num, bounds
         )
@@ -669,7 +670,7 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
     return spec * Static.duration(duration, num)
 
 
-def get_constant_duration(frames: List[Frames]) -> Optional[float]:
+def get_constant_duration(frames: list[Frames]) -> float | None:
     """
     Returns the duration of a number of ScanSpec frames, if known and consistent.
 
