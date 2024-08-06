@@ -2,7 +2,7 @@ import json
 import pathlib
 import subprocess
 import sys
-from typing import List, cast
+from typing import cast
 from unittest.mock import patch
 
 import matplotlib.pyplot as plt
@@ -21,7 +21,7 @@ def assert_min_max_2d(line, xmin, xmax, ymin, ymax, length=None):
         assert len(line.get_data()[0]) == length
     mins = np.min(line.get_data(), axis=1)
     maxs = np.max(line.get_data(), axis=1)
-    assert list(zip(mins, maxs)) == [
+    assert list(zip(mins, maxs, strict=False)) == [
         pytest.approx([xmin, xmax]),
         pytest.approx([ymin, ymax]),
     ]
@@ -32,7 +32,7 @@ def assert_min_max_3d(line, xmin, xmax, ymin, ymax, zmin, zmax, length=None):
         assert len(line.get_data_3d()[0]) == length
     mins = np.min(line.get_data_3d(), axis=1)
     maxs = np.max(line.get_data_3d(), axis=1)
-    assert list(zip(mins, maxs)) == [
+    assert list(zip(mins, maxs, strict=False)) == [
         pytest.approx([xmin, xmax]),
         pytest.approx([ymin, ymax]),
         pytest.approx([zmin, zmax]),
@@ -62,7 +62,7 @@ def test_plot_1D_line() -> None:
     # End
     assert_min_max_2d(lines[3], 2.5, 2.5, 0, 0)
     # Arrows
-    texts = cast(List[Annotation], axes.texts)
+    texts = cast(list[Annotation], axes.texts)
     assert len(texts) == 1
     assert tuple(texts[0].xy) == (0.5, 0)
 
@@ -87,7 +87,7 @@ def test_plot_1D_line_snake_repeat() -> None:
     # End
     assert_min_max_2d(lines[4], 1, 1, 0, 0)
     # Arrows
-    texts = cast(List[Annotation], axes.texts)
+    texts = cast(list[Annotation], axes.texts)
     assert len(texts) == 2
     assert tuple(texts[0].xy) == (1, 0)
     assert tuple(texts[1].xy) == pytest.approx([2, 0])
@@ -111,7 +111,7 @@ def test_plot_1D_step() -> None:
     # End
     assert_min_max_2d(lines[3], 2, 2, 0, 0)
     # Arrows
-    texts = cast(List[Annotation], axes.texts)
+    texts = cast(list[Annotation], axes.texts)
     assert len(texts) == 1
     assert tuple(texts[0].xy) == (2, 0)
 
@@ -138,7 +138,7 @@ def test_plot_2D_line() -> None:
     # End
     assert_min_max_2d(lines[6], 0.5, 0.5, 3, 3)
     # Arrows
-    texts = cast(List[Annotation], axes.texts)
+    texts = cast(list[Annotation], axes.texts)
     assert len(texts) == 2
     assert tuple(texts[0].xy) == (0.5, 2)
     assert tuple(texts[1].xy) == pytest.approx([2.5, 3])
@@ -165,7 +165,7 @@ def test_plot_2D_line_rect_region() -> None:
     # End
     assert_min_max_2d(lines[5], 1.5, 1.5, 2, 2)
     # Arrows
-    texts = cast(List[Annotation], axes.texts)
+    texts = cast(list[Annotation], axes.texts)
     assert len(texts) == 2
     assert tuple(texts[0].xy) == (-0.5, 1.5)
     assert tuple(texts[1].xy) == (-0.5, 2)

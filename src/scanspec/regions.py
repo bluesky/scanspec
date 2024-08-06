@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+
 from dataclasses import is_dataclass
 from typing import Generic, Iterator, List, Set
+from collections.abc import Iterator
+from typing import Generic
+
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -45,7 +49,7 @@ class Region(Generic[Axis]):
     - ``^``: `SymmetricDifferenceOf` two Regions, midpoints present in one not both
     """
 
-    def axis_sets(self) -> List[Set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:
         """Produce the non-overlapping sets of axes this region spans."""
         raise NotImplementedError(self)
 
@@ -80,7 +84,7 @@ def get_mask(region: Region[Axis], points: AxesPoints[Axis]) -> np.ndarray:
         return np.ones(len(list(points.values())[0]))
 
 
-def _merge_axis_sets(axis_sets: List[Set[Axis]]) -> Iterator[Set[Axis]]:
+def _merge_axis_sets(axis_sets: list[set[Axis]]) -> Iterator[set[Axis]]:
     # Take overlapping axis sets and merge any that overlap into each
     # other
     for ks in axis_sets:  # ks = key_sets - left over from a previous naming standard
@@ -279,7 +283,7 @@ class CombinationOf(Region[Axis]):
     left: Region[Axis] = Field(description="The left-hand Region to combine")
     right: Region[Axis] = Field(description="The right-hand Region to combine")
 
-    def axis_sets(self) -> List[Set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:
         axis_sets = list(
             _merge_axis_sets(self.left.axis_sets() + self.right.axis_sets())
         )

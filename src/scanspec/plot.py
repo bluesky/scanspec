@@ -1,5 +1,6 @@
+from collections.abc import Iterator
 from itertools import cycle
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any
 
 import numpy as np
 from matplotlib import colors, patches
@@ -14,7 +15,7 @@ from .specs import DURATION, Spec
 __all__ = ["plot_spec"]
 
 
-def _plot_arrays(axes, arrays: List[np.ndarray], **kwargs):
+def _plot_arrays(axes, arrays: list[np.ndarray], **kwargs):
     if len(arrays) > 2:
         axes.plot3D(arrays[2], arrays[1], arrays[0], **kwargs)
     elif len(arrays) == 2:
@@ -38,7 +39,7 @@ class _Arrow3D(patches.FancyArrowPatch):
         return np.min(zs)
 
 
-def _plot_arrow(axes, arrays: List[np.ndarray]):
+def _plot_arrow(axes, arrays: list[np.ndarray]):
     if len(arrays) == 1:
         arrays = [np.array([0, 0])] + arrays
     if len(arrays) == 2:
@@ -58,8 +59,8 @@ def _plot_arrow(axes, arrays: List[np.ndarray]):
         axes.add_artist(a)
 
 
-def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int, str]):
-    scaled_arrays = [a / r for a, r in zip(arrays, ranges)]
+def _plot_spline(axes, ranges, arrays: list[np.ndarray], index_colours: dict[int, str]):
+    scaled_arrays = [a / r for a, r in zip(arrays, ranges, strict=False)]
     # Define curves parametrically
     t = np.zeros(len(arrays[0]))
     t[1:] = np.sqrt(sum((arr[1:] - arr[:-1]) ** 2 for arr in scaled_arrays))
@@ -67,7 +68,7 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
     if t[-1] > 0:
         # Can't make a spline that starts and ends in the same place, so add a small
         # delta
-        for s, r in zip(scaled_arrays, ranges):
+        for s, r in zip(scaled_arrays, ranges, strict=False):
             if s[0] == s[-1]:
                 s += np.linspace(0, r * 1e-7, len(s))
         # There are no duplicated points, plot a spline
@@ -76,17 +77,19 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
         tck, _ = interpolate.splprep(scaled_arrays, k=2, s=0)
         starts = sorted(index_colours)
         stops = starts[1:] + [len(arrays[0]) - 1]
-        for start, stop in zip(starts, stops):
+        for start, stop in zip(starts, stops, strict=False):
             tnew = np.linspace(t[start], t[stop], num=1001)
             spline = interpolate.splev(tnew, tck)
             # Scale the splines back to the original scaling
-            unscaled_splines = [a * r for a, r in zip(spline, ranges)]
+            unscaled_splines = [a * r for a, r in zip(spline, ranges, strict=False)]
             _plot_arrays(axes, unscaled_splines, color=index_colours[start])
             yield unscaled_splines
 
 
+
 @uses_tagged_union
-def plot_spec(spec: Spec[Any], title: Optional[str] = None):
+def plot_spec(spec: Spec[Any], title: str | None = None):
+
     """Plot a spec, drawing the path taken through the scan.
 
     Uses a different colour for each frame, grey for the turnarounds, and

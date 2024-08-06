@@ -7,31 +7,25 @@ name = "scanspec"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
 description = "Specify step and flyscan paths in a serializable, efficient and Pythonic way"
 dependencies = [
-    "numpy>=1.19.3",
-    "click==8.1.3",
+    "numpy>=2",
+    "click>=8.1",
     "pydantic>2.0",
+    "httpx==0.26.0",
     "typing_extensions",
 ]
 dynamic = ["version"]
 license.file = "LICENSE"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 
 [project.optional-dependencies]
 # Plotting
-plotting = [
-    # make sure a python 3.9 compatible scipy and matplotlib are selected
-    "scipy>=1.5.4",
-    "matplotlib>=3.2.2",
-]
+plotting = ["scipy", "matplotlib"]
 # REST service support
 service = ["fastapi>0.100.0", "uvicorn"]
 # For development tests/docs
@@ -131,8 +125,6 @@ extend-select = [
     "I",  # isort - https://docs.astral.sh/ruff/rules/#isort-i
     "UP", # pyupgrade - https://docs.astral.sh/ruff/rules/#pyupgrade-up
 ]
-# We use pydantic, so don't upgrade to py3.10 syntax yet
-pyupgrade.keep-runtime-typing = true
 ignore = [
     "B008", # We use function calls in service arguments
 ]
