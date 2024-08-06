@@ -1,25 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import field
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import Any, Generic, Literal, TypeVar
 
 import numpy as np
 from pydantic import BaseConfig, Extra, Field, ValidationError, create_model
 from pydantic.error_wrappers import ErrorWrapper
-from typing_extensions import Literal
 
 __all__ = [
     "if_instance_do",
@@ -43,11 +30,11 @@ class StrictConfig(BaseConfig):
 
 
 def discriminated_union_of_subclasses(
-    super_cls: Optional[Type] = None,
+    super_cls: type | None = None,
     *,
     discriminator: str = "type",
-    config: Optional[Type[BaseConfig]] = None,
-) -> Union[Type, Callable[[Type], Type]]:
+    config: type[BaseConfig] | None = None,
+) -> type | Callable[[type], type]:
     """Add all subclasses of super_cls to a discriminated union.
 
     For all subclasses of super_cls, add a discriminator field to identify
@@ -114,7 +101,7 @@ def discriminated_union_of_subclasses(
             subclasses. Defaults to None.
 
     Returns:
-        Union[Type, Callable[[Type], Type]]: A decorator that adds the necessary
+        Type | Callable[[Type], Type]: A decorator that adds the necessary
             functionality to a class.
     """
 
@@ -130,12 +117,12 @@ def discriminated_union_of_subclasses(
 
 
 def _discriminated_union_of_subclasses(
-    super_cls: Type,
+    super_cls: type,
     discriminator: str,
-    config: Optional[Type[BaseConfig]] = None,
-) -> Union[Type, Callable[[Type], Type]]:
-    super_cls._ref_classes = set()
-    super_cls._model = None
+    config: type[BaseConfig] | None = None,
+) -> type | Callable[[type], type]:
+    super_cls._ref_classes = set()  # type: ignore
+    super_cls._model = None  # type: ignore
 
     def __init_subclass__(cls) -> None:
         # Keep track of inherting classes in super class
@@ -157,7 +144,11 @@ def _discriminated_union_of_subclasses(
         # needs to be done once, after all subclasses have been
         # declared
         if cls._model is None:
-            root = Union[tuple(cls._ref_classes)]  # type: ignore
+            refs: tuple[type] = tuple(cls._ref_classes)  # type: ignore
+            root = refs[0]
+            if len(refs) > 1:
+                for ref in refs:
+                    root |= ref
             cls._model = create_model(
                 super_cls.__name__,
                 __root__=(root, Field(..., discriminator=discriminator)),
@@ -185,7 +176,7 @@ def _discriminated_union_of_subclasses(
     return super_cls
 
 
-def if_instance_do(x: Any, cls: Type, func: Callable):
+def if_instance_do(x: Any, cls: type, func: Callable):
     """If x is of type cls then return func(x), otherwise return NotImplemented.
 
     Used as a helper when implementing operator overloading.
@@ -201,7 +192,7 @@ Axis = TypeVar("Axis")
 
 #: Map of axes to float ndarray of points
 #: E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}
-AxesPoints = Dict[Axis, np.ndarray]
+AxesPoints = dict[Axis, np.ndarray]
 
 
 class Frames(Generic[Axis]):
@@ -234,9 +225,9 @@ class Frames(Generic[Axis]):
     def __init__(
         self,
         midpoints: AxesPoints[Axis],
-        lower: Optional[AxesPoints[Axis]] = None,
-        upper: Optional[AxesPoints[Axis]] = None,
-        gap: Optional[np.ndarray] = None,
+        lower: AxesPoints[Axis] | None = None,
+        upper: AxesPoints[Axis] | None = None,
+        gap: np.ndarray | None = None,
     ):
         #: The midpoints of scan frames for each axis
         self.midpoints = midpoints
@@ -253,7 +244,9 @@ class Frames(Generic[Axis]):
             # We have a gap if upper[i] != lower[i+1] for any axes
             axes_gap = [
                 np.roll(upper, 1) != lower
-                for upper, lower in zip(self.upper.values(), self.lower.values())
+                for upper, lower in zip(
+                    self.upper.values(), self.lower.values(), strict=False
+                )
             ]
             self.gap = np.logical_or.reduce(axes_gap)
         # Check all axes and ordering are the same
@@ -270,7 +263,7 @@ class Frames(Generic[Axis]):
         lengths.add(len(self.gap))
         assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
 
-    def axes(self) -> List[Axis]:
+    def axes(self) -> list[Axis]:
         """The axes which will move during the scan.
 
         These will be present in `midpoints`, `lower` and `upper`.
@@ -300,7 +293,7 @@ class Frames(Generic[Axis]):
                 return {k: v[dim_indices] for k, v in d.items()}
             return {}
 
-        def extract_gap(gaps: Iterable[np.ndarray]) -> Optional[np.ndarray]:
+        def extract_gap(gaps: Iterable[np.ndarray]) -> np.ndarray | None:
             for gap in gaps:
                 if not calculate_gap:
                     return gap[dim_indices]
@@ -371,7 +364,7 @@ class Frames(Generic[Axis]):
 def _merge_frames(
     *stack: Frames[Axis],
     dict_merge=Callable[[Sequence[AxesPoints[Axis]]], AxesPoints[Axis]],  # type: ignore
-    gap_merge=Callable[[Sequence[np.ndarray]], Optional[np.ndarray]],
+    gap_merge=Callable[[Sequence[np.ndarray]], np.ndarray | None],
 ) -> Frames[Axis]:
     types = {type(fs) for fs in stack}
     assert len(types) == 1, f"Mismatching types for {stack}"
@@ -397,9 +390,9 @@ class SnakedFrames(Frames[Axis]):
     def __init__(
         self,
         midpoints: AxesPoints[Axis],
-        lower: Optional[AxesPoints[Axis]] = None,
-        upper: Optional[AxesPoints[Axis]] = None,
-        gap: Optional[np.ndarray] = None,
+        lower: AxesPoints[Axis] | None = None,
+        upper: AxesPoints[Axis] | None = None,
+        gap: np.ndarray | None = None,
     ):
         super().__init__(midpoints, lower=lower, upper=upper, gap=gap)
         # Override first element of gap to be True, as subsequent runs
@@ -431,7 +424,7 @@ class SnakedFrames(Frames[Axis]):
         length = len(self)
         backwards = (indices // length) % 2
         snake_indices = np.where(backwards, (length - 1) - indices, indices) % length
-        cls: Type[Frames[Any]]
+        cls: type[Frames[Any]]
         if not calculate_gap:
             cls = Frames
             gap = self.gap[np.where(backwards, length - indices, indices) % length]
@@ -464,7 +457,7 @@ def gap_between_frames(frames1: Frames[Axis], frames2: Frames[Axis]) -> bool:
     return any(frames1.upper[a][-1] != frames2.lower[a][0] for a in frames1.axes())
 
 
-def squash_frames(stack: List[Frames[Axis]], check_path_changes=True) -> Frames[Axis]:
+def squash_frames(stack: list[Frames[Axis]], check_path_changes=True) -> Frames[Axis]:
     """Squash a stack of nested Frames into a single one.
 
     Args:
@@ -530,7 +523,7 @@ class Path(Generic[Axis]):
     """
 
     def __init__(
-        self, stack: List[Frames[Axis]], start: int = 0, num: Optional[int] = None
+        self, stack: list[Frames[Axis]], start: int = 0, num: int | None = None
     ):
         #: The Frames stack describing the scan, from slowest to fastest moving
         self.stack = stack
@@ -544,7 +537,7 @@ class Path(Generic[Axis]):
         if num is not None and start + num < self.end_index:
             self.end_index = start + num
 
-    def consume(self, num: Optional[int] = None) -> Frames[Axis]:
+    def consume(self, num: int | None = None) -> Frames[Axis]:
         """Consume at most num frames from the Path and return as a Frames object.
 
         >>> fx = SnakedFrames({"x": np.array([1, 2])})
@@ -619,12 +612,12 @@ class Midpoints(Generic[Axis]):
     {'y': np.int64(4), 'x': np.int64(1)}
     """
 
-    def __init__(self, stack: List[Frames[Axis]]):
+    def __init__(self, stack: list[Frames[Axis]]):
         #: The stack of Frames describing the scan, from slowest to fastest moving
         self.stack = stack
 
     @property
-    def axes(self) -> List[Axis]:
+    def axes(self) -> list[Axis]:
         """The axes that will be present in each points dictionary."""
         axes = []
         for frames in self.stack:
@@ -635,7 +628,7 @@ class Midpoints(Generic[Axis]):
         """The number of dictionaries that will be produced if iterated over."""
         return int(np.prod([len(frames) for frames in self.stack]))
 
-    def __iter__(self) -> Iterator[Dict[Axis, float]]:
+    def __iter__(self) -> Iterator[dict[Axis, float]]:
         """Yield {axis: midpoint} for each frame in the scan."""
         path = Path(self.stack)
         while len(path):
