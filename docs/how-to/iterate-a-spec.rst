@@ -18,9 +18,9 @@ frame. You can get these by using the `Spec.midpoints()` method to produce a
 >>> for d in spec.midpoints():
 ...     print(d)
 ...
-{'x': np.float64(1.0)}
-{'x': np.float64(1.5)}
-{'x': np.float64(2.0)}
+{'x': 1.0}
+{'x': 1.5}
+{'x': 2.0}
 
 This is simple, but not particularly performant, as the numpy arrays of
 points are unpacked point by point into point dictionaries
