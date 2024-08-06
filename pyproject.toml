@@ -7,9 +7,6 @@ name = "scanspec"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
@@ -27,11 +24,7 @@ requires-python = ">=3.7"
 
 [project.optional-dependencies]
 # Plotting
-plotting = [
-    # make sure a python 3.9 compatible scipy and matplotlib are selected
-    "scipy>=1.5.4",
-    "matplotlib>=3.2.2",
-]
+plotting = ["scipy", "matplotlib"]
 # REST service support
 service = ["fastapi==0.99", "uvicorn"]
 # For development tests/docs
