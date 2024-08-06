@@ -17,7 +17,7 @@ from scanspec.core import AxesPoints, Frames, Path, uses_tagged_union
 
 from .specs import Line, Spec
 
-app = FastAPI()
+app = FastAPI(version="0.1.1")
 
 #
 # Data Model

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import is_dataclass
 from typing import Generic, Iterator, List, Set
 
 import numpy as np
@@ -354,8 +355,10 @@ class SymmetricDifferenceOf(CombinationOf[Axis]):
 
 def find_regions(obj) -> Iterator[Region[Axis]]:
     """Recursively yield Regions from obj and its children."""
-    if hasattr(obj, "__pydantic_model__") and issubclass(
-        obj.__pydantic_model__, BaseModel
+    if (
+        hasattr(obj, "__pydantic_model__")
+        and issubclass(obj.__pydantic_model__, BaseModel)
+        or is_dataclass(obj)
     ):
         if isinstance(obj, Region):
             yield obj

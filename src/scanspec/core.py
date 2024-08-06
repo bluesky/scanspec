@@ -55,7 +55,6 @@ def discriminated_union_of_subclasses(cls):
     For all subclasses of super_cls, add a discriminator field to identify
     the type. Raw JSON should look like {"type": <type name>, params for
     <type name>...}.
-    Add validation methods to super_cls so it can be parsed by pydantic.parse_obj_as.
 
     Example::
 
