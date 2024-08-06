@@ -241,7 +241,7 @@ def test_schema() -> None:
     schema_path = pathlib.Path(__file__).resolve().parent.parent / "schema.json"
     with open(schema_path) as file:
         data = json.load(file)
-        assert data == json.load(result.output)
+        assert data == json.loads(result.output)
 
 
 def test_cli_version():
