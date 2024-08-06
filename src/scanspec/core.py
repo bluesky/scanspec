@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import field
-from typing import Any, Generic, Literal, TypeVar
+from typing import Any, Generic, Literal, TypeVar, Union
 
 import numpy as np
 from pydantic import BaseConfig, Extra, Field, ValidationError, create_model
@@ -144,11 +144,7 @@ def _discriminated_union_of_subclasses(
         # needs to be done once, after all subclasses have been
         # declared
         if cls._model is None:
-            refs: tuple[type] = tuple(cls._ref_classes)  # type: ignore
-            root = refs[0]
-            if len(refs) > 1:
-                for ref in refs:
-                    root |= ref
+            root = Union[tuple(cls._ref_classes)]  # type: ignore  # noqa
             cls._model = create_model(
                 super_cls.__name__,
                 __root__=(root, Field(..., discriminator=discriminator)),
