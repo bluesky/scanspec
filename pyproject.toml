@@ -11,16 +11,11 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 description = "Specify step and flyscan paths in a serializable, efficient and Pythonic way"
-dependencies = [
-    "numpy>=1.19.3",
-    "click==8.1.3",
-    "pydantic<2.0",
-    "typing_extensions",
-]
+dependencies = ["numpy", "click", "pydantic<2.0", "typing_extensions"]
 dynamic = ["version"]
 license.file = "LICENSE"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 
 [project.optional-dependencies]
 # Plotting
