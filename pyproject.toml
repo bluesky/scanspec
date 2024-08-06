@@ -11,7 +11,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 description = "Specify step and flyscan paths in a serializable, efficient and Pythonic way"
-dependencies = ["numpy>=2", "click>=8.1", "pydantic<2.0", "httpx==0.26.0"]
+dependencies = ["numpy>=2", "click>=8.1", "pydantic<3.0", "httpx==0.27.0"]
 dynamic = ["version"]
 license.file = "LICENSE"
 readme = "README.md"
@@ -21,7 +21,7 @@ requires-python = ">=3.10"
 # Plotting
 plotting = ["scipy", "matplotlib"]
 # REST service support
-service = ["fastapi==0.99", "uvicorn"]
+service = ["fastapi==0.112.0", "uvicorn"]
 # For development tests/docs
 dev = [
     # This syntax is supported since pip 21.2
