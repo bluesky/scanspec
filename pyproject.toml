@@ -125,8 +125,6 @@ extend-select = [
     "I",  # isort - https://docs.astral.sh/ruff/rules/#isort-i
     "UP", # pyupgrade - https://docs.astral.sh/ruff/rules/#pyupgrade-up
 ]
-# We use pydantic, so don't upgrade to py3.10 syntax yet
-pyupgrade.keep-runtime-typing = true
 ignore = [
     "B008", # We use function calls in service arguments
 ]
