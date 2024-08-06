@@ -174,10 +174,10 @@ class Polygon(Region[Axis]):
     x_axis: Axis = Field(description="The name matching the x axis of the spec")
     y_axis: Axis = Field(description="The name matching the y axis of the spec")
     x_verts: List[float] = Field(
-        description="The Nx1 x coordinates of the polygons vertices", min_len=3
+        description="The Nx1 x coordinates of the polygons vertices", min_length=3
     )
     y_verts: List[float] = Field(
-        description="The Nx1 y coordinates of the polygons vertices", min_len=3
+        description="The Nx1 y coordinates of the polygons vertices", min_length=3
     )
 
     def axis_sets(self) -> List[Set[Axis]]:

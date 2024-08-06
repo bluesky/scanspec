@@ -16,16 +16,22 @@
                             "schema": {
                                 "oneOf": [
                                     {
-                                        "$ref": "#/components/schemas/Static"
+                                        "$ref": "#/components/schemas/Concat-Input"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Line"
                                     },
                                     {
-                                        "$ref": "#/components/schemas/Concat-Input"
+                                        "$ref": "#/components/schemas/Static"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Spiral"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Product-Input"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Repeat"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Zip-Input"
@@ -38,12 +44,6 @@
                                     },
                                     {
                                         "$ref": "#/components/schemas/Squash-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Repeat"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Spiral"
                                     }
                                 ],
                                 "title": "Spec",
@@ -69,16 +69,16 @@
                                 "discriminator": {
                                     "propertyName": "type",
                                     "mapping": {
-                                        "Static": "#/components/schemas/Static",
-                                        "Line": "#/components/schemas/Line",
                                         "Concat": "#/components/schemas/Concat-Input",
+                                        "Line": "#/components/schemas/Line",
+                                        "Static": "#/components/schemas/Static",
+                                        "Spiral": "#/components/schemas/Spiral",
                                         "Product": "#/components/schemas/Product-Input",
+                                        "Repeat": "#/components/schemas/Repeat",
                                         "Zip": "#/components/schemas/Zip-Input",
                                         "Mask": "#/components/schemas/Mask-Input",
                                         "Snake": "#/components/schemas/Snake-Input",
-                                        "Squash": "#/components/schemas/Squash-Input",
-                                        "Repeat": "#/components/schemas/Repeat",
-                                        "Spiral": "#/components/schemas/Spiral"
+                                        "Squash": "#/components/schemas/Squash-Input"
                                     }
                                 }
                             }
@@ -255,16 +255,22 @@
                             "schema": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/components/schemas/Static"
+                                        "$ref": "#/components/schemas/Concat-Input"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Line"
                                     },
                                     {
-                                        "$ref": "#/components/schemas/Concat-Input"
+                                        "$ref": "#/components/schemas/Static"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Spiral"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Product-Input"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Repeat"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Zip-Input"
@@ -277,12 +283,6 @@
                                     },
                                     {
                                         "$ref": "#/components/schemas/Squash-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Repeat"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Spiral"
                                     }
                                 ],
                                 "title": "Spec",
@@ -345,16 +345,22 @@
                             "schema": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/components/schemas/Static"
+                                        "$ref": "#/components/schemas/Concat-Input"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Line"
                                     },
                                     {
-                                        "$ref": "#/components/schemas/Concat-Input"
+                                        "$ref": "#/components/schemas/Static"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Spiral"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Product-Input"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Repeat"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Zip-Input"
@@ -367,12 +373,6 @@
                                     },
                                     {
                                         "$ref": "#/components/schemas/Squash-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Repeat"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Spiral"
                                     }
                                 ],
                                 "title": "Spec",
@@ -548,34 +548,34 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
                             },
                             {
+                                "$ref": "#/components/schemas/Ellipse"
+                            },
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf"
+                            },
+                            {
                                 "$ref": "#/components/schemas/IntersectionOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Left",
@@ -599,34 +599,34 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
                             },
                             {
+                                "$ref": "#/components/schemas/Ellipse"
+                            },
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf"
+                            },
+                            {
                                 "$ref": "#/components/schemas/IntersectionOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Right",
@@ -671,34 +671,34 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
                             },
                             {
+                                "$ref": "#/components/schemas/Ellipse"
+                            },
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf"
+                            },
+                            {
                                 "$ref": "#/components/schemas/IntersectionOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Left",
@@ -722,34 +722,34 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
                             },
                             {
+                                "$ref": "#/components/schemas/Ellipse"
+                            },
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf"
+                            },
+                            {
                                 "$ref": "#/components/schemas/IntersectionOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Right",
@@ -794,16 +794,22 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Input"
@@ -816,12 +822,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Left",
@@ -845,16 +845,22 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Input"
@@ -867,12 +873,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Right",
@@ -929,16 +929,22 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Output"
@@ -951,12 +957,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Left",
@@ -980,16 +980,22 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Output"
@@ -1002,12 +1008,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Right",
@@ -1064,19 +1064,19 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
                             }
                         ],
                         "title": "Left",
@@ -1095,19 +1095,19 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
                             }
                         ],
                         "title": "Right",
@@ -1239,19 +1239,19 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
                             }
                         ],
                         "title": "Left",
@@ -1270,19 +1270,19 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
                             }
                         ],
                         "title": "Right",
@@ -1365,16 +1365,22 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Input"
@@ -1387,12 +1393,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -1416,34 +1416,34 @@
                     "region": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
                             },
                             {
+                                "$ref": "#/components/schemas/Ellipse"
+                            },
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf"
+                            },
+                            {
                                 "$ref": "#/components/schemas/IntersectionOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Region",
@@ -1494,16 +1494,22 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Output"
@@ -1516,12 +1522,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -1545,34 +1545,34 @@
                     "region": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
                             },
                             {
+                                "$ref": "#/components/schemas/Ellipse"
+                            },
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf"
+                            },
+                            {
                                 "$ref": "#/components/schemas/IntersectionOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Region",
@@ -1682,16 +1682,22 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Input"
@@ -1704,12 +1710,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -1814,16 +1814,22 @@
                     "outer": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Input"
@@ -1836,12 +1842,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Outer",
@@ -1865,16 +1865,22 @@
                     "inner": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Input"
@@ -1887,12 +1893,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Inner",
@@ -1937,16 +1937,22 @@
                     "outer": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Output"
@@ -1959,12 +1965,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Outer",
@@ -1988,16 +1988,22 @@
                     "inner": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Output"
@@ -2010,12 +2016,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Inner",
@@ -2211,16 +2211,22 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Input"
@@ -2233,12 +2239,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -2282,16 +2282,22 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Output"
@@ -2304,12 +2310,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -2419,16 +2419,22 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Input"
@@ -2441,12 +2447,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -2496,16 +2496,22 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Output"
@@ -2518,12 +2524,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -2610,19 +2610,19 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
                             }
                         ],
                         "title": "Left",
@@ -2641,19 +2641,19 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
                             }
                         ],
                         "title": "Right",
@@ -2693,19 +2693,19 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
                             }
                         ],
                         "title": "Left",
@@ -2724,19 +2724,19 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
                                 "$ref": "#/components/schemas/Rectangle"
                             },
                             {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Polygon"
                             },
                             {
                                 "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
                             }
                         ],
                         "title": "Right",
@@ -2776,16 +2776,22 @@
                     "input_spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Output"
@@ -2798,12 +2804,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Input Spec",
@@ -2827,16 +2827,22 @@
                     "valid_spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Output"
@@ -2849,12 +2855,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Valid Spec",
@@ -2922,16 +2922,22 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Input"
@@ -2944,12 +2950,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Left",
@@ -2973,16 +2973,22 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Input"
@@ -2995,12 +3001,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Right",
@@ -3045,16 +3045,22 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Output"
@@ -3067,12 +3073,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Left",
@@ -3096,16 +3096,22 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Static"
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Line"
                             },
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             },
                             {
                                 "$ref": "#/components/schemas/Product-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Repeat"
                             },
                             {
                                 "$ref": "#/components/schemas/Zip-Output"
@@ -3118,12 +3124,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Right",

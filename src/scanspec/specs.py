@@ -233,7 +233,7 @@ class Line(Spec[Axis]):
         return cls(axis, start, stop, num)
 
 
-Line.bounded = validate_call(Line.bounded)
+Line.bounded = validate_call(Line.bounded)  # type:ignore
 
 
 @dataclass(config=StrictConfig)
@@ -281,7 +281,7 @@ class Static(Spec[Axis]):
         )
 
 
-Static.duration = validate_call(Static.duration)
+Static.duration = validate_call(Static.duration)  # type:ignore
 
 
 @dataclass(config=StrictConfig)
@@ -369,7 +369,7 @@ class Spiral(Spec[Axis]):
         )
 
 
-Spiral.spaced = validate_call(Spiral.spaced)
+Spiral.spaced = validate_call(Spiral.spaced)  # type:ignore
 
 
 @dataclass(config=StrictConfig)

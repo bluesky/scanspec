@@ -129,7 +129,7 @@ _EXAMPLE_POINTS_REQUEST = PointsRequest(
 @app.post("/valid", response_model=ValidResponse)
 @uses_tagged_union
 def valid(
-    spec: Spec = Body(..., examples=[_EXAMPLE_SPEC], discriminator="type"),
+    spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
 ) -> Union[ValidResponse, JSONResponse]:
     """Validate wether a ScanSpec can produce a viable scan.
 

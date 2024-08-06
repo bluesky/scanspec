@@ -49,7 +49,10 @@ __all__ = [
 StrictConfig: ConfigDict = {"extra": "forbid"}
 
 
-def discriminated_union_of_subclasses(cls):
+def discriminated_union_of_subclasses(
+    cls,
+    discriminator: str = "type",
+):
     """Add all subclasses of super_cls to a discriminated union.
 
     For all subclasses of super_cls, add a discriminator field to identify
@@ -118,7 +121,7 @@ def discriminated_union_of_subclasses(cls):
         Union[Type, Callable[[Type], Type]]: A decorator that adds the necessary
             functionality to a class.
     """
-    tagged_union = _TaggedUnion(cls)
+    tagged_union = _TaggedUnion(cls, discriminator)
     _tagged_unions[cls] = tagged_union
     cls.__init_subclass__ = classmethod(__init_subclass__)
     cls.__get_pydantic_core_schema__ = classmethod(
@@ -143,13 +146,14 @@ def uses_tagged_union(cls_or_func: T) -> T:
 
 
 class _TaggedUnion:
-    def __init__(self, base_class: type):
+    def __init__(self, base_class: type, discriminator: str):
         self._base_class = base_class
         # The members of the tagged union, i.e. subclasses of the baseclasses
-        self._members: set[type] = set()
+        self._members: list[type] = []
         # Classes and their field names that refer to this tagged union
         self._referrers: dict[type | Callable, set[str]] = {}
-        self.type_adapter = TypeAdapter(None)
+        self.type_adapter: TypeAdapter = TypeAdapter(None)
+        self._discriminator = discriminator
 
     def _make_union(self):
         # Make a union of members
@@ -165,7 +169,7 @@ class _TaggedUnion:
             assert isinstance(
                 field, FieldInfo
             ), f"Expected {cls.__name__}.{field_name} to be a Pydantic field, not {field!r}"  # noqa: E501
-            field.discriminator = "type"
+            field.discriminator = self._discriminator
 
     def add_member(self, cls: type):
         if cls in self._members:
@@ -175,7 +179,7 @@ class _TaggedUnion:
             return
         if cls is self._base_class:
             return
-        self._members.add(cls)
+        self._members.append(cls)
         union = self._make_union()
         if union:
             # There are more than 1 subclasses in the union, so set all the referrers
@@ -199,8 +203,6 @@ class _TaggedUnion:
             # note that we use annotations as the class has not been turned into
             # a dataclass yet
             cls.__annotations__[attr_name] = union
-            if not isclass(cls):
-                print(dir(cls.__defaults__))
             self._set_discriminator(cls, attr_name, getattr(cls, attr_name, None))
 
 
