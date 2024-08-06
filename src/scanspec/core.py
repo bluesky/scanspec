@@ -613,10 +613,10 @@ class Midpoints(Generic[Axis]):
     >>> fy = Frames({"y": np.array([3, 4])})
     >>> mp = Midpoints([fy, fx])
     >>> for p in mp: print(p)
-    {'y': 3, 'x': 1}
-    {'y': 3, 'x': 2}
-    {'y': 4, 'x': 2}
-    {'y': 4, 'x': 1}
+    {'y': np.int64(3), 'x': np.int64(1)}
+    {'y': np.int64(3), 'x': np.int64(2)}
+    {'y': np.int64(4), 'x': np.int64(2)}
+    {'y': np.int64(4), 'x': np.int64(1)}
     """
 
     def __init__(self, stack: List[Frames[Axis]]):
