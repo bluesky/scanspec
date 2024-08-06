@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from functools import partial
+from inspect import isclass
 from typing import (
     Any,
     Callable,
@@ -118,7 +119,7 @@ def discriminated_union_of_subclasses(cls):
         Union[Type, Callable[[Type], Type]]: A decorator that adds the necessary
             functionality to a class.
     """
-    tagged_union = _TaggedUnion()
+    tagged_union = _TaggedUnion(cls)
     _tagged_unions[cls] = tagged_union
     cls.__init_subclass__ = classmethod(__init_subclass__)
     cls.__get_pydantic_core_schema__ = classmethod(
@@ -127,12 +128,28 @@ def discriminated_union_of_subclasses(cls):
     return cls
 
 
+T = TypeVar("T", type, Callable)
+
+
+def deserialize_as(cls, obj):
+    return TypeAdapter(_tagged_unions[cls]._make_union()).validate_python(obj)
+
+
+def uses_tagged_union(cls_or_func: T) -> T:
+    for k, v in get_type_hints(cls_or_func).items():
+        tagged_union = _tagged_unions.get(get_origin(v) or v, None)
+        if tagged_union:
+            tagged_union.add_referrer(cls_or_func, k)
+    return cls_or_func
+
+
 class _TaggedUnion:
-    def __init__(self):
+    def __init__(self, base_class: type):
+        self._base_class = base_class
         # The members of the tagged union, i.e. subclasses of the baseclasses
         self._members: set[type] = set()
         # Classes and their field names that refer to this tagged union
-        self._referrers: dict[type, set[str]] = {}
+        self._referrers: dict[type | Callable, set[str]] = {}
         self.type_adapter = TypeAdapter(None)
 
     def _make_union(self):
@@ -142,13 +159,14 @@ class _TaggedUnion:
             # Unions are only valid with more than 1 member
             return Union[tuple(self._members)]  # type: ignore
 
-    def _set_discriminator(self, cls: type, field_name: str, field: Any):
+    def _set_discriminator(self, cls: type | Callable, field_name: str, field: Any):
         # Set the field to use the `type` discriminator on deserialize
         # https://docs.pydantic.dev/2.8/concepts/unions/#discriminated-unions-with-str-discriminators
-        assert isinstance(
-            field, FieldInfo
-        ), f"Expected {cls.__name__}.{field_name} to be a Pydantic field, not {field!r}"
-        field.discriminator = "type"
+        if isclass(cls):
+            assert isinstance(
+                field, FieldInfo
+            ), f"Expected {cls.__name__}.{field_name} to be a Pydantic field, not {field!r}"
+            field.discriminator = "type"
 
     def add_member(self, cls: type):
         if cls in self._members:
@@ -156,21 +174,24 @@ class _TaggedUnion:
             # called muliple times for the same member, do no process if it wouldn't
             # change the member list
             return
+        if cls is self._base_class:
+            return
         self._members.add(cls)
         union = self._make_union()
         if union:
             # There are more than 1 subclasses in the union, so set all the referrers
             # to use this union
             for referrer, fields in self._referrers.items():
-                for field in dataclasses.fields(referrer):
-                    if field.name in fields:
-                        field.type = union
-                        self._set_discriminator(referrer, field.name, field.default)
-                rebuild_dataclass(referrer, force=True)
+                if isclass(referrer):
+                    for field in dataclasses.fields(referrer):
+                        if field.name in fields:
+                            field.type = union
+                            self._set_discriminator(referrer, field.name, field.default)
+                    rebuild_dataclass(referrer, force=True)
             # Make a type adapter for use in deserialization
             self.type_adapter = TypeAdapter(union)
 
-    def add_referrer(self, cls: type, attr_name: str):
+    def add_referrer(self, cls: type | Callable, attr_name: str):
         self._referrers.setdefault(cls, set()).add(attr_name)
         union = self._make_union()
         if union:
@@ -179,6 +200,8 @@ class _TaggedUnion:
             # note that we use annotations as the class has not been turned into
             # a dataclass yet
             cls.__annotations__[attr_name] = union
+            if not isclass(cls):
+                print(dir(cls.__defaults__))
             self._set_discriminator(cls, attr_name, getattr(cls, attr_name, None))
 
 
@@ -640,10 +663,10 @@ class Midpoints(Generic[Axis]):
     >>> fy = Frames({"y": np.array([3, 4])})
     >>> mp = Midpoints([fy, fx])
     >>> for p in mp: print(p)
-    {'y': 3, 'x': 1}
-    {'y': 3, 'x': 2}
-    {'y': 4, 'x': 2}
-    {'y': 4, 'x': 1}
+    {'y': np.int64(3), 'x': np.int64(1)}
+    {'y': np.int64(3), 'x': np.int64(2)}
+    {'y': np.int64(4), 'x': np.int64(2)}
+    {'y': np.int64(4), 'x': np.int64(1)}
     """
 
     def __init__(self, stack: List[Frames[Axis]]):

@@ -1,10 +1,20 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, Tuple, Type
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Type,
+)
 
 import numpy as np
-from pydantic import Field, parse_obj_as
+from pydantic import Field, validate_call
 from pydantic.dataclasses import dataclass
 
 from .core import (
@@ -14,6 +24,7 @@ from .core import (
     Path,
     SnakedFrames,
     StrictConfig,
+    deserialize_as,
     discriminated_union_of_subclasses,
     gap_between_frames,
     if_instance_do,
@@ -43,6 +54,7 @@ __all__ = [
 DURATION = "DURATION"
 
 
+@dataclass(config=StrictConfig)
 @discriminated_union_of_subclasses
 class Spec(Generic[Axis]):
     """A serializable representation of the type and parameters of a scan.
@@ -108,7 +120,54 @@ class Spec(Generic[Axis]):
     @classmethod
     def deserialize(cls, obj):
         """Deserialize the spec from a dictionary."""
-        return parse_obj_as(cls, obj)
+        return deserialize_as(cls, obj)
+
+
+@dataclass(config=StrictConfig)
+class Concat(Spec[Axis]):
+    """Concatenate two Specs together, running one after the other.
+
+    Each Dimension of left and right must contain the same axes. Typically
+    formed using `Spec.concat`.
+
+    .. example_spec::
+
+        from scanspec.specs import Line
+
+        spec = Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5))
+    """
+
+    left: Spec[Axis] = Field(
+        description="The left-hand Spec to Concat, midpoints will appear earlier"
+    )
+    right: Spec[Axis] = Field(
+        description="The right-hand Spec to Concat, midpoints will appear later"
+    )
+
+    gap: bool = Field(
+        description="If True, force a gap in the output at the join", default=False
+    )
+    check_path_changes: bool = Field(
+        description="If True path through scan will not be modified by squash",
+        default=True,
+    )
+
+    def axes(self) -> List:
+        left_axes, right_axes = self.left.axes(), self.right.axes()
+        # Assuming the axes are the same, the order does not matter, we inherit the
+        # order from the left-hand side. See also scanspec.core.concat.
+        assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
+        return left_axes
+
+    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+        dim_left = squash_frames(
+            self.left.calculate(bounds, nested), nested and self.check_path_changes
+        )
+        dim_right = squash_frames(
+            self.right.calculate(bounds, nested), nested and self.check_path_changes
+        )
+        dim = dim_left.concat(dim_right, self.gap)
+        return [dim]
 
 
 @dataclass(config=StrictConfig)
@@ -174,6 +233,9 @@ class Line(Spec[Axis]):
         return cls(axis, start, stop, num)
 
 
+Line.bounded = validate_call(Line.bounded)
+
+
 @dataclass(config=StrictConfig)
 class Static(Spec[Axis]):
     """A static frame, repeated num times, with axis at value.
@@ -217,6 +279,9 @@ class Static(Spec[Axis]):
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
         )
+
+
+Static.duration = validate_call(Static.duration)
 
 
 @dataclass(config=StrictConfig)
@@ -302,6 +367,9 @@ class Spiral(Spec[Axis]):
         return cls(
             x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate
         )
+
+
+Spiral.spaced = validate_call(Spiral.spaced)
 
 
 @dataclass(config=StrictConfig)
@@ -473,12 +541,12 @@ class Mask(Spec[Axis]):
             # Find the start and end index of any dimensions containing these axes
             matches = [i for i, d in enumerate(frames) if set(d.axes()) & axis_set]
             assert matches, f"No Specs match axes {list(axis_set)}"
-            si, ei = bool(matches[0]), bool(matches[-1])
+            si, ei = matches[0], matches[-1]
             if si != ei:
                 # The axis_set spans multiple Dimensions, squash them together
                 # If the spec to be squashed is nested (inside the Mask or outside)
                 # then check the path changes if requested
-                check_path_changes = (nested or si) and self.check_path_changes
+                check_path_changes = bool(nested or si) and self.check_path_changes
                 squashed = squash_frames(frames[si : ei + 1], check_path_changes)
                 frames = frames[:si] + [squashed] + frames[ei + 1 :]
         # Generate masks from the midpoints showing what's inside
@@ -530,53 +598,6 @@ class Snake(Spec[Axis]):
             SnakedFrames.from_frames(segment)
             for segment in self.spec.calculate(bounds, nested)
         ]
-
-
-@dataclass(config=StrictConfig)
-class Concat(Spec[Axis]):
-    """Concatenate two Specs together, running one after the other.
-
-    Each Dimension of left and right must contain the same axes. Typically
-    formed using `Spec.concat`.
-
-    .. example_spec::
-
-        from scanspec.specs import Line
-
-        spec = Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5))
-    """
-
-    left: Spec[Axis] = Field(
-        description="The left-hand Spec to Concat, midpoints will appear earlier"
-    )
-    right: Spec[Axis] = Field(
-        description="The right-hand Spec to Concat, midpoints will appear later"
-    )
-
-    gap: bool = Field(
-        description="If True, force a gap in the output at the join", default=False
-    )
-    check_path_changes: bool = Field(
-        description="If True path through scan will not be modified by squash",
-        default=True,
-    )
-
-    def axes(self) -> List:
-        left_axes, right_axes = self.left.axes(), self.right.axes()
-        # Assuming the axes are the same, the order does not matter, we inherit the
-        # order from the left-hand side. See also scanspec.core.concat.
-        assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
-        return left_axes
-
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
-        dim_left = squash_frames(
-            self.left.calculate(bounds, nested), nested and self.check_path_changes
-        )
-        dim_right = squash_frames(
-            self.right.calculate(bounds, nested), nested and self.check_path_changes
-        )
-        dim = dim_left.concat(dim_right, self.gap)
-        return [dim]
 
 
 @dataclass(config=StrictConfig)

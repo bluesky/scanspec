@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D, proj3d
 from scipy import interpolate
 
-from .core import Path
+from .core import Path, uses_tagged_union
 from .regions import Circle, Ellipse, Polygon, Rectangle, Region, find_regions
 from .specs import DURATION, Spec
 
@@ -85,6 +85,7 @@ def _plot_spline(axes, ranges, arrays: List[np.ndarray], index_colours: Dict[int
             yield unscaled_splines
 
 
+@uses_tagged_union
 def plot_spec(spec: Spec[Any], title: Optional[str] = None):
     """Plot a spec, drawing the path taken through the scan.
 

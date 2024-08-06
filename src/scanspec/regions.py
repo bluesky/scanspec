@@ -32,6 +32,7 @@ __all__ = [
 
 
 @discriminated_union_of_subclasses
+@dataclass(config=StrictConfig)
 class Region(Generic[Axis]):
     """Abstract baseclass for a Region that can `Mask` a `Spec`.
 
