@@ -16,9 +16,6 @@
                             "schema": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/components/schemas/Concat-Input"
-                                    },
-                                    {
                                         "$ref": "#/components/schemas/Product-Input"
                                     },
                                     {
@@ -32,6 +29,9 @@
                                     },
                                     {
                                         "$ref": "#/components/schemas/Snake-Input"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Concat-Input"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Squash-Input"
@@ -240,9 +240,6 @@
                             "schema": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/components/schemas/Concat-Input"
-                                    },
-                                    {
                                         "$ref": "#/components/schemas/Product-Input"
                                     },
                                     {
@@ -256,6 +253,9 @@
                                     },
                                     {
                                         "$ref": "#/components/schemas/Snake-Input"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Concat-Input"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Squash-Input"
@@ -330,9 +330,6 @@
                             "schema": {
                                 "anyOf": [
                                     {
-                                        "$ref": "#/components/schemas/Concat-Input"
-                                    },
-                                    {
                                         "$ref": "#/components/schemas/Product-Input"
                                     },
                                     {
@@ -346,6 +343,9 @@
                                     },
                                     {
                                         "$ref": "#/components/schemas/Snake-Input"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Concat-Input"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Squash-Input"
@@ -779,9 +779,6 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -795,6 +792,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
@@ -830,9 +830,6 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -846,6 +843,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
@@ -914,9 +914,6 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -930,6 +927,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
@@ -965,9 +965,6 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -981,6 +978,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
@@ -1676,9 +1676,6 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -1692,6 +1689,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
@@ -1805,9 +1805,6 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -1821,6 +1818,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
@@ -1993,9 +1993,6 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -2009,6 +2006,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
@@ -2125,9 +2125,6 @@
                     "outer": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -2141,6 +2138,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
@@ -2176,9 +2176,6 @@
                     "inner": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -2192,6 +2189,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
@@ -2248,9 +2248,6 @@
                     "outer": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -2264,6 +2261,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
@@ -2299,9 +2299,6 @@
                     "inner": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -2315,6 +2312,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
@@ -2522,9 +2522,6 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -2538,6 +2535,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
@@ -2593,9 +2593,6 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -2609,6 +2606,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
@@ -2730,9 +2730,6 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -2746,6 +2743,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
@@ -2807,9 +2807,6 @@
                     "spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -2823,6 +2820,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
@@ -3413,9 +3413,6 @@
                     "input_spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -3429,6 +3426,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
@@ -3464,9 +3464,6 @@
                     "valid_spec": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -3480,6 +3477,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
@@ -3559,9 +3559,6 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -3575,6 +3572,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
@@ -3610,9 +3610,6 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -3626,6 +3623,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
@@ -3682,9 +3682,6 @@
                     "left": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -3698,6 +3695,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
@@ -3733,9 +3733,6 @@
                     "right": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -3749,6 +3746,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Snake-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"

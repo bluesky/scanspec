@@ -117,53 +117,6 @@ class Spec(Generic[Axis]):
 
 
 @dataclass(config=StrictConfig)
-class Concat(Spec[Axis]):
-    """Concatenate two Specs together, running one after the other.
-
-    Each Dimension of left and right must contain the same axes. Typically
-    formed using `Spec.concat`.
-
-    .. example_spec::
-
-        from scanspec.specs import Line
-
-        spec = Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5))
-    """
-
-    left: Spec[Axis] = Field(
-        description="The left-hand Spec to Concat, midpoints will appear earlier"
-    )
-    right: Spec[Axis] = Field(
-        description="The right-hand Spec to Concat, midpoints will appear later"
-    )
-
-    gap: bool = Field(
-        description="If True, force a gap in the output at the join", default=False
-    )
-    check_path_changes: bool = Field(
-        description="If True path through scan will not be modified by squash",
-        default=True,
-    )
-
-    def axes(self) -> list:
-        left_axes, right_axes = self.left.axes(), self.right.axes()
-        # Assuming the axes are the same, the order does not matter, we inherit the
-        # order from the left-hand side. See also scanspec.core.concat.
-        assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
-        return left_axes
-
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
-        dim_left = squash_frames(
-            self.left.calculate(bounds, nested), nested and self.check_path_changes
-        )
-        dim_right = squash_frames(
-            self.right.calculate(bounds, nested), nested and self.check_path_changes
-        )
-        dim = dim_left.concat(dim_right, self.gap)
-        return [dim]
-
-
-@dataclass(config=StrictConfig)
 class Product(Spec[Axis]):
     """Outer product of two Specs, nesting inner within outer.
 
@@ -392,6 +345,53 @@ class Snake(Spec[Axis]):
 
 
 @dataclass(config=StrictConfig)
+class Concat(Spec[Axis]):
+    """Concatenate two Specs together, running one after the other.
+
+    Each Dimension of left and right must contain the same axes. Typically
+    formed using `Spec.concat`.
+
+    .. example_spec::
+
+        from scanspec.specs import Line
+
+        spec = Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5))
+    """
+
+    left: Spec[Axis] = Field(
+        description="The left-hand Spec to Concat, midpoints will appear earlier"
+    )
+    right: Spec[Axis] = Field(
+        description="The right-hand Spec to Concat, midpoints will appear later"
+    )
+
+    gap: bool = Field(
+        description="If True, force a gap in the output at the join", default=False
+    )
+    check_path_changes: bool = Field(
+        description="If True path through scan will not be modified by squash",
+        default=True,
+    )
+
+    def axes(self) -> list:
+        left_axes, right_axes = self.left.axes(), self.right.axes()
+        # Assuming the axes are the same, the order does not matter, we inherit the
+        # order from the left-hand side. See also scanspec.core.concat.
+        assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
+        return left_axes
+
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+        dim_left = squash_frames(
+            self.left.calculate(bounds, nested), nested and self.check_path_changes
+        )
+        dim_right = squash_frames(
+            self.right.calculate(bounds, nested), nested and self.check_path_changes
+        )
+        dim = dim_left.concat(dim_right, self.gap)
+        return [dim]
+
+
+@dataclass(config=StrictConfig)
 class Squash(Spec[Axis]):
     """Squash a stack of Frames together into a single expanded Frames object.
 
@@ -510,6 +510,9 @@ class Line(Spec[Axis]):
         return cls(axis, start, stop, num)
 
 
+"""
+Validation Decorator is requied as we are using custom pydantic core schema validators
+"""
 Line.bounded = validate_call(Line.bounded)  # type:ignore
 
 
