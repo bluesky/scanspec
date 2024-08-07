@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.regions &#8212; scanspec 0.6.7.dev6+gc412930 documentation</title>
+    <title>scanspec.regions &#8212; scanspec 0.6.7.dev7+gf49320c documentation</title>
   
   
   
@@ -38,7 +38,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=d09d6950"></script>
+    <script src="../../_static/documentation_options.js?v=2f065d16"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -472,8 +472,9 @@ document.write(`
   <h1>Source code for scanspec.regions</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterator</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generic</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">is_dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
@@ -483,6 +484,7 @@ document.write(`
     <span class="n">AxesPoints</span><span class="p">,</span>
     <span class="n">Axis</span><span class="p">,</span>
     <span class="n">StrictConfig</span><span class="p">,</span>
+    <span class="n">deserialize_as</span><span class="p">,</span>
     <span class="n">discriminated_union_of_subclasses</span><span class="p">,</span>
     <span class="n">if_instance_do</span><span class="p">,</span>
 <span class="p">)</span>
@@ -542,7 +544,22 @@ document.write(`
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">DifferenceOf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="fm">__xor__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SymmetricDifferenceOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">SymmetricDifferenceOf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">SymmetricDifferenceOf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Region.serialize">
+<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region.serialize">[docs]</a>
+    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Serialize the Region to a dictionary.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">asdict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="Region.deserialize">
+<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region.deserialize">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deserialize the Region from a dictionary.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">deserialize_as</span><span class="p">(</span><span class="n">Region</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span></div>
+</div>
 
 
 
@@ -761,10 +778,10 @@ document.write(`
     <span class="n">x_axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the x axis of the spec&quot;</span><span class="p">)</span>
     <span class="n">y_axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)</span>
     <span class="n">x_verts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Nx1 x coordinates of the polygons vertices&quot;</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">3</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Nx1 x coordinates of the polygons vertices&quot;</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span>
     <span class="p">)</span>
     <span class="n">y_verts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Nx1 y coordinates of the polygons vertices&quot;</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">3</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Nx1 y coordinates of the polygons vertices&quot;</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
@@ -808,7 +825,7 @@ document.write(`
     <span class="n">y_axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)</span>
     <span class="n">x_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central x point of the circle&quot;</span><span class="p">)</span>
     <span class="n">y_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central y point of the circle&quot;</span><span class="p">)</span>
-    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radius of the circle&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radius of the circle&quot;</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
@@ -841,10 +858,10 @@ document.write(`
     <span class="n">x_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central x point of the ellipse&quot;</span><span class="p">)</span>
     <span class="n">y_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central y point of the ellipse&quot;</span><span class="p">)</span>
     <span class="n">x_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the x axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the x axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span>
     <span class="p">)</span>
     <span class="n">y_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the y axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">exc_min</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the y axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span>
     <span class="p">)</span>
     <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The angle of the ellipse (degrees)&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
@@ -870,8 +887,10 @@ document.write(`
 <a class="viewcode-back" href="../../reference/api.html#scanspec.regions.find_regions">[docs]</a>
 <span class="k">def</span> <span class="nf">find_regions</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Recursively yield Regions from obj and its children.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__pydantic_model__&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span>
-        <span class="n">obj</span><span class="o">.</span><span class="n">__pydantic_model__</span><span class="p">,</span> <span class="n">BaseModel</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__pydantic_model__&quot;</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">__pydantic_model__</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="n">is_dataclass</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Region</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">obj</span>
