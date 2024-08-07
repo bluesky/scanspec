@@ -86,10 +86,8 @@ def _plot_spline(axes, ranges, arrays: list[np.ndarray], index_colours: dict[int
             yield unscaled_splines
 
 
-
 @uses_tagged_union
 def plot_spec(spec: Spec[Any], title: str | None = None):
-
     """Plot a spec, drawing the path taken through the scan.
 
     Uses a different colour for each frame, grey for the turnarounds, and

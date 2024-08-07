@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-
-from dataclasses import is_dataclass
-from typing import Generic, Iterator, List, Set
 from collections.abc import Iterator
+from dataclasses import is_dataclass
 from typing import Generic
-
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -112,7 +109,7 @@ class Range(Region[Axis]):
     min: float = Field(description="The minimum inclusive value in the region")
     max: float = Field(description="The minimum inclusive value in the region")
 
-    def axis_sets(self) -> List[Set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:
         return [{self.axis}]
 
     def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
@@ -144,7 +141,7 @@ class Rectangle(Region[Axis]):
         description="Clockwise rotation angle of the rectangle", default=0.0
     )
 
-    def axis_sets(self) -> List[Set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:
         return [{self.x_axis, self.y_axis}]
 
     def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
@@ -177,14 +174,14 @@ class Polygon(Region[Axis]):
 
     x_axis: Axis = Field(description="The name matching the x axis of the spec")
     y_axis: Axis = Field(description="The name matching the y axis of the spec")
-    x_verts: List[float] = Field(
+    x_verts: list[float] = Field(
         description="The Nx1 x coordinates of the polygons vertices", min_length=3
     )
-    y_verts: List[float] = Field(
+    y_verts: list[float] = Field(
         description="The Nx1 y coordinates of the polygons vertices", min_length=3
     )
 
-    def axis_sets(self) -> List[Set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:
         return [{self.x_axis, self.y_axis}]
 
     def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
@@ -192,7 +189,7 @@ class Polygon(Region[Axis]):
         y = points[self.y_axis]
         v1x, v1y = self.x_verts[-1], self.y_verts[-1]
         mask = np.full(len(x), False, dtype=np.int8)
-        for v2x, v2y in zip(self.x_verts, self.y_verts):
+        for v2x, v2y in zip(self.x_verts, self.y_verts, strict=False):
             # skip horizontal edges
             if v2y != v1y:
                 vmask = np.full(len(x), False, dtype=np.int8)
@@ -224,7 +221,7 @@ class Circle(Region[Axis]):
     y_middle: float = Field(description="The central y point of the circle")
     radius: float = Field(description="Radius of the circle", gt=0)
 
-    def axis_sets(self) -> List[Set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:
         return [{self.x_axis, self.y_axis}]
 
     def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
@@ -259,7 +256,7 @@ class Ellipse(Region[Axis]):
     )
     angle: float = Field(description="The angle of the ellipse (degrees)", default=0.0)
 
-    def axis_sets(self) -> List[Set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:
         return [{self.x_axis, self.y_axis}]
 
     def mask(self, points: AxesPoints[Axis]) -> np.ndarray:

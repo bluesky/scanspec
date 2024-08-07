@@ -4,14 +4,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import asdict
 from typing import (
     Any,
-    Callable,
-    Dict,
     Generic,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Type,
 )
 
 import numpy as np
@@ -153,14 +146,14 @@ class Concat(Spec[Axis]):
         default=True,
     )
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         left_axes, right_axes = self.left.axes(), self.right.axes()
         # Assuming the axes are the same, the order does not matter, we inherit the
         # order from the left-hand side. See also scanspec.core.concat.
         assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
         return left_axes
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         dim_left = squash_frames(
             self.left.calculate(bounds, nested), nested and self.check_path_changes
         )
@@ -187,10 +180,10 @@ class Line(Spec[Axis]):
     stop: float = Field(description="Midpoint of the last point of the line")
     num: int = Field(ge=1, description="Number of frames to produce")
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         return [self.axis]
 
-    def _line_from_indexes(self, indexes: np.ndarray) -> Dict[Axis, np.ndarray]:
+    def _line_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
         if self.num == 1:
             # Only one point, stop-start gives length of one point
             step = self.stop - self.start
@@ -202,7 +195,7 @@ class Line(Spec[Axis]):
         first = self.start - step / 2
         return {self.axis: indexes * step + first}
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         return _dimensions_from_indexes(
             self._line_from_indexes, self.axes(), self.num, bounds
         )
@@ -256,7 +249,7 @@ class Static(Spec[Axis]):
 
     @classmethod
     def duration(
-        cls: Type[Static],
+        cls: type[Static],
         duration: float = Field(description="The duration of each static point"),
         num: int = Field(ge=1, description="Number of frames to produce", default=1),
     ) -> Static[str]:
@@ -270,13 +263,13 @@ class Static(Spec[Axis]):
         """
         return cls(DURATION, duration, num)
 
-    def axes(self) -> List:
+    def axes(self) -> list:
         return [self.axis]
 
-    def _repeats_from_indexes(self, indexes: np.ndarray) -> Dict[Axis, np.ndarray]:
+    def _repeats_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
         return {self.axis: np.full(len(indexes), self.value)}
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
         )
@@ -312,11 +305,11 @@ class Spiral(Spec[Axis]):
         description="How much to rotate the angle of the spiral", default=0.0
     )
 
-    def axes(self) -> List[Axis]:
+    def axes(self) -> list[Axis]:
         # TODO: reversed from __init__ args, a good idea?
         return [self.y_axis, self.x_axis]
 
-    def _spiral_from_indexes(self, indexes: np.ndarray) -> Dict[Axis, np.ndarray]:
+    def _spiral_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
         # simplest spiral equation: r = phi
         # we want point spacing across area to be the same as between rings
         # so: sqrt(area / num) = ring_spacing
@@ -333,7 +326,7 @@ class Spiral(Spec[Axis]):
             self.x_axis: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
         }
 
-    def calculate(self, bounds=True, nested=False) -> List[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self.num, bounds
         )

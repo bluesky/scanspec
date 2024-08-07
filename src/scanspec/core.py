@@ -1,20 +1,14 @@
 from __future__ import annotations
+
 import dataclasses
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from functools import partial
 from inspect import isclass
 from typing import (
     Any,
-    Callable,
-    Dict,
     Generic,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Sequence,
-    Type,
+    Literal,
     TypeVar,
-    Union,
     get_origin,
     get_type_hints,
 )
@@ -28,16 +22,6 @@ from pydantic import (
 )
 from pydantic.dataclasses import rebuild_dataclass
 from pydantic.fields import FieldInfo
-from typing_extensions import Literal
-
-from collections.abc import Callable, Iterable, Iterator, Sequence
-from dataclasses import field
-from typing import Any, Generic, Literal, TypeVar, Union
-
-import numpy as np
-from pydantic import BaseConfig, Extra, Field, ValidationError, create_model
-from pydantic.error_wrappers import ErrorWrapper
-
 
 __all__ = [
     "if_instance_do",
@@ -54,14 +38,13 @@ __all__ = [
 ]
 
 
-StrictConfig: ConfigDict = {"extra": "forbid"}
+StrictConfig: ConfigDict = ConfigDict(extra="forbid")
 
 
 def discriminated_union_of_subclasses(
     cls,
     discriminator: str = "type",
 ):
-
     """Add all subclasses of super_cls to a discriminated union.
 
     For all subclasses of super_cls, add a discriminator field to identify
@@ -142,11 +125,8 @@ def discriminated_union_of_subclasses(
 T = TypeVar("T", type, Callable)
 
 
-
-
 def deserialize_as(cls, obj):
     return TypeAdapter(_tagged_unions[cls]._make_union()).validate_python(obj)
-
 
 
 def uses_tagged_union(cls_or_func: T) -> T:
@@ -155,8 +135,6 @@ def uses_tagged_union(cls_or_func: T) -> T:
         if tagged_union:
             tagged_union.add_referrer(cls_or_func, k)
     return cls_or_func
-
-
 
 
 class _TaggedUnion:
@@ -174,7 +152,7 @@ class _TaggedUnion:
         # https://docs.pydantic.dev/2.8/concepts/unions/#discriminated-unions-with-str-discriminators
         if len(self._members) > 1:
             # Unions are only valid with more than 1 member
-            return Union[tuple(self._members)]  # type: ignore
+            return tuple(self._members)  # type: ignore
 
     def _set_discriminator(self, cls: type | Callable, field_name: str, field: Any):
         # Set the field to use the `type` discriminator on deserialize
