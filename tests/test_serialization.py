@@ -4,7 +4,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from scanspec.regions import Circle, Rectangle, UnionOf
+from scanspec.regions import Circle, Rectangle, Region, UnionOf
 from scanspec.specs import Line, Mask, Spec, Spiral
 
 
@@ -13,6 +13,20 @@ def test_line_serializes() -> None:
     serialized = {"type": "Line", "axis": "x", "start": 0.0, "stop": 1.0, "num": 4}
     assert ob.serialize() == serialized
     assert Spec.deserialize(serialized) == ob
+
+
+def test_circle_serializes() -> None:
+    ob = Circle("x", "y", x_middle=0, y_middle=1, radius=4)
+    serialized = {
+        "x_axis": "x",
+        "y_axis": "y",
+        "x_middle": 0.0,
+        "y_middle": 1.0,
+        "radius": 4.0,
+        "type": "Circle",
+    }
+    assert ob.serialize() == serialized
+    assert Region.deserialize(serialized) == ob
 
 
 def test_masked_circle_serializes() -> None:

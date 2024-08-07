@@ -135,32 +135,10 @@ def uses_tagged_union(cls_or_func: T) -> T:
     Decorator that processes the type hints of a class or function to detect and
     register any tagged unions. If a tagged union is detected in the type hints,
     it registers the class or function as a referrer to that tagged union.
-
     Args:
         cls_or_func (T): The class or function to be processed for tagged unions.
-
     Returns:
         T: The original class or function, unmodified.
-
-    The function works by iterating over the type hints of the provided class or
-    function For each type hint, it checks if the type (or its origin,
-    in the case of generic types) is registered as a tagged union in the
-    global `_tagged_unions` dictionary. If a match is found, the
-    tagged union's `add_referrer` method is called to register the class
-    or function as a referrer.
-
-    Example:
-            class PointsRequest:
-            A request for generated scan points
-                spec: Spec
-        This will register `PointsRequest` and `Spec` with the corresponding tagged
-        union or
-            @uses_tagged_union
-            def valid(
-            spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
-            ) -> ValidResponse | JSONResponse:
-            The decorator helps pydantic in understanding the core schema for the
-            function
     """
     for k, v in get_type_hints(cls_or_func).items():
         tagged_union = _tagged_unions.get(get_origin(v) or v, None)
@@ -198,8 +176,7 @@ class _TaggedUnion:
             # called muliple times for the same member, do no process if it wouldn't
             # change the member list
             return
-        if cls is self._base_class:
-            return
+
         self._members.append(cls)
         union = self._make_union()
         if union:

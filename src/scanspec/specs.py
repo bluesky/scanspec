@@ -511,7 +511,7 @@ class Line(Spec[Axis]):
 
 
 """
-Validation Decorator is requied as we are using custom pydantic core schema validators
+Defers wrapping function with validate_call until class is fully instantiated
 """
 Line.bounded = validate_call(Line.bounded)  # type:ignore
 

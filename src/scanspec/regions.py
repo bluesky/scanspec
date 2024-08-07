@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
-from dataclasses import is_dataclass
-from typing import Generic
+from collections.abc import Iterator, Mapping
+from dataclasses import asdict, is_dataclass
+from typing import Any, Generic
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -65,6 +65,10 @@ class Region(Generic[Axis]):
 
     def __xor__(self, other) -> SymmetricDifferenceOf[Axis]:
         return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(self, o))
+
+    def serialize(self) -> Mapping[str, Any]:
+        """Serialize the Region to a dictionary."""
+        return asdict(self)  # type: ignore
 
     @staticmethod
     def deserialize(obj):
