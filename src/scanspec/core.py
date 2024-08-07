@@ -9,6 +9,7 @@ from typing import (
     Generic,
     Literal,
     TypeVar,
+    Union,
     get_origin,
     get_type_hints,
 )
@@ -38,7 +39,7 @@ __all__ = [
 ]
 
 
-StrictConfig: ConfigDict = ConfigDict(extra="forbid")
+StrictConfig: ConfigDict = {"extra": "forbid"}
 
 
 def discriminated_union_of_subclasses(
@@ -115,7 +116,7 @@ def discriminated_union_of_subclasses(
     """
     tagged_union = _TaggedUnion(cls, discriminator)
     _tagged_unions[cls] = tagged_union
-    cls.__init_subclass__ = classmethod(__init_subclass__)
+    cls.__init_subclass__ = classmethod(partial(__init_subclass__, discriminator))
     cls.__get_pydantic_core_schema__ = classmethod(
         partial(__get_pydantic_core_schema__, tagged_union=tagged_union)
     )
@@ -126,7 +127,7 @@ T = TypeVar("T", type, Callable)
 
 
 def deserialize_as(cls, obj):
-    return TypeAdapter(_tagged_unions[cls]._make_union()).validate_python(obj)
+    return _tagged_unions[cls].type_adapter.validate_python(obj)
 
 
 def uses_tagged_union(cls_or_func: T) -> T:
@@ -148,11 +149,8 @@ class _TaggedUnion:
         self._discriminator = discriminator
 
     def _make_union(self):
-        # Make a union of members
-        # https://docs.pydantic.dev/2.8/concepts/unions/#discriminated-unions-with-str-discriminators
-        if len(self._members) > 1:
-            # Unions are only valid with more than 1 member
-            return tuple(self._members)  # type: ignore
+        if len(self._members) > 0:
+            return Union[tuple(self._members)]  # type: ignore  # noqa
 
     def _set_discriminator(self, cls: type | Callable, field_name: str, field: Any):
         # Set the field to use the `type` discriminator on deserialize
@@ -201,12 +199,12 @@ class _TaggedUnion:
 _tagged_unions: dict[type, _TaggedUnion] = {}
 
 
-def __init_subclass__(cls: type):
+def __init_subclass__(discriminator: str, cls: type):
     # Add a discriminator field to the class so it can
     # be identified when deserailizing, and make sure it is last in the list
     cls.__annotations__ = {
         **cls.__annotations__,
-        "type": Literal[cls.__name__],  # type: ignore
+        discriminator: Literal[cls.__name__],  # type: ignore
     }
     cls.type = Field(cls.__name__, repr=False)  # type: ignore
     # Replace any bare annotation with a discriminated union of subclasses

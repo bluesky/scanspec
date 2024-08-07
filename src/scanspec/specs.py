@@ -48,7 +48,6 @@ __all__ = [
 DURATION = "DURATION"
 
 
-@dataclass(config=StrictConfig)
 @discriminated_union_of_subclasses
 class Spec(Generic[Axis]):
     """A serializable representation of the type and parameters of a scan.
@@ -111,10 +110,10 @@ class Spec(Generic[Axis]):
         """Serialize the spec to a dictionary."""
         return asdict(self)  # type: ignore
 
-    @classmethod
-    def deserialize(cls, obj):
+    @staticmethod
+    def deserialize(obj):
         """Deserialize the spec from a dictionary."""
-        return deserialize_as(cls, obj)
+        return deserialize_as(Spec, obj)
 
 
 @dataclass(config=StrictConfig)
@@ -162,208 +161,6 @@ class Concat(Spec[Axis]):
         )
         dim = dim_left.concat(dim_right, self.gap)
         return [dim]
-
-
-@dataclass(config=StrictConfig)
-class Line(Spec[Axis]):
-    """Linearly spaced frames with start and stop as first and last midpoints.
-
-    .. example_spec::
-
-        from scanspec.specs import Line
-
-        spec = Line("x", 1, 2, 5)
-    """
-
-    axis: Axis = Field(description="An identifier for what to move")
-    start: float = Field(description="Midpoint of the first point of the line")
-    stop: float = Field(description="Midpoint of the last point of the line")
-    num: int = Field(ge=1, description="Number of frames to produce")
-
-    def axes(self) -> list:
-        return [self.axis]
-
-    def _line_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
-        if self.num == 1:
-            # Only one point, stop-start gives length of one point
-            step = self.stop - self.start
-        else:
-            # Multiple points, stop-start gives length of num-1 points
-            step = (self.stop - self.start) / (self.num - 1)
-        # self.start is the first centre point, but we need the lower bound
-        # of the first point as this is where the index array starts
-        first = self.start - step / 2
-        return {self.axis: indexes * step + first}
-
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
-        return _dimensions_from_indexes(
-            self._line_from_indexes, self.axes(), self.num, bounds
-        )
-
-    @classmethod
-    def bounded(
-        cls,
-        axis: Axis = Field(description="An identifier for what to move"),
-        lower: float = Field(description="Lower bound of the first point of the line"),
-        upper: float = Field(description="Upper bound of the last point of the line"),
-        num: int = Field(ge=1, description="Number of frames to produce"),
-    ) -> Line[Axis]:
-        """Specify a Line by extreme bounds instead of midpoints.
-
-        .. example_spec::
-
-            from scanspec.specs import Line
-
-            spec = Line.bounded("x", 1, 2, 5)
-        """
-        half_step = (upper - lower) / num / 2
-        start = lower + half_step
-        if num == 1:
-            # One point, stop will only be used for step size
-            stop = upper + half_step
-        else:
-            # Many points, stop will be produced
-            stop = upper - half_step
-        return cls(axis, start, stop, num)
-
-
-Line.bounded = validate_call(Line.bounded)  # type:ignore
-
-
-@dataclass(config=StrictConfig)
-class Static(Spec[Axis]):
-    """A static frame, repeated num times, with axis at value.
-
-    Can be used to set axis=value at every point in a scan.
-
-    .. example_spec::
-
-        from scanspec.specs import Line, Static
-
-        spec = Line("y", 1, 2, 3).zip(Static("x", 3))
-    """
-
-    axis: Axis = Field(description="An identifier for what to move")
-    value: float = Field(description="The value at each point")
-    num: int = Field(ge=1, description="Number of frames to produce", default=1)
-
-    @classmethod
-    def duration(
-        cls: type[Static],
-        duration: float = Field(description="The duration of each static point"),
-        num: int = Field(ge=1, description="Number of frames to produce", default=1),
-    ) -> Static[str]:
-        """A static spec with no motion, only a duration repeated "num" times.
-
-        .. example_spec::
-
-            from scanspec.specs import Line, Static
-
-            spec = Line("y", 1, 2, 3).zip(Static.duration(0.1))
-        """
-        return cls(DURATION, duration, num)
-
-    def axes(self) -> list:
-        return [self.axis]
-
-    def _repeats_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
-        return {self.axis: np.full(len(indexes), self.value)}
-
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
-        return _dimensions_from_indexes(
-            self._repeats_from_indexes, self.axes(), self.num, bounds
-        )
-
-
-Static.duration = validate_call(Static.duration)  # type:ignore
-
-
-@dataclass(config=StrictConfig)
-class Spiral(Spec[Axis]):
-    """Archimedean spiral of "x_axis" and "y_axis".
-
-    Starts at centre point ("x_start", "y_start") with angle "rotate". Produces
-    "num" points in a spiral spanning width of "x_range" and height of "y_range"
-
-    .. example_spec::
-
-        from scanspec.specs import Spiral
-
-        spec = Spiral("x", "y", 1, 5, 10, 50, 30)
-    """
-
-    # TODO: Make use of typing.Annotated upon fix of
-    # https://github.com/pydantic/pydantic/issues/3496
-    x_axis: Axis = Field(description="An identifier for what to move for x")
-    y_axis: Axis = Field(description="An identifier for what to move for y")
-    x_start: float = Field(description="x centre of the spiral")
-    y_start: float = Field(description="y centre of the spiral")
-    x_range: float = Field(description="x width of the spiral")
-    y_range: float = Field(description="y width of the spiral")
-    num: int = Field(ge=1, description="Number of frames to produce")
-    rotate: float = Field(
-        description="How much to rotate the angle of the spiral", default=0.0
-    )
-
-    def axes(self) -> list[Axis]:
-        # TODO: reversed from __init__ args, a good idea?
-        return [self.y_axis, self.x_axis]
-
-    def _spiral_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
-        # simplest spiral equation: r = phi
-        # we want point spacing across area to be the same as between rings
-        # so: sqrt(area / num) = ring_spacing
-        # so: sqrt(pi * phi^2 / num) = 2 * pi
-        # so: phi = sqrt(4 * pi * num)
-        phi = np.sqrt(4 * np.pi * indexes)
-        # indexes are 0..num inclusive, and diameter is 2x biggest phi
-        diameter = 2 * np.sqrt(4 * np.pi * self.num)
-        # scale so that the spiral is strictly smaller than the range
-        x_scale = self.x_range / diameter
-        y_scale = self.y_range / diameter
-        return {
-            self.y_axis: self.y_start + y_scale * phi * np.cos(phi + self.rotate),
-            self.x_axis: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
-        }
-
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
-        return _dimensions_from_indexes(
-            self._spiral_from_indexes, self.axes(), self.num, bounds
-        )
-
-    @classmethod
-    def spaced(
-        cls,
-        x_axis: Axis = Field(description="An identifier for what to move for x"),
-        y_axis: Axis = Field(description="An identifier for what to move for y"),
-        x_start: float = Field(description="x centre of the spiral"),
-        y_start: float = Field(description="y centre of the spiral"),
-        radius: float = Field(description="radius of the spiral"),
-        dr: float = Field(description="difference between each ring"),
-        rotate: float = Field(
-            description="How much to rotate the angle of the spiral", default=0.0
-        ),
-    ) -> Spiral[Axis]:
-        """Specify a Spiral equally spaced in "x_axis" and "y_axis".
-
-        .. example_spec::
-
-            from scanspec.specs import Spiral
-
-            spec = Spiral.spaced("x", "y", 0, 0, 10, 3)
-        """
-        # phi = sqrt(4 * pi * num)
-        # and: n_rings = phi / (2 * pi)
-        # so: n_rings * 2 * pi = sqrt(4 * pi * num)
-        # so: num = n_rings^2 * pi
-        n_rings = radius / dr
-        num = int(n_rings**2 * np.pi)
-        return cls(
-            x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate
-        )
-
-
-Spiral.spaced = validate_call(Spiral.spaced)  # type:ignore
 
 
 @dataclass(config=StrictConfig)
@@ -648,6 +445,208 @@ def _dimensions_from_indexes(
         # Gap can be calculated in Dimension
         dimension = Frames(midpoints)
     return [dimension]
+
+
+@dataclass(config=StrictConfig)
+class Line(Spec[Axis]):
+    """Linearly spaced frames with start and stop as first and last midpoints.
+
+    .. example_spec::
+
+        from scanspec.specs import Line
+
+        spec = Line("x", 1, 2, 5)
+    """
+
+    axis: Axis = Field(description="An identifier for what to move")
+    start: float = Field(description="Midpoint of the first point of the line")
+    stop: float = Field(description="Midpoint of the last point of the line")
+    num: int = Field(ge=1, description="Number of frames to produce")
+
+    def axes(self) -> list:
+        return [self.axis]
+
+    def _line_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
+        if self.num == 1:
+            # Only one point, stop-start gives length of one point
+            step = self.stop - self.start
+        else:
+            # Multiple points, stop-start gives length of num-1 points
+            step = (self.stop - self.start) / (self.num - 1)
+        # self.start is the first centre point, but we need the lower bound
+        # of the first point as this is where the index array starts
+        first = self.start - step / 2
+        return {self.axis: indexes * step + first}
+
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+        return _dimensions_from_indexes(
+            self._line_from_indexes, self.axes(), self.num, bounds
+        )
+
+    @classmethod
+    def bounded(
+        cls,
+        axis: Axis = Field(description="An identifier for what to move"),
+        lower: float = Field(description="Lower bound of the first point of the line"),
+        upper: float = Field(description="Upper bound of the last point of the line"),
+        num: int = Field(ge=1, description="Number of frames to produce"),
+    ) -> Line[Axis]:
+        """Specify a Line by extreme bounds instead of midpoints.
+
+        .. example_spec::
+
+            from scanspec.specs import Line
+
+            spec = Line.bounded("x", 1, 2, 5)
+        """
+        half_step = (upper - lower) / num / 2
+        start = lower + half_step
+        if num == 1:
+            # One point, stop will only be used for step size
+            stop = upper + half_step
+        else:
+            # Many points, stop will be produced
+            stop = upper - half_step
+        return cls(axis, start, stop, num)
+
+
+Line.bounded = validate_call(Line.bounded)  # type:ignore
+
+
+@dataclass(config=StrictConfig)
+class Static(Spec[Axis]):
+    """A static frame, repeated num times, with axis at value.
+
+    Can be used to set axis=value at every point in a scan.
+
+    .. example_spec::
+
+        from scanspec.specs import Line, Static
+
+        spec = Line("y", 1, 2, 3).zip(Static("x", 3))
+    """
+
+    axis: Axis = Field(description="An identifier for what to move")
+    value: float = Field(description="The value at each point")
+    num: int = Field(ge=1, description="Number of frames to produce", default=1)
+
+    @classmethod
+    def duration(
+        cls: type[Static],
+        duration: float = Field(description="The duration of each static point"),
+        num: int = Field(ge=1, description="Number of frames to produce", default=1),
+    ) -> Static[str]:
+        """A static spec with no motion, only a duration repeated "num" times.
+
+        .. example_spec::
+
+            from scanspec.specs import Line, Static
+
+            spec = Line("y", 1, 2, 3).zip(Static.duration(0.1))
+        """
+        return cls(DURATION, duration, num)
+
+    def axes(self) -> list:
+        return [self.axis]
+
+    def _repeats_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
+        return {self.axis: np.full(len(indexes), self.value)}
+
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+        return _dimensions_from_indexes(
+            self._repeats_from_indexes, self.axes(), self.num, bounds
+        )
+
+
+Static.duration = validate_call(Static.duration)  # type:ignore
+
+
+@dataclass(config=StrictConfig)
+class Spiral(Spec[Axis]):
+    """Archimedean spiral of "x_axis" and "y_axis".
+
+    Starts at centre point ("x_start", "y_start") with angle "rotate". Produces
+    "num" points in a spiral spanning width of "x_range" and height of "y_range"
+
+    .. example_spec::
+
+        from scanspec.specs import Spiral
+
+        spec = Spiral("x", "y", 1, 5, 10, 50, 30)
+    """
+
+    # TODO: Make use of typing.Annotated upon fix of
+    # https://github.com/pydantic/pydantic/issues/3496
+    x_axis: Axis = Field(description="An identifier for what to move for x")
+    y_axis: Axis = Field(description="An identifier for what to move for y")
+    x_start: float = Field(description="x centre of the spiral")
+    y_start: float = Field(description="y centre of the spiral")
+    x_range: float = Field(description="x width of the spiral")
+    y_range: float = Field(description="y width of the spiral")
+    num: int = Field(ge=1, description="Number of frames to produce")
+    rotate: float = Field(
+        description="How much to rotate the angle of the spiral", default=0.0
+    )
+
+    def axes(self) -> list[Axis]:
+        # TODO: reversed from __init__ args, a good idea?
+        return [self.y_axis, self.x_axis]
+
+    def _spiral_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
+        # simplest spiral equation: r = phi
+        # we want point spacing across area to be the same as between rings
+        # so: sqrt(area / num) = ring_spacing
+        # so: sqrt(pi * phi^2 / num) = 2 * pi
+        # so: phi = sqrt(4 * pi * num)
+        phi = np.sqrt(4 * np.pi * indexes)
+        # indexes are 0..num inclusive, and diameter is 2x biggest phi
+        diameter = 2 * np.sqrt(4 * np.pi * self.num)
+        # scale so that the spiral is strictly smaller than the range
+        x_scale = self.x_range / diameter
+        y_scale = self.y_range / diameter
+        return {
+            self.y_axis: self.y_start + y_scale * phi * np.cos(phi + self.rotate),
+            self.x_axis: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
+        }
+
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+        return _dimensions_from_indexes(
+            self._spiral_from_indexes, self.axes(), self.num, bounds
+        )
+
+    @classmethod
+    def spaced(
+        cls,
+        x_axis: Axis = Field(description="An identifier for what to move for x"),
+        y_axis: Axis = Field(description="An identifier for what to move for y"),
+        x_start: float = Field(description="x centre of the spiral"),
+        y_start: float = Field(description="y centre of the spiral"),
+        radius: float = Field(description="radius of the spiral"),
+        dr: float = Field(description="difference between each ring"),
+        rotate: float = Field(
+            description="How much to rotate the angle of the spiral", default=0.0
+        ),
+    ) -> Spiral[Axis]:
+        """Specify a Spiral equally spaced in "x_axis" and "y_axis".
+
+        .. example_spec::
+
+            from scanspec.specs import Spiral
+
+            spec = Spiral.spaced("x", "y", 0, 0, 10, 3)
+        """
+        # phi = sqrt(4 * pi * num)
+        # and: n_rings = phi / (2 * pi)
+        # so: n_rings * 2 * pi = sqrt(4 * pi * num)
+        # so: num = n_rings^2 * pi
+        n_rings = radius / dr
+        num = int(n_rings**2 * np.pi)
+        return cls(
+            x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate
+        )
+
+
+Spiral.spaced = validate_call(Spiral.spaced)  # type:ignore
 
 
 def fly(spec: Spec[Axis], duration: float) -> Spec[Axis]:

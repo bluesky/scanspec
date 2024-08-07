@@ -25,7 +25,7 @@ requires-python = ">=3.10"
 # Plotting
 plotting = ["scipy", "matplotlib"]
 # REST service support
-service = ["fastapi>0.100.0", "uvicorn"]
+service = ["fastapi>=0.100.0", "uvicorn"]
 # For development tests/docs
 dev = [
     # This syntax is supported since pip 21.2

@@ -14,18 +14,9 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
+                                "anyOf": [
                                     {
                                         "$ref": "#/components/schemas/Concat-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Line"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Static"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Spiral"
                                     },
                                     {
                                         "$ref": "#/components/schemas/Product-Input"
@@ -44,6 +35,15 @@
                                     },
                                     {
                                         "$ref": "#/components/schemas/Squash-Input"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Line"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Static"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Spiral"
                                     }
                                 ],
                                 "title": "Spec",
@@ -65,22 +65,7 @@
                                         },
                                         "type": "Product"
                                     }
-                                ],
-                                "discriminator": {
-                                    "propertyName": "type",
-                                    "mapping": {
-                                        "Concat": "#/components/schemas/Concat-Input",
-                                        "Line": "#/components/schemas/Line",
-                                        "Static": "#/components/schemas/Static",
-                                        "Spiral": "#/components/schemas/Spiral",
-                                        "Product": "#/components/schemas/Product-Input",
-                                        "Repeat": "#/components/schemas/Repeat",
-                                        "Zip": "#/components/schemas/Zip-Input",
-                                        "Mask": "#/components/schemas/Mask-Input",
-                                        "Snake": "#/components/schemas/Snake-Input",
-                                        "Squash": "#/components/schemas/Squash-Input"
-                                    }
-                                }
+                                ]
                             }
                         }
                     },
@@ -258,15 +243,6 @@
                                         "$ref": "#/components/schemas/Concat-Input"
                                     },
                                     {
-                                        "$ref": "#/components/schemas/Line"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Static"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Spiral"
-                                    },
-                                    {
                                         "$ref": "#/components/schemas/Product-Input"
                                     },
                                     {
@@ -283,6 +259,15 @@
                                     },
                                     {
                                         "$ref": "#/components/schemas/Squash-Input"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Line"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Static"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Spiral"
                                     }
                                 ],
                                 "title": "Spec",
@@ -348,15 +333,6 @@
                                         "$ref": "#/components/schemas/Concat-Input"
                                     },
                                     {
-                                        "$ref": "#/components/schemas/Line"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Static"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Spiral"
-                                    },
-                                    {
                                         "$ref": "#/components/schemas/Product-Input"
                                     },
                                     {
@@ -373,6 +349,15 @@
                                     },
                                     {
                                         "$ref": "#/components/schemas/Squash-Input"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Line"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Static"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/Spiral"
                                     }
                                 ],
                                 "title": "Spec",
@@ -548,6 +533,21 @@
                     "left": {
                         "oneOf": [
                             {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                            },
+                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
@@ -561,21 +561,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Ellipse"
-                            },
-                            {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Left",
@@ -585,19 +570,34 @@
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
                                 "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
                                 "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
                                 "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf",
-                                "UnionOf": "#/components/schemas/UnionOf"
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                                "UnionOf": "#/components/schemas/UnionOf-Input"
                             }
                         }
                     },
                     "right": {
                         "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                            },
                             {
                                 "$ref": "#/components/schemas/Range"
                             },
@@ -612,21 +612,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Ellipse"
-                            },
-                            {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Right",
@@ -636,14 +621,14 @@
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
                                 "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
                                 "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
                                 "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf",
-                                "UnionOf": "#/components/schemas/UnionOf"
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                                "UnionOf": "#/components/schemas/UnionOf-Input"
                             }
                         }
                     },
@@ -671,6 +656,21 @@
                     "left": {
                         "oneOf": [
                             {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                            },
+                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
@@ -684,21 +684,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Ellipse"
-                            },
-                            {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Left",
@@ -708,19 +693,34 @@
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
                                 "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
                                 "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
                                 "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf",
-                                "UnionOf": "#/components/schemas/UnionOf"
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                                "UnionOf": "#/components/schemas/UnionOf-Output"
                             }
                         }
                     },
                     "right": {
                         "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                            },
                             {
                                 "$ref": "#/components/schemas/Range"
                             },
@@ -735,21 +735,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Ellipse"
-                            },
-                            {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Right",
@@ -759,14 +744,14 @@
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
                                 "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
                                 "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
                                 "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf",
-                                "UnionOf": "#/components/schemas/UnionOf"
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                                "UnionOf": "#/components/schemas/UnionOf-Output"
                             }
                         }
                     },
@@ -797,15 +782,6 @@
                                 "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -822,6 +798,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Left",
@@ -848,15 +833,6 @@
                                 "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -873,6 +849,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Right",
@@ -932,15 +917,6 @@
                                 "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -957,6 +933,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Left",
@@ -983,15 +968,6 @@
                                 "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -1008,6 +984,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Right",
@@ -1059,10 +1044,25 @@
                 "title": "Concat",
                 "description": "Concatenate two Specs together, running one after the other.\n\nEach Dimension of left and right must contain the same axes. Typically\nformed using `Spec.concat`.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = Line(\"x\", 1, 3, 3).concat(Line(\"x\", 4, 5, 5))"
             },
-            "DifferenceOf": {
+            "DifferenceOf-Input": {
                 "properties": {
                     "left": {
                         "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                            },
                             {
                                 "$ref": "#/components/schemas/Range"
                             },
@@ -1085,15 +1085,35 @@
                             "propertyName": "type",
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
                                 "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle"
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                                "UnionOf": "#/components/schemas/UnionOf-Input"
                             }
                         }
                     },
                     "right": {
                         "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                            },
                             {
                                 "$ref": "#/components/schemas/Range"
                             },
@@ -1116,10 +1136,138 @@
                             "propertyName": "type",
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
                                 "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle"
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                                "UnionOf": "#/components/schemas/UnionOf-Input"
+                            }
+                        }
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "DifferenceOf"
+                        ],
+                        "const": "DifferenceOf",
+                        "title": "Type",
+                        "default": "DifferenceOf"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "left",
+                    "right"
+                ],
+                "title": "DifferenceOf",
+                "description": "A point is in DifferenceOf(a, b) if in a and not in b.\n\nTypically created with the ``-`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) - Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True, False, False, False])"
+            },
+            "DifferenceOf-Output": {
+                "properties": {
+                    "left": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Range"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Rectangle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Polygon"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
+                            }
+                        ],
+                        "title": "Left",
+                        "description": "The left-hand Region to combine",
+                        "discriminator": {
+                            "propertyName": "type",
+                            "mapping": {
+                                "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
+                                "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
+                                "Polygon": "#/components/schemas/Polygon",
+                                "Range": "#/components/schemas/Range",
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                                "UnionOf": "#/components/schemas/UnionOf-Output"
+                            }
+                        }
+                    },
+                    "right": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Range"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Rectangle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Polygon"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
+                            }
+                        ],
+                        "title": "Right",
+                        "description": "The right-hand Region to combine",
+                        "discriminator": {
+                            "propertyName": "type",
+                            "mapping": {
+                                "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
+                                "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
+                                "Polygon": "#/components/schemas/Polygon",
+                                "Range": "#/components/schemas/Range",
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                                "UnionOf": "#/components/schemas/UnionOf-Output"
                             }
                         }
                     },
@@ -1234,10 +1382,25 @@
                 "type": "object",
                 "title": "HTTPValidationError"
             },
-            "IntersectionOf": {
+            "IntersectionOf-Input": {
                 "properties": {
                     "left": {
                         "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                            },
                             {
                                 "$ref": "#/components/schemas/Range"
                             },
@@ -1260,15 +1423,35 @@
                             "propertyName": "type",
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
                                 "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle"
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                                "UnionOf": "#/components/schemas/UnionOf-Input"
                             }
                         }
                     },
                     "right": {
                         "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                            },
                             {
                                 "$ref": "#/components/schemas/Range"
                             },
@@ -1291,10 +1474,138 @@
                             "propertyName": "type",
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
                                 "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle"
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                                "UnionOf": "#/components/schemas/UnionOf-Input"
+                            }
+                        }
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "IntersectionOf"
+                        ],
+                        "const": "IntersectionOf",
+                        "title": "Type",
+                        "default": "IntersectionOf"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "left",
+                    "right"
+                ],
+                "title": "IntersectionOf",
+                "description": "A point is in IntersectionOf(a, b) if in both a and b.\n\nTypically created with the ``&`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) & Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False, False,  True, False, False])"
+            },
+            "IntersectionOf-Output": {
+                "properties": {
+                    "left": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Range"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Rectangle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Polygon"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
+                            }
+                        ],
+                        "title": "Left",
+                        "description": "The left-hand Region to combine",
+                        "discriminator": {
+                            "propertyName": "type",
+                            "mapping": {
+                                "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
+                                "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
+                                "Polygon": "#/components/schemas/Polygon",
+                                "Range": "#/components/schemas/Range",
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                                "UnionOf": "#/components/schemas/UnionOf-Output"
+                            }
+                        }
+                    },
+                    "right": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Range"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Rectangle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Polygon"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
+                            }
+                        ],
+                        "title": "Right",
+                        "description": "The right-hand Region to combine",
+                        "discriminator": {
+                            "propertyName": "type",
+                            "mapping": {
+                                "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
+                                "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
+                                "Polygon": "#/components/schemas/Polygon",
+                                "Range": "#/components/schemas/Range",
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                                "UnionOf": "#/components/schemas/UnionOf-Output"
                             }
                         }
                     },
@@ -1368,15 +1679,6 @@
                                 "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -1393,6 +1695,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -1416,6 +1727,21 @@
                     "region": {
                         "oneOf": [
                             {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                            },
+                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
@@ -1429,21 +1755,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Ellipse"
-                            },
-                            {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Region",
@@ -1453,14 +1764,14 @@
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
                                 "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
                                 "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
                                 "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf",
-                                "UnionOf": "#/components/schemas/UnionOf"
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                                "UnionOf": "#/components/schemas/UnionOf-Input"
                             }
                         }
                     },
@@ -1497,15 +1808,6 @@
                                 "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -1522,6 +1824,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -1545,6 +1856,21 @@
                     "region": {
                         "oneOf": [
                             {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                            },
+                            {
                                 "$ref": "#/components/schemas/Range"
                             },
                             {
@@ -1558,21 +1884,6 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Ellipse"
-                            },
-                            {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf"
                             }
                         ],
                         "title": "Region",
@@ -1582,14 +1893,14 @@
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
                                 "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
                                 "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
                                 "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf",
-                                "UnionOf": "#/components/schemas/UnionOf"
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                                "UnionOf": "#/components/schemas/UnionOf-Output"
                             }
                         }
                     },
@@ -1685,15 +1996,6 @@
                                 "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -1710,6 +2012,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -1775,18 +2086,18 @@
                             "type": "number"
                         },
                         "type": "array",
+                        "minItems": 3,
                         "title": "X Verts",
-                        "description": "The Nx1 x coordinates of the polygons vertices",
-                        "min_len": 3
+                        "description": "The Nx1 x coordinates of the polygons vertices"
                     },
                     "y_verts": {
                         "items": {
                             "type": "number"
                         },
                         "type": "array",
+                        "minItems": 3,
                         "title": "Y Verts",
-                        "description": "The Nx1 y coordinates of the polygons vertices",
-                        "min_len": 3
+                        "description": "The Nx1 y coordinates of the polygons vertices"
                     },
                     "type": {
                         "type": "string",
@@ -1817,15 +2128,6 @@
                                 "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -1842,6 +2144,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Outer",
@@ -1868,15 +2179,6 @@
                                 "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -1893,6 +2195,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Inner",
@@ -1940,15 +2251,6 @@
                                 "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -1965,6 +2267,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Outer",
@@ -1991,15 +2302,6 @@
                                 "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -2016,6 +2318,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Inner",
@@ -2214,15 +2525,6 @@
                                 "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -2239,6 +2541,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -2285,15 +2596,6 @@
                                 "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -2310,6 +2612,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -2422,15 +2733,6 @@
                                 "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -2447,6 +2749,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -2499,15 +2810,6 @@
                                 "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -2524,6 +2826,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Spec",
@@ -2605,10 +2916,25 @@
                 "title": "Static",
                 "description": "A static frame, repeated num times, with axis at value.\n\nCan be used to set axis=value at every point in a scan.\n\n.. example_spec::\n\n    from scanspec.specs import Line, Static\n\n    spec = Line(\"y\", 1, 2, 3).zip(Static(\"x\", 3))"
             },
-            "SymmetricDifferenceOf": {
+            "SymmetricDifferenceOf-Input": {
                 "properties": {
                     "left": {
                         "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                            },
                             {
                                 "$ref": "#/components/schemas/Range"
                             },
@@ -2631,15 +2957,35 @@
                             "propertyName": "type",
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
                                 "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle"
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                                "UnionOf": "#/components/schemas/UnionOf-Input"
                             }
                         }
                     },
                     "right": {
                         "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                            },
                             {
                                 "$ref": "#/components/schemas/Range"
                             },
@@ -2662,10 +3008,15 @@
                             "propertyName": "type",
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
                                 "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle"
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                                "UnionOf": "#/components/schemas/UnionOf-Input"
                             }
                         }
                     },
@@ -2688,10 +3039,25 @@
                 "title": "SymmetricDifferenceOf",
                 "description": "A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.\n\nTypically created with the ``^`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) ^ Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True, False,  True, False])"
             },
-            "UnionOf": {
+            "SymmetricDifferenceOf-Output": {
                 "properties": {
                     "left": {
                         "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                            },
                             {
                                 "$ref": "#/components/schemas/Range"
                             },
@@ -2714,15 +3080,35 @@
                             "propertyName": "type",
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
                                 "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle"
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                                "UnionOf": "#/components/schemas/UnionOf-Output"
                             }
                         }
                     },
                     "right": {
                         "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                            },
                             {
                                 "$ref": "#/components/schemas/Range"
                             },
@@ -2745,10 +3131,261 @@
                             "propertyName": "type",
                             "mapping": {
                                 "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
                                 "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
                                 "Polygon": "#/components/schemas/Polygon",
                                 "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle"
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                                "UnionOf": "#/components/schemas/UnionOf-Output"
+                            }
+                        }
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "SymmetricDifferenceOf"
+                        ],
+                        "const": "SymmetricDifferenceOf",
+                        "title": "Type",
+                        "default": "SymmetricDifferenceOf"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "left",
+                    "right"
+                ],
+                "title": "SymmetricDifferenceOf",
+                "description": "A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.\n\nTypically created with the ``^`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) ^ Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True, False,  True, False])"
+            },
+            "UnionOf-Input": {
+                "properties": {
+                    "left": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Range"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Rectangle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Polygon"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
+                            }
+                        ],
+                        "title": "Left",
+                        "description": "The left-hand Region to combine",
+                        "discriminator": {
+                            "propertyName": "type",
+                            "mapping": {
+                                "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
+                                "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
+                                "Polygon": "#/components/schemas/Polygon",
+                                "Range": "#/components/schemas/Range",
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                                "UnionOf": "#/components/schemas/UnionOf-Input"
+                            }
+                        }
+                    },
+                    "right": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Range"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Rectangle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Polygon"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
+                            }
+                        ],
+                        "title": "Right",
+                        "description": "The right-hand Region to combine",
+                        "discriminator": {
+                            "propertyName": "type",
+                            "mapping": {
+                                "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
+                                "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
+                                "Polygon": "#/components/schemas/Polygon",
+                                "Range": "#/components/schemas/Range",
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                                "UnionOf": "#/components/schemas/UnionOf-Input"
+                            }
+                        }
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "UnionOf"
+                        ],
+                        "const": "UnionOf",
+                        "title": "Type",
+                        "default": "UnionOf"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "left",
+                    "right"
+                ],
+                "title": "UnionOf",
+                "description": "A point is in UnionOf(a, b) if in either a or b.\n\nTypically created with the ``|`` operator\n\n>>> r = Range(\"x\", 0.5, 2.5) | Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True,  True, False])"
+            },
+            "UnionOf-Output": {
+                "properties": {
+                    "left": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Range"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Rectangle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Polygon"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
+                            }
+                        ],
+                        "title": "Left",
+                        "description": "The left-hand Region to combine",
+                        "discriminator": {
+                            "propertyName": "type",
+                            "mapping": {
+                                "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
+                                "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
+                                "Polygon": "#/components/schemas/Polygon",
+                                "Range": "#/components/schemas/Range",
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                                "UnionOf": "#/components/schemas/UnionOf-Output"
+                            }
+                        }
+                    },
+                    "right": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CombinationOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/UnionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/IntersectionOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/DifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Range"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Rectangle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Polygon"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Circle"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Ellipse"
+                            }
+                        ],
+                        "title": "Right",
+                        "description": "The right-hand Region to combine",
+                        "discriminator": {
+                            "propertyName": "type",
+                            "mapping": {
+                                "Circle": "#/components/schemas/Circle",
+                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
+                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
+                                "Ellipse": "#/components/schemas/Ellipse",
+                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
+                                "Polygon": "#/components/schemas/Polygon",
+                                "Range": "#/components/schemas/Range",
+                                "Rectangle": "#/components/schemas/Rectangle",
+                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                                "UnionOf": "#/components/schemas/UnionOf-Output"
                             }
                         }
                     },
@@ -2779,15 +3416,6 @@
                                 "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -2804,6 +3432,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Input Spec",
@@ -2830,15 +3467,6 @@
                                 "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -2855,6 +3483,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Valid Spec",
@@ -2925,15 +3562,6 @@
                                 "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -2950,6 +3578,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Left",
@@ -2976,15 +3613,6 @@
                                 "$ref": "#/components/schemas/Concat-Input"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Input"
                             },
                             {
@@ -3001,6 +3629,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Input"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Right",
@@ -3048,15 +3685,6 @@
                                 "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -3073,6 +3701,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Left",
@@ -3099,15 +3736,6 @@
                                 "$ref": "#/components/schemas/Concat-Output"
                             },
                             {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
-                            },
-                            {
                                 "$ref": "#/components/schemas/Product-Output"
                             },
                             {
@@ -3124,6 +3752,15 @@
                             },
                             {
                                 "$ref": "#/components/schemas/Squash-Output"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Line"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Static"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Spiral"
                             }
                         ],
                         "title": "Right",

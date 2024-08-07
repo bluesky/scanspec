@@ -12,6 +12,7 @@ from .core import (
     AxesPoints,
     Axis,
     StrictConfig,
+    deserialize_as,
     discriminated_union_of_subclasses,
     if_instance_do,
 )
@@ -34,7 +35,6 @@ __all__ = [
 
 
 @discriminated_union_of_subclasses
-@dataclass(config=StrictConfig)
 class Region(Generic[Axis]):
     """Abstract baseclass for a Region that can `Mask` a `Spec`.
 
@@ -66,6 +66,11 @@ class Region(Generic[Axis]):
     def __xor__(self, other) -> SymmetricDifferenceOf[Axis]:
         return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(self, o))
 
+    @staticmethod
+    def deserialize(obj):
+        """Deserialize the Region from a dictionary."""
+        return deserialize_as(Region, obj)
+
 
 def get_mask(region: Region[Axis], points: AxesPoints[Axis]) -> np.ndarray:
     """Return a mask of the points inside the region.
@@ -94,6 +99,87 @@ def _merge_axis_sets(axis_sets: list[set[Axis]]) -> Iterator[set[Axis]]:
         # It might be emptied already, only yield if it isn't
         if axis_set:
             yield axis_set
+
+
+@dataclass(config=StrictConfig)
+class CombinationOf(Region[Axis]):
+    """Abstract baseclass for a combination of two regions, left and right."""
+
+    left: Region[Axis] = Field(description="The left-hand Region to combine")
+    right: Region[Axis] = Field(description="The right-hand Region to combine")
+
+    def axis_sets(self) -> list[set[Axis]]:
+        axis_sets = list(
+            _merge_axis_sets(self.left.axis_sets() + self.right.axis_sets())
+        )
+        return axis_sets
+
+
+# Naming so we don't clash with typing.Union
+@dataclass(config=StrictConfig)
+class UnionOf(CombinationOf[Axis]):
+    """A point is in UnionOf(a, b) if in either a or b.
+
+    Typically created with the ``|`` operator
+
+    >>> r = Range("x", 0.5, 2.5) | Range("x", 1.5, 3.5)
+    >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
+    array([False,  True,  True,  True, False])
+    """
+
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+        mask = get_mask(self.left, points) | get_mask(self.right, points)
+        return mask
+
+
+@dataclass(config=StrictConfig)
+class IntersectionOf(CombinationOf[Axis]):
+    """A point is in IntersectionOf(a, b) if in both a and b.
+
+    Typically created with the ``&`` operator.
+
+    >>> r = Range("x", 0.5, 2.5) & Range("x", 1.5, 3.5)
+    >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
+    array([False, False,  True, False, False])
+    """
+
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+        mask = get_mask(self.left, points) & get_mask(self.right, points)
+        return mask
+
+
+@dataclass(config=StrictConfig)
+class DifferenceOf(CombinationOf[Axis]):
+    """A point is in DifferenceOf(a, b) if in a and not in b.
+
+    Typically created with the ``-`` operator.
+
+    >>> r = Range("x", 0.5, 2.5) - Range("x", 1.5, 3.5)
+    >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
+    array([False,  True, False, False, False])
+    """
+
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+        left_mask = get_mask(self.left, points)
+        # Return the xor restricted to the left region
+        mask = left_mask ^ get_mask(self.right, points) & left_mask
+        return mask
+
+
+@dataclass(config=StrictConfig)
+class SymmetricDifferenceOf(CombinationOf[Axis]):
+    """A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.
+
+    Typically created with the ``^`` operator.
+
+    >>> r = Range("x", 0.5, 2.5) ^ Range("x", 1.5, 3.5)
+    >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
+    array([False,  True, False,  True, False])
+    """
+
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+        mask = get_mask(self.left, points) ^ get_mask(self.right, points)
+        return mask
 
 
 @dataclass(config=StrictConfig)
@@ -270,87 +356,6 @@ class Ellipse(Region[Axis]):
             x = tx
             y = ty
         mask = (x / self.x_radius) ** 2 + (y / self.y_radius) ** 2 <= 1
-        return mask
-
-
-@dataclass(config=StrictConfig)
-class CombinationOf(Region[Axis]):
-    """Abstract baseclass for a combination of two regions, left and right."""
-
-    left: Region[Axis] = Field(description="The left-hand Region to combine")
-    right: Region[Axis] = Field(description="The right-hand Region to combine")
-
-    def axis_sets(self) -> list[set[Axis]]:
-        axis_sets = list(
-            _merge_axis_sets(self.left.axis_sets() + self.right.axis_sets())
-        )
-        return axis_sets
-
-
-# Naming so we don't clash with typing.Union
-@dataclass(config=StrictConfig)
-class UnionOf(CombinationOf[Axis]):
-    """A point is in UnionOf(a, b) if in either a or b.
-
-    Typically created with the ``|`` operator
-
-    >>> r = Range("x", 0.5, 2.5) | Range("x", 1.5, 3.5)
-    >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
-    array([False,  True,  True,  True, False])
-    """
-
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
-        mask = get_mask(self.left, points) | get_mask(self.right, points)
-        return mask
-
-
-@dataclass(config=StrictConfig)
-class IntersectionOf(CombinationOf[Axis]):
-    """A point is in IntersectionOf(a, b) if in both a and b.
-
-    Typically created with the ``&`` operator.
-
-    >>> r = Range("x", 0.5, 2.5) & Range("x", 1.5, 3.5)
-    >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
-    array([False, False,  True, False, False])
-    """
-
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
-        mask = get_mask(self.left, points) & get_mask(self.right, points)
-        return mask
-
-
-@dataclass(config=StrictConfig)
-class DifferenceOf(CombinationOf[Axis]):
-    """A point is in DifferenceOf(a, b) if in a and not in b.
-
-    Typically created with the ``-`` operator.
-
-    >>> r = Range("x", 0.5, 2.5) - Range("x", 1.5, 3.5)
-    >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
-    array([False,  True, False, False, False])
-    """
-
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
-        left_mask = get_mask(self.left, points)
-        # Return the xor restricted to the left region
-        mask = left_mask ^ get_mask(self.right, points) & left_mask
-        return mask
-
-
-@dataclass(config=StrictConfig)
-class SymmetricDifferenceOf(CombinationOf[Axis]):
-    """A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.
-
-    Typically created with the ``^`` operator.
-
-    >>> r = Range("x", 0.5, 2.5) ^ Range("x", 1.5, 3.5)
-    >>> r.mask({"x": np.array([0, 1, 2, 3, 4])})
-    array([False,  True, False,  True, False])
-    """
-
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
-        mask = get_mask(self.left, points) ^ get_mask(self.right, points)
         return mask
 
 
