@@ -11,11 +11,11 @@ from fastapi.responses import JSONResponse
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-from scanspec.core import AxesPoints, Frames, Path
+from scanspec.core import AxesPoints, Frames, Path, uses_tagged_union
 
 from .specs import Line, Spec
 
-app = FastAPI()
+app = FastAPI(version="0.1.1")
 
 #
 # Data Model
@@ -27,6 +27,7 @@ Points = str | list[float]
 
 
 @dataclass
+@uses_tagged_union
 class ValidResponse:
     """Response model for spec validation."""
 
@@ -43,6 +44,7 @@ class PointsFormat(str, Enum):
 
 
 @dataclass
+@uses_tagged_union
 class PointsRequest:
     """A request for generated scan points."""
 
@@ -123,6 +125,7 @@ _EXAMPLE_POINTS_REQUEST = PointsRequest(
 
 
 @app.post("/valid", response_model=ValidResponse)
+@uses_tagged_union
 def valid(
     spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
 ) -> ValidResponse | JSONResponse:
@@ -195,6 +198,7 @@ def bounds(
 
 
 @app.post("/gap", response_model=GapResponse)
+@uses_tagged_union
 def gap(
     spec: Spec = Body(
         ...,
@@ -220,6 +224,7 @@ def gap(
 
 
 @app.post("/smalleststep", response_model=SmallestStepResponse)
+@uses_tagged_union
 def smallest_step(
     spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
 ) -> SmallestStepResponse:

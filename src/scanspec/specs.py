@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import asdict
-from typing import Any, Generic
+from typing import (
+    Any,
+    Generic,
+)
 
 import numpy as np
-from pydantic import Field, parse_obj_as
+from pydantic import Field, validate_call
 from pydantic.dataclasses import dataclass
 
 from .core import (
@@ -15,6 +18,7 @@ from .core import (
     Path,
     SnakedFrames,
     StrictConfig,
+    deserialize_as,
     discriminated_union_of_subclasses,
     gap_between_frames,
     if_instance_do,
@@ -44,7 +48,7 @@ __all__ = [
 DURATION = "DURATION"
 
 
-@discriminated_union_of_subclasses(config=StrictConfig)
+@discriminated_union_of_subclasses
 class Spec(Generic[Axis]):
     """A serializable representation of the type and parameters of a scan.
 
@@ -106,10 +110,10 @@ class Spec(Generic[Axis]):
         """Serialize the spec to a dictionary."""
         return asdict(self)  # type: ignore
 
-    @classmethod
-    def deserialize(cls, obj):
+    @staticmethod
+    def deserialize(obj):
         """Deserialize the spec from a dictionary."""
-        return parse_obj_as(cls, obj)
+        return deserialize_as(Spec, obj)
 
 
 @dataclass(config=StrictConfig)
@@ -160,7 +164,7 @@ class Repeat(Spec[Axis]):
     .. note:: There is no turnaround arrow at x=4
     """
 
-    num: int = Field(min=1, description="Number of frames to produce")
+    num: int = Field(ge=1, description="Number of frames to produce")
     gap: bool = Field(
         description="If False and the slowest of the stack of Frames is snaked "
         "then the end and start of consecutive iterations of Spec will have no gap",
@@ -286,7 +290,7 @@ class Mask(Spec[Axis]):
                 # The axis_set spans multiple Dimensions, squash them together
                 # If the spec to be squashed is nested (inside the Mask or outside)
                 # then check the path changes if requested
-                check_path_changes = (nested or si) and self.check_path_changes
+                check_path_changes = bool(nested or si) and self.check_path_changes
                 squashed = squash_frames(frames[si : ei + 1], check_path_changes)
                 frames = frames[:si] + [squashed] + frames[ei + 1 :]
         # Generate masks from the midpoints showing what's inside
@@ -457,7 +461,7 @@ class Line(Spec[Axis]):
     axis: Axis = Field(description="An identifier for what to move")
     start: float = Field(description="Midpoint of the first point of the line")
     stop: float = Field(description="Midpoint of the last point of the line")
-    num: int = Field(min=1, description="Number of frames to produce")
+    num: int = Field(ge=1, description="Number of frames to produce")
 
     def axes(self) -> list:
         return [self.axis]
@@ -485,7 +489,7 @@ class Line(Spec[Axis]):
         axis: Axis = Field(description="An identifier for what to move"),
         lower: float = Field(description="Lower bound of the first point of the line"),
         upper: float = Field(description="Upper bound of the last point of the line"),
-        num: int = Field(min=1, description="Number of frames to produce"),
+        num: int = Field(ge=1, description="Number of frames to produce"),
     ) -> Line[Axis]:
         """Specify a Line by extreme bounds instead of midpoints.
 
@@ -506,6 +510,12 @@ class Line(Spec[Axis]):
         return cls(axis, start, stop, num)
 
 
+"""
+Defers wrapping function with validate_call until class is fully instantiated
+"""
+Line.bounded = validate_call(Line.bounded)  # type:ignore
+
+
 @dataclass(config=StrictConfig)
 class Static(Spec[Axis]):
     """A static frame, repeated num times, with axis at value.
@@ -521,13 +531,13 @@ class Static(Spec[Axis]):
 
     axis: Axis = Field(description="An identifier for what to move")
     value: float = Field(description="The value at each point")
-    num: int = Field(min=1, description="Number of frames to produce", default=1)
+    num: int = Field(ge=1, description="Number of frames to produce", default=1)
 
     @classmethod
     def duration(
         cls: type[Static],
         duration: float = Field(description="The duration of each static point"),
-        num: int = Field(min=1, description="Number of frames to produce", default=1),
+        num: int = Field(ge=1, description="Number of frames to produce", default=1),
     ) -> Static[str]:
         """A static spec with no motion, only a duration repeated "num" times.
 
@@ -549,6 +559,9 @@ class Static(Spec[Axis]):
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
         )
+
+
+Static.duration = validate_call(Static.duration)  # type:ignore
 
 
 @dataclass(config=StrictConfig)
@@ -573,7 +586,7 @@ class Spiral(Spec[Axis]):
     y_start: float = Field(description="y centre of the spiral")
     x_range: float = Field(description="x width of the spiral")
     y_range: float = Field(description="y width of the spiral")
-    num: int = Field(min=1, description="Number of frames to produce")
+    num: int = Field(ge=1, description="Number of frames to produce")
     rotate: float = Field(
         description="How much to rotate the angle of the spiral", default=0.0
     )
@@ -634,6 +647,9 @@ class Spiral(Spec[Axis]):
         return cls(
             x_axis, y_axis, x_start, y_start, radius * 2, radius * 2, num, rotate
         )
+
+
+Spiral.spaced = validate_call(Spiral.spaced)  # type:ignore
 
 
 def fly(spec: Spec[Axis], duration: float) -> Spec[Axis]:

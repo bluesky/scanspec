@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
-from typing import Generic
+from collections.abc import Iterator, Mapping
+from dataclasses import asdict, is_dataclass
+from typing import Any, Generic
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -11,6 +12,7 @@ from .core import (
     AxesPoints,
     Axis,
     StrictConfig,
+    deserialize_as,
     discriminated_union_of_subclasses,
     if_instance_do,
 )
@@ -63,6 +65,15 @@ class Region(Generic[Axis]):
 
     def __xor__(self, other) -> SymmetricDifferenceOf[Axis]:
         return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(self, o))
+
+    def serialize(self) -> Mapping[str, Any]:
+        """Serialize the Region to a dictionary."""
+        return asdict(self)  # type: ignore
+
+    @staticmethod
+    def deserialize(obj):
+        """Deserialize the Region from a dictionary."""
+        return deserialize_as(Region, obj)
 
 
 def get_mask(region: Region[Axis], points: AxesPoints[Axis]) -> np.ndarray:
@@ -254,10 +265,10 @@ class Polygon(Region[Axis]):
     x_axis: Axis = Field(description="The name matching the x axis of the spec")
     y_axis: Axis = Field(description="The name matching the y axis of the spec")
     x_verts: list[float] = Field(
-        description="The Nx1 x coordinates of the polygons vertices", min_len=3
+        description="The Nx1 x coordinates of the polygons vertices", min_length=3
     )
     y_verts: list[float] = Field(
-        description="The Nx1 y coordinates of the polygons vertices", min_len=3
+        description="The Nx1 y coordinates of the polygons vertices", min_length=3
     )
 
     def axis_sets(self) -> list[set[Axis]]:
@@ -298,7 +309,7 @@ class Circle(Region[Axis]):
     y_axis: Axis = Field(description="The name matching the y axis of the spec")
     x_middle: float = Field(description="The central x point of the circle")
     y_middle: float = Field(description="The central y point of the circle")
-    radius: float = Field(description="Radius of the circle", exc_min=0)
+    radius: float = Field(description="Radius of the circle", gt=0)
 
     def axis_sets(self) -> list[set[Axis]]:
         return [{self.x_axis, self.y_axis}]
@@ -328,10 +339,10 @@ class Ellipse(Region[Axis]):
     x_middle: float = Field(description="The central x point of the ellipse")
     y_middle: float = Field(description="The central y point of the ellipse")
     x_radius: float = Field(
-        description="The radius along the x axis of the ellipse", exc_min=0
+        description="The radius along the x axis of the ellipse", gt=0
     )
     y_radius: float = Field(
-        description="The radius along the y axis of the ellipse", exc_min=0
+        description="The radius along the y axis of the ellipse", gt=0
     )
     angle: float = Field(description="The angle of the ellipse (degrees)", default=0.0)
 
@@ -354,8 +365,10 @@ class Ellipse(Region[Axis]):
 
 def find_regions(obj) -> Iterator[Region[Axis]]:
     """Recursively yield Regions from obj and its children."""
-    if hasattr(obj, "__pydantic_model__") and issubclass(
-        obj.__pydantic_model__, BaseModel
+    if (
+        hasattr(obj, "__pydantic_model__")
+        and issubclass(obj.__pydantic_model__, BaseModel)
+        or is_dataclass(obj)
     ):
         if isinstance(obj, Region):
             yield obj
