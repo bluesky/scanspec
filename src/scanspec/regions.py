@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
-from dataclasses import asdict, is_dataclass
+from dataclasses import is_dataclass
 from typing import Any, Generic
 
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, TypeAdapter
 from pydantic.dataclasses import dataclass
 
 from .core import (
     AxesPoints,
     Axis,
     StrictConfig,
-    deserialize_as,
     discriminated_union_of_subclasses,
     if_instance_do,
 )
@@ -68,12 +67,12 @@ class Region(Generic[Axis]):
 
     def serialize(self) -> Mapping[str, Any]:
         """Serialize the Region to a dictionary."""
-        return asdict(self)  # type: ignore
+        return TypeAdapter(Region).dump_python(self)
 
     @staticmethod
-    def deserialize(obj):
-        """Deserialize the Region from a dictionary."""
-        return deserialize_as(Region, obj)
+    def deserialize(obj) -> Region:
+        """Deserialize a Region from a dictionary."""
+        return TypeAdapter(Region).validate_python(obj)
 
 
 def get_mask(region: Region[Axis], points: AxesPoints[Axis]) -> np.ndarray:

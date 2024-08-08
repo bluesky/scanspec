@@ -26,8 +26,8 @@ app = FastAPI(version="0.1.1")
 Points = str | list[float]
 
 
-@dataclass
 @uses_tagged_union
+@dataclass
 class ValidResponse:
     """Response model for spec validation."""
 
@@ -43,8 +43,8 @@ class PointsFormat(str, Enum):
     BASE64_ENCODED = "BASE64_ENCODED"
 
 
-@dataclass
 @uses_tagged_union
+@dataclass
 class PointsRequest:
     """A request for generated scan points."""
 
@@ -125,7 +125,6 @@ _EXAMPLE_POINTS_REQUEST = PointsRequest(
 
 
 @app.post("/valid", response_model=ValidResponse)
-@uses_tagged_union
 def valid(
     spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
 ) -> ValidResponse | JSONResponse:
@@ -198,7 +197,6 @@ def bounds(
 
 
 @app.post("/gap", response_model=GapResponse)
-@uses_tagged_union
 def gap(
     spec: Spec = Body(
         ...,
@@ -224,7 +222,6 @@ def gap(
 
 
 @app.post("/smalleststep", response_model=SmallestStepResponse)
-@uses_tagged_union
 def smallest_step(
     spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
 ) -> SmallestStepResponse:
