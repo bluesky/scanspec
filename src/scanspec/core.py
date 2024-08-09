@@ -45,6 +45,11 @@ def discriminated_union_of_subclasses(
     the type. Raw JSON should look like {<discriminator>: <type name>, params for
     <type name>...}.
 
+    Subclasses that extend this class must be Pydantic dataclasses, and types that
+    need their schema to be updated when a new type that extends super_cls is
+    created must be either Pydantic dataclasses or BaseModels, and must be decorated
+    with @uses_tagged_union.
+
     Example::
 
         @discriminated_union_of_subclasses
