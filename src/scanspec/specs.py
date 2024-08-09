@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from dataclasses import asdict
 from typing import (
     Any,
     Generic,
 )
 
 import numpy as np
-from pydantic import Field, validate_call
+from pydantic import Field, TypeAdapter, validate_call
 from pydantic.dataclasses import dataclass
 
 from .core import (
@@ -18,7 +17,6 @@ from .core import (
     Path,
     SnakedFrames,
     StrictConfig,
-    deserialize_as,
     discriminated_union_of_subclasses,
     gap_between_frames,
     if_instance_do,
@@ -107,13 +105,13 @@ class Spec(Generic[Axis]):
         return Concat(self, other)
 
     def serialize(self) -> Mapping[str, Any]:
-        """Serialize the spec to a dictionary."""
-        return asdict(self)  # type: ignore
+        """Serialize the Spec to a dictionary."""
+        return TypeAdapter(Spec).dump_python(self)
 
     @staticmethod
-    def deserialize(obj):
-        """Deserialize the spec from a dictionary."""
-        return deserialize_as(Spec, obj)
+    def deserialize(obj) -> Spec:
+        """Deserialize a Spec from a dictionary."""
+        return TypeAdapter(Spec).validate_python(obj)
 
 
 @dataclass(config=StrictConfig)

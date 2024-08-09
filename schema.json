@@ -14,36 +14,9 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "anyOf": [
+                                "allOf": [
                                     {
-                                        "$ref": "#/components/schemas/Product-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Repeat"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Zip-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Mask-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Snake-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Concat-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Squash-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Line"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Static"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Spiral"
+                                        "$ref": "#/components/schemas/Spec-Input"
                                     }
                                 ],
                                 "title": "Spec",
@@ -238,36 +211,9 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "anyOf": [
+                                "allOf": [
                                     {
-                                        "$ref": "#/components/schemas/Product-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Repeat"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Zip-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Mask-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Snake-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Concat-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Squash-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Line"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Static"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Spiral"
+                                        "$ref": "#/components/schemas/Spec-Input"
                                     }
                                 ],
                                 "title": "Spec",
@@ -328,36 +274,9 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "anyOf": [
+                                "allOf": [
                                     {
-                                        "$ref": "#/components/schemas/Product-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Repeat"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Zip-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Mask-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Snake-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Concat-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Squash-Input"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Line"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Static"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/Spiral"
+                                        "$ref": "#/components/schemas/Spec-Input"
                                     }
                                 ],
                                 "title": "Spec",
@@ -531,106 +450,20 @@
             "CombinationOf-Input": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Input"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
-                                "UnionOf": "#/components/schemas/UnionOf-Input"
-                            }
-                        }
+                        "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Input"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
-                                "UnionOf": "#/components/schemas/UnionOf-Input"
-                            }
-                        }
+                        "description": "The right-hand Region to combine"
                     },
                     "type": {
                         "type": "string",
@@ -654,106 +487,20 @@
             "CombinationOf-Output": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Output"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
-                                "UnionOf": "#/components/schemas/UnionOf-Output"
-                            }
-                        }
+                        "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Output"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
-                                "UnionOf": "#/components/schemas/UnionOf-Output"
-                            }
-                        }
+                        "description": "The right-hand Region to combine"
                     },
                     "type": {
                         "type": "string",
@@ -777,106 +524,20 @@
             "Concat-Input": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Input"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Spec to Concat, midpoints will appear earlier",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Input",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Input",
-                                "Product": "#/components/schemas/Product-Input",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Input",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Input",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Input"
-                            }
-                        }
+                        "description": "The left-hand Spec to Concat, midpoints will appear earlier"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Input"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Spec to Concat, midpoints will appear later",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Input",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Input",
-                                "Product": "#/components/schemas/Product-Input",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Input",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Input",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Input"
-                            }
-                        }
+                        "description": "The right-hand Spec to Concat, midpoints will appear later"
                     },
                     "gap": {
                         "type": "boolean",
@@ -912,106 +573,20 @@
             "Concat-Output": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Output"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Spec to Concat, midpoints will appear earlier",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Output",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Output",
-                                "Product": "#/components/schemas/Product-Output",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Output",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Output",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Output"
-                            }
-                        }
+                        "description": "The left-hand Spec to Concat, midpoints will appear earlier"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Output"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Spec to Concat, midpoints will appear later",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Output",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Output",
-                                "Product": "#/components/schemas/Product-Output",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Output",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Output",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Output"
-                            }
-                        }
+                        "description": "The right-hand Spec to Concat, midpoints will appear later"
                     },
                     "gap": {
                         "type": "boolean",
@@ -1047,106 +622,20 @@
             "DifferenceOf-Input": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Input"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
-                                "UnionOf": "#/components/schemas/UnionOf-Input"
-                            }
-                        }
+                        "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Input"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
-                                "UnionOf": "#/components/schemas/UnionOf-Input"
-                            }
-                        }
+                        "description": "The right-hand Region to combine"
                     },
                     "type": {
                         "type": "string",
@@ -1170,106 +659,20 @@
             "DifferenceOf-Output": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Output"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
-                                "UnionOf": "#/components/schemas/UnionOf-Output"
-                            }
-                        }
+                        "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Output"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
-                                "UnionOf": "#/components/schemas/UnionOf-Output"
-                            }
-                        }
+                        "description": "The right-hand Region to combine"
                     },
                     "type": {
                         "type": "string",
@@ -1385,106 +788,20 @@
             "IntersectionOf-Input": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Input"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
-                                "UnionOf": "#/components/schemas/UnionOf-Input"
-                            }
-                        }
+                        "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Input"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
-                                "UnionOf": "#/components/schemas/UnionOf-Input"
-                            }
-                        }
+                        "description": "The right-hand Region to combine"
                     },
                     "type": {
                         "type": "string",
@@ -1508,106 +825,20 @@
             "IntersectionOf-Output": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Output"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
-                                "UnionOf": "#/components/schemas/UnionOf-Output"
-                            }
-                        }
+                        "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Output"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
-                                "UnionOf": "#/components/schemas/UnionOf-Output"
-                            }
-                        }
+                        "description": "The right-hand Region to combine"
                     },
                     "type": {
                         "type": "string",
@@ -1674,106 +905,20 @@
             "Mask-Input": {
                 "properties": {
                     "spec": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Input"
                             }
                         ],
-                        "title": "Spec",
-                        "description": "The Spec containing the source midpoints",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Input",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Input",
-                                "Product": "#/components/schemas/Product-Input",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Input",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Input",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Input"
-                            }
-                        }
+                        "description": "The Spec containing the source midpoints"
                     },
                     "region": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Input"
                             }
                         ],
-                        "title": "Region",
-                        "description": "The Region that midpoints will be inside",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
-                                "UnionOf": "#/components/schemas/UnionOf-Input"
-                            }
-                        }
+                        "description": "The Region that midpoints will be inside"
                     },
                     "check_path_changes": {
                         "type": "boolean",
@@ -1803,106 +948,20 @@
             "Mask-Output": {
                 "properties": {
                     "spec": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Output"
                             }
                         ],
-                        "title": "Spec",
-                        "description": "The Spec containing the source midpoints",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Output",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Output",
-                                "Product": "#/components/schemas/Product-Output",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Output",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Output",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Output"
-                            }
-                        }
+                        "description": "The Spec containing the source midpoints"
                     },
                     "region": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Output"
                             }
                         ],
-                        "title": "Region",
-                        "description": "The Region that midpoints will be inside",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
-                                "UnionOf": "#/components/schemas/UnionOf-Output"
-                            }
-                        }
+                        "description": "The Region that midpoints will be inside"
                     },
                     "check_path_changes": {
                         "type": "boolean",
@@ -1991,55 +1050,12 @@
             "PointsRequest": {
                 "properties": {
                     "spec": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Input"
                             }
                         ],
-                        "title": "Spec",
-                        "description": "The spec from which to generate points",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Input",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Input",
-                                "Product": "#/components/schemas/Product-Input",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Input",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Input",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Input"
-                            }
-                        }
+                        "description": "The spec from which to generate points"
                     },
                     "max_frames": {
                         "anyOf": [
@@ -2123,106 +1139,20 @@
             "Product-Input": {
                 "properties": {
                     "outer": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Input"
                             }
                         ],
-                        "title": "Outer",
-                        "description": "Will be executed once",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Input",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Input",
-                                "Product": "#/components/schemas/Product-Input",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Input",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Input",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Input"
-                            }
-                        }
+                        "description": "Will be executed once"
                     },
                     "inner": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Input"
                             }
                         ],
-                        "title": "Inner",
-                        "description": "Will be executed len(outer) times",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Input",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Input",
-                                "Product": "#/components/schemas/Product-Input",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Input",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Input",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Input"
-                            }
-                        }
+                        "description": "Will be executed len(outer) times"
                     },
                     "type": {
                         "type": "string",
@@ -2246,106 +1176,20 @@
             "Product-Output": {
                 "properties": {
                     "outer": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Output"
                             }
                         ],
-                        "title": "Outer",
-                        "description": "Will be executed once",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Output",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Output",
-                                "Product": "#/components/schemas/Product-Output",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Output",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Output",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Output"
-                            }
-                        }
+                        "description": "Will be executed once"
                     },
                     "inner": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Output"
                             }
                         ],
-                        "title": "Inner",
-                        "description": "Will be executed len(outer) times",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Output",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Output",
-                                "Product": "#/components/schemas/Product-Output",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Output",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Output",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Output"
-                            }
-                        }
+                        "description": "Will be executed len(outer) times"
                     },
                     "type": {
                         "type": "string",
@@ -2461,6 +1305,104 @@
                 "title": "Rectangle",
                 "description": "Mask contains points of axis within a rotated xy rectangle.\n\n.. example_spec::\n\n    from scanspec.regions import Rectangle\n    from scanspec.specs import Line\n\n    grid = Line(\"y\", 1, 3, 10) * ~Line(\"x\", 0, 2, 10)\n    spec = grid & Rectangle(\"x\", \"y\", 0, 1.1, 1.5, 2.1, 30)"
             },
+            "Region-Input": {
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/CombinationOf-Input"
+                    },
+                    {
+                        "$ref": "#/components/schemas/UnionOf-Input"
+                    },
+                    {
+                        "$ref": "#/components/schemas/IntersectionOf-Input"
+                    },
+                    {
+                        "$ref": "#/components/schemas/DifferenceOf-Input"
+                    },
+                    {
+                        "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Range"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Rectangle"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Polygon"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Circle"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Ellipse"
+                    }
+                ],
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "Circle": "#/components/schemas/Circle",
+                        "CombinationOf": "#/components/schemas/CombinationOf-Input",
+                        "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
+                        "Ellipse": "#/components/schemas/Ellipse",
+                        "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
+                        "Polygon": "#/components/schemas/Polygon",
+                        "Range": "#/components/schemas/Range",
+                        "Rectangle": "#/components/schemas/Rectangle",
+                        "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
+                        "UnionOf": "#/components/schemas/UnionOf-Input"
+                    }
+                }
+            },
+            "Region-Output": {
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/CombinationOf-Output"
+                    },
+                    {
+                        "$ref": "#/components/schemas/UnionOf-Output"
+                    },
+                    {
+                        "$ref": "#/components/schemas/IntersectionOf-Output"
+                    },
+                    {
+                        "$ref": "#/components/schemas/DifferenceOf-Output"
+                    },
+                    {
+                        "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Range"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Rectangle"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Polygon"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Circle"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Ellipse"
+                    }
+                ],
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "Circle": "#/components/schemas/Circle",
+                        "CombinationOf": "#/components/schemas/CombinationOf-Output",
+                        "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
+                        "Ellipse": "#/components/schemas/Ellipse",
+                        "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
+                        "Polygon": "#/components/schemas/Polygon",
+                        "Range": "#/components/schemas/Range",
+                        "Rectangle": "#/components/schemas/Rectangle",
+                        "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
+                        "UnionOf": "#/components/schemas/UnionOf-Output"
+                    }
+                }
+            },
             "Repeat": {
                 "properties": {
                     "num": {
@@ -2520,55 +1462,12 @@
             "Snake-Input": {
                 "properties": {
                     "spec": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Input"
                             }
                         ],
-                        "title": "Spec",
-                        "description": "The Spec to run in reverse every other iteration",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Input",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Input",
-                                "Product": "#/components/schemas/Product-Input",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Input",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Input",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Input"
-                            }
-                        }
+                        "description": "The Spec to run in reverse every other iteration"
                     },
                     "type": {
                         "type": "string",
@@ -2591,55 +1490,12 @@
             "Snake-Output": {
                 "properties": {
                     "spec": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Output"
                             }
                         ],
-                        "title": "Spec",
-                        "description": "The Spec to run in reverse every other iteration",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Output",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Output",
-                                "Product": "#/components/schemas/Product-Output",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Output",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Output",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Output"
-                            }
-                        }
+                        "description": "The Spec to run in reverse every other iteration"
                     },
                     "type": {
                         "type": "string",
@@ -2658,6 +1514,104 @@
                 ],
                 "title": "Snake",
                 "description": "Run the Spec in reverse on every other iteration when nested.\n\nTypically created with the ``~`` operator.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = Line(\"y\", 1, 3, 3) * ~Line(\"x\", 3, 5, 5)"
+            },
+            "Spec-Input": {
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/Product-Input"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Repeat"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Zip-Input"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Mask-Input"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Snake-Input"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Concat-Input"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Squash-Input"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Line"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Static"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Spiral"
+                    }
+                ],
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "Concat": "#/components/schemas/Concat-Input",
+                        "Line": "#/components/schemas/Line",
+                        "Mask": "#/components/schemas/Mask-Input",
+                        "Product": "#/components/schemas/Product-Input",
+                        "Repeat": "#/components/schemas/Repeat",
+                        "Snake": "#/components/schemas/Snake-Input",
+                        "Spiral": "#/components/schemas/Spiral",
+                        "Squash": "#/components/schemas/Squash-Input",
+                        "Static": "#/components/schemas/Static",
+                        "Zip": "#/components/schemas/Zip-Input"
+                    }
+                }
+            },
+            "Spec-Output": {
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/Product-Output"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Repeat"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Zip-Output"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Mask-Output"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Snake-Output"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Concat-Output"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Squash-Output"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Line"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Static"
+                    },
+                    {
+                        "$ref": "#/components/schemas/Spiral"
+                    }
+                ],
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "Concat": "#/components/schemas/Concat-Output",
+                        "Line": "#/components/schemas/Line",
+                        "Mask": "#/components/schemas/Mask-Output",
+                        "Product": "#/components/schemas/Product-Output",
+                        "Repeat": "#/components/schemas/Repeat",
+                        "Snake": "#/components/schemas/Snake-Output",
+                        "Spiral": "#/components/schemas/Spiral",
+                        "Squash": "#/components/schemas/Squash-Output",
+                        "Static": "#/components/schemas/Static",
+                        "Zip": "#/components/schemas/Zip-Output"
+                    }
+                }
             },
             "Spiral": {
                 "properties": {
@@ -2728,55 +1682,12 @@
             "Squash-Input": {
                 "properties": {
                     "spec": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Input"
                             }
                         ],
-                        "title": "Spec",
-                        "description": "The Spec to squash the dimensions of",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Input",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Input",
-                                "Product": "#/components/schemas/Product-Input",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Input",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Input",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Input"
-                            }
-                        }
+                        "description": "The Spec to squash the dimensions of"
                     },
                     "check_path_changes": {
                         "type": "boolean",
@@ -2805,55 +1716,12 @@
             "Squash-Output": {
                 "properties": {
                     "spec": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Output"
                             }
                         ],
-                        "title": "Spec",
-                        "description": "The Spec to squash the dimensions of",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Output",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Output",
-                                "Product": "#/components/schemas/Product-Output",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Output",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Output",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Output"
-                            }
-                        }
+                        "description": "The Spec to squash the dimensions of"
                     },
                     "check_path_changes": {
                         "type": "boolean",
@@ -2919,106 +1787,20 @@
             "SymmetricDifferenceOf-Input": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Input"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
-                                "UnionOf": "#/components/schemas/UnionOf-Input"
-                            }
-                        }
+                        "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Input"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
-                                "UnionOf": "#/components/schemas/UnionOf-Input"
-                            }
-                        }
+                        "description": "The right-hand Region to combine"
                     },
                     "type": {
                         "type": "string",
@@ -3042,106 +1824,20 @@
             "SymmetricDifferenceOf-Output": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Output"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
-                                "UnionOf": "#/components/schemas/UnionOf-Output"
-                            }
-                        }
+                        "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Output"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
-                                "UnionOf": "#/components/schemas/UnionOf-Output"
-                            }
-                        }
+                        "description": "The right-hand Region to combine"
                     },
                     "type": {
                         "type": "string",
@@ -3165,106 +1861,20 @@
             "UnionOf-Input": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Input"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
-                                "UnionOf": "#/components/schemas/UnionOf-Input"
-                            }
-                        }
+                        "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Input"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Input",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Input",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Input",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Input",
-                                "UnionOf": "#/components/schemas/UnionOf-Input"
-                            }
-                        }
+                        "description": "The right-hand Region to combine"
                     },
                     "type": {
                         "type": "string",
@@ -3288,106 +1898,20 @@
             "UnionOf-Output": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Output"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
-                                "UnionOf": "#/components/schemas/UnionOf-Output"
-                            }
-                        }
+                        "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/CombinationOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/UnionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/IntersectionOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/DifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/SymmetricDifferenceOf-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Range"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Rectangle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Polygon"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Circle"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Ellipse"
+                                "$ref": "#/components/schemas/Region-Output"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Region to combine",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Circle": "#/components/schemas/Circle",
-                                "CombinationOf": "#/components/schemas/CombinationOf-Output",
-                                "DifferenceOf": "#/components/schemas/DifferenceOf-Output",
-                                "Ellipse": "#/components/schemas/Ellipse",
-                                "IntersectionOf": "#/components/schemas/IntersectionOf-Output",
-                                "Polygon": "#/components/schemas/Polygon",
-                                "Range": "#/components/schemas/Range",
-                                "Rectangle": "#/components/schemas/Rectangle",
-                                "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf-Output",
-                                "UnionOf": "#/components/schemas/UnionOf-Output"
-                            }
-                        }
+                        "description": "The right-hand Region to combine"
                     },
                     "type": {
                         "type": "string",
@@ -3411,106 +1935,20 @@
             "ValidResponse": {
                 "properties": {
                     "input_spec": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Output"
                             }
                         ],
-                        "title": "Input Spec",
-                        "description": "The input scanspec",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Output",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Output",
-                                "Product": "#/components/schemas/Product-Output",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Output",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Output",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Output"
-                            }
-                        }
+                        "description": "The input scanspec"
                     },
                     "valid_spec": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Output"
                             }
                         ],
-                        "title": "Valid Spec",
-                        "description": "The validated version of the spec",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Output",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Output",
-                                "Product": "#/components/schemas/Product-Output",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Output",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Output",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Output"
-                            }
-                        }
+                        "description": "The validated version of the spec"
                     }
                 },
                 "type": "object",
@@ -3557,106 +1995,20 @@
             "Zip-Input": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Input"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Spec to Zip, will appear earlier in axes",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Input",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Input",
-                                "Product": "#/components/schemas/Product-Input",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Input",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Input",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Input"
-                            }
-                        }
+                        "description": "The left-hand Spec to Zip, will appear earlier in axes"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Input"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Input"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Spec to Zip, will appear later in axes",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Input",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Input",
-                                "Product": "#/components/schemas/Product-Input",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Input",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Input",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Input"
-                            }
-                        }
+                        "description": "The right-hand Spec to Zip, will appear later in axes"
                     },
                     "type": {
                         "type": "string",
@@ -3680,106 +2032,20 @@
             "Zip-Output": {
                 "properties": {
                     "left": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Output"
                             }
                         ],
-                        "title": "Left",
-                        "description": "The left-hand Spec to Zip, will appear earlier in axes",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Output",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Output",
-                                "Product": "#/components/schemas/Product-Output",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Output",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Output",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Output"
-                            }
-                        }
+                        "description": "The left-hand Spec to Zip, will appear earlier in axes"
                     },
                     "right": {
-                        "oneOf": [
+                        "allOf": [
                             {
-                                "$ref": "#/components/schemas/Product-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Repeat"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Zip-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Mask-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Snake-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Concat-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Squash-Output"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Line"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Static"
-                            },
-                            {
-                                "$ref": "#/components/schemas/Spiral"
+                                "$ref": "#/components/schemas/Spec-Output"
                             }
                         ],
-                        "title": "Right",
-                        "description": "The right-hand Spec to Zip, will appear later in axes",
-                        "discriminator": {
-                            "propertyName": "type",
-                            "mapping": {
-                                "Concat": "#/components/schemas/Concat-Output",
-                                "Line": "#/components/schemas/Line",
-                                "Mask": "#/components/schemas/Mask-Output",
-                                "Product": "#/components/schemas/Product-Output",
-                                "Repeat": "#/components/schemas/Repeat",
-                                "Snake": "#/components/schemas/Snake-Output",
-                                "Spiral": "#/components/schemas/Spiral",
-                                "Squash": "#/components/schemas/Squash-Output",
-                                "Static": "#/components/schemas/Static",
-                                "Zip": "#/components/schemas/Zip-Output"
-                            }
-                        }
+                        "description": "The right-hand Spec to Zip, will appear later in axes"
                     },
                     "type": {
                         "type": "string",

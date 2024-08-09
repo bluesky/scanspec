@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from typing import Any
 
 import pytest
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 from scanspec.regions import Circle, Rectangle, Region, UnionOf
 from scanspec.specs import Line, Mask, Spec, Spiral
@@ -160,3 +160,18 @@ def test_complex_nested_serializes() -> None:
 def test_detects_invalid_serialized(serialized: Mapping[str, Any]) -> None:
     with pytest.raises(ValidationError):
         Spec.deserialize(serialized)
+
+
+def test_vanilla_serialization():
+    ob = Mask(
+        Spiral.spaced("x", "y", 0, 0, 10, 3),
+        UnionOf(
+            Circle("x", "y", x_middle=0, y_middle=1, radius=4),
+            Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30),
+        ),
+    )
+
+    adapter = TypeAdapter(Spec)
+    serialized = adapter.dump_json(ob)
+    deserialized = adapter.validate_json(serialized)
+    assert deserialized == ob
