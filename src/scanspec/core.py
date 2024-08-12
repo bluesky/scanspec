@@ -15,6 +15,7 @@ from typing import (
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, GetCoreSchemaHandler
 from pydantic.dataclasses import is_pydantic_dataclass, rebuild_dataclass
+from pydantic_core import CoreSchema
 from pydantic_core.core_schema import tagged_union_schema
 
 __all__ = [
@@ -102,7 +103,7 @@ def discriminated_union_of_subclasses(
         )
 
     Args:
-        cls: The superclass of the union, Expression in the above example
+        super_cls: The superclass of the union, Expression in the above example
         discriminator: The discriminator that will be inserted into the
             serialized documents for type determination. Defaults to "type".
 
@@ -166,14 +167,14 @@ class _TaggedUnion:
         # Classes and their field names that refer to this tagged union
         self._discriminator = discriminator
         # The members of the tagged union, i.e. subclasses of the baseclass
-        self._members: list[type] = []
+        self._subclasses: list[type] = []
         self._references: set[type | Callable] = set()
 
     def add_member(self, cls: type):
-        if cls in self._members:
+        if cls in self._subclasses:
             return
-        self._members.append(cls)
-        for member in self._members:
+        self._subclasses.append(cls)
+        for member in self._subclasses:
             if member is not cls:
                 _TaggedUnion._rebuild(member)
         for ref in self._references:
@@ -191,9 +192,9 @@ class _TaggedUnion:
             if issubclass(cls_or_func, BaseModel):
                 cls_or_func.model_rebuild(force=True)
 
-    def schema(self, handler):
+    def schema(self, handler: GetCoreSchemaHandler) -> CoreSchema:
         return tagged_union_schema(
-            make_schema(tuple(self._members), handler),
+            make_schema(tuple(self._subclasses), handler),
             discriminator=self._discriminator,
             ref=self._base_class.__name__,
         )
