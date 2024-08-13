@@ -42,6 +42,7 @@ dev = [
     "pytest-cov",
     "ruff",
     "sphinx-autobuild",
+    "autodoc-pydantic",
     "sphinx-copybutton",
     "sphinx-design",
     "sphinxcontrib-openapi",

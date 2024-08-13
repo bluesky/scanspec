@@ -33,6 +33,8 @@ extensions = [
     # Use this for generating API docs
     "sphinx.ext.autodoc",
     # This can parse google style docstrings
+    "sphinxcontrib.autodoc_pydantic",
+    # Used for BaseModel autodoc
     "sphinx.ext.napoleon",
     # For linking to external sphinx documentation
     "sphinx.ext.intersphinx",
@@ -83,6 +85,10 @@ nitpick_ignore = [
     ("py:class", "pydantic.config.BaseConfig"),
     ("py:class", "starlette.responses.JSONResponse"),
 ]
+
+# pydantic models
+autodoc_pydantic_model_show_json = True
+autodoc_pydantic_model_show_config_summary = False
 
 # Both the class’ and the __init__ method’s docstring are concatenated and
 # inserted into the main body of the autoclass directive
