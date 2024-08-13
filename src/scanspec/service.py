@@ -7,7 +7,6 @@ import numpy as np
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from fastapi.responses import JSONResponse
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
@@ -127,7 +126,7 @@ _EXAMPLE_POINTS_REQUEST = PointsRequest(
 @app.post("/valid", response_model=ValidResponse)
 def valid(
     spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
-) -> ValidResponse | JSONResponse:
+) -> ValidResponse:
     """Validate wether a ScanSpec can produce a viable scan.
 
     Args:

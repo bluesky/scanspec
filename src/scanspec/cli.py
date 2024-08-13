@@ -25,6 +25,9 @@ def cli(ctx, log_level: str):
 
     # if no command is supplied, print the help message
     if ctx.invoked_subcommand is None:
+        # We need to prove that cli has been converted to a command
+        # by the click decorator to keep pyright happy.
+        assert isinstance(cli, click.Command)
         click.echo(cli.get_help(ctx))
 
 

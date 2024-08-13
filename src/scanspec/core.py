@@ -35,11 +35,14 @@ __all__ = [
 
 StrictConfig: ConfigDict = {"extra": "forbid"}
 
+C = TypeVar("C")
+T = TypeVar("T", type, Callable)
+
 
 def discriminated_union_of_subclasses(
-    super_cls: type,
+    super_cls: type[C],
     discriminator: str = "type",
-) -> type:
+) -> type[C]:
     """Add all subclasses of super_cls to a discriminated union.
 
     For all subclasses of super_cls, add a discriminator field to identify
@@ -135,9 +138,6 @@ def discriminated_union_of_subclasses(
     super_cls.__init_subclass__ = classmethod(add_subclass_to_union)  # type: ignore
     super_cls.__get_pydantic_core_schema__ = classmethod(get_schema_of_union)  # type: ignore
     return super_cls
-
-
-T = TypeVar("T", type, Callable)
 
 
 def uses_tagged_union(cls_or_func: T) -> T:
@@ -616,7 +616,7 @@ class Path(Generic[Axis]):
 
     def __len__(self) -> int:
         """Number of frames left in a scan, reduces when `consume` is called."""
-        return self.end_index - self.index
+        return int(self.end_index - self.index)
 
 
 class Midpoints(Generic[Axis]):

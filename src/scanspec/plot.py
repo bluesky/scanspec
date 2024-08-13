@@ -33,7 +33,7 @@ class _Arrow3D(patches.FancyArrowPatch):
     # Added here because of https://github.com/matplotlib/matplotlib/issues/21688
     def do_3d_projection(self, renderer=None):
         xs3d, ys3d, zs3d = self._verts3d
-        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)
+        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)  # type: ignore
         self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
 
         return np.min(zs)
@@ -109,11 +109,17 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
     # Setup axes
     if ndims > 2:
         plt.figure(figsize=(6, 6))
-        plt_axes: Axes3D = plt.axes(projection="3d")
+        plt_axes = plt.axes(projection="3d")
         plt_axes.grid(False)
-        plt_axes.set_zlabel(axes[-3])
-        plt_axes.set_ylabel(axes[-2])
-        plt_axes.view_init(elev=15)
+        if isinstance(plt_axes, Axes3D):
+            plt_axes.set_zlabel(axes[-3])
+            plt_axes.set_ylabel(axes[-2])
+            plt_axes.view_init(elev=15)
+        else:
+            raise TypeError(
+                "Expected matplotlib to create an Axes3D object, "
+                f"instead got: {plt_axes}"
+            )
     elif ndims == 2:
         plt.figure(figsize=(6, 6))
         plt_axes = plt.axes()
@@ -208,7 +214,7 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
             _plot_arrow(plt_axes, arrow_arr)
         elif splines:
             # Plot the starting arrow in the direction of the first point
-            arrow_arr = [(2 * a[0] - a[1], a[0]) for a in splines[0]]
+            arrow_arr = [np.array([2 * a[0] - a[1], a[0]]) for a in splines[0]]
             _plot_arrow(plt_axes, arrow_arr)
         else:
             # First point isn't moving, put a right caret marker
