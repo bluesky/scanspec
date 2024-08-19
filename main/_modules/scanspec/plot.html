@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.plot &#8212; scanspec 0.7.2.dev1+gc15b8c3a documentation</title>
+    <title>scanspec.plot &#8212; scanspec 0.7.3.dev1+g0f7329f8 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=c4297a82"></script>
+    <script src="../../_static/documentation_options.js?v=f727527c"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -505,7 +505,7 @@ document.write(`
     <span class="c1"># Added here because of https://github.com/matplotlib/matplotlib/issues/21688</span>
     <span class="k">def</span> <span class="nf">do_3d_projection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">xs3d</span><span class="p">,</span> <span class="n">ys3d</span><span class="p">,</span> <span class="n">zs3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verts3d</span>
-        <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">zs</span> <span class="o">=</span> <span class="n">proj3d</span><span class="o">.</span><span class="n">proj_transform</span><span class="p">(</span><span class="n">xs3d</span><span class="p">,</span> <span class="n">ys3d</span><span class="p">,</span> <span class="n">zs3d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+        <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">zs</span> <span class="o">=</span> <span class="n">proj3d</span><span class="o">.</span><span class="n">proj_transform</span><span class="p">(</span><span class="n">xs3d</span><span class="p">,</span> <span class="n">ys3d</span><span class="p">,</span> <span class="n">zs3d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_positions</span><span class="p">((</span><span class="n">xs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ys</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="p">(</span><span class="n">xs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ys</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">zs</span><span class="p">)</span>
@@ -583,11 +583,17 @@ document.write(`
     <span class="c1"># Setup axes</span>
     <span class="k">if</span> <span class="n">ndims</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-        <span class="n">plt_axes</span><span class="p">:</span> <span class="n">Axes3D</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s2">&quot;3d&quot;</span><span class="p">)</span>
+        <span class="n">plt_axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s2">&quot;3d&quot;</span><span class="p">)</span>
         <span class="n">plt_axes</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">plt_axes</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">])</span>
-        <span class="n">plt_axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
-        <span class="n">plt_axes</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plt_axes</span><span class="p">,</span> <span class="n">Axes3D</span><span class="p">):</span>
+            <span class="n">plt_axes</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">])</span>
+            <span class="n">plt_axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">plt_axes</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;Expected matplotlib to create an Axes3D object, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;instead got: </span><span class="si">{</span><span class="n">plt_axes</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
     <span class="k">elif</span> <span class="n">ndims</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
         <span class="n">plt_axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>
@@ -682,7 +688,7 @@ document.write(`
             <span class="n">_plot_arrow</span><span class="p">(</span><span class="n">plt_axes</span><span class="p">,</span> <span class="n">arrow_arr</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">splines</span><span class="p">:</span>
             <span class="c1"># Plot the starting arrow in the direction of the first point</span>
-            <span class="n">arrow_arr</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">splines</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">arrow_arr</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span> <span class="o">*</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">splines</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
             <span class="n">_plot_arrow</span><span class="p">(</span><span class="n">plt_axes</span><span class="p">,</span> <span class="n">arrow_arr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># First point isn&#39;t moving, put a right caret marker</span>

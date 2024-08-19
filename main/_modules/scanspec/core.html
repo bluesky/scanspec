@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.core &#8212; scanspec 0.7.2.dev1+gc15b8c3a documentation</title>
+    <title>scanspec.core &#8212; scanspec 0.7.3.dev1+g0f7329f8 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=c4297a82"></script>
+    <script src="../../_static/documentation_options.js?v=f727527c"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -507,13 +507,16 @@ document.write(`
 
 <span class="n">StrictConfig</span><span class="p">:</span> <span class="n">ConfigDict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;extra&quot;</span><span class="p">:</span> <span class="s2">&quot;forbid&quot;</span><span class="p">}</span>
 
+<span class="n">C</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">Callable</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="discriminated_union_of_subclasses">
 <a class="viewcode-back" href="../../reference/api.html#scanspec.core.discriminated_union_of_subclasses">[docs]</a>
 <span class="k">def</span> <span class="nf">discriminated_union_of_subclasses</span><span class="p">(</span>
-    <span class="n">super_cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
+    <span class="n">super_cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span>
     <span class="n">discriminator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">[</span><span class="n">C</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add all subclasses of super_cls to a discriminated union.</span>
 
 <span class="sd">    For all subclasses of super_cls, add a discriminator field to identify</span>
@@ -610,9 +613,6 @@ document.write(`
     <span class="n">super_cls</span><span class="o">.</span><span class="n">__get_pydantic_core_schema__</span> <span class="o">=</span> <span class="nb">classmethod</span><span class="p">(</span><span class="n">get_schema_of_union</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
     <span class="k">return</span> <span class="n">super_cls</span></div>
 
-
-
-<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">Callable</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">uses_tagged_union</span><span class="p">(</span><span class="n">cls_or_func</span><span class="p">:</span> <span class="n">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
@@ -1072,7 +1072,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">stack</span><span class="p">])</span>
         <span class="c1">#: Index of the end frame, one more than the last index that will be</span>
         <span class="c1">#: produced</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lengths</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lengths</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">+</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">num</span>
 

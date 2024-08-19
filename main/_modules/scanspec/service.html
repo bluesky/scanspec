@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.service &#8212; scanspec 0.7.2.dev1+gc15b8c3a documentation</title>
+    <title>scanspec.service &#8212; scanspec 0.7.3.dev1+g0f7329f8 documentation</title>
   
   
   
@@ -38,7 +38,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=c4297a82"></script>
+    <script src="../../_static/documentation_options.js?v=f727527c"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -479,7 +479,6 @@ document.write(`
 <span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">Body</span><span class="p">,</span> <span class="n">FastAPI</span>
 <span class="kn">from</span> <span class="nn">fastapi.middleware.cors</span> <span class="kn">import</span> <span class="n">CORSMiddleware</span>
 <span class="kn">from</span> <span class="nn">fastapi.openapi.utils</span> <span class="kn">import</span> <span class="n">get_openapi</span>
-<span class="kn">from</span> <span class="nn">fastapi.responses</span> <span class="kn">import</span> <span class="n">JSONResponse</span>
 <span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">Field</span>
 <span class="kn">from</span> <span class="nn">pydantic.dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
@@ -625,7 +624,7 @@ document.write(`
 <span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/valid&quot;</span><span class="p">,</span> <span class="n">response_model</span><span class="o">=</span><span class="n">ValidResponse</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">valid</span><span class="p">(</span>
     <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span> <span class="o">=</span> <span class="n">Body</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">examples</span><span class="o">=</span><span class="p">[</span><span class="n">_EXAMPLE_SPEC</span><span class="p">]),</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ValidResponse</span> <span class="o">|</span> <span class="n">JSONResponse</span><span class="p">:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ValidResponse</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate wether a ScanSpec can produce a viable scan.</span>
 
 <span class="sd">    Args:</span>
