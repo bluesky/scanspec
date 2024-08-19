@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 
+from docutils.statemachine import StringList
 from matplotlib.sphinxext import plot_directive
 
 from . import __version__
@@ -25,7 +26,7 @@ class ExampleSpecDirective(plot_directive.PlotDirective):
     """Runs `plot_spec` on the ``spec`` definied in the content."""
 
     def run(self):
-        self.content = (
+        self.content = StringList(
             ["# Example Spec", "", "from scanspec.plot import plot_spec"]
             + [str(x) for x in self.content]
             + ["plot_spec(spec)"]
