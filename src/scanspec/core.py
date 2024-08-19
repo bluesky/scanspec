@@ -562,7 +562,7 @@ class Path(Generic[Axis]):
         self.lengths = np.array([len(f) for f in stack])
         #: Index of the end frame, one more than the last index that will be
         #: produced
-        self.end_index = np.prod(self.lengths)
+        self.end_index = int(np.prod(self.lengths))
         if num is not None and start + num < self.end_index:
             self.end_index = start + num
 
@@ -616,7 +616,7 @@ class Path(Generic[Axis]):
 
     def __len__(self) -> int:
         """Number of frames left in a scan, reduces when `consume` is called."""
-        return int(self.end_index - self.index)
+        return self.end_index - self.index
 
 
 class Midpoints(Generic[Axis]):
