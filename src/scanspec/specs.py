@@ -91,23 +91,23 @@ class Spec(Generic[Axis]):
         """Return the final, simplified shape of the scan."""
         return tuple(len(dim) for dim in self.calculate())
 
-    def __rmul__(self, other) -> Product[Axis]:
+    def __rmul__(self, other: Spec[Axis]) -> Product[Axis]:
         return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
 
-    def __mul__(self, other) -> Product[Axis]:
+    def __mul__(self, other: Spec[Axis]) -> Product[Axis]:
         return if_instance_do(other, Spec, lambda o: Product(self, o))
 
-    def __and__(self, other) -> Mask[Axis]:
+    def __and__(self, other: Spec[Axis]) -> Mask[Axis]:
         return if_instance_do(other, Region, lambda o: Mask(self, o))
 
     def __invert__(self) -> Snake[Axis]:
         return Snake(self)
 
-    def zip(self, other: Spec) -> Zip[Axis]:
+    def zip(self, other: Spec[Axis]) -> Zip[Axis]:
         """`Zip` the Spec with another, iterating in tandem."""
         return Zip(self, other)
 
-    def concat(self, other: Spec) -> Concat[Axis]:
+    def concat(self, other: Spec[Axis]) -> Concat[Axis]:
         """`Concat` the Spec with another, iterating one after the other."""
         return Concat(self, other)
 
@@ -541,7 +541,7 @@ class Static(Spec[Axis]):
 
     @classmethod
     def duration(
-        cls: type[Static],
+        cls: type[Static[str]],
         duration: float = Field(description="The duration of each static point"),
         num: int = Field(ge=1, description="Number of frames to produce", default=1),
     ) -> Static[str]:

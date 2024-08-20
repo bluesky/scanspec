@@ -568,7 +568,7 @@ def test_single_frame_single_point():
 
 
 def test_consistent_points():
-    spec = Static.duration(0.1).concat(Static.duration(0.1))
+    spec: Spec[str] = Static.duration(0.1).concat(Static.duration(0.1))
     assert get_constant_duration(spec.calculate()) == 0.1
 
 

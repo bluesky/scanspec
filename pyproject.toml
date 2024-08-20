@@ -63,8 +63,8 @@ name = "Tom Cobb"
 version_file = "src/scanspec/_version.py"
 
 [tool.pyright]
-typeCheckingMode = "standard"
-reportMissingImports = false  # Ignore missing stubs in imported modules
+typeCheckingMode = "strict"
+reportMissingImports = false # Ignore missing stubs in imported modules
 
 [tool.pytest.ini_options]
 # Run pytest with all our checkers, and don't spam us with massive tracebacks on error
@@ -135,9 +135,5 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 
 "tests/**/*" = [
-    # By default, private member access is allowed in tests
-    # See https://github.com/DiamondLightSource/python-copier-template/issues/154
-    # Remove this line to forbid private member access in tests
-    "SLF001",
-    "D",      # Don't check docstrings in tests
+    "D", # Don't check docstrings in tests
 ]
