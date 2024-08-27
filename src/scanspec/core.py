@@ -3,14 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from functools import lru_cache
 from inspect import isclass
-from typing import (
-    Any,
-    Generic,
-    Literal,
-    TypeVar,
-    get_origin,
-    get_type_hints,
-)
+from typing import Any, Generic, Literal, TypeVar
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, GetCoreSchemaHandler
@@ -140,24 +133,6 @@ def discriminated_union_of_subclasses(
     return super_cls
 
 
-def uses_tagged_union(cls_or_func: T) -> T:
-    """
-    T = TypeVar("T", type, Callable)
-        Decorator that processes the type hints of a class or function to detect and
-        register any tagged unions. If a tagged union is detected in the type hints,
-        it registers the class or function as a referrer to that tagged union.
-        Args:
-            cls_or_func (T): The class or function to be processed for tagged unions.
-        Returns:
-            T: The original class or function, unmodified.
-    """
-    for v in get_type_hints(cls_or_func).values():
-        tagged_union = _tagged_unions.get(get_origin(v) or v, None)
-        if tagged_union:
-            tagged_union.add_reference(cls_or_func)
-    return cls_or_func
-
-
 _tagged_unions: dict[type, _TaggedUnion] = {}
 
 
@@ -168,7 +143,6 @@ class _TaggedUnion:
         self._discriminator = discriminator
         # The members of the tagged union, i.e. subclasses of the baseclass
         self._subclasses: list[type] = []
-        self._references: set[type | Callable] = set()
 
     def add_member(self, cls: type):
         if cls in self._subclasses:
@@ -177,14 +151,8 @@ class _TaggedUnion:
         for member in self._subclasses:
             if member is not cls:
                 _TaggedUnion._rebuild(member)
-        for ref in self._references:
-            _TaggedUnion._rebuild(ref)
-
-    def add_reference(self, cls_or_func: type | Callable):
-        self._references.add(cls_or_func)
 
     @staticmethod
-    # https://github.com/bluesky/scanspec/issues/133
     def _rebuild(cls_or_func: type | Callable):
         if isclass(cls_or_func):
             if is_pydantic_dataclass(cls_or_func):
@@ -194,14 +162,14 @@ class _TaggedUnion:
 
     def schema(self, handler: GetCoreSchemaHandler) -> CoreSchema:
         return tagged_union_schema(
-            make_schema(tuple(self._subclasses), handler),
+            _make_schema(tuple(self._subclasses), handler),
             discriminator=self._discriminator,
             ref=self._base_class.__name__,
         )
 
 
 @lru_cache(1)
-def make_schema(members: tuple[type, ...], handler):
+def _make_schema(members: tuple[type, ...], handler):
     return {member.__name__: handler(member) for member in members}
 
 

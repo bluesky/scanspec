@@ -10,7 +10,7 @@ from fastapi.openapi.utils import get_openapi
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-from scanspec.core import AxesPoints, Frames, Path, uses_tagged_union
+from scanspec.core import AxesPoints, Frames, Path
 
 from .specs import Line, Spec
 
@@ -25,7 +25,6 @@ app = FastAPI(version="0.1.1")
 Points = str | list[float]
 
 
-@uses_tagged_union
 @dataclass
 class ValidResponse:
     """Response model for spec validation."""
@@ -42,7 +41,6 @@ class PointsFormat(str, Enum):
     BASE64_ENCODED = "BASE64_ENCODED"
 
 
-@uses_tagged_union
 @dataclass
 class PointsRequest:
     """A request for generated scan points."""
