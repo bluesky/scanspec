@@ -1,12 +1,9 @@
 import pytest
 from pydantic import BaseModel, TypeAdapter
-from pydantic.dataclasses import dataclass
 
-from scanspec.core import StrictConfig, uses_tagged_union
 from scanspec.specs import Line, Spec
 
 
-@uses_tagged_union
 class Foo(BaseModel):
     spec: Spec
 
@@ -41,16 +38,3 @@ def test_type_adapter(model: Foo):
     as_json = model.model_dump_json()
     deserialized = type_adapter.validate_json(as_json)
     assert deserialized == model
-
-
-def test_schema_updates_with_new_values():
-    old_schema = TypeAdapter(Foo).json_schema()
-
-    @dataclass(config=StrictConfig)
-    class Splat(Spec[str]):  # NOSONAR
-        def axes(self) -> list[str]:
-            return ["*"]
-
-    new_schema = TypeAdapter(Foo).json_schema()
-
-    assert new_schema != old_schema
