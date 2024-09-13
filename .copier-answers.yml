@@ -1,11 +1,8 @@
 # Changes here will be overwritten by Copier
-_commit: 2.2.0-25-gcefd623
+_commit: 2.2.0-27-ga21ee4c
 _src_path: gh:DiamondLightSource/python-copier-template
 author_email: tom.cobb@diamond.ac.uk
 author_name: Tom Cobb
-component_lifecycle: experimental
-component_owner: group:default/sscc
-component_type: library
 description: Specify step and flyscan paths in a serializable, efficient and Pythonic
     way
 distribution_name: scanspec
