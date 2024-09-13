@@ -1,8 +1,9 @@
-# Configuration file for the Sphinx documentation builder.
-#
-# This file only contains a selection of the most common options. For a full
-# list see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
+"""Configuration file for the Sphinx documentation builder.
+
+This file only contains a selection of the most common options. For a full
+list see the documentation:
+https://www.sphinx-doc.org/en/master/usage/configuration.html
+"""
 
 import sys
 from pathlib import Path
@@ -32,6 +33,10 @@ else:
 extensions = [
     # Use this for generating API docs
     "sphinx.ext.autodoc",
+    # and making summary tables at the top of API docs
+    "sphinx.ext.autosummary",
+    # With an extension for pydantic models
+    "sphinxcontrib.autodoc_pydantic",
     # This can parse google style docstrings
     "sphinx.ext.napoleon",
     # For linking to external sphinx documentation
@@ -66,22 +71,8 @@ nitpicky = True
 # domain name if present. Example entries would be ('py:func', 'int') or
 # ('envvar', 'LD_LIBRARY_PATH').
 nitpick_ignore = [
-    ("py:func", "int"),
-    ("py:class", "Axis"),
-    ("py:class", "~Axis"),
-    ("py:class", "scanspec.core.Axis"),
-    ("py:class", "AxesPoints"),
-    ("py:class", "np.ndarray"),
-    ("py:class", "NoneType"),
-    ("py:class", "'str'"),
-    ("py:class", "'float'"),
-    ("py:class", "'int'"),
-    ("py:class", "'bool'"),
-    ("py:class", "'object'"),
-    ("py:class", "'id'"),
-    ("py:class", "typing_extensions.Literal"),
-    ("py:class", "pydantic.config.BaseConfig"),
-    ("py:class", "starlette.responses.JSONResponse"),
+    ("py:class", "scanspec.core.C"),
+    ("py:class", "pydantic.config.ConfigDict"),
 ]
 
 # Both the class’ and the __init__ method’s docstring are concatenated and
@@ -91,18 +82,23 @@ autoclass_content = "both"
 # Order the members by the order they appear in the source code
 autodoc_member_order = "bysource"
 
-# Don't inherit docstrings from baseclasses
-autodoc_inherit_docstrings = False
+# For autodoc we want to document some additional optional modules
+scanspec.__all__ += ["plot"]
 
-# Insert inheritance links
-autodoc_default_options = {"show-inheritance": True}
+# Don't show config summary as it's not relevant
+autodoc_pydantic_model_show_config_summary = False
 
-# A dictionary for users defined type aliases that maps a type name to the
-# full-qualified object name.
-autodoc_type_aliases = {"AxesPoints": "scanspec.core.AxesPoints"}
+# Show the fields in source order
+autodoc_pydantic_model_summary_list_order = "bysource"
 
 # Include source in plot directive by default
 plot_include_source = True
+
+# Document only what is in __all__
+autosummary_ignore_module_all = False
+
+# Add any paths that contain templates here, relative to this directory.
+templates_path = ["_templates"]
 
 # Output graphviz directive produced images in a scalable format
 graphviz_output_format = "svg"
@@ -162,10 +158,10 @@ if not switcher_exists:
 # Theme options for pydata_sphinx_theme
 # We don't check switcher because there are 3 possible states for a repo:
 # 1. New project, docs are not published so there is no switcher
-# 2. Existing project with latest skeleton, switcher exists and works
-# 3. Existing project with old skeleton that makes broken switcher,
+# 2. Existing project with latest copier template, switcher exists and works
+# 3. Existing project with old copier template that makes broken switcher,
 #    switcher exists but is broken
-# Point 3 makes checking switcher difficult, because the updated skeleton
+# Point 3 makes checking switcher difficult, because the updated copier template
 # will fix the switcher at the end of the docs workflow, but never gets a chance
 # to complete as the docs build warns and fails.
 html_theme_options = {
@@ -193,7 +189,7 @@ html_theme_options = {
 # A dictionary of values to pass into the template engine’s context for all pages
 html_context = {
     "github_user": github_user,
-    "github_repo": project,
+    "github_repo": github_repo,
     "github_version": version,
     "doc_path": "docs",
 }

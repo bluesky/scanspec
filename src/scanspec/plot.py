@@ -1,3 +1,5 @@
+"""`plot_spec` to visualize a scan."""
+
 from collections.abc import Iterator
 from itertools import cycle
 from typing import Any

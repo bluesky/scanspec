@@ -1,3 +1,10 @@
+"""`Region` and its subclasses.
+
+.. inheritance-diagram:: scanspec.regions
+    :top-classes: scanspec.regions.Region
+    :parts: 1
+"""
+
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
@@ -45,11 +52,11 @@ class Region(Generic[Axis]):
     - ``^``: `SymmetricDifferenceOf` two Regions, midpoints present in one not both
     """
 
-    def axis_sets(self) -> list[set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         """Produce the non-overlapping sets of axes this region spans."""
         raise NotImplementedError(self)
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
         """Produce a mask of which points are in the region."""
         raise NotImplementedError(self)
 
@@ -111,7 +118,7 @@ class CombinationOf(Region[Axis]):
     left: Region[Axis] = Field(description="The left-hand Region to combine")
     right: Region[Axis] = Field(description="The right-hand Region to combine")
 
-    def axis_sets(self) -> list[set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         axis_sets = list(
             _merge_axis_sets(self.left.axis_sets() + self.right.axis_sets())
         )
@@ -130,7 +137,7 @@ class UnionOf(CombinationOf[Axis]):
     array([False,  True,  True,  True, False])
     """
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
         mask = get_mask(self.left, points) | get_mask(self.right, points)
         return mask
 
@@ -146,7 +153,7 @@ class IntersectionOf(CombinationOf[Axis]):
     array([False, False,  True, False, False])
     """
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
         mask = get_mask(self.left, points) & get_mask(self.right, points)
         return mask
 
@@ -162,7 +169,7 @@ class DifferenceOf(CombinationOf[Axis]):
     array([False,  True, False, False, False])
     """
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
         left_mask = get_mask(self.left, points)
         # Return the xor restricted to the left region
         mask = left_mask ^ get_mask(self.right, points) & left_mask
@@ -180,7 +187,7 @@ class SymmetricDifferenceOf(CombinationOf[Axis]):
     array([False,  True, False,  True, False])
     """
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
         mask = get_mask(self.left, points) ^ get_mask(self.right, points)
         return mask
 
@@ -198,10 +205,10 @@ class Range(Region[Axis]):
     min: float = Field(description="The minimum inclusive value in the region")
     max: float = Field(description="The minimum inclusive value in the region")
 
-    def axis_sets(self) -> list[set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.axis}]
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
         v = points[self.axis]
         mask = np.bitwise_and(v >= self.min, v <= self.max)
         return mask
@@ -230,10 +237,10 @@ class Rectangle(Region[Axis]):
         description="Clockwise rotation angle of the rectangle", default=0.0
     )
 
-    def axis_sets(self) -> list[set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
         x = points[self.x_axis] - self.x_min
         y = points[self.y_axis] - self.y_min
         if self.angle != 0:
@@ -270,10 +277,10 @@ class Polygon(Region[Axis]):
         description="The Nx1 y coordinates of the polygons vertices", min_length=3
     )
 
-    def axis_sets(self) -> list[set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
         x = points[self.x_axis]
         y = points[self.y_axis]
         v1x, v1y = self.x_verts[-1], self.y_verts[-1]
@@ -310,10 +317,10 @@ class Circle(Region[Axis]):
     y_middle: float = Field(description="The central y point of the circle")
     radius: float = Field(description="Radius of the circle", gt=0)
 
-    def axis_sets(self) -> list[set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
         x = points[self.x_axis] - self.x_middle
         y = points[self.y_axis] - self.y_middle
         mask = x * x + y * y <= (self.radius * self.radius)
@@ -345,10 +352,10 @@ class Ellipse(Region[Axis]):
     )
     angle: float = Field(description="The angle of the ellipse (degrees)", default=0.0)
 
-    def axis_sets(self) -> list[set[Axis]]:
+    def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:
+    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
         x = points[self.x_axis] - self.x_middle
         y = points[self.y_axis] - self.y_middle
         if self.angle != 0:
@@ -362,7 +369,7 @@ class Ellipse(Region[Axis]):
         return mask
 
 
-def find_regions(obj) -> Iterator[Region[Axis]]:
+def find_regions(obj) -> Iterator[Region]:
     """Recursively yield Regions from obj and its children."""
     if (
         hasattr(obj, "__pydantic_model__")
@@ -372,5 +379,5 @@ def find_regions(obj) -> Iterator[Region[Axis]]:
         if isinstance(obj, Region):
             yield obj
         for name in obj.__dict__.keys():
-            regions: Iterator[Region[Axis]] = find_regions(getattr(obj, name))
+            regions: Iterator[Region] = find_regions(getattr(obj, name))
             yield from regions

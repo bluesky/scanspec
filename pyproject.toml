@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=64", "setuptools_scm[toml]>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,6 +9,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 description = "Specify step and flyscan paths in a serializable, efficient and Pythonic way"
 dependencies = ["numpy", "click>=8.1", "pydantic>=2.0"]
@@ -28,7 +29,9 @@ dev = [
     # https://github.com/pypa/pip/issues/10393
     "scanspec[plotting]",
     "scanspec[service]",
+    "autodoc_pydantic @ git+https://github.com/coretl/autodoc_pydantic.git@0b95311d8d10fce67a9ecd5830330364e31fa49c",
     "copier",
+    "httpx",
     "myst-parser",
     "pipdeptree",
     "pre-commit",
@@ -43,8 +46,6 @@ dev = [
     "sphinxcontrib-openapi",
     "tox-direct",
     "types-mock",
-    "httpx",
-    "myst-parser",
 ]
 
 [project.scripts]
@@ -59,11 +60,11 @@ name = "Tom Cobb"
 
 
 [tool.setuptools_scm]
-write_to = "src/scanspec/_version.py"
+version_file = "src/scanspec/_version.py"
 
 [tool.pyright]
-# strict = ["src", "tests"]
-reportMissingImports = false # Ignore missing stubs in imported modules
+typeCheckingMode = "standard"
+reportMissingImports = false  # Ignore missing stubs in imported modules
 
 [tool.pytest.ini_options]
 # Run pytest with all our checkers, and don't spam us with massive tracebacks on error
@@ -100,7 +101,7 @@ allowlist_externals =
     sphinx-build
     sphinx-autobuild
 commands =
-    pre-commit: pre-commit run --all-files {posargs}
+    pre-commit: pre-commit run --all-files --show-diff-on-failure {posargs}
     type-checking: pyright src tests {posargs}
     tests: pytest --cov=scanspec --cov-report term --cov-report xml:cov.xml {posargs}
     docs: sphinx-{posargs:build -E --keep-going} -T docs build/html
@@ -114,6 +115,7 @@ line-length = 88
 extend-select = [
     "B",   # flake8-bugbear - https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
     "C4",  # flake8-comprehensions - https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+    "D",   # pydocstyle - https://docs.astral.sh/ruff/rules/#pydocstyle-d
     "E",   # pycodestyle errors - https://docs.astral.sh/ruff/rules/#error-e
     "F",   # pyflakes rules - https://docs.astral.sh/ruff/rules/#pyflakes-f
     "W",   # pycodestyle warnings - https://docs.astral.sh/ruff/rules/#warning-w
@@ -123,10 +125,19 @@ extend-select = [
 ]
 ignore = [
     "B008", # We use function calls in service arguments
+    "D105", # Don't document magic methods as they don't appear in sphinx autodoc pages
+    "D107", # We document the class, not the __init__ method
 ]
 
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
 [tool.ruff.lint.per-file-ignores]
-# By default, private member access is allowed in tests
-# See https://github.com/DiamondLightSource/python-copier-template/issues/154
-# Remove this line to forbid private member access in tests
-"tests/**/*" = ["SLF001"]
+
+"tests/**/*" = [
+    # By default, private member access is allowed in tests
+    # See https://github.com/DiamondLightSource/python-copier-template/issues/154
+    # Remove this line to forbid private member access in tests
+    "SLF001",
+    "D",      # Don't check docstrings in tests
+]

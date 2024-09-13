@@ -1,3 +1,10 @@
+"""`Spec` and its subclasses.
+
+.. inheritance-diagram:: scanspec.specs
+    :top-classes: scanspec.specs.Spec
+    :parts: 1
+"""
+
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
@@ -58,14 +65,14 @@ class Spec(Generic[Axis]):
     - ``~``: `Snake` the Spec, reversing every other iteration of it
     """
 
-    def axes(self) -> list[Axis]:
+    def axes(self) -> list[Axis]:  # noqa: D102
         """Return the list of axes that are present in the scan.
 
         Ordered from slowest moving to fastest moving.
         """
         raise NotImplementedError(self)
 
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:  # noqa: D102
         """Produce a stack of nested `Frames` that form the scan.
 
         Ordered from slowest moving to fastest moving.
@@ -130,10 +137,10 @@ class Product(Spec[Axis]):
     outer: Spec[Axis] = Field(description="Will be executed once")
     inner: Spec[Axis] = Field(description="Will be executed len(outer) times")
 
-    def axes(self) -> list:
+    def axes(self) -> list[Axis]:  # noqa: D102
         return self.outer.axes() + self.inner.axes()
 
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:  # noqa: D102
         frames_outer = self.outer.calculate(bounds=False, nested=nested)
         frames_inner = self.inner.calculate(bounds, nested=True)
         return frames_outer + frames_inner
@@ -169,10 +176,10 @@ class Repeat(Spec[Axis]):
         default=True,
     )
 
-    def axes(self) -> list:
+    def axes(self) -> list[Axis]:  # noqa: D102
         return []
 
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:  # noqa: D102
         return [Frames({}, gap=np.full(self.num, self.gap))]
 
 
@@ -206,10 +213,10 @@ class Zip(Spec[Axis]):
         description="The right-hand Spec to Zip, will appear later in axes"
     )
 
-    def axes(self) -> list:
+    def axes(self) -> list[Axis]:  # noqa: D102
         return self.left.axes() + self.right.axes()
 
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:  # noqa: D102
         frames_left = self.left.calculate(bounds, nested)
         frames_right = self.right.calculate(bounds, nested)
         assert len(frames_left) >= len(
@@ -274,10 +281,10 @@ class Mask(Spec[Axis]):
         default=True,
     )
 
-    def axes(self) -> list:
+    def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:  # noqa: D102
         frames = self.spec.calculate(bounds, nested)
         for axis_set in self.region.axis_sets():
             # Find the start and end index of any dimensions containing these axes
@@ -332,10 +339,10 @@ class Snake(Spec[Axis]):
         description="The Spec to run in reverse every other iteration"
     )
 
-    def axes(self) -> list:
+    def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:  # noqa: D102
         return [
             SnakedFrames.from_frames(segment)
             for segment in self.spec.calculate(bounds, nested)
@@ -371,14 +378,14 @@ class Concat(Spec[Axis]):
         default=True,
     )
 
-    def axes(self) -> list:
+    def axes(self) -> list[Axis]:  # noqa: D102
         left_axes, right_axes = self.left.axes(), self.right.axes()
         # Assuming the axes are the same, the order does not matter, we inherit the
         # order from the left-hand side. See also scanspec.core.concat.
         assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
         return left_axes
 
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:  # noqa: D102
         dim_left = squash_frames(
             self.left.calculate(bounds, nested), nested and self.check_path_changes
         )
@@ -401,6 +408,7 @@ class Squash(Spec[Axis]):
         from scanspec.specs import Line, Squash
 
         spec = Squash(Line("y", 1, 2, 3) * Line("x", 0, 1, 4))
+
     """
 
     spec: Spec[Axis] = Field(description="The Spec to squash the dimensions of")
@@ -409,10 +417,10 @@ class Squash(Spec[Axis]):
         default=True,
     )
 
-    def axes(self) -> list:
+    def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:  # noqa: D102
         dims = self.spec.calculate(bounds, nested)
         dim = squash_frames(dims, nested and self.check_path_changes)
         return [dim]
@@ -461,7 +469,7 @@ class Line(Spec[Axis]):
     stop: float = Field(description="Midpoint of the last point of the line")
     num: int = Field(ge=1, description="Number of frames to produce")
 
-    def axes(self) -> list:
+    def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
 
     def _line_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
@@ -476,7 +484,7 @@ class Line(Spec[Axis]):
         first = self.start - step / 2
         return {self.axis: indexes * step + first}
 
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:  # noqa: D102
         return _dimensions_from_indexes(
             self._line_from_indexes, self.axes(), self.num, bounds
         )
@@ -547,13 +555,13 @@ class Static(Spec[Axis]):
         """
         return cls(DURATION, duration, num)
 
-    def axes(self) -> list:
+    def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
 
     def _repeats_from_indexes(self, indexes: np.ndarray) -> dict[Axis, np.ndarray]:
         return {self.axis: np.full(len(indexes), self.value)}
 
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:  # noqa: D102
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
         )
@@ -589,7 +597,7 @@ class Spiral(Spec[Axis]):
         description="How much to rotate the angle of the spiral", default=0.0
     )
 
-    def axes(self) -> list[Axis]:
+    def axes(self) -> list[Axis]:  # noqa: D102
         # TODO: reversed from __init__ args, a good idea?
         return [self.y_axis, self.x_axis]
 
@@ -610,7 +618,7 @@ class Spiral(Spec[Axis]):
             self.x_axis: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
         }
 
-    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:
+    def calculate(self, bounds=True, nested=False) -> list[Frames[Axis]]:  # noqa: D102
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self.num, bounds
         )
@@ -662,6 +670,7 @@ def fly(spec: Spec[Axis], duration: float) -> Spec[Axis]:
         from scanspec.specs import Line, fly
 
         spec = fly(Line("x", 1, 2, 3), 0.1)
+
     """
     return spec.zip(Static.duration(duration))
 
@@ -680,13 +689,13 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
         from scanspec.specs import Line, step
 
         spec = step(Line("x", 1, 2, 3), 0.1)
+
     """
     return spec * Static.duration(duration, num)
 
 
 def get_constant_duration(frames: list[Frames]) -> float | None:
-    """
-    Returns the duration of a number of ScanSpec frames, if known and consistent.
+    """Returns the duration of a number of ScanSpec frames, if known and consistent.
 
     Args:
         frames (List[Frames]): A number of Frame objects

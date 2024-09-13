@@ -1,12 +1,12 @@
 Why create a stack of Frames?
 =============================
 
-If a `Spec` tells you the parameters of a scan, `Frames` gives you the `Points`
-that will let you actually execute the scan. A stack of Frames is interpreted as
-nested from slowest moving to fastest moving, so each faster Frames object will
-iterate once per position of the slower Frames object. When fly-scanning the
-axis will traverse lower-midpoint-upper on the fastest Frames object for each
-point in the scan.
+If a `Spec` tells you the parameters of a scan, `Frames` gives you the `Points
+<Point_>` that will let you actually execute the scan. A stack of Frames is
+interpreted as nested from slowest moving to fastest moving, so each faster
+Frames object will iterate once per position of the slower Frames object. When
+fly-scanning the axis will traverse lower-midpoint-upper on the fastest Frames
+object for each point in the scan.
 
 An Example
 ----------
@@ -63,4 +63,3 @@ which point it destroys the performance of the VDS. For this reason, it is
 advisable to `Squash` any snaking Specs with the first non-snaking axis above it
 so that the HDF Dimension will not be snaking. See `./why-squash-can-change-path` for
 some details on this.
-

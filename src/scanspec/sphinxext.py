@@ -1,3 +1,5 @@
+"""An example_spec directive."""
+
 from contextlib import contextmanager
 
 from docutils.statemachine import StringList
@@ -26,6 +28,7 @@ class ExampleSpecDirective(plot_directive.PlotDirective):
     """Runs `plot_spec` on the ``spec`` definied in the content."""
 
     def run(self):
+        """Run the directive."""
         self.content = StringList(
             ["# Example Spec", "", "from scanspec.plot import plot_spec"]
             + [str(x) for x in self.content]

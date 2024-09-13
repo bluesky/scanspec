@@ -14,12 +14,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "allOf": [
-                                    {
-                                        "$ref": "#/components/schemas/Spec-Input"
-                                    }
-                                ],
-                                "title": "Spec",
+                                "$ref": "#/components/schemas/Spec-Input",
                                 "examples": [
                                     {
                                         "outer": {
@@ -77,12 +72,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "allOf": [
-                                    {
-                                        "$ref": "#/components/schemas/PointsRequest"
-                                    }
-                                ],
-                                "title": "Request",
+                                "$ref": "#/components/schemas/PointsRequest",
                                 "examples": [
                                     {
                                         "spec": {
@@ -144,12 +134,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "allOf": [
-                                    {
-                                        "$ref": "#/components/schemas/PointsRequest"
-                                    }
-                                ],
-                                "title": "Request",
+                                "$ref": "#/components/schemas/PointsRequest",
                                 "examples": [
                                     {
                                         "spec": {
@@ -205,18 +190,13 @@
         "/gap": {
             "post": {
                 "summary": "Gap",
-                "description": "Generate gaps from a scanspec.\n\nA scanspec may indicate if there is a gap between two frames.\nThe array returned corresponds to whether or not there is a gap\nafter each frame.\n\nArgs:\n    request: Scanspec and formatting info.\n\nReturns:\n    GapResponse: Bounds of the scan",
+                "description": "Generate gaps from a scanspec.\n\nA scanspec may indicate if there is a gap between two frames.\nThe array returned corresponds to whether or not there is a gap\nafter each frame.\n\nArgs:\n    spec: Scanspec and formatting info.\n\nReturns:\n    GapResponse: Bounds of the scan",
                 "operationId": "gap_gap_post",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "allOf": [
-                                    {
-                                        "$ref": "#/components/schemas/Spec-Input"
-                                    }
-                                ],
-                                "title": "Spec",
+                                "$ref": "#/components/schemas/Spec-Input",
                                 "examples": [
                                     {
                                         "outer": {
@@ -274,12 +254,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "allOf": [
-                                    {
-                                        "$ref": "#/components/schemas/Spec-Input"
-                                    }
-                                ],
-                                "title": "Spec",
+                                "$ref": "#/components/schemas/Spec-Input",
                                 "examples": [
                                     {
                                         "outer": {
@@ -344,11 +319,7 @@
                         "description": "Total of number of frames in this response, may be less than total_frames due to downsampling etc."
                     },
                     "format": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/PointsFormat"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/PointsFormat",
                         "description": "Format of returned point data"
                     },
                     "lower": {
@@ -450,19 +421,11 @@
             "CombinationOf-Input": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Input",
                         "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Input",
                         "description": "The right-hand Region to combine"
                     },
                     "type": {
@@ -487,19 +450,11 @@
             "CombinationOf-Output": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Output",
                         "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Output",
                         "description": "The right-hand Region to combine"
                     },
                     "type": {
@@ -524,19 +479,11 @@
             "Concat-Input": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Input",
                         "description": "The left-hand Spec to Concat, midpoints will appear earlier"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Input",
                         "description": "The right-hand Spec to Concat, midpoints will appear later"
                     },
                     "gap": {
@@ -573,19 +520,11 @@
             "Concat-Output": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Output",
                         "description": "The left-hand Spec to Concat, midpoints will appear earlier"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Output",
                         "description": "The right-hand Spec to Concat, midpoints will appear later"
                     },
                     "gap": {
@@ -622,19 +561,11 @@
             "DifferenceOf-Input": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Input",
                         "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Input",
                         "description": "The right-hand Region to combine"
                     },
                     "type": {
@@ -659,19 +590,11 @@
             "DifferenceOf-Output": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Output",
                         "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Output",
                         "description": "The right-hand Region to combine"
                     },
                     "type": {
@@ -788,19 +711,11 @@
             "IntersectionOf-Input": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Input",
                         "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Input",
                         "description": "The right-hand Region to combine"
                     },
                     "type": {
@@ -825,19 +740,11 @@
             "IntersectionOf-Output": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Output",
                         "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Output",
                         "description": "The right-hand Region to combine"
                     },
                     "type": {
@@ -905,19 +812,11 @@
             "Mask-Input": {
                 "properties": {
                     "spec": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Input",
                         "description": "The Spec containing the source midpoints"
                     },
                     "region": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Input",
                         "description": "The Region that midpoints will be inside"
                     },
                     "check_path_changes": {
@@ -948,19 +847,11 @@
             "Mask-Output": {
                 "properties": {
                     "spec": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Output",
                         "description": "The Spec containing the source midpoints"
                     },
                     "region": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Output",
                         "description": "The Region that midpoints will be inside"
                     },
                     "check_path_changes": {
@@ -1001,11 +892,7 @@
                         "description": "Total of number of frames in this response, may be less than total_frames due to downsampling etc."
                     },
                     "format": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/PointsFormat"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/PointsFormat",
                         "description": "Format of returned point data"
                     },
                     "midpoints": {
@@ -1050,11 +937,7 @@
             "PointsRequest": {
                 "properties": {
                     "spec": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Input",
                         "description": "The spec from which to generate points"
                     },
                     "max_frames": {
@@ -1071,11 +954,7 @@
                         "default": 100000
                     },
                     "format": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/PointsFormat"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/PointsFormat",
                         "description": "The format in which to output the points data",
                         "default": "FLOAT_LIST"
                     }
@@ -1139,19 +1018,11 @@
             "Product-Input": {
                 "properties": {
                     "outer": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Input",
                         "description": "Will be executed once"
                     },
                     "inner": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Input",
                         "description": "Will be executed len(outer) times"
                     },
                     "type": {
@@ -1176,19 +1047,11 @@
             "Product-Output": {
                 "properties": {
                     "outer": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Output",
                         "description": "Will be executed once"
                     },
                     "inner": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Output",
                         "description": "Will be executed len(outer) times"
                     },
                     "type": {
@@ -1462,11 +1325,7 @@
             "Snake-Input": {
                 "properties": {
                     "spec": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Input",
                         "description": "The Spec to run in reverse every other iteration"
                     },
                     "type": {
@@ -1490,11 +1349,7 @@
             "Snake-Output": {
                 "properties": {
                     "spec": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Output",
                         "description": "The Spec to run in reverse every other iteration"
                     },
                     "type": {
@@ -1682,11 +1537,7 @@
             "Squash-Input": {
                 "properties": {
                     "spec": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Input",
                         "description": "The Spec to squash the dimensions of"
                     },
                     "check_path_changes": {
@@ -1716,11 +1567,7 @@
             "Squash-Output": {
                 "properties": {
                     "spec": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Output",
                         "description": "The Spec to squash the dimensions of"
                     },
                     "check_path_changes": {
@@ -1787,19 +1634,11 @@
             "SymmetricDifferenceOf-Input": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Input",
                         "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Input",
                         "description": "The right-hand Region to combine"
                     },
                     "type": {
@@ -1824,19 +1663,11 @@
             "SymmetricDifferenceOf-Output": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Output",
                         "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Output",
                         "description": "The right-hand Region to combine"
                     },
                     "type": {
@@ -1861,19 +1692,11 @@
             "UnionOf-Input": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Input",
                         "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Input",
                         "description": "The right-hand Region to combine"
                     },
                     "type": {
@@ -1898,19 +1721,11 @@
             "UnionOf-Output": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Output",
                         "description": "The left-hand Region to combine"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Region-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Region-Output",
                         "description": "The right-hand Region to combine"
                     },
                     "type": {
@@ -1935,19 +1750,11 @@
             "ValidResponse": {
                 "properties": {
                     "input_spec": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Output",
                         "description": "The input scanspec"
                     },
                     "valid_spec": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Output",
                         "description": "The validated version of the spec"
                     }
                 },
@@ -1995,19 +1802,11 @@
             "Zip-Input": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Input",
                         "description": "The left-hand Spec to Zip, will appear earlier in axes"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Input"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Input",
                         "description": "The right-hand Spec to Zip, will appear later in axes"
                     },
                     "type": {
@@ -2032,19 +1831,11 @@
             "Zip-Output": {
                 "properties": {
                     "left": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Output",
                         "description": "The left-hand Spec to Zip, will appear earlier in axes"
                     },
                     "right": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Spec-Output"
-                            }
-                        ],
+                        "$ref": "#/components/schemas/Spec-Output",
                         "description": "The right-hand Spec to Zip, will appear later in axes"
                     },
                     "type": {
