@@ -5,6 +5,6 @@ metadata:
   title: scanspec
   description: Specify step and flyscan paths in a serializable, efficient and Pythonic way
 spec:
-  type: documentation
+  type: library
   lifecycle: experimental
   owner: group:default/sscc
