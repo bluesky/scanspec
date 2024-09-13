@@ -1,7 +1,7 @@
-import pytest
-
 from scanspec.core import Path
 from scanspec.specs import Line
+
+from . import approx
 
 
 def test_line_path() -> None:
@@ -11,7 +11,7 @@ def test_line_path() -> None:
     path = Path(dims)
     assert len(path) == 5
     dim = path.consume()
-    assert dim.midpoints == {x: pytest.approx([0, 0.25, 0.5, 0.75, 1.0])}
+    assert dim.midpoints == {x: approx([0, 0.25, 0.5, 0.75, 1.0])}
     assert len(path) == 0
 
 
@@ -22,4 +22,4 @@ def test_line_midpoints() -> None:
     assert it.axes == [x]
     assert len(it) == 5
     midpoints = [d[x] for d in it]
-    assert midpoints == pytest.approx([0, 0.25, 0.5, 0.75, 1.0])
+    assert midpoints == approx([0, 0.25, 0.5, 0.75, 1.0])

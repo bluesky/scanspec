@@ -5,7 +5,7 @@ from scanspec.specs import Line, Spec
 
 
 class Foo(BaseModel):
-    spec: Spec
+    spec: Spec[str]
 
 
 simple_foo = Foo(spec=Line("x", 1, 2, 5))

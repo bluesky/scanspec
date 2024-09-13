@@ -171,7 +171,7 @@ def test_vanilla_serialization():
         ),
     )
 
-    adapter = TypeAdapter(Spec)
+    adapter = TypeAdapter(Spec[str])
     serialized = adapter.dump_json(ob)
     deserialized = adapter.validate_json(serialized)
     assert deserialized == ob

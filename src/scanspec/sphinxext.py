@@ -1,9 +1,11 @@
 """An example_spec directive."""
 
 from contextlib import contextmanager
+from typing import Any, cast
 
 from docutils.statemachine import StringList
 from matplotlib.sphinxext import plot_directive
+from sphinx.application import Sphinx
 
 from . import __version__
 
@@ -15,9 +17,18 @@ def always_create_figures():
     This is needed even if source rst hasn't changed, as we often use
     example_spec from within docstrings
     """
-    orig_f = plot_directive.out_of_date
+
+    def always_true(
+        original: Any,
+        derived: Any,
+        includes: Any = None,
+    ) -> bool:
+        return True
+
+    # Type ignored because we never manipulate this object
+    orig_f = plot_directive.out_of_date  # type: ignore
     # Patch the plot directive so it thinks all sources are out of date
-    plot_directive.out_of_date = lambda *args, **kwargs: True
+    plot_directive.out_of_date = always_true
     try:
         yield
     finally:
@@ -27,7 +38,7 @@ def always_create_figures():
 class ExampleSpecDirective(plot_directive.PlotDirective):
     """Runs `plot_spec` on the ``spec`` definied in the content."""
 
-    def run(self):
+    def run(self) -> Any:
         """Run the directive."""
         self.content = StringList(
             ["# Example Spec", "", "from scanspec.plot import plot_spec"]
@@ -35,10 +46,10 @@ class ExampleSpecDirective(plot_directive.PlotDirective):
             + ["plot_spec(spec)"]
         )
         with always_create_figures():
-            return super().run()
+            return cast(Any, super().run())
 
 
-def setup(app):
+def setup(app: Sphinx):
     """Setup this extension in sphinx."""
     app.add_directive("example_spec", ExampleSpecDirective)
 

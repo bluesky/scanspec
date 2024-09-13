@@ -4,8 +4,10 @@ import base64
 import json
 from collections.abc import Mapping
 from enum import Enum
+from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -31,8 +33,8 @@ Points = str | list[float]
 class ValidResponse:
     """Response model for spec validation."""
 
-    input_spec: Spec = Field(description="The input scanspec")
-    valid_spec: Spec = Field(description="The validated version of the spec")
+    input_spec: Spec[str] = Field(description="The input scanspec")
+    valid_spec: Spec[str] = Field(description="The validated version of the spec")
 
 
 class PointsFormat(str, Enum):
@@ -47,7 +49,7 @@ class PointsFormat(str, Enum):
 class PointsRequest:
     """A request for generated scan points."""
 
-    spec: Spec = Field(description="The spec from which to generate points")
+    spec: Spec[str] = Field(description="The spec from which to generate points")
     max_frames: int | None = Field(
         description="The maximum number of points to return, if None will return "
         "as many as calculated",
@@ -125,9 +127,9 @@ _EXAMPLE_POINTS_REQUEST = PointsRequest(
 
 @app.post("/valid", response_model=ValidResponse)
 def valid(
-    spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
+    spec: Spec[str] = Body(..., examples=[_EXAMPLE_SPEC]),
 ) -> ValidResponse:
-    """Validate wether a ScanSpec can produce a viable scan.
+    """Validate wether a ScanSpec[str] can produce a viable scan.
 
     Args:
         spec: The scanspec to validate
@@ -200,7 +202,7 @@ def bounds(
 
 @app.post("/gap", response_model=GapResponse)
 def gap(
-    spec: Spec = Body(
+    spec: Spec[str] = Body(
         ...,
         examples=[_EXAMPLE_SPEC],
     ),
@@ -226,7 +228,7 @@ def gap(
 
 @app.post("/smalleststep", response_model=SmallestStepResponse)
 def smallest_step(
-    spec: Spec = Body(..., examples=[_EXAMPLE_SPEC]),
+    spec: Spec[str] = Body(..., examples=[_EXAMPLE_SPEC]),
 ) -> SmallestStepResponse:
     """Calculate the smallest step in a scan, both absolutely and per-axis.
 
@@ -256,7 +258,7 @@ def smallest_step(
 #
 
 
-def _to_chunk(request: PointsRequest) -> tuple[Frames, int]:
+def _to_chunk(request: PointsRequest) -> tuple[Frames[str], int]:
     spec = Spec.deserialize(request.spec)
     dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
@@ -303,7 +305,7 @@ def _format_axes_points(
         raise KeyError(f"Unknown format: {format}")
 
 
-def _reduce_frames(stack: list[Frames[str]], max_frames: int) -> Path:
+def _reduce_frames(stack: list[Frames[str]], max_frames: int) -> Path[str]:
     """Removes frames from a spec so len(path) < max_frames.
 
     Args:
@@ -323,7 +325,7 @@ def _reduce_frames(stack: list[Frames[str]], max_frames: int) -> Path:
     return Path(sub_frames)
 
 
-def _sub_sample(frames: Frames[str], ratio: float) -> Frames:
+def _sub_sample(frames: Frames[str], ratio: float) -> Frames[str]:
     """Provides a sub-sample Frames object whilst preserving its core structure.
 
     Args:
@@ -336,7 +338,7 @@ def _sub_sample(frames: Frames[str], ratio: float) -> Frames:
     return frames.extract(indexes, calculate_gap=False)
 
 
-def _calc_smallest_step(points: list[np.ndarray]) -> float:
+def _calc_smallest_step(points: list[npt.NDArray[np.float64]]) -> float:
     # Calc abs diffs of all axes, ignoring any zero values
     absolute_diffs = [_abs_diffs(axis_midpoints) for axis_midpoints in points]
     # Normalize and remove zeros
@@ -346,7 +348,7 @@ def _calc_smallest_step(points: list[np.ndarray]) -> float:
     return np.amin(norm_diffs)
 
 
-def _abs_diffs(array: np.ndarray) -> np.ndarray:
+def _abs_diffs(array: npt.NDArray[np.number[Any]]) -> npt.NDArray[np.number[Any]]:
     """Calculates the absolute differences between adjacent elements in the array.
 
     Args:
@@ -374,7 +376,7 @@ def run_app(cors: bool = False, port: int = 8080) -> None:
 
     import uvicorn
 
-    uvicorn.run(app, port=port)
+    uvicorn.run(app=app, port=port)
 
 
 def scanspec_schema_text() -> str:

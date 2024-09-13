@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from scanspec.regions import Region
@@ -8,7 +10,8 @@ def test_not_implemented() -> None:
     with pytest.raises(NotImplementedError):
         Region().axis_sets()
     with pytest.raises(NotImplementedError):
-        Region().mask({})
+        region: Region[Any] = Region()
+        region.mask({})
     with pytest.raises(NotImplementedError):
         Spec().axes()
     with pytest.raises(NotImplementedError):

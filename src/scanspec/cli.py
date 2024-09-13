@@ -20,7 +20,7 @@ from .specs import *  # noqa
 )
 @click.version_option(prog_name="scanspec", message="%(version)s")
 @click.pass_context
-def cli(ctx, log_level: str):
+def cli(ctx: click.Context, log_level: str):
     """Top level scanspec command line interface."""
     level = getattr(logging, log_level.upper(), None)
     logging.basicConfig(format="%(levelname)s:%(message)s", level=level)
@@ -50,7 +50,7 @@ def plot(spec: str):
 @click.option(
     "--port", default=8080, help="The port that the scanspec service will be hosted on."
 )
-def service(cors, port):
+def service(cors: bool, port: int):
     """Run up a REST service."""
     from scanspec.service import run_app
 
