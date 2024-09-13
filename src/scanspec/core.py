@@ -6,7 +6,12 @@ import itertools
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from functools import lru_cache
 from inspect import isclass
-from typing import Any, Generic, Literal, TypeVar
+from typing import (
+    Any,
+    Generic,
+    Literal,
+    TypeVar,
+)
 
 import numpy as np
 import numpy.typing as npt
