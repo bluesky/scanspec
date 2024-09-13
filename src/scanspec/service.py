@@ -1,3 +1,5 @@
+"""FastAPI service to query information about Specs."""
+
 import base64
 import json
 from collections.abc import Mapping
@@ -133,6 +135,7 @@ def valid(
     Returns:
         ValidResponse: A canonical version of the spec if it is valid.
             An error otherwise.
+
     """
     valid_spec = Spec.deserialize(spec.serialize())
     return ValidResponse(spec, valid_spec)
@@ -156,6 +159,7 @@ def midpoints(
 
     Returns:
         MidpointsResponse: Midpoints of the scan
+
     """
     chunk, total_frames = _to_chunk(request)
     return MidpointsResponse(
@@ -182,6 +186,7 @@ def bounds(
 
     Returns:
         BoundsResponse: Bounds of the scan
+
     """
     chunk, total_frames = _to_chunk(request)
     return BoundsResponse(
@@ -207,10 +212,11 @@ def gap(
     after each frame.
 
     Args:
-        request: Scanspec and formatting info.
+        spec: Scanspec and formatting info.
 
     Returns:
         GapResponse: Bounds of the scan
+
     """
     dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
@@ -231,6 +237,7 @@ def smallest_step(
 
     Returns:
         SmallestStepResponse: A description of the smallest steps in the spec
+
     """
     dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
@@ -281,6 +288,7 @@ def _format_axes_points(
 
     Returns:
         Mapping[str, Points]: A mapping of axis to formatted points.
+
     """
     if format is PointsFormat.FLOAT_LIST:
         return {axis: list(points) for axis, points in axes_points.items()}
@@ -301,6 +309,7 @@ def _reduce_frames(stack: list[Frames[str]], max_frames: int) -> Path:
     Args:
         stack: A stack of Frames created by a spec
         max_frames: The maximum number of frames the user wishes to be returned
+
     """
     # Calculate the total number of frames
     num_frames = 1
@@ -320,6 +329,7 @@ def _sub_sample(frames: Frames[str], ratio: float) -> Frames:
     Args:
         frames: the Frames object to be reduced
         ratio: the reduction ratio of the dimension
+
     """
     num_indexes = int(len(frames) / ratio)
     indexes = np.linspace(0, len(frames) - 1, num_indexes, dtype=np.int32)
@@ -344,6 +354,7 @@ def _abs_diffs(array: np.ndarray) -> np.ndarray:
 
     Returns:
         A newly constucted array of absolute differences
+
     """
     # [array[1] - array[0], array[2] - array[1], ...]
     adjacent_diffs = array[1:] - array[:-1]
@@ -371,6 +382,7 @@ def scanspec_schema_text() -> str:
 
     Returns:
         str: The OpenAPI schema
+
     """
     return json.dumps(
         get_openapi(

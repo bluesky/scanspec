@@ -1,3 +1,5 @@
+"""Interface for ``python -m scanspec``."""
+
 import logging
 import string
 

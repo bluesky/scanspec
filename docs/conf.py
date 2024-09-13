@@ -35,6 +35,8 @@ extensions = [
     "sphinx.ext.autodoc",
     # and making summary tables at the top of API docs
     "sphinx.ext.autosummary",
+    # With an extension for pydantic models
+    "sphinxcontrib.autodoc_pydantic",
     # This can parse google style docstrings
     "sphinx.ext.napoleon",
     # For linking to external sphinx documentation
@@ -69,22 +71,8 @@ nitpicky = True
 # domain name if present. Example entries would be ('py:func', 'int') or
 # ('envvar', 'LD_LIBRARY_PATH').
 nitpick_ignore = [
-    ("py:func", "int"),
-    ("py:class", "Axis"),
-    ("py:class", "~Axis"),
-    ("py:class", "scanspec.core.Axis"),
-    ("py:class", "AxesPoints"),
-    ("py:class", "np.ndarray"),
-    ("py:class", "NoneType"),
-    ("py:class", "'str'"),
-    ("py:class", "'float'"),
-    ("py:class", "'int'"),
-    ("py:class", "'bool'"),
-    ("py:class", "'object'"),
-    ("py:class", "'id'"),
-    ("py:class", "typing_extensions.Literal"),
-    ("py:class", "pydantic.config.BaseConfig"),
-    ("py:class", "starlette.responses.JSONResponse"),
+    ("py:class", "scanspec.core.C"),
+    ("py:class", "pydantic.config.ConfigDict"),
 ]
 
 # Both the class’ and the __init__ method’s docstring are concatenated and
@@ -94,15 +82,14 @@ autoclass_content = "both"
 # Order the members by the order they appear in the source code
 autodoc_member_order = "bysource"
 
-# Don't inherit docstrings from baseclasses
-autodoc_inherit_docstrings = False
+# For autodoc we want to document some additional optional modules
+scanspec.__all__ += ["plot"]
 
-# Insert inheritance links
-autodoc_default_options = {"show-inheritance": True}
+# Don't show config summary as it's not relevant
+autodoc_pydantic_model_show_config_summary = False
 
-# A dictionary for users defined type aliases that maps a type name to the
-# full-qualified object name.
-autodoc_type_aliases = {"AxesPoints": "scanspec.core.AxesPoints"}
+# Show the fields in source order
+autodoc_pydantic_model_summary_list_order = "bysource"
 
 # Include source in plot directive by default
 plot_include_source = True

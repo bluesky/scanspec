@@ -14,7 +14,7 @@ def test_not_implemented() -> None:
     with pytest.raises(NotImplementedError):
         Spec().calculate()
     with pytest.raises(TypeError):
-        Spec() * Region()
+        Spec() * Region()  # type: ignore
 
 
 def test_non_snake_not_allowed_inside_snaking_dim() -> None:

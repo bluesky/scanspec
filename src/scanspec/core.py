@@ -1,3 +1,5 @@
+"""Core classes like `Frames` and `Path`."""
+
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator, Sequence
@@ -25,11 +27,10 @@ __all__ = [
     "StrictConfig",
 ]
 
-
+#: Used to ensure pydantic dataclasses error if given extra arguments
 StrictConfig: ConfigDict = {"extra": "forbid"}
 
 C = TypeVar("C")
-T = TypeVar("T", type, Callable)
 
 
 def discriminated_union_of_subclasses(
@@ -44,8 +45,7 @@ def discriminated_union_of_subclasses(
 
     Subclasses that extend this class must be Pydantic dataclasses, and types that
     need their schema to be updated when a new type that extends super_cls is
-    created must be either Pydantic dataclasses or BaseModels, and must be decorated
-    with @uses_tagged_union.
+    created must be either Pydantic dataclasses or BaseModels.
 
     Example::
 
@@ -106,6 +106,7 @@ def discriminated_union_of_subclasses(
     Returns:
         Type: decorated superclass with handling for subclasses to be added
             to its discriminated union for deserialization
+
     """
     tagged_union = _TaggedUnion(super_cls, discriminator)
     _tagged_unions[super_cls] = tagged_union
@@ -217,6 +218,7 @@ class Frames(Generic[Axis]):
 
     See Also:
         `technical-terms`
+
     """
 
     def __init__(
@@ -282,6 +284,7 @@ class Frames(Generic[Axis]):
         >>> frames = Frames({"x": np.array([1, 2, 3])})
         >>> frames.extract(np.array([1, 0, 1])).midpoints
         {'x': array([2, 1, 2])}
+
         """
         dim_indices = indices % len(self)
 
@@ -312,6 +315,7 @@ class Frames(Generic[Axis]):
         >>> frames2 = Frames({"y": np.array([3, 2, 1]), "x": np.array([4, 5, 6])})
         >>> frames.concat(frames2).midpoints
         {'x': array([1, 2, 3, 4, 5, 6]), 'y': array([6, 5, 4, 3, 2, 1])}
+
         """
         assert set(self.axes()) == set(
             other.axes()
@@ -411,6 +415,7 @@ class SnakedFrames(Frames[Axis]):
         >>> frames = SnakedFrames({"x": np.array([1, 2, 3])})
         >>> frames.extract(np.array([0, 1, 2, 3, 4, 5])).midpoints
         {'x': array([1, 2, 3, 3, 2, 1])}
+
         """
         # Calculate the indices
         # E.g for len = 4
@@ -470,6 +475,7 @@ def squash_frames(stack: list[Frames[Axis]], check_path_changes=True) -> Frames[
     >>> fy = Frames({"y": np.array([3, 4])})
     >>> squash_frames([fy, fx]).midpoints
     {'y': array([3, 3, 4, 4]), 'x': array([1, 2, 2, 1])}
+
     """
     path = Path(stack)
     # Consuming a Path through these Frames performs the squash
@@ -517,6 +523,7 @@ class Path(Generic[Axis]):
 
     See Also:
         `iterate-a-spec`
+
     """
 
     def __init__(
@@ -607,6 +614,7 @@ class Midpoints(Generic[Axis]):
     {'y': np.int64(3), 'x': np.int64(2)}
     {'y': np.int64(4), 'x': np.int64(2)}
     {'y': np.int64(4), 'x': np.int64(1)}
+
     """
 
     def __init__(self, stack: list[Frames[Axis]]):

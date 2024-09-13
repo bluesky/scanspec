@@ -13,7 +13,8 @@
         "vscode": {
             // Set *default* container specific settings.json values on container create.
             "settings": {
-                "python.defaultInterpreterPath": "/venv/bin/python"
+                "python.defaultInterpreterPath": "/venv/bin/python",
+                "remote.autoForwardPorts": false
             },
             // Add the IDs of extensions you want installed when the container is created.
             "extensions": [

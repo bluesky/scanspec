@@ -29,7 +29,9 @@ dev = [
     # https://github.com/pypa/pip/issues/10393
     "scanspec[plotting]",
     "scanspec[service]",
+    "autodoc_pydantic @ git+https://github.com/coretl/autodoc_pydantic.git@0b95311d8d10fce67a9ecd5830330364e31fa49c",
     "copier",
+    "httpx",
     "myst-parser",
     "pipdeptree",
     "pre-commit",
@@ -44,8 +46,6 @@ dev = [
     "sphinxcontrib-openapi",
     "tox-direct",
     "types-mock",
-    "httpx",
-    "myst-parser",
 ]
 
 [project.scripts]
@@ -115,6 +115,7 @@ line-length = 88
 extend-select = [
     "B",   # flake8-bugbear - https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
     "C4",  # flake8-comprehensions - https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+    "D",   # pydocstyle - https://docs.astral.sh/ruff/rules/#pydocstyle-d
     "E",   # pycodestyle errors - https://docs.astral.sh/ruff/rules/#error-e
     "F",   # pyflakes rules - https://docs.astral.sh/ruff/rules/#pyflakes-f
     "W",   # pycodestyle warnings - https://docs.astral.sh/ruff/rules/#warning-w
@@ -124,10 +125,19 @@ extend-select = [
 ]
 ignore = [
     "B008", # We use function calls in service arguments
+    "D105", # Don't document magic methods as they don't appear in sphinx autodoc pages
+    "D107", # We document the class, not the __init__ method
 ]
 
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
 [tool.ruff.lint.per-file-ignores]
-# By default, private member access is allowed in tests
-# See https://github.com/DiamondLightSource/python-copier-template/issues/154
-# Remove this line to forbid private member access in tests
-"tests/**/*" = ["SLF001"]
+
+"tests/**/*" = [
+    # By default, private member access is allowed in tests
+    # See https://github.com/DiamondLightSource/python-copier-template/issues/154
+    # Remove this line to forbid private member access in tests
+    "SLF001",
+    "D",      # Don't check docstrings in tests
+]
