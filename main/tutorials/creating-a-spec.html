@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Creating a Scan Spec &#8212; scanspec 0.7.3.dev3+gf5251e88 documentation</title>
+    <title>Creating a Scan Spec &#8212; scanspec 0.7.3.dev9+ge42f8eba documentation</title>
   
   
   
@@ -29,6 +29,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -39,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=30521435"></script>
+    <script src="../_static/documentation_options.js?v=d941a557"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -494,7 +495,7 @@ document.write(`
 the results.</p>
 <section id="line">
 <h2>Line<a class="headerlink" href="#line" title="Link to this heading">#</a></h2>
-<p>We’ll start with a simple one, a <a class="reference internal" href="../reference/api.html#scanspec.specs.Line" title="scanspec.specs.Line"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Line</span></code></a>. If you enter the following code into an
+<p>We’ll start with a simple one, a <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Line" title="scanspec.specs.Line"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Line</span></code></a>. If you enter the following code into an
 interactive Python terminal, it should plot a graph of a 1D line:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
@@ -525,7 +526,7 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 </section>
 <section id="line-with-2-axes">
 <h2>Line with 2 axes<a class="headerlink" href="#line-with-2-axes" title="Link to this heading">#</a></h2>
-<p>If we want to plot a Line in two axes, we can do this with <a class="reference internal" href="../reference/api.html#scanspec.specs.Zip" title="scanspec.specs.Zip"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Zip</span></code></a>, or <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.zip" title="scanspec.specs.Spec.zip"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.zip</span></code></a>:</p>
+<p>If we want to plot a Line in two axes, we can do this with <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Zip" title="scanspec.specs.Zip"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Zip</span></code></a>, or <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.zip" title="scanspec.specs.Spec.zip"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.zip</span></code></a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
@@ -542,7 +543,7 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 </section>
 <section id="grid">
 <h2>Grid<a class="headerlink" href="#grid" title="Link to this heading">#</a></h2>
-<p>We can make a grid by creating the <a class="reference internal" href="../reference/api.html#scanspec.specs.Product" title="scanspec.specs.Product"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Product</span></code></a> of 2 Lines with the <code class="docutils literal notranslate"><span class="pre">*</span></code> operator:</p>
+<p>We can make a grid by creating the <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Product" title="scanspec.specs.Product"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Product</span></code></a> of 2 Lines with the <code class="docutils literal notranslate"><span class="pre">*</span></code> operator:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
@@ -563,7 +564,7 @@ taken.</p>
 </section>
 <section id="snaked-grid">
 <span id="id1"></span><h2>Snaked Grid<a class="headerlink" href="#snaked-grid" title="Link to this heading">#</a></h2>
-<p>We can <a class="reference internal" href="../reference/api.html#scanspec.specs.Snake" title="scanspec.specs.Snake"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Snake</span></code></a> a Spec with the <code class="docutils literal notranslate"><span class="pre">~</span></code> operator. If we apply this to the inner
+<p>We can <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Snake" title="scanspec.specs.Snake"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Snake</span></code></a> a Spec with the <code class="docutils literal notranslate"><span class="pre">~</span></code> operator. If we apply this to the inner
 Spec of our grid we get:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
@@ -581,8 +582,8 @@ Spec of our grid we get:</p>
 </section>
 <section id="masking-with-regions">
 <h2>Masking with Regions<a class="headerlink" href="#masking-with-regions" title="Link to this heading">#</a></h2>
-<p>We can apply a <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a> to only include frames where the midpoints are within a
-given <a class="reference internal" href="../reference/api.html#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> using the <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> operator:</p>
+<p>We can apply a <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Mask</span></code></a> to only include frames where the midpoints are within a
+given <a class="reference internal" href="../_api/scanspec.regions.html#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> using the <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> operator:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span> <span class="nn">scanspec.plot</span> <span class="kn">import</span> <span class="n">plot_spec</span>
@@ -602,10 +603,10 @@ given <a class="reference internal" href="../reference/api.html#scanspec.regions
 <h2>Masking with Multiple Regions<a class="headerlink" href="#masking-with-multiple-regions" title="Link to this heading">#</a></h2>
 <p>We can apply set-like operators to Masked Specs:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">|</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.regions.UnionOf" title="scanspec.regions.UnionOf"><code class="xref any py py-class docutils literal notranslate"><span class="pre">UnionOf</span></code></a> two Regions</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&amp;</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.regions.IntersectionOf" title="scanspec.regions.IntersectionOf"><code class="xref any py py-class docutils literal notranslate"><span class="pre">IntersectionOf</span></code></a> two Regions</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.regions.DifferenceOf" title="scanspec.regions.DifferenceOf"><code class="xref any py py-class docutils literal notranslate"><span class="pre">DifferenceOf</span></code></a> two Regions</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">^</span></code>: <a class="reference internal" href="../reference/api.html#scanspec.regions.SymmetricDifferenceOf" title="scanspec.regions.SymmetricDifferenceOf"><code class="xref any py py-class docutils literal notranslate"><span class="pre">SymmetricDifferenceOf</span></code></a> two Regions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">|</span></code>: <a class="reference internal" href="../_api/scanspec.regions.html#scanspec.regions.UnionOf" title="scanspec.regions.UnionOf"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">UnionOf</span></code></a> two Regions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&amp;</span></code>: <a class="reference internal" href="../_api/scanspec.regions.html#scanspec.regions.IntersectionOf" title="scanspec.regions.IntersectionOf"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">IntersectionOf</span></code></a> two Regions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-</span></code>: <a class="reference internal" href="../_api/scanspec.regions.html#scanspec.regions.DifferenceOf" title="scanspec.regions.DifferenceOf"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">DifferenceOf</span></code></a> two Regions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">^</span></code>: <a class="reference internal" href="../_api/scanspec.regions.html#scanspec.regions.SymmetricDifferenceOf" title="scanspec.regions.SymmetricDifferenceOf"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">SymmetricDifferenceOf</span></code></a> two Regions</p></li>
 </ul>
 <p>For example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>

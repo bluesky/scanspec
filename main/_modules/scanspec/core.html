@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.core &#8212; scanspec 0.7.3.dev3+gf5251e88 documentation</title>
+    <title>scanspec.core &#8212; scanspec 0.7.3.dev9+ge42f8eba documentation</title>
   
   
   
@@ -28,6 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -38,7 +39,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=30521435"></script>
+    <script src="../../_static/documentation_options.js?v=d941a557"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -470,7 +471,9 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for scanspec.core</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span></span><span class="sd">&quot;&quot;&quot;Core classes like `Frames` and `Path`.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
@@ -497,15 +500,14 @@ document.write(`
     <span class="s2">&quot;StrictConfig&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
-
+<span class="c1">#: Used to ensure pydantic dataclasses error if given extra arguments</span>
 <span class="n">StrictConfig</span><span class="p">:</span> <span class="n">ConfigDict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;extra&quot;</span><span class="p">:</span> <span class="s2">&quot;forbid&quot;</span><span class="p">}</span>
 
 <span class="n">C</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
-<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">Callable</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="discriminated_union_of_subclasses">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.discriminated_union_of_subclasses">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.discriminated_union_of_subclasses">[docs]</a>
 <span class="k">def</span> <span class="nf">discriminated_union_of_subclasses</span><span class="p">(</span>
     <span class="n">super_cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span>
     <span class="n">discriminator</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span>
@@ -518,8 +520,7 @@ document.write(`
 
 <span class="sd">    Subclasses that extend this class must be Pydantic dataclasses, and types that</span>
 <span class="sd">    need their schema to be updated when a new type that extends super_cls is</span>
-<span class="sd">    created must be either Pydantic dataclasses or BaseModels, and must be decorated</span>
-<span class="sd">    with @uses_tagged_union.</span>
+<span class="sd">    created must be either Pydantic dataclasses or BaseModels.</span>
 
 <span class="sd">    Example::</span>
 
@@ -580,6 +581,7 @@ document.write(`
 <span class="sd">    Returns:</span>
 <span class="sd">        Type: decorated superclass with handling for subclasses to be added</span>
 <span class="sd">            to its discriminated union for deserialization</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">tagged_union</span> <span class="o">=</span> <span class="n">_TaggedUnion</span><span class="p">(</span><span class="n">super_cls</span><span class="p">,</span> <span class="n">discriminator</span><span class="p">)</span>
     <span class="n">_tagged_unions</span><span class="p">[</span><span class="n">super_cls</span><span class="p">]</span> <span class="o">=</span> <span class="n">tagged_union</span>
@@ -649,7 +651,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="if_instance_do">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.if_instance_do">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.if_instance_do">[docs]</a>
 <span class="k">def</span> <span class="nf">if_instance_do</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;If x is of type cls then return func(x), otherwise return NotImplemented.</span>
 
@@ -671,7 +673,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Frames">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.Frames">[docs]</a>
 <span class="k">class</span> <span class="nc">Frames</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a series of scan frames along a number of axes.</span>
 
@@ -697,6 +699,7 @@ document.write(`
 
 <span class="sd">    See Also:</span>
 <span class="sd">        `technical-terms`</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -741,7 +744,7 @@ document.write(`
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Mismatching lengths </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
 
 <div class="viewcode-block" id="Frames.axes">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.axes">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.Frames.axes">[docs]</a>
     <span class="k">def</span> <span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The axes which will move during the scan.</span>
 
@@ -756,7 +759,7 @@ document.write(`
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Frames.extract">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.extract">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.Frames.extract">[docs]</a>
     <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">calculate_gap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new Frames object restricted to the indices provided.</span>
 
@@ -767,6 +770,7 @@ document.write(`
 <span class="sd">        &gt;&gt;&gt; frames = Frames({&quot;x&quot;: np.array([1, 2, 3])})</span>
 <span class="sd">        &gt;&gt;&gt; frames.extract(np.array([1, 0, 1])).midpoints</span>
 <span class="sd">        {&#39;x&#39;: array([2, 1, 2])}</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dim_indices</span> <span class="o">=</span> <span class="n">indices</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
@@ -785,7 +789,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Frames.concat">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.concat">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.Frames.concat">[docs]</a>
     <span class="k">def</span> <span class="nf">concat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span> <span class="n">gap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new Frames object concatenating self and other.</span>
 
@@ -800,6 +804,7 @@ document.write(`
 <span class="sd">        &gt;&gt;&gt; frames2 = Frames({&quot;y&quot;: np.array([3, 2, 1]), &quot;x&quot;: np.array([4, 5, 6])})</span>
 <span class="sd">        &gt;&gt;&gt; frames.concat(frames2).midpoints</span>
 <span class="sd">        {&#39;x&#39;: array([1, 2, 3, 4, 5, 6]), &#39;y&#39;: array([6, 5, 4, 3, 2, 1])}</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">())</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
             <span class="n">other</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>
@@ -822,7 +827,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Frames.zip">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.Frames.zip">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.Frames.zip">[docs]</a>
     <span class="k">def</span> <span class="nf">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new Frames object merging self and other.</span>
 
@@ -875,7 +880,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="SnakedFrames">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.SnakedFrames">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.SnakedFrames">[docs]</a>
 <span class="k">class</span> <span class="nc">SnakedFrames</span><span class="p">(</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Like a `Frames` object, but each alternate repetition will run in reverse.&quot;&quot;&quot;</span>
 
@@ -892,7 +897,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="SnakedFrames.from_frames">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.SnakedFrames.from_frames">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.SnakedFrames.from_frames">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_frames</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">frames</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SnakedFrames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a snaked version of a `Frames` object.&quot;&quot;&quot;</span>
@@ -900,7 +905,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="SnakedFrames.extract">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.SnakedFrames.extract">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.SnakedFrames.extract">[docs]</a>
     <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">calculate_gap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new Frames object restricted to the indices provided.</span>
 
@@ -911,6 +916,7 @@ document.write(`
 <span class="sd">        &gt;&gt;&gt; frames = SnakedFrames({&quot;x&quot;: np.array([1, 2, 3])})</span>
 <span class="sd">        &gt;&gt;&gt; frames.extract(np.array([0, 1, 2, 3, 4, 5])).midpoints</span>
 <span class="sd">        {&#39;x&#39;: array([1, 2, 3, 3, 2, 1])}</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Calculate the indices</span>
         <span class="c1"># E.g for len = 4</span>
@@ -952,7 +958,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="gap_between_frames">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.gap_between_frames">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.gap_between_frames">[docs]</a>
 <span class="k">def</span> <span class="nf">gap_between_frames</span><span class="p">(</span><span class="n">frames1</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span> <span class="n">frames2</span><span class="p">:</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Is there a gap between end of frames1 and start of frames2.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">frames1</span><span class="o">.</span><span class="n">upper</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">frames2</span><span class="o">.</span><span class="n">lower</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">frames1</span><span class="o">.</span><span class="n">axes</span><span class="p">())</span></div>
@@ -960,7 +966,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="squash_frames">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.squash_frames">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.squash_frames">[docs]</a>
 <span class="k">def</span> <span class="nf">squash_frames</span><span class="p">(</span><span class="n">stack</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]],</span> <span class="n">check_path_changes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Squash a stack of nested Frames into a single one.</span>
 
@@ -977,6 +983,7 @@ document.write(`
 <span class="sd">    &gt;&gt;&gt; fy = Frames({&quot;y&quot;: np.array([3, 4])})</span>
 <span class="sd">    &gt;&gt;&gt; squash_frames([fy, fx]).midpoints</span>
 <span class="sd">    {&#39;y&#39;: array([3, 3, 4, 4]), &#39;x&#39;: array([1, 2, 2, 1])}</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
     <span class="c1"># Consuming a Path through these Frames performs the squash</span>
@@ -1014,7 +1021,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Path">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.Path">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.Path">[docs]</a>
 <span class="k">class</span> <span class="nc">Path</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A consumable route through a stack of Frames, representing a scan path.</span>
 
@@ -1027,6 +1034,7 @@ document.write(`
 
 <span class="sd">    See Also:</span>
 <span class="sd">        `iterate-a-spec`</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -1045,7 +1053,7 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">num</span>
 
 <div class="viewcode-block" id="Path.consume">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.Path.consume">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.Path.consume">[docs]</a>
     <span class="k">def</span> <span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Consume at most num frames from the Path and return as a Frames object.</span>
 
@@ -1102,7 +1110,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Midpoints">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.core.Midpoints">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.Midpoints">[docs]</a>
 <span class="k">class</span> <span class="nc">Midpoints</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convenience iterable that produces the scan midpoints for each axis.</span>
 
@@ -1123,6 +1131,7 @@ document.write(`
 <span class="sd">    {&#39;y&#39;: np.int64(3), &#39;x&#39;: np.int64(2)}</span>
 <span class="sd">    {&#39;y&#39;: np.int64(4), &#39;x&#39;: np.int64(2)}</span>
 <span class="sd">    {&#39;y&#39;: np.int64(4), &#39;x&#39;: np.int64(1)}</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stack</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]):</span>

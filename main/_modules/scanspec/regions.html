@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.regions &#8212; scanspec 0.7.3.dev3+gf5251e88 documentation</title>
+    <title>scanspec.regions &#8212; scanspec 0.7.3.dev9+ge42f8eba documentation</title>
   
   
   
@@ -28,6 +28,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -38,7 +39,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=30521435"></script>
+    <script src="../../_static/documentation_options.js?v=d941a557"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -470,7 +471,14 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for scanspec.regions</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span></span><span class="sd">&quot;&quot;&quot;`Region` and its subclasses.</span>
+
+<span class="sd">.. inheritance-diagram:: scanspec.regions</span>
+<span class="sd">    :top-classes: scanspec.regions.Region</span>
+<span class="sd">    :parts: 1</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">is_dataclass</span>
@@ -506,7 +514,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="Region">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Region">[docs]</a>
 <span class="nd">@discriminated_union_of_subclasses</span>
 <span class="k">class</span> <span class="nc">Region</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract baseclass for a Region that can `Mask` a `Spec`.</span>
@@ -520,15 +528,15 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Region.axis_sets">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region.axis_sets">[docs]</a>
-    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Region.axis_sets">[docs]</a>
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>  <span class="c1"># noqa: D102</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Produce the non-overlapping sets of axes this region spans.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Region.mask">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region.mask">[docs]</a>
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Region.mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>  <span class="c1"># noqa: D102</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Produce a mask of which points are in the region.&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
@@ -546,14 +554,14 @@ document.write(`
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">SymmetricDifferenceOf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
 
 <div class="viewcode-block" id="Region.serialize">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region.serialize">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Region.serialize">[docs]</a>
     <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Serialize the Region to a dictionary.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">TypeAdapter</span><span class="p">(</span><span class="n">Region</span><span class="p">)</span><span class="o">.</span><span class="n">dump_python</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Region.deserialize">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Region.deserialize">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Region.deserialize">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Region</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Deserialize a Region from a dictionary.&quot;&quot;&quot;</span>
@@ -563,7 +571,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="get_mask">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.get_mask">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.get_mask">[docs]</a>
 <span class="k">def</span> <span class="nf">get_mask</span><span class="p">(</span><span class="n">region</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a mask of the points inside the region.</span>
 
@@ -595,7 +603,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="CombinationOf">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.CombinationOf">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.CombinationOf">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">CombinationOf</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract baseclass for a combination of two regions, left and right.&quot;&quot;&quot;</span>
@@ -603,17 +611,20 @@ document.write(`
     <span class="n">left</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The left-hand Region to combine&quot;</span><span class="p">)</span>
     <span class="n">right</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The right-hand Region to combine&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+<div class="viewcode-block" id="CombinationOf.axis_sets">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.CombinationOf.axis_sets">[docs]</a>
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>  <span class="c1"># noqa: D102</span>
         <span class="n">axis_sets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
             <span class="n">_merge_axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">axis_sets</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">axis_sets</span><span class="p">())</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">axis_sets</span></div>
+</div>
 
 
 
 <span class="c1"># Naming so we don&#39;t clash with typing.Union</span>
 <div class="viewcode-block" id="UnionOf">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.UnionOf">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.UnionOf">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">UnionOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A point is in UnionOf(a, b) if in either a or b.</span>
@@ -625,14 +636,17 @@ document.write(`
 <span class="sd">    array([False,  True,  True,  True, False])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="UnionOf.mask">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.UnionOf.mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>  <span class="c1"># noqa: D102</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="o">|</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mask</span></div>
+</div>
 
 
 
 <div class="viewcode-block" id="IntersectionOf">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.IntersectionOf">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.IntersectionOf">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">IntersectionOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A point is in IntersectionOf(a, b) if in both a and b.</span>
@@ -644,14 +658,17 @@ document.write(`
 <span class="sd">    array([False, False,  True, False, False])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="IntersectionOf.mask">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.IntersectionOf.mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>  <span class="c1"># noqa: D102</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mask</span></div>
+</div>
 
 
 
 <div class="viewcode-block" id="DifferenceOf">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.DifferenceOf">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.DifferenceOf">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DifferenceOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A point is in DifferenceOf(a, b) if in a and not in b.</span>
@@ -663,16 +680,19 @@ document.write(`
 <span class="sd">    array([False,  True, False, False, False])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="DifferenceOf.mask">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.DifferenceOf.mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>  <span class="c1"># noqa: D102</span>
         <span class="n">left_mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
         <span class="c1"># Return the xor restricted to the left region</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">left_mask</span> <span class="o">^</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">left_mask</span>
         <span class="k">return</span> <span class="n">mask</span></div>
+</div>
 
 
 
 <div class="viewcode-block" id="SymmetricDifferenceOf">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.SymmetricDifferenceOf">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.SymmetricDifferenceOf">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">SymmetricDifferenceOf</span><span class="p">(</span><span class="n">CombinationOf</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.</span>
@@ -684,14 +704,17 @@ document.write(`
 <span class="sd">    array([False,  True, False,  True, False])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<div class="viewcode-block" id="SymmetricDifferenceOf.mask">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.SymmetricDifferenceOf.mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>  <span class="c1"># noqa: D102</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="o">^</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mask</span></div>
+</div>
 
 
 
 <div class="viewcode-block" id="Range">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Range">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Range">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Range</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask contains points of axis &gt;= min and &lt;= max.</span>
@@ -705,18 +728,24 @@ document.write(`
     <span class="nb">min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)</span>
     <span class="nb">max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The minimum inclusive value in the region&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">}]</span>
+<div class="viewcode-block" id="Range.axis_sets">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Range.axis_sets">[docs]</a>
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>  <span class="c1"># noqa: D102</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">}]</span></div>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Range.mask">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Range.mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>  <span class="c1"># noqa: D102</span>
         <span class="n">v</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">]</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bitwise_and</span><span class="p">(</span><span class="n">v</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="n">v</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mask</span></div>
+</div>
 
 
 
 <div class="viewcode-block" id="Rectangle">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Rectangle">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Rectangle">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Rectangle</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask contains points of axis within a rotated xy rectangle.</span>
@@ -740,10 +769,15 @@ document.write(`
         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Clockwise rotation angle of the rectangle&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
+<div class="viewcode-block" id="Rectangle.axis_sets">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Rectangle.axis_sets">[docs]</a>
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>  <span class="c1"># noqa: D102</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span></div>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Rectangle.mask">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Rectangle.mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>  <span class="c1"># noqa: D102</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_min</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_min</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -756,11 +790,12 @@ document.write(`
         <span class="n">mask_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bitwise_and</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_max</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_min</span><span class="p">))</span>
         <span class="n">mask_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bitwise_and</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_max</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_min</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">mask_x</span> <span class="o">&amp;</span> <span class="n">mask_y</span></div>
+</div>
 
 
 
 <div class="viewcode-block" id="Polygon">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Polygon">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Polygon">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Polygon</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask contains points of axis within a rotated xy polygon.</span>
@@ -783,10 +818,15 @@ document.write(`
         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Nx1 y coordinates of the polygons vertices&quot;</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
+<div class="viewcode-block" id="Polygon.axis_sets">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Polygon.axis_sets">[docs]</a>
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>  <span class="c1"># noqa: D102</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span></div>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Polygon.mask">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Polygon.mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>  <span class="c1"># noqa: D102</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">]</span>
         <span class="n">v1x</span><span class="p">,</span> <span class="n">v1y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_verts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_verts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -802,11 +842,12 @@ document.write(`
                 <span class="n">mask</span> <span class="o">^=</span> <span class="n">vmask</span>
             <span class="n">v1x</span><span class="p">,</span> <span class="n">v1y</span> <span class="o">=</span> <span class="n">v2x</span><span class="p">,</span> <span class="n">v2y</span>
         <span class="k">return</span> <span class="n">mask</span></div>
+</div>
 
 
 
 <div class="viewcode-block" id="Circle">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Circle">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Circle">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Circle</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask contains points of axis within an xy circle of given radius.</span>
@@ -826,19 +867,25 @@ document.write(`
     <span class="n">y_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central y point of the circle&quot;</span><span class="p">)</span>
     <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radius of the circle&quot;</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
+<div class="viewcode-block" id="Circle.axis_sets">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Circle.axis_sets">[docs]</a>
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>  <span class="c1"># noqa: D102</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span></div>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Circle.mask">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Circle.mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>  <span class="c1"># noqa: D102</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_middle</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_middle</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mask</span></div>
+</div>
 
 
 
 <div class="viewcode-block" id="Ellipse">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.Ellipse">[docs]</a>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Ellipse">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Ellipse</span><span class="p">(</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask contains points of axis within an xy ellipse of given radius.</span>
@@ -864,10 +911,15 @@ document.write(`
     <span class="p">)</span>
     <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The angle of the ellipse (degrees)&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span>
+<div class="viewcode-block" id="Ellipse.axis_sets">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Ellipse.axis_sets">[docs]</a>
+    <span class="k">def</span> <span class="nf">axis_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>  <span class="c1"># noqa: D102</span>
+        <span class="k">return</span> <span class="p">[{</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">}]</span></div>
 
-    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Ellipse.mask">
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Ellipse.mask">[docs]</a>
+    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>  <span class="c1"># noqa: D102</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_middle</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_middle</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -879,12 +931,13 @@ document.write(`
             <span class="n">y</span> <span class="o">=</span> <span class="n">ty</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_radius</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_radius</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">mask</span></div>
+</div>
 
 
 
 <div class="viewcode-block" id="find_regions">
-<a class="viewcode-back" href="../../reference/api.html#scanspec.regions.find_regions">[docs]</a>
-<span class="k">def</span> <span class="nf">find_regions</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+<a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.find_regions">[docs]</a>
+<span class="k">def</span> <span class="nf">find_regions</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Region</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Recursively yield Regions from obj and its children.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="p">(</span>
         <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__pydantic_model__&quot;</span><span class="p">)</span>
@@ -894,7 +947,7 @@ document.write(`
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Region</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">obj</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">regions</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]</span> <span class="o">=</span> <span class="n">find_regions</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+            <span class="n">regions</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Region</span><span class="p">]</span> <span class="o">=</span> <span class="n">find_regions</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
             <span class="k">yield from</span> <span class="n">regions</span></div>
 
 </pre></div>

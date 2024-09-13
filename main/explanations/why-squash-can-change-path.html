@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Why Squash (and Mask) can change the Path &#8212; scanspec 0.7.3.dev3+gf5251e88 documentation</title>
+    <title>Why Squash (and Mask) can change the Path &#8212; scanspec 0.7.3.dev9+ge42f8eba documentation</title>
   
   
   
@@ -29,6 +29,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -39,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=30521435"></script>
+    <script src="../_static/documentation_options.js?v=d941a557"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -495,8 +496,8 @@ document.write(`
                   
   <section id="why-squash-and-mask-can-change-the-path">
 <span id="why-squash-can-change-path"></span><h1>Why Squash (and Mask) can change the Path<a class="headerlink" href="#why-squash-and-mask-can-change-the-path" title="Link to this heading">#</a></h1>
-<p>A Spec creates a stack of <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a>, some of which can be snaking. When snaking,
-every other run of that Frames object will run in reverse. <a class="reference internal" href="../reference/api.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Squash</span></code></a> and <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a>
+<p>A Spec creates a stack of <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a>, some of which can be snaking. When snaking,
+every other run of that Frames object will run in reverse. <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Squash</span></code></a> and <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Mask</span></code></a>
 will merge Frames objects together. This may change the Path compared with the
 unsquashed version if the squashed Frames objects are nested within a slower
 Frames object, and so run more than once. This page lists the times where this
@@ -504,7 +505,7 @@ is the case.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The cases illustrated below will only be produced if
-<code class="docutils literal notranslate"><span class="pre">check_path_changes=False</span></code> is passed to <a class="reference internal" href="../reference/api.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Squash</span></code></a> or <a class="reference internal" href="../reference/api.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Mask</span></code></a>, otherwise they
+<code class="docutils literal notranslate"><span class="pre">check_path_changes=False</span></code> is passed to <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Squash</span></code></a> or <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Mask</span></code></a>, otherwise they
 will fail with <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.12)"><code class="xref any docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 </div>
 <section id="squash-unsnaked-axis-into-a-snaked-frames">

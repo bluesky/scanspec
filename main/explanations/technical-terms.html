@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Technical Terms &#8212; scanspec 0.7.3.dev3+gf5251e88 documentation</title>
+    <title>Technical Terms &#8212; scanspec 0.7.3.dev9+ge42f8eba documentation</title>
   
   
   
@@ -29,6 +29,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -39,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=30521435"></script>
+    <script src="../_static/documentation_options.js?v=d941a557"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -500,16 +501,16 @@ documentation. Consider a 1D line scan:</p>
 <img alt="../_images/definitions.png" src="../_images/definitions.png" />
 <section id="axis">
 <span id="id2"></span><h2>Axis<a class="headerlink" href="#axis" title="Link to this heading">#</a></h2>
-<p>A fixed reference that can be scanned, i.e. a motor or the <a class="reference internal" href="#frame"><span class="std std-ref">Frame</span></a> <a class="reference internal" href="../reference/api.html#scanspec.specs.DURATION" title="scanspec.specs.DURATION"><code class="xref any py py-data docutils literal notranslate"><span class="pre">DURATION</span></code></a>.
-In the diagram above, the Axis is <code class="docutils literal notranslate"><span class="pre">x</span></code>. <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.axes" title="scanspec.specs.Spec.axes"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.axes</span></code></a> will return the Axes that
+<p>A fixed reference that can be scanned, i.e. a motor or the <a class="reference internal" href="#frame"><span class="std std-ref">Frame</span></a> <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.DURATION" title="scanspec.specs.DURATION"><code class="xref any py py-data docutils literal notranslate"><span class="pre">DURATION</span></code></a>.
+In the diagram above, the Axis is <code class="docutils literal notranslate"><span class="pre">x</span></code>. <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.axes" title="scanspec.specs.Spec.axes"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.axes</span></code></a> will return the Axes that
 should be scanned for a given Spec.</p>
 </section>
 <section id="point">
 <span id="id3"></span><h2>Point<a class="headerlink" href="#point" title="Link to this heading">#</a></h2>
 <p>A single or multidimensional location in scan space. In the diagram above, each
-<a class="reference internal" href="#frame"><span class="std std-ref">Frame</span></a> is made up of lower, midpoint and upper Points. <a class="reference internal" href="../reference/api.html#scanspec.core.Midpoints" title="scanspec.core.Midpoints"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Midpoints</span></code></a> are
-available as an interator from <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.midpoints" title="scanspec.specs.Spec.midpoints"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.midpoints</span></code></a>. Arrays of these are available
-as <a class="reference internal" href="../reference/api.html#scanspec.core.Frames.lower" title="scanspec.core.Frames.lower"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.lower</span></code></a>, <a class="reference internal" href="../reference/api.html#scanspec.core.Frames.midpoints" title="scanspec.core.Frames.midpoints"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.midpoints</span></code></a> and <a class="reference internal" href="../reference/api.html#scanspec.core.Frames.upper" title="scanspec.core.Frames.upper"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.upper</span></code></a>.</p>
+<a class="reference internal" href="#frame"><span class="std std-ref">Frame</span></a> is made up of lower, midpoint and upper Points. <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Midpoints" title="scanspec.core.Midpoints"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Midpoints</span></code></a> are
+available as an interator from <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.midpoints" title="scanspec.specs.Spec.midpoints"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.midpoints</span></code></a>. Arrays of these are available
+as <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames.lower" title="scanspec.core.Frames.lower"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.lower</span></code></a>, <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames.midpoints" title="scanspec.core.Frames.midpoints"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.midpoints</span></code></a> and <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames.upper" title="scanspec.core.Frames.upper"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.upper</span></code></a>.</p>
 </section>
 <section id="frame">
 <span id="id4"></span><h2>Frame<a class="headerlink" href="#frame" title="Link to this heading">#</a></h2>
@@ -520,9 +521,9 @@ section.</p>
 </section>
 <section id="stack-of-frames">
 <span id="stack"></span><h2>Stack of Frames<a class="headerlink" href="#stack-of-frames" title="Link to this heading">#</a></h2>
-<p>A repeatable, possibly snaking, series of <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> along a number of <a class="reference internal" href="#axis"><span class="std std-ref">Axes</span></a>. In the diagram above, the whole Line produces a single <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a>
-object, while a grid scan would be a stack of two <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> objects. A stack of
-<a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> objects are produced by <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec.calculate" title="scanspec.specs.Spec.calculate"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.calculate</span></code></a>.</p>
+<p>A repeatable, possibly snaking, series of <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> along a number of <a class="reference internal" href="#axis"><span class="std std-ref">Axes</span></a>. In the diagram above, the whole Line produces a single <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a>
+object, while a grid scan would be a stack of two <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> objects. A stack of
+<a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> objects are produced by <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.calculate" title="scanspec.specs.Spec.calculate"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.calculate</span></code></a>.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="why-stack-frames.html"><span class="doc">Why create a stack of Frames?</span></a></p>
@@ -531,7 +532,7 @@ object, while a grid scan would be a stack of two <a class="reference internal" 
 <section id="path">
 <span id="id5"></span><h2>Path<a class="headerlink" href="#path" title="Link to this heading">#</a></h2>
 <p>A consumable route through a _stack_. If the Line in the above diagram was
-stacked within another line of length 5, then the Path would contain 15 <a class="reference internal" href="#frame"><span class="std std-ref">Frames</span></a>. A <a class="reference internal" href="../reference/api.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> is created from a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref any docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="../reference/api.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> objects.</p>
+stacked within another line of length 5, then the Path would contain 15 <a class="reference internal" href="#frame"><span class="std std-ref">Frames</span></a>. A <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> is created from a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><code class="xref any docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> objects.</p>
 </section>
 </section>
 

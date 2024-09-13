@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Running a REST service for generating points &#8212; scanspec 0.7.3.dev3+gf5251e88 documentation</title>
+    <title>Running a REST service for generating points &#8212; scanspec 0.7.3.dev9+ge42f8eba documentation</title>
   
   
   
@@ -29,6 +29,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -39,7 +40,7 @@
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../_static/documentation_options.js?v=30521435"></script>
+    <script src="../_static/documentation_options.js?v=d941a557"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -491,7 +492,7 @@ document.write(`
   <section id="running-a-rest-service-for-generating-points">
 <span id="rest-service"></span><h1>Running a REST service for generating points<a class="headerlink" href="#running-a-rest-service-for-generating-points" title="Link to this heading">#</a></h1>
 <p>The <a class="reference internal" href="creating-a-spec.html"><span class="doc">Creating a Scan Spec</span></a> tutorial shows how you would use the commandline client to
-plot a <a class="reference internal" href="../reference/api.html#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a>. This maps nicely to using scanspec in a commandline utility, but
+plot a <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a>. This maps nicely to using scanspec in a commandline utility, but
 not if you want to expose those points to a web GUI. To do this we will bring up
 a RESTful service, compatible with <a class="reference external" href="https://www.openapis.org/">OpenAPI</a>, that allows a web GUI to request the
 points it would like to plot.</p>
