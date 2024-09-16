@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import Any, Generic, TypeVar, overload
+from typing import Any, Generic, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -16,8 +16,10 @@ from pydantic import Field, TypeAdapter, validate_call
 from pydantic.dataclasses import dataclass
 
 from .core import (
+    Axis,
     Frames,
     Midpoints,
+    OtherAxis,
     Path,
     SnakedFrames,
     StrictConfig,
@@ -48,12 +50,6 @@ __all__ = [
 
 #: Can be used as a special key to indicate how long each point should be
 DURATION = "DURATION"
-
-#: A type variable for an `axis_` that can be specified for a scan
-Axis = TypeVar("Axis", covariant=True)
-
-#: Alternative axis variable to be used when two are required in the same type binding
-OtherAxis = TypeVar("OtherAxis")
 
 
 @discriminated_union_of_subclasses

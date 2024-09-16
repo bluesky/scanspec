@@ -21,6 +21,8 @@ from pydantic_core import CoreSchema
 from pydantic_core.core_schema import tagged_union_schema
 
 __all__ = [
+    "Axis",
+    "OtherAxis",
     "if_instance_do",
     "AxesPoints",
     "Frames",
@@ -199,7 +201,7 @@ def if_instance_do(x: C, cls: type[C], func: Callable[[C], T]):
 
 
 #: A type variable for an `axis_` that can be specified for a scan
-Axis = TypeVar("Axis")
+Axis = TypeVar("Axis", covariant=True)
 
 #: Alternative axis variable to be used when two are required in the same type binding
 OtherAxis = TypeVar("OtherAxis")
