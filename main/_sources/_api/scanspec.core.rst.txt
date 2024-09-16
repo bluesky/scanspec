@@ -11,6 +11,7 @@
         
         
         
+        
 
 .. automodule:: scanspec.core
     :members:
@@ -26,8 +27,9 @@
     .. autosummary::
         :nosignatures:
     
-        if_instance_do
         Axis
+        OtherAxis
+        if_instance_do
         AxesPoints
         Frames
         SnakedFrames
