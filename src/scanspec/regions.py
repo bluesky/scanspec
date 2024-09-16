@@ -9,9 +9,10 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
 from dataclasses import is_dataclass
-from typing import Any, Generic
+from typing import Any, Generic, cast
 
 import numpy as np
+import numpy.typing as npt
 from pydantic import BaseModel, Field, TypeAdapter
 from pydantic.dataclasses import dataclass
 
@@ -39,6 +40,8 @@ __all__ = [
     "find_regions",
 ]
 
+NpMask = npt.NDArray[np.bool]
+
 
 @discriminated_union_of_subclasses
 class Region(Generic[Axis]):
@@ -56,33 +59,33 @@ class Region(Generic[Axis]):
         """Produce the non-overlapping sets of axes this region spans."""
         raise NotImplementedError(self)
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
+    def mask(self, points: AxesPoints[Axis]) -> NpMask:  # noqa: D102
         """Produce a mask of which points are in the region."""
         raise NotImplementedError(self)
 
-    def __or__(self, other) -> UnionOf[Axis]:
+    def __or__(self, other: Region[Axis]) -> UnionOf[Axis]:
         return if_instance_do(other, Region, lambda o: UnionOf(self, o))
 
-    def __and__(self, other) -> IntersectionOf[Axis]:
+    def __and__(self, other: Region[Axis]) -> IntersectionOf[Axis]:
         return if_instance_do(other, Region, lambda o: IntersectionOf(self, o))
 
-    def __sub__(self, other) -> DifferenceOf[Axis]:
+    def __sub__(self, other: Region[Axis]) -> DifferenceOf[Axis]:
         return if_instance_do(other, Region, lambda o: DifferenceOf(self, o))
 
-    def __xor__(self, other) -> SymmetricDifferenceOf[Axis]:
+    def __xor__(self, other: Region[Axis]) -> SymmetricDifferenceOf[Axis]:
         return if_instance_do(other, Region, lambda o: SymmetricDifferenceOf(self, o))
 
     def serialize(self) -> Mapping[str, Any]:
         """Serialize the Region to a dictionary."""
-        return TypeAdapter(Region).dump_python(self)
+        return TypeAdapter(Region[Any]).dump_python(self)
 
     @staticmethod
-    def deserialize(obj) -> Region:
+    def deserialize(obj: Any) -> Region[Any]:
         """Deserialize a Region from a dictionary."""
-        return TypeAdapter(Region).validate_python(obj)
+        return TypeAdapter(Region[Any]).validate_python(obj)
 
 
-def get_mask(region: Region[Axis], points: AxesPoints[Axis]) -> np.ndarray:
+def get_mask(region: Region[Axis], points: AxesPoints[Axis]) -> NpMask:
     """Return a mask of the points inside the region.
 
     If there is an overlap of axes of region and points return a
@@ -93,7 +96,7 @@ def get_mask(region: Region[Axis], points: AxesPoints[Axis]) -> np.ndarray:
     if needs_mask:
         return region.mask(points)
     else:
-        return np.ones(len(list(points.values())[0]))
+        return np.ones(len(list(points.values())[0]), dtype=np.bool)
 
 
 def _merge_axis_sets(axis_sets: list[set[Axis]]) -> Iterator[set[Axis]]:
@@ -137,7 +140,7 @@ class UnionOf(CombinationOf[Axis]):
     array([False,  True,  True,  True, False])
     """
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
+    def mask(self, points: AxesPoints[Axis]) -> NpMask:  # noqa: D102
         mask = get_mask(self.left, points) | get_mask(self.right, points)
         return mask
 
@@ -153,7 +156,7 @@ class IntersectionOf(CombinationOf[Axis]):
     array([False, False,  True, False, False])
     """
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
+    def mask(self, points: AxesPoints[Axis]) -> NpMask:  # noqa: D102
         mask = get_mask(self.left, points) & get_mask(self.right, points)
         return mask
 
@@ -169,7 +172,7 @@ class DifferenceOf(CombinationOf[Axis]):
     array([False,  True, False, False, False])
     """
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
+    def mask(self, points: AxesPoints[Axis]) -> NpMask:  # noqa: D102
         left_mask = get_mask(self.left, points)
         # Return the xor restricted to the left region
         mask = left_mask ^ get_mask(self.right, points) & left_mask
@@ -187,7 +190,7 @@ class SymmetricDifferenceOf(CombinationOf[Axis]):
     array([False,  True, False,  True, False])
     """
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
+    def mask(self, points: AxesPoints[Axis]) -> NpMask:  # noqa: D102
         mask = get_mask(self.left, points) ^ get_mask(self.right, points)
         return mask
 
@@ -208,7 +211,7 @@ class Range(Region[Axis]):
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.axis}]
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
+    def mask(self, points: AxesPoints[Axis]) -> NpMask:  # noqa: D102
         v = points[self.axis]
         mask = np.bitwise_and(v >= self.min, v <= self.max)
         return mask
@@ -240,7 +243,7 @@ class Rectangle(Region[Axis]):
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
+    def mask(self, points: AxesPoints[Axis]) -> NpMask:  # noqa: D102
         x = points[self.x_axis] - self.x_min
         y = points[self.y_axis] - self.y_min
         if self.angle != 0:
@@ -280,15 +283,15 @@ class Polygon(Region[Axis]):
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
+    def mask(self, points: AxesPoints[Axis]) -> NpMask:  # noqa: D102
         x = points[self.x_axis]
         y = points[self.y_axis]
         v1x, v1y = self.x_verts[-1], self.y_verts[-1]
-        mask = np.full(len(x), False, dtype=np.int8)
+        mask = np.full(len(x), False, dtype=np.bool)
         for v2x, v2y in zip(self.x_verts, self.y_verts, strict=False):
             # skip horizontal edges
             if v2y != v1y:
-                vmask = np.full(len(x), False, dtype=np.int8)
+                vmask = np.full(len(x), False, dtype=np.bool)
                 vmask |= (y < v2y) & (y >= v1y)
                 vmask |= (y < v1y) & (y >= v2y)
                 t = (y - v1y) / (v2y - v1y)
@@ -320,7 +323,7 @@ class Circle(Region[Axis]):
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
+    def mask(self, points: AxesPoints[Axis]) -> NpMask:  # noqa: D102
         x = points[self.x_axis] - self.x_middle
         y = points[self.y_axis] - self.y_middle
         mask = x * x + y * y <= (self.radius * self.radius)
@@ -355,7 +358,7 @@ class Ellipse(Region[Axis]):
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
 
-    def mask(self, points: AxesPoints[Axis]) -> np.ndarray:  # noqa: D102
+    def mask(self, points: AxesPoints[Axis]) -> NpMask:  # noqa: D102
         x = points[self.x_axis] - self.x_middle
         y = points[self.y_axis] - self.y_middle
         if self.angle != 0:
@@ -369,7 +372,7 @@ class Ellipse(Region[Axis]):
         return mask
 
 
-def find_regions(obj) -> Iterator[Region]:
+def find_regions(obj: Any) -> Iterator[Region[Any]]:  # noqa: D102
     """Recursively yield Regions from obj and its children."""
     if (
         hasattr(obj, "__pydantic_model__")
@@ -379,5 +382,5 @@ def find_regions(obj) -> Iterator[Region]:
         if isinstance(obj, Region):
             yield obj
         for name in obj.__dict__.keys():
-            regions: Iterator[Region] = find_regions(getattr(obj, name))
+            regions: Iterator[Region[Any]] = find_regions(getattr(cast(Any, obj), name))
             yield from regions

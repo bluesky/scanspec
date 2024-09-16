@@ -7,42 +7,70 @@ from unittest.mock import patch
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pytest
+import numpy.typing as npt
 from click.testing import CliRunner
+from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib.text import Annotation
+from mpl_toolkits.mplot3d.art3d import Line3D  # type: ignore
 
 from scanspec import __version__, cli
-from scanspec.plot import _Arrow3D
+from scanspec.plot import Arrow3D
+
+from . import approx
 
 
-def assert_min_max_2d(line, xmin, xmax, ymin, ymax, length=None):
+def assert_min_max_2d(
+    line: Line2D,
+    xmin: float,
+    xmax: float,
+    ymin: float,
+    ymax: float,
+    length: float | None = None,
+):
+    line_data = cast(npt.NDArray[np.float64], line.get_data())
     if length is not None:
-        assert len(line.get_data()[0]) == length
-    mins = np.min(line.get_data(), axis=1)
-    maxs = np.max(line.get_data(), axis=1)
+        assert len(line_data[0]) == length
+    mins = np.min(line_data, axis=1)
+    maxs = np.max(line_data, axis=1)
     assert list(zip(mins, maxs, strict=False)) == [
-        pytest.approx([xmin, xmax]),
-        pytest.approx([ymin, ymax]),
+        approx([xmin, xmax]),
+        approx([ymin, ymax]),
     ]
 
 
-def assert_min_max_3d(line, xmin, xmax, ymin, ymax, zmin, zmax, length=None):
+def assert_min_max_3d(
+    line: Line3D,
+    xmin: float,
+    xmax: float,
+    ymin: float,
+    ymax: float,
+    zmin: float,
+    zmax: float,
+    length: float | None = None,
+):
+    data_3d = cast(npt.NDArray[np.float64], line.get_data_3d())
     if length is not None:
-        assert len(line.get_data_3d()[0]) == length
-    mins = np.min(line.get_data_3d(), axis=1)
-    maxs = np.max(line.get_data_3d(), axis=1)
+        assert len(data_3d[0]) == length
+    mins = np.min(data_3d, axis=1)
+    maxs = np.max(data_3d, axis=1)
     assert list(zip(mins, maxs, strict=False)) == [
-        pytest.approx([xmin, xmax]),
-        pytest.approx([ymin, ymax]),
-        pytest.approx([zmin, zmax]),
+        approx([xmin, xmax]),
+        approx([ymin, ymax]),
+        approx([zmin, zmax]),
     ]
 
 
-def assert_3d_arrow(artist, x, y, z):
-    assert artist._verts3d[0][1] == pytest.approx(x)
-    assert artist._verts3d[1][1] == pytest.approx(y)
-    assert artist._verts3d[2][1] == pytest.approx(z)
+def assert_3d_arrow(
+    artist: Line3D,
+    x: float,
+    y: float,
+    z: float,
+):
+    assert isinstance(artist, Arrow3D)
+    assert artist.verts3d[0][1] == approx(x)
+    assert artist.verts3d[1][1] == approx(y)
+    assert artist.verts3d[2][1] == approx(z)
 
 
 def test_plot_1D_line() -> None:
@@ -90,7 +118,7 @@ def test_plot_1D_line_snake_repeat() -> None:
     texts = cast(list[Annotation], axes.texts)
     assert len(texts) == 2
     assert tuple(texts[0].xy) == (1, 0)
-    assert tuple(texts[1].xy) == pytest.approx([2, 0])
+    assert tuple(texts[1].xy) == approx([2, 0])
 
 
 def test_plot_1D_step() -> None:
@@ -141,7 +169,7 @@ def test_plot_2D_line() -> None:
     texts = cast(list[Annotation], axes.texts)
     assert len(texts) == 2
     assert tuple(texts[0].xy) == (0.5, 2)
-    assert tuple(texts[1].xy) == pytest.approx([2.5, 3])
+    assert tuple(texts[1].xy) == approx([2.5, 3])
 
 
 def test_plot_2D_line_rect_region() -> None:
@@ -187,7 +215,7 @@ def test_plot_3D_line() -> None:
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.exit_code == 0
     axes = plt.gcf().axes[0]
-    lines = axes.lines
+    lines = cast(list[Line3D], axes.lines)
     assert len(lines) == 13
     # First grid
     # First row
@@ -216,13 +244,16 @@ def test_plot_3D_line() -> None:
     # Arrows
     extra_artists = axes.get_children()
 
-    arrow_artists = list(
-        filter(
-            lambda artist: isinstance(artist, _Arrow3D)
-            and artist.get_visible()
-            and artist.get_in_layout(),
-            extra_artists,
-        )
+    arrow_artists = cast(
+        list[Line3D],
+        list(
+            filter(
+                lambda artist: isinstance(artist, Arrow3D)
+                and artist.get_visible()
+                and artist.get_in_layout(),
+                extra_artists,
+            )
+        ),
     )
     assert len(arrow_artists) == 4
     assert_3d_arrow(arrow_artists[0], 0.5, 2, 5)

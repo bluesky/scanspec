@@ -1,14 +1,16 @@
 """`plot_spec` to visualize a scan."""
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from itertools import cycle
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 from matplotlib import colors, patches
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D, proj3d
-from scipy import interpolate
+from matplotlib.axes import Axes
+from mpl_toolkits.mplot3d import Axes3D, proj3d  # type: ignore
+from scipy import interpolate  # type: ignore
 
 from .core import Path
 from .regions import Circle, Ellipse, Polygon, Rectangle, Region, find_regions
@@ -17,51 +19,73 @@ from .specs import DURATION, Spec
 __all__ = ["plot_spec"]
 
 
-def _plot_arrays(axes, arrays: list[np.ndarray], **kwargs):
+def _plot_arrays(
+    axes: Axes, arrays: list[npt.NDArray[np.floating[Any]]], **kwargs: Any
+):
     if len(arrays) > 2:
-        axes.plot3D(arrays[2], arrays[1], arrays[0], **kwargs)
+        axes.plot3D(arrays[2], arrays[1], arrays[0], **kwargs)  # type: ignore
     elif len(arrays) == 2:
-        axes.plot(arrays[1], arrays[0], **kwargs)
+        axes.plot(arrays[1], arrays[0], **kwargs)  # type: ignore
     else:
-        axes.plot(arrays[0], np.zeros(len(arrays[0])), **kwargs)
+        axes.plot(arrays[0], np.zeros(len(arrays[0])), **kwargs)  # type: ignore
 
 
 # https://stackoverflow.com/a/11156353
-class _Arrow3D(patches.FancyArrowPatch):
-    def __init__(self, xs, ys, zs, *args, **kwargs):
-        super().__init__((0, 0), (0, 0), *args, **kwargs)
+class Arrow3D(patches.FancyArrowPatch):
+    def __init__(
+        self,
+        xs: npt.NDArray[np.floating[Any]],
+        ys: npt.NDArray[np.floating[Any]],
+        zs: npt.NDArray[np.floating[Any]],
+        *args: Any,
+        **kwargs: Any,
+    ):
+        super().__init__((0, 0), (0, 0), *args, **kwargs)  # type: ignore
         self._verts3d = xs, ys, zs
 
     # Added here because of https://github.com/matplotlib/matplotlib/issues/21688
-    def do_3d_projection(self, renderer=None):
+    def do_3d_projection(self, renderer: Any = None):
         xs3d, ys3d, zs3d = self._verts3d
         xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)  # type: ignore
         self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
 
         return np.min(zs)
 
+    @property
+    def verts3d(
+        self,
+    ) -> tuple[
+        npt.NDArray[np.floating[Any]],
+        npt.NDArray[np.floating[Any]],
+        npt.NDArray[np.floating[Any]],
+    ]:
+        return self._verts3d
 
-def _plot_arrow(axes, arrays: list[np.ndarray]):
+
+def _plot_arrow(axes: Axes, arrays: list[npt.NDArray[np.floating[Any]]]):
     if len(arrays) == 1:
         arrays = [np.array([0, 0])] + arrays
     if len(arrays) == 2:
         head = [a[-1] for a in reversed(arrays)]
         tail = [a[-1] - (a[-1] - a[-2]) * 0.1 for a in reversed(arrays)]
-        axes.annotate(
+        axes.annotate(  # type: ignore
             "",
-            head[:2],
-            tail[:2],
+            tuple(head[:2]),
+            tuple(tail[:2]),
             arrowprops={"color": "lightgrey", "arrowstyle": "-|>"},
         )
     elif len(arrays) == 3:
         arrows = [a[-2:] for a in reversed(arrays)]
-        a = _Arrow3D(
-            *arrows[:3], mutation_scale=10, arrowstyle="-|>", color="lightgrey"
-        )
+        a = Arrow3D(*arrows[:3], mutation_scale=10, arrowstyle="-|>", color="lightgrey")
         axes.add_artist(a)
 
 
-def _plot_spline(axes, ranges, arrays: list[np.ndarray], index_colours: dict[int, str]):
+def _plot_spline(
+    axes: Axes,
+    ranges: list[float],
+    arrays: list[npt.NDArray[np.floating[Any]]],
+    index_colours: dict[int, str],
+) -> Iterable[list[npt.NDArray[np.floating[Any]]]]:
     scaled_arrays = [a / r for a, r in zip(arrays, ranges, strict=False)]
     # Define curves parametrically
     t = np.zeros(len(arrays[0]))
@@ -76,12 +100,14 @@ def _plot_spline(axes, ranges, arrays: list[np.ndarray], index_colours: dict[int
         # There are no duplicated points, plot a spline
         t /= t[-1]
         # Scale the arrays so splines don't favour larger scaled axes
-        tck, _ = interpolate.splprep(scaled_arrays, k=2, s=0)
+        tck, _ = interpolate.splprep(scaled_arrays, k=2, s=0)  # type: ignore
         starts = sorted(index_colours)
         stops = starts[1:] + [len(arrays[0]) - 1]
         for start, stop in zip(starts, stops, strict=False):
-            tnew = np.linspace(t[start], t[stop], num=1001)
-            spline = interpolate.splev(tnew, tck)
+            start_value: float = t[start]
+            stop_value: float = t[stop]
+            tnew = np.linspace(start_value, stop_value, num=1001)
+            spline: npt.NDArray[np.floating[Any]] = interpolate.splev(tnew, tck)  # type: ignore
             # Scale the splines back to the original scaling
             unscaled_splines = [a * r for a, r in zip(spline, ranges, strict=False)]
             _plot_arrays(axes, unscaled_splines, color=index_colours[start])
@@ -110,31 +136,31 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
 
     # Setup axes
     if ndims > 2:
-        plt.figure(figsize=(6, 6))
-        plt_axes = plt.axes(projection="3d")
-        plt_axes.grid(False)
+        plt.figure(figsize=(6, 6))  # type: ignore
+        plt_axes: Axes = plt.axes(projection="3d")  # type: ignore
+        plt_axes.grid(False)  # type: ignore
         if isinstance(plt_axes, Axes3D):
-            plt_axes.set_zlabel(axes[-3])
-            plt_axes.set_ylabel(axes[-2])
-            plt_axes.view_init(elev=15)
+            plt_axes.set_zlabel(axes[-3])  # type: ignore
+            plt_axes.set_ylabel(axes[-2])  # type: ignore
+            plt_axes.view_init(elev=15)  # type: ignore
         else:
             raise TypeError(
                 "Expected matplotlib to create an Axes3D object, "
                 f"instead got: {plt_axes}"
             )
     elif ndims == 2:
-        plt.figure(figsize=(6, 6))
-        plt_axes = plt.axes()
-        plt_axes.set_ylabel(axes[-2])
+        plt.figure(figsize=(6, 6))  # type: ignore
+        plt_axes = plt.axes()  # type: ignore
+        plt_axes.set_ylabel(axes[-2])  # type: ignore
     else:
-        plt.figure(figsize=(6, 2))
-        plt_axes = plt.axes()
+        plt.figure(figsize=(6, 2))  # type: ignore
+        plt_axes = plt.axes()  # type: ignore
         plt_axes.yaxis.set_visible(False)
-    plt_axes.set_xlabel(axes[-1])
+    plt_axes.set_xlabel(axes[-1])  # type: ignore
 
     # Title with dimension sizes
     title = title or ", ".join(f"Dim[{' '.join(d.axes())} len={len(d)}]" for d in dims)
-    plt.title(title)
+    plt.title(title)  # type: ignore
 
     # Plot any Regions
     if ndims <= 2:
@@ -164,8 +190,8 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
                 plt_axes.add_patch(patches.Polygon(xy_verts, fill=False))
 
     # Plot the splines
-    tail: Any = {a: None for a in axes}
-    ranges = [max(np.max(v) - np.min(v), 0.0001) for k, v in dim.midpoints.items()]
+    tail: dict[str, npt.NDArray[np.floating[Any]] | None] = {a: None for a in axes}
+    ranges = [max(float(np.max(v) - np.min(v)), 0.0001) for v in dim.midpoints.values()]
     seg_col = cycle(colors.TABLEAU_COLORS)
     last_index = 0
     splines = None
@@ -174,8 +200,8 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
     gap_indices = list(np.nonzero(dim.gap[1:])[0] + 1)
     for index in gap_indices + [len(dim)]:
         num_points = index - last_index
-        arrays = []
-        turnaround = []
+        arrays: list[npt.NDArray[np.floating[Any]]] = []
+        turnaround: list[npt.NDArray[np.floating[Any]]] = []
         for a in axes:
             # Add the midpoints and the lower and upper bounds
             arr = np.empty(num_points * 2 + 1)
@@ -184,13 +210,15 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
             arr[-1] = dim.upper[a][index - 1]
             arrays.append(arr)
             # Add the turnaround
-            if tail[a] is not None:
+            axis_tail = tail[a]
+            if axis_tail is not None:
                 # Already had a tail, add lead in points
-                tail[a][2:] = np.linspace(-0.01, 0, 2) * (arr[1] - arr[0]) + arr[0]
-                turnaround.append(tail[a])
+                axis_tail[2:] = np.linspace(-0.01, 0, 2) * (arr[1] - arr[0]) + arr[0]
+                turnaround.append(axis_tail)
             # Add tail off points
-            tail[a] = np.empty(4)
-            tail[a][:2] = np.linspace(0, 0.01, 2) * (arr[-1] - arr[-2]) + arr[-1]
+            axis_tail = np.empty(4)
+            axis_tail[:2] = np.linspace(0, 0.01, 2) * (arr[-1] - arr[-2]) + arr[-1]
+            tail[a] = axis_tail
         last_index = index
 
         arrow_arr = None
@@ -240,4 +268,4 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
         color="lightgrey",
     )
 
-    plt.show()
+    plt.show()  # type: ignore
