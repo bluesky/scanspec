@@ -189,7 +189,7 @@ def _make_schema(
     return {member.__name__: handler(member) for member in members}
 
 
-def if_instance_do(x: C, cls: type[C], func: Callable[[C], T]):
+def if_instance_do(x: C, cls: type[C], func: Callable[[C], T]) -> T:
     """If x is of type cls then return func(x), otherwise return NotImplemented.
 
     Used as a helper when implementing operator overloading.
@@ -428,7 +428,7 @@ class SnakedFrames(Frames[Axis]):
         return cls(frames.midpoints, frames.lower, frames.upper, frames.gap)
 
     def extract(
-        self, indices: npt.NDArray[np.int32], calculate_gap: bool = True
+        self, indices: npt.NDArray[np.signedinteger[Any]], calculate_gap: bool = True
     ) -> Frames[Axis]:
         """Return a new Frames object restricted to the indices provided.
 

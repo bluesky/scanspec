@@ -72,6 +72,7 @@ nitpicky = True
 # ('envvar', 'LD_LIBRARY_PATH').
 nitpick_ignore = [
     ("py:class", "scanspec.core.C"),
+    ("py:class", "scanspec.core.T"),
     ("py:class", "pydantic.config.ConfigDict"),
 ]
 
