@@ -153,9 +153,9 @@ class Product(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.outer.axes() + self.inner.axes()
 
-    def calculate(
+    def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:  # noqa: D102
+    ) -> list[Frames[Axis]]:
         frames_outer = self.outer.calculate(bounds=False, nested=nested)
         frames_inner = self.inner.calculate(bounds, nested=True)
         return frames_outer + frames_inner
@@ -194,9 +194,9 @@ class Repeat(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return []
 
-    def calculate(
+    def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:  # noqa: D102
+    ) -> list[Frames[Axis]]:
         return [Frames({}, gap=np.full(self.num, self.gap))]
 
 
@@ -233,9 +233,9 @@ class Zip(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.left.axes() + self.right.axes()
 
-    def calculate(
+    def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:  # noqa: D102
+    ) -> list[Frames[Axis]]:
         frames_left = self.left.calculate(bounds, nested)
         frames_right = self.right.calculate(bounds, nested)
         assert len(frames_left) >= len(
@@ -303,9 +303,9 @@ class Mask(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
-    def calculate(
+    def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:  # noqa: D102
+    ) -> list[Frames[Axis]]:
         frames = self.spec.calculate(bounds, nested)
         for axis_set in self.region.axis_sets():
             # Find the start and end index of any dimensions containing these axes
@@ -363,9 +363,9 @@ class Snake(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
-    def calculate(
+    def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:  # noqa: D102
+    ) -> list[Frames[Axis]]:
         return [
             SnakedFrames.from_frames(segment)
             for segment in self.spec.calculate(bounds, nested)
@@ -408,9 +408,9 @@ class Concat(Spec[Axis]):
         assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
         return left_axes
 
-    def calculate(
+    def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:  # noqa: D102
+    ) -> list[Frames[Axis]]:
         dim_left = squash_frames(
             self.left.calculate(bounds, nested), nested and self.check_path_changes
         )
@@ -445,9 +445,9 @@ class Squash(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
-    def calculate(
+    def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:  # noqa: D102
+    ) -> list[Frames[Axis]]:
         dims = self.spec.calculate(bounds, nested)
         dim = squash_frames(dims, nested and self.check_path_changes)
         return [dim]
@@ -513,9 +513,9 @@ class Line(Spec[Axis]):
         first = self.start - step / 2
         return {self.axis: indexes * step + first}
 
-    def calculate(
+    def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:  # noqa: D102
+    ) -> list[Frames[Axis]]:
         return _dimensions_from_indexes(
             self._line_from_indexes, self.axes(), self.num, bounds
         )
@@ -594,9 +594,9 @@ class Static(Spec[Axis]):
     ) -> dict[Axis, npt.NDArray[np.float64]]:
         return {self.axis: np.full(len(indexes), self.value)}
 
-    def calculate(
+    def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:  # noqa: D102
+    ) -> list[Frames[Axis]]:
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
         )
@@ -655,9 +655,9 @@ class Spiral(Spec[Axis]):
             self.x_axis: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
         }
 
-    def calculate(
+    def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:  # noqa: D102
+    ) -> list[Frames[Axis]]:
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self.num, bounds
         )
