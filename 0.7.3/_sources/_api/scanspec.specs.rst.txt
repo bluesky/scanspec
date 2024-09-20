@@ -1,0 +1,27 @@
+``scanspec.specs``
+==================
+        
+        
+        
+        
+
+.. automodule:: scanspec.specs
+    :members:
+
+    
+    
+    
+
+    
+    
+    .. rubric:: Members
+
+    .. autosummary::
+        :nosignatures:
+    
+        DURATION
+        Spec
+        fly
+        step
+    
+    
