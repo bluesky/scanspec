@@ -318,7 +318,7 @@ class Circle(Region[Axis]):
     y_axis: Axis = Field(description="The name matching the y axis of the spec")
     x_middle: float = Field(description="The central x point of the circle")
     y_middle: float = Field(description="The central y point of the circle")
-    radius: float = Field(description="Radius of the circle", gt=0)
+    radius: float = Field(description="Radius of the circle", gt=0.0)
 
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
@@ -348,10 +348,10 @@ class Ellipse(Region[Axis]):
     x_middle: float = Field(description="The central x point of the ellipse")
     y_middle: float = Field(description="The central y point of the ellipse")
     x_radius: float = Field(
-        description="The radius along the x axis of the ellipse", gt=0
+        description="The radius along the x axis of the ellipse", gt=0.0
     )
     y_radius: float = Field(
-        description="The radius along the y axis of the ellipse", gt=0
+        description="The radius along the y axis of the ellipse", gt=0.0
     )
     angle: float = Field(description="The angle of the ellipse (degrees)", default=0.0)
 
