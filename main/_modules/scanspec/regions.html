@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.regions &#8212; scanspec 0.7.3.dev10+ge1220f51 documentation</title>
+    <title>scanspec.regions &#8212; scanspec 0.7.4.dev1+g4deecf8b documentation</title>
   
   
   
@@ -39,7 +39,7 @@
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
   <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script src="../../_static/documentation_options.js?v=7dcc009e"></script>
+    <script src="../../_static/documentation_options.js?v=9976aa07"></script>
     <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -868,7 +868,7 @@ document.write(`
     <span class="n">y_axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The name matching the y axis of the spec&quot;</span><span class="p">)</span>
     <span class="n">x_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central x point of the circle&quot;</span><span class="p">)</span>
     <span class="n">y_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central y point of the circle&quot;</span><span class="p">)</span>
-    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radius of the circle&quot;</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radius of the circle&quot;</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Circle.axis_sets">
 <a class="viewcode-back" href="../../_api/scanspec.regions.html#scanspec.regions.Circle.axis_sets">[docs]</a>
@@ -907,10 +907,10 @@ document.write(`
     <span class="n">x_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central x point of the ellipse&quot;</span><span class="p">)</span>
     <span class="n">y_middle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The central y point of the ellipse&quot;</span><span class="p">)</span>
     <span class="n">x_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the x axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the x axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mf">0.0</span>
     <span class="p">)</span>
     <span class="n">y_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the y axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The radius along the y axis of the ellipse&quot;</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mf">0.0</span>
     <span class="p">)</span>
     <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The angle of the ellipse (degrees)&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
