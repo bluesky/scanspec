@@ -1,0 +1,25 @@
+``scanspec.regions``
+====================
+        
+        
+        
+
+.. automodule:: scanspec.regions
+    :members:
+
+    
+    
+    
+
+    
+    
+    .. rubric:: Members
+
+    .. autosummary::
+        :nosignatures:
+    
+        Region
+        get_mask
+        find_regions
+    
+    
