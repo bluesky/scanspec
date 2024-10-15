@@ -29,7 +29,7 @@ dev = [
     # https://github.com/pypa/pip/issues/10393
     "scanspec[plotting]",
     "scanspec[service]",
-    "autodoc_pydantic @ git+https://github.com/coretl/autodoc_pydantic.git@0b95311d8d10fce67a9ecd5830330364e31fa49c",
+    "autodoc_pydantic",
     "copier",
     "httpx",
     "myst-parser",

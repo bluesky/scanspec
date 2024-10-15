@@ -21,6 +21,8 @@ jobs:
 
       - name: Install python packages
         uses: ./.github/actions/install_requirements
+        with:
+          pip-install: -e .[dev] "autodoc_pydantic @ git+https://github.com/coretl/autodoc_pydantic.git@0b95311d8d10fce67a9ecd5830330364e31fa49c"
 
       - name: Build docs
         run: tox -e docs
