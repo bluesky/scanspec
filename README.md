@@ -4,7 +4,7 @@
 [![CI](https://github.com/bluesky/scanspec/actions/workflows/ci.yml/badge.svg)](https://github.com/bluesky/scanspec/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/bluesky/scanspec/branch/main/graph/badge.svg)](https://codecov.io/gh/bluesky/scanspec)
 [![PyPI](https://img.shields.io/pypi/v/scanspec.svg)](https://pypi.org/project/scanspec)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/license/apache-2-0)
 
 # scanspec
 
