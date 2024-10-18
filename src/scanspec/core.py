@@ -41,7 +41,7 @@ StrictConfig: ConfigDict = {"extra": "forbid"}
 C = TypeVar("C")
 T = TypeVar("T")
 
-GapArray = npt.NDArray[np.bool]
+GapArray = npt.NDArray[np.bool_]
 
 
 def discriminated_union_of_subclasses(

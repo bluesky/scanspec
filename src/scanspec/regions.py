@@ -40,7 +40,7 @@ __all__ = [
     "find_regions",
 ]
 
-NpMask = npt.NDArray[np.bool]
+NpMask = npt.NDArray[np.bool_]
 
 
 @discriminated_union_of_subclasses
@@ -96,7 +96,7 @@ def get_mask(region: Region[Axis], points: AxesPoints[Axis]) -> NpMask:
     if needs_mask:
         return region.mask(points)
     else:
-        return np.ones(len(list(points.values())[0]), dtype=np.bool)
+        return np.ones(len(list(points.values())[0]), dtype=np.bool_)
 
 
 def _merge_axis_sets(axis_sets: list[set[Axis]]) -> Iterator[set[Axis]]:
@@ -287,11 +287,11 @@ class Polygon(Region[Axis]):
         x = points[self.x_axis]
         y = points[self.y_axis]
         v1x, v1y = self.x_verts[-1], self.y_verts[-1]
-        mask = np.full(len(x), False, dtype=np.bool)
+        mask = np.full(len(x), False, dtype=np.bool_)
         for v2x, v2y in zip(self.x_verts, self.y_verts, strict=False):
             # skip horizontal edges
             if v2y != v1y:
-                vmask = np.full(len(x), False, dtype=np.bool)
+                vmask = np.full(len(x), False, dtype=np.bool_)
                 vmask |= (y < v2y) & (y >= v1y)
                 vmask |= (y < v1y) & (y >= v2y)
                 t = (y - v1y) / (v2y - v1y)
