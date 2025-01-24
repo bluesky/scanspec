@@ -208,7 +208,7 @@ OtherAxis = TypeVar("OtherAxis")
 
 #: Map of axes to float ndarray of points
 #: E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}
-AxesPoints = dict[Axis, npt.NDArray[np.floating[Any]]]
+AxesPoints = dict[Axis, npt.NDArray[np.float64]]
 
 
 class Frames(Generic[Axis]):

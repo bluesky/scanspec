@@ -19,9 +19,7 @@ from .specs import DURATION, Spec
 __all__ = ["plot_spec"]
 
 
-def _plot_arrays(
-    axes: Axes, arrays: list[npt.NDArray[np.floating[Any]]], **kwargs: Any
-):
+def _plot_arrays(axes: Axes, arrays: list[npt.NDArray[np.float64]], **kwargs: Any):
     if len(arrays) > 2:
         axes.plot3D(arrays[2], arrays[1], arrays[0], **kwargs)  # type: ignore
     elif len(arrays) == 2:
@@ -34,9 +32,9 @@ def _plot_arrays(
 class Arrow3D(patches.FancyArrowPatch):
     def __init__(
         self,
-        xs: npt.NDArray[np.floating[Any]],
-        ys: npt.NDArray[np.floating[Any]],
-        zs: npt.NDArray[np.floating[Any]],
+        xs: npt.NDArray[np.float64],
+        ys: npt.NDArray[np.float64],
+        zs: npt.NDArray[np.float64],
         *args: Any,
         **kwargs: Any,
     ):
@@ -44,25 +42,25 @@ class Arrow3D(patches.FancyArrowPatch):
         self._verts3d = xs, ys, zs
 
     # Added here because of https://github.com/matplotlib/matplotlib/issues/21688
-    def do_3d_projection(self, renderer: Any = None):
+    def do_3d_projection(self, renderer: Any = None):  # type: ignore
         xs3d, ys3d, zs3d = self._verts3d
         xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)  # type: ignore
-        self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
+        self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))  # type: ignore
 
-        return np.min(zs)
+        return np.min(zs)  # type: ignore
 
     @property
     def verts3d(
         self,
     ) -> tuple[
-        npt.NDArray[np.floating[Any]],
-        npt.NDArray[np.floating[Any]],
-        npt.NDArray[np.floating[Any]],
+        npt.NDArray[np.float64],
+        npt.NDArray[np.float64],
+        npt.NDArray[np.float64],
     ]:
         return self._verts3d
 
 
-def _plot_arrow(axes: Axes, arrays: list[npt.NDArray[np.floating[Any]]]):
+def _plot_arrow(axes: Axes, arrays: list[npt.NDArray[np.float64]]):
     if len(arrays) == 1:
         arrays = [np.array([0, 0])] + arrays
     if len(arrays) == 2:
@@ -83,9 +81,9 @@ def _plot_arrow(axes: Axes, arrays: list[npt.NDArray[np.floating[Any]]]):
 def _plot_spline(
     axes: Axes,
     ranges: list[float],
-    arrays: list[npt.NDArray[np.floating[Any]]],
+    arrays: list[npt.NDArray[np.float64]],
     index_colours: dict[int, str],
-) -> Iterable[list[npt.NDArray[np.floating[Any]]]]:
+) -> Iterable[list[npt.NDArray[np.float64]]]:
     scaled_arrays = [a / r for a, r in zip(arrays, ranges, strict=False)]
     # Define curves parametrically
     t = np.zeros(len(arrays[0]))
@@ -107,7 +105,7 @@ def _plot_spline(
             start_value: float = t[start]
             stop_value: float = t[stop]
             tnew = np.linspace(start_value, stop_value, num=1001)
-            spline: npt.NDArray[np.floating[Any]] = interpolate.splev(tnew, tck)  # type: ignore
+            spline: npt.NDArray[np.float64] = interpolate.splev(tnew, tck)  # type: ignore
             # Scale the splines back to the original scaling
             unscaled_splines = [a * r for a, r in zip(spline, ranges, strict=False)]
             _plot_arrays(axes, unscaled_splines, color=index_colours[start])
@@ -190,7 +188,7 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
                 plt_axes.add_patch(patches.Polygon(xy_verts, fill=False))
 
     # Plot the splines
-    tail: dict[str, npt.NDArray[np.floating[Any]] | None] = {a: None for a in axes}
+    tail: dict[str, npt.NDArray[np.float64] | None] = {a: None for a in axes}
     ranges = [max(float(np.max(v) - np.min(v)), 0.0001) for v in dim.midpoints.values()]
     seg_col = cycle(colors.TABLEAU_COLORS)
     last_index = 0
@@ -200,8 +198,8 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
     gap_indices = list(np.nonzero(dim.gap[1:])[0] + 1)
     for index in gap_indices + [len(dim)]:
         num_points = index - last_index
-        arrays: list[npt.NDArray[np.floating[Any]]] = []
-        turnaround: list[npt.NDArray[np.floating[Any]]] = []
+        arrays: list[npt.NDArray[np.float64]] = []
+        turnaround: list[npt.NDArray[np.float64]] = []
         for a in axes:
             # Add the midpoints and the lower and upper bounds
             arr = np.empty(num_points * 2 + 1)

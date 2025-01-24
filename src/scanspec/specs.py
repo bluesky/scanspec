@@ -456,11 +456,11 @@ def _dimensions_from_indexes(
     bounds: bool,
 ) -> list[Frames[Axis]]:
     # Calc num midpoints (fences) from 0.5 .. num - 0.5
-    midpoints_calc = func(np.linspace(0.5, num - 0.5, num))
+    midpoints_calc = func(np.linspace(0.5, num - 0.5, num, dtype=np.float64))
     midpoints = {a: midpoints_calc[a] for a in axes}
     if bounds:
         # Calc num + 1 bounds (posts) from 0 .. num
-        bounds_calc = func(np.linspace(0, num, num + 1))
+        bounds_calc = func(np.linspace(0, num, num + 1, dtype=np.float64))
         lower = {a: bounds_calc[a][:-1] for a in axes}
         upper = {a: bounds_calc[a][1:] for a in axes}
         # Points must have no gap as upper[a][i] == lower[a][i+1]
