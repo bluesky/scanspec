@@ -337,9 +337,9 @@ class Frames(Generic[Axis]):
         {'x': array([1, 2, 3, 4, 5, 6]), 'y': array([6, 5, 4, 3, 2, 1])}
 
         """
-        assert set(self.axes()) == set(
-            other.axes()
-        ), f"axes {self.axes()} != {other.axes()}"
+        assert set(self.axes()) == set(other.axes()), (
+            f"axes {self.axes()} != {other.axes()}"
+        )
 
         def concat_dict(ds: Sequence[AxesPoints[Axis]]) -> AxesPoints[Axis]:
             # Concat each array in midpoints, lower, upper. E.g.

@@ -234,9 +234,9 @@ class Zip(Spec[Axis]):
     ) -> list[Frames[Axis]]:
         frames_left = self.left.calculate(bounds, nested)
         frames_right = self.right.calculate(bounds, nested)
-        assert len(frames_left) >= len(
-            frames_right
-        ), f"Zip requires len({self.left}) >= len({self.right})"
+        assert len(frames_left) >= len(frames_right), (
+            f"Zip requires len({self.left}) >= len({self.right})"
+        )
 
         # Pad and expand the right to be the same size as left. Special case, if
         # only one Frames object with size 1, expand to the right size
@@ -262,9 +262,9 @@ class Zip(Spec[Axis]):
                 combined = left
             else:
                 combined = left.zip(right)
-            assert isinstance(
-                combined, Frames
-            ), f"Padding went wrong {frames_left} {padded_right}"
+            assert isinstance(combined, Frames), (
+                f"Padding went wrong {frames_left} {padded_right}"
+            )
             frames.append(combined)
         return frames
 
