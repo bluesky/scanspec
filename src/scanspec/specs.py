@@ -234,9 +234,9 @@ class Zip(Spec[Axis]):
     ) -> list[Frames[Axis]]:
         frames_left = self.left.calculate(bounds, nested)
         frames_right = self.right.calculate(bounds, nested)
-        assert len(frames_left) >= len(
-            frames_right
-        ), f"Zip requires len({self.left}) >= len({self.right})"
+        assert len(frames_left) >= len(frames_right), (
+            f"Zip requires len({self.left}) >= len({self.right})"
+        )
 
         # Pad and expand the right to be the same size as left. Special case, if
         # only one Frames object with size 1, expand to the right size
@@ -262,9 +262,9 @@ class Zip(Spec[Axis]):
                 combined = left
             else:
                 combined = left.zip(right)
-            assert isinstance(
-                combined, Frames
-            ), f"Padding went wrong {frames_left} {padded_right}"
+            assert isinstance(combined, Frames), (
+                f"Padding went wrong {frames_left} {padded_right}"
+            )
             frames.append(combined)
         return frames
 
@@ -456,11 +456,11 @@ def _dimensions_from_indexes(
     bounds: bool,
 ) -> list[Frames[Axis]]:
     # Calc num midpoints (fences) from 0.5 .. num - 0.5
-    midpoints_calc = func(np.linspace(0.5, num - 0.5, num))
+    midpoints_calc = func(np.linspace(0.5, num - 0.5, num, dtype=np.float64))
     midpoints = {a: midpoints_calc[a] for a in axes}
     if bounds:
         # Calc num + 1 bounds (posts) from 0 .. num
-        bounds_calc = func(np.linspace(0, num, num + 1))
+        bounds_calc = func(np.linspace(0, num, num + 1, dtype=np.float64))
         lower = {a: bounds_calc[a][:-1] for a in axes}
         upper = {a: bounds_calc[a][1:] for a in axes}
         # Points must have no gap as upper[a][i] == lower[a][i+1]
