@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>scanspec.regions &#8212; scanspec 0.7.7.dev7+gfdb5bde7 documentation</title>
+    <title>scanspec.regions &#8212; scanspec 0.7.7.dev8+g96f5982d documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=f1184ccf"></script>
+    <script src="../_static/documentation_options.js?v=9b8d6c38"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -543,8 +543,27 @@ mask of the points in the region, otherwise return all ones</p>
 <dd><p>Abstract baseclass for a combination of two regions, left and right.</p>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CombinationOf&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Abstract baseclass for a combination of two regions, left and right.&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;left&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Region&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The left-hand Region to combine&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;right&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Region&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The right-hand Region to combine&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;const&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CombinationOf&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CombinationOf&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Type&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Circle__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within an xy circle of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 1, 3, 10) * ~Line(\&quot;x\&quot;, 0, 2, 10)\n    spec = grid &amp; Circle(\&quot;x\&quot;, \&quot;y\&quot;, 1, 2, 0.9)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -589,7 +608,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Circle&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;CombinationOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Abstract baseclass for a combination of two regions, left and right.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -615,7 +634,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CombinationOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;DifferenceOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in DifferenceOf(a, b) if in a and not in b.\n\nTypically created with the ``-`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) - Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -641,7 +660,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DifferenceOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Ellipse__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 3, 8, 10) * ~Line(\&quot;x\&quot;, 1 ,8, 10)\n    spec = grid &amp; Ellipse(\&quot;x\&quot;, \&quot;y\&quot;, 5, 5, 2, 3, 75)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -699,7 +718,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ellipse&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;IntersectionOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in IntersectionOf(a, b) if in both a and b.\n\nTypically created with the ``&amp;`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) &amp; Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False, False,  True, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -725,7 +744,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IntersectionOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Polygon__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within a rotated xy polygon.\n\n.. example_spec::\n\n    from scanspec.regions import Polygon\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 3, 8, 10) * ~Line(\&quot;x\&quot;, 1 ,8, 10)\n    spec = grid &amp; Polygon(\&quot;x\&quot;, \&quot;y\&quot;, [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -771,7 +790,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Polygon&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Range__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis &gt;= min and &lt;= max.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 1, 2)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -804,7 +823,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Range&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Rectangle__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within a rotated xy rectangle.\n\n.. example_spec::\n\n    from scanspec.regions import Rectangle\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 1, 3, 10) * ~Line(\&quot;x\&quot;, 0, 2, 10)\n    spec = grid &amp; Rectangle(\&quot;x\&quot;, \&quot;y\&quot;, 0, 1.1, 1.5, 2.1, 30)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -863,53 +882,53 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">      </span><span class="nt">&quot;Region&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;discriminator&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;mapping&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="nt">&quot;propertyName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;type&quot;</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;oneOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse__Axis_&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">]</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;SymmetricDifferenceOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.\n\nTypically created with the ``^`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) ^ Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False,  True, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -935,7 +954,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SymmetricDifferenceOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;UnionOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in UnionOf(a, b) if in either a or b.\n\nTypically created with the ``|`` operator\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) | Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True,  True, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -962,7 +981,11 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
-<span class="w">   </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf&quot;</span>
+<span class="w">   </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;right&quot;</span>
+<span class="w">   </span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1012,8 +1035,27 @@ mask of the points in the region, otherwise return all ones</p>
 </div>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;UnionOf&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in UnionOf(a, b) if in either a or b.\n\nTypically created with the ``|`` operator\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) | Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True,  True, False])&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;left&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Region&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The left-hand Region to combine&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;right&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Region&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The right-hand Region to combine&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;const&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;UnionOf&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;UnionOf&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Type&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Circle__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within an xy circle of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 1, 3, 10) * ~Line(\&quot;x\&quot;, 0, 2, 10)\n    spec = grid &amp; Circle(\&quot;x\&quot;, \&quot;y\&quot;, 1, 2, 0.9)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1058,7 +1100,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Circle&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;CombinationOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Abstract baseclass for a combination of two regions, left and right.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1084,7 +1126,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CombinationOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;DifferenceOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in DifferenceOf(a, b) if in a and not in b.\n\nTypically created with the ``-`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) - Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1110,7 +1152,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DifferenceOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Ellipse__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 3, 8, 10) * ~Line(\&quot;x\&quot;, 1 ,8, 10)\n    spec = grid &amp; Ellipse(\&quot;x\&quot;, \&quot;y\&quot;, 5, 5, 2, 3, 75)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1168,7 +1210,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ellipse&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;IntersectionOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in IntersectionOf(a, b) if in both a and b.\n\nTypically created with the ``&amp;`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) &amp; Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False, False,  True, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1194,7 +1236,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IntersectionOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Polygon__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within a rotated xy polygon.\n\n.. example_spec::\n\n    from scanspec.regions import Polygon\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 3, 8, 10) * ~Line(\&quot;x\&quot;, 1 ,8, 10)\n    spec = grid &amp; Polygon(\&quot;x\&quot;, \&quot;y\&quot;, [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1240,7 +1282,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Polygon&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Range__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis &gt;= min and &lt;= max.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 1, 2)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1273,7 +1315,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Range&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Rectangle__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within a rotated xy rectangle.\n\n.. example_spec::\n\n    from scanspec.regions import Rectangle\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 1, 3, 10) * ~Line(\&quot;x\&quot;, 0, 2, 10)\n    spec = grid &amp; Rectangle(\&quot;x\&quot;, \&quot;y\&quot;, 0, 1.1, 1.5, 2.1, 30)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1332,53 +1374,53 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">      </span><span class="nt">&quot;Region&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;discriminator&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;mapping&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="nt">&quot;propertyName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;type&quot;</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;oneOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse__Axis_&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">]</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;SymmetricDifferenceOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.\n\nTypically created with the ``^`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) ^ Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False,  True, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1404,7 +1446,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SymmetricDifferenceOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;UnionOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in UnionOf(a, b) if in either a or b.\n\nTypically created with the ``|`` operator\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) | Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True,  True, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1431,7 +1473,11 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
-<span class="w">   </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf&quot;</span>
+<span class="w">   </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;right&quot;</span>
+<span class="w">   </span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1481,8 +1527,27 @@ mask of the points in the region, otherwise return all ones</p>
 </div>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IntersectionOf&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in IntersectionOf(a, b) if in both a and b.\n\nTypically created with the ``&amp;`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) &amp; Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False, False,  True, False, False])&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;left&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Region&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The left-hand Region to combine&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;right&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Region&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The right-hand Region to combine&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;const&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IntersectionOf&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IntersectionOf&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Type&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Circle__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within an xy circle of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 1, 3, 10) * ~Line(\&quot;x\&quot;, 0, 2, 10)\n    spec = grid &amp; Circle(\&quot;x\&quot;, \&quot;y\&quot;, 1, 2, 0.9)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1527,7 +1592,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Circle&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;CombinationOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Abstract baseclass for a combination of two regions, left and right.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1553,7 +1618,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CombinationOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;DifferenceOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in DifferenceOf(a, b) if in a and not in b.\n\nTypically created with the ``-`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) - Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1579,7 +1644,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DifferenceOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Ellipse__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 3, 8, 10) * ~Line(\&quot;x\&quot;, 1 ,8, 10)\n    spec = grid &amp; Ellipse(\&quot;x\&quot;, \&quot;y\&quot;, 5, 5, 2, 3, 75)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1637,7 +1702,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ellipse&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;IntersectionOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in IntersectionOf(a, b) if in both a and b.\n\nTypically created with the ``&amp;`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) &amp; Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False, False,  True, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1663,7 +1728,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IntersectionOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Polygon__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within a rotated xy polygon.\n\n.. example_spec::\n\n    from scanspec.regions import Polygon\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 3, 8, 10) * ~Line(\&quot;x\&quot;, 1 ,8, 10)\n    spec = grid &amp; Polygon(\&quot;x\&quot;, \&quot;y\&quot;, [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1709,7 +1774,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Polygon&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Range__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis &gt;= min and &lt;= max.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 1, 2)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1742,7 +1807,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Range&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Rectangle__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within a rotated xy rectangle.\n\n.. example_spec::\n\n    from scanspec.regions import Rectangle\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 1, 3, 10) * ~Line(\&quot;x\&quot;, 0, 2, 10)\n    spec = grid &amp; Rectangle(\&quot;x\&quot;, \&quot;y\&quot;, 0, 1.1, 1.5, 2.1, 30)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1801,53 +1866,53 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">      </span><span class="nt">&quot;Region&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;discriminator&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;mapping&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="nt">&quot;propertyName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;type&quot;</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;oneOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse__Axis_&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">]</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;SymmetricDifferenceOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.\n\nTypically created with the ``^`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) ^ Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False,  True, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1873,7 +1938,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SymmetricDifferenceOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;UnionOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in UnionOf(a, b) if in either a or b.\n\nTypically created with the ``|`` operator\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) | Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True,  True, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1900,7 +1965,11 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
-<span class="w">   </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf&quot;</span>
+<span class="w">   </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;right&quot;</span>
+<span class="w">   </span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1950,8 +2019,27 @@ mask of the points in the region, otherwise return all ones</p>
 </div>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DifferenceOf&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in DifferenceOf(a, b) if in a and not in b.\n\nTypically created with the ``-`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) - Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False, False, False])&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;left&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Region&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The left-hand Region to combine&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;right&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Region&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The right-hand Region to combine&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;const&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DifferenceOf&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DifferenceOf&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Type&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Circle__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within an xy circle of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 1, 3, 10) * ~Line(\&quot;x\&quot;, 0, 2, 10)\n    spec = grid &amp; Circle(\&quot;x\&quot;, \&quot;y\&quot;, 1, 2, 0.9)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1996,7 +2084,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Circle&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;CombinationOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Abstract baseclass for a combination of two regions, left and right.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2022,7 +2110,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CombinationOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;DifferenceOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in DifferenceOf(a, b) if in a and not in b.\n\nTypically created with the ``-`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) - Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2048,7 +2136,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DifferenceOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Ellipse__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 3, 8, 10) * ~Line(\&quot;x\&quot;, 1 ,8, 10)\n    spec = grid &amp; Ellipse(\&quot;x\&quot;, \&quot;y\&quot;, 5, 5, 2, 3, 75)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2106,7 +2194,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ellipse&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;IntersectionOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in IntersectionOf(a, b) if in both a and b.\n\nTypically created with the ``&amp;`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) &amp; Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False, False,  True, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2132,7 +2220,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IntersectionOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Polygon__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within a rotated xy polygon.\n\n.. example_spec::\n\n    from scanspec.regions import Polygon\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 3, 8, 10) * ~Line(\&quot;x\&quot;, 1 ,8, 10)\n    spec = grid &amp; Polygon(\&quot;x\&quot;, \&quot;y\&quot;, [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2178,7 +2266,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Polygon&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Range__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis &gt;= min and &lt;= max.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 1, 2)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2211,7 +2299,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Range&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Rectangle__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within a rotated xy rectangle.\n\n.. example_spec::\n\n    from scanspec.regions import Rectangle\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 1, 3, 10) * ~Line(\&quot;x\&quot;, 0, 2, 10)\n    spec = grid &amp; Rectangle(\&quot;x\&quot;, \&quot;y\&quot;, 0, 1.1, 1.5, 2.1, 30)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2270,53 +2358,53 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">      </span><span class="nt">&quot;Region&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;discriminator&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;mapping&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="nt">&quot;propertyName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;type&quot;</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;oneOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse__Axis_&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">]</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;SymmetricDifferenceOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.\n\nTypically created with the ``^`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) ^ Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False,  True, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2342,7 +2430,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SymmetricDifferenceOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;UnionOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in UnionOf(a, b) if in either a or b.\n\nTypically created with the ``|`` operator\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) | Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True,  True, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2369,7 +2457,11 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
-<span class="w">   </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf&quot;</span>
+<span class="w">   </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;right&quot;</span>
+<span class="w">   </span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -2419,8 +2511,27 @@ mask of the points in the region, otherwise return all ones</p>
 </div>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SymmetricDifferenceOf&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.\n\nTypically created with the ``^`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) ^ Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False,  True, False])&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;left&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Region&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The left-hand Region to combine&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;right&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Region&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The right-hand Region to combine&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;const&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SymmetricDifferenceOf&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SymmetricDifferenceOf&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Type&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Circle__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within an xy circle of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 1, 3, 10) * ~Line(\&quot;x\&quot;, 0, 2, 10)\n    spec = grid &amp; Circle(\&quot;x\&quot;, \&quot;y\&quot;, 1, 2, 0.9)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2465,7 +2576,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Circle&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;CombinationOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Abstract baseclass for a combination of two regions, left and right.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2491,7 +2602,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CombinationOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;DifferenceOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in DifferenceOf(a, b) if in a and not in b.\n\nTypically created with the ``-`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) - Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2517,7 +2628,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DifferenceOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Ellipse__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 3, 8, 10) * ~Line(\&quot;x\&quot;, 1 ,8, 10)\n    spec = grid &amp; Ellipse(\&quot;x\&quot;, \&quot;y\&quot;, 5, 5, 2, 3, 75)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2575,7 +2686,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ellipse&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;IntersectionOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in IntersectionOf(a, b) if in both a and b.\n\nTypically created with the ``&amp;`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) &amp; Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False, False,  True, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2601,7 +2712,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IntersectionOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Polygon__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within a rotated xy polygon.\n\n.. example_spec::\n\n    from scanspec.regions import Polygon\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 3, 8, 10) * ~Line(\&quot;x\&quot;, 1 ,8, 10)\n    spec = grid &amp; Polygon(\&quot;x\&quot;, \&quot;y\&quot;, [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2647,7 +2758,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Polygon&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Range__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis &gt;= min and &lt;= max.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 1, 2)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True, False, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2680,7 +2791,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Range&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;Rectangle__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mask contains points of axis within a rotated xy rectangle.\n\n.. example_spec::\n\n    from scanspec.regions import Rectangle\n    from scanspec.specs import Line\n\n    grid = Line(\&quot;y\&quot;, 1, 3, 10) * ~Line(\&quot;x\&quot;, 0, 2, 10)\n    spec = grid &amp; Rectangle(\&quot;x\&quot;, \&quot;y\&quot;, 0, 1.1, 1.5, 2.1, 30)&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2739,53 +2850,53 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">      </span><span class="nt">&quot;Region&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;discriminator&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;mapping&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf&quot;</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;Circle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;CombinationOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;DifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Ellipse&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;IntersectionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Polygon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Range&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;Rectangle&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf__Axis_&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="nt">&quot;propertyName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;type&quot;</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;oneOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/CombinationOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/UnionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IntersectionOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DifferenceOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Range__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Rectangle__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Polygon__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Circle__Axis_&quot;</span>
 <span class="w">            </span><span class="p">},</span>
 <span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse&quot;</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Ellipse__Axis_&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">]</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;SymmetricDifferenceOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;SymmetricDifferenceOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.\n\nTypically created with the ``^`` operator.\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) ^ Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True, False,  True, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2811,7 +2922,7 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SymmetricDifferenceOf&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;UnionOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;UnionOf__Axis_&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A point is in UnionOf(a, b) if in either a or b.\n\nTypically created with the ``|`` operator\n\n&gt;&gt;&gt; r = Range(\&quot;x\&quot;, 0.5, 2.5) | Range(\&quot;x\&quot;, 1.5, 3.5)\n&gt;&gt;&gt; r.mask({\&quot;x\&quot;: np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True,  True, False])&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2838,7 +2949,11 @@ mask of the points in the region, otherwise return all ones</p>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
-<span class="w">   </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/SymmetricDifferenceOf&quot;</span>
+<span class="w">   </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;left&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;right&quot;</span>
+<span class="w">   </span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
