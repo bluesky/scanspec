@@ -182,7 +182,7 @@ class _TaggedUnion:
         self._discriminator = discriminator
         # The members of the tagged union, i.e. subclasses of the baseclass
         self._subclasses: list[type] = []
-        # Whether we need to check subclasses for unsupported generic types
+        # The type parameters expected for the base class of the union
         self._generics = _parameters(base_class)
 
     def add_member(self, cls: type):
