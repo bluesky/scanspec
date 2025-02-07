@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import itertools
-from types import GenericAlias
+import sys
 import warnings
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from functools import lru_cache
 from inspect import isclass
+from types import GenericAlias
 from typing import (
     Any,
     Generic,
@@ -25,9 +26,9 @@ from pydantic.dataclasses import is_pydantic_dataclass, rebuild_dataclass
 from pydantic_core import CoreSchema
 from pydantic_core.core_schema import tagged_union_schema
 
-try:
+if sys.version_info >= (3, 12):
     from types import get_original_bases
-except ImportError:
+else:
     # function added to stdlib in 3.12
     def get_original_bases(cls: type, /) -> tuple[Any, ...]:
         try:
@@ -36,6 +37,7 @@ except ImportError:
             raise TypeError(
                 f"Expected an instance of type, not {type(cls).__name__!r}"
             ) from None
+
 
 __all__ = [
     "Axis",
@@ -60,9 +62,12 @@ T = TypeVar("T")
 
 GapArray = npt.NDArray[np.bool_]
 
+
 class UnsupportedSubclass(RuntimeWarning):
     """Warning for subclasses that are not simple extensions of generic types"""
+
     pass
+
 
 def discriminated_union_of_subclasses(
     super_cls: type[C],
@@ -185,7 +190,10 @@ class _TaggedUnion:
         if cls in self._subclasses:
             return
         elif not self._support_subclass(cls):
-            warnings.warn(f"Subclass {cls} has unsupported generics and will not be part of the tagged union", UnsupportedSubclass)
+            warnings.warn(
+                f"Subclass {cls} has unsupported generics and will not be part of the tagged union",
+                UnsupportedSubclass,
+            )
             return
         self._subclasses.append(cls)
         for member in self._subclasses:
@@ -202,7 +210,12 @@ class _TaggedUnion:
 
     def schema(self, actual_type: type, handler: GetCoreSchemaHandler) -> CoreSchema:
         return tagged_union_schema(
-            _make_schema(tuple(self._specify_generics(sub, actual_type) for sub in self._subclasses), handler),
+            _make_schema(
+                tuple(
+                    self._specify_generics(sub, actual_type) for sub in self._subclasses
+                ),
+                handler,
+            ),
             discriminator=self._discriminator,
             ref=self._base_class.__name__,
         )
@@ -215,7 +228,10 @@ class _TaggedUnion:
             return False
         if not all(_compatible_types(l, r) for l, r in zip(self._generics, sub_params)):
             return False
-        if any(not self._support_subclass(get_origin(base) or base) for base in get_original_bases(subcls)):
+        if any(
+            not self._support_subclass(get_origin(base) or base)
+            for base in get_original_bases(subcls)
+        ):
             return False
         return True
 
@@ -225,16 +241,19 @@ class _TaggedUnion:
             return GenericAlias(subcls, args)
         return subcls
 
-def _parameters(possibly_generic: type) -> tuple[Any,...]:
-    return getattr(possibly_generic, '__parameters__', ())
+
+def _parameters(possibly_generic: type) -> tuple[Any, ...]:
+    return getattr(possibly_generic, "__parameters__", ())
+
 
 def _compatible_types(left: TypeVar, right: TypeVar) -> bool:
     return (
-            left.__bound__ == right.__bound__
-            and left.__constraints__ == right.__constraints__
-            and left.__covariant__ == right.__covariant__
-            and left.__contravariant__ == right.__contravariant__
-            )
+        left.__bound__ == right.__bound__
+        and left.__constraints__ == right.__constraints__
+        and left.__covariant__ == right.__covariant__
+        and left.__contravariant__ == right.__contravariant__
+    )
+
 
 @lru_cache(1)
 def _make_schema(
