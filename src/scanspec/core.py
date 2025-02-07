@@ -53,7 +53,7 @@ __all__ = [
 ]
 
 #: Used to ensure pydantic dataclasses error if given extra arguments
-StrictConfig: ConfigDict = {"extra": "forbid"}
+StrictConfig: ConfigDict = {"extra": "forbid", "arbitrary_types_allowed": True}
 
 C = TypeVar("C")
 T = TypeVar("T")
