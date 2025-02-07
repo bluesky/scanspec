@@ -13,7 +13,6 @@ from typing import (
     Any,
     Generic,
     Literal,
-    TypeAlias,
     TypeVar,
     get_args,
     get_origin,
@@ -64,7 +63,7 @@ GapArray = npt.NDArray[np.bool_]
 
 
 class UnsupportedSubclass(RuntimeWarning):
-    """Warning for subclasses that are not simple extensions of generic types"""
+    """Warning for subclasses that are not simple extensions of generic types."""
 
     pass
 
@@ -191,8 +190,10 @@ class _TaggedUnion:
             return
         elif not self._support_subclass(cls):
             warnings.warn(
-                f"Subclass {cls} has unsupported generics and will not be part of the tagged union",
+                f"Subclass {cls} has unsupported generics and will not be part "
+                "of the tagged union",
                 UnsupportedSubclass,
+                stacklevel=2,
             )
             return
         self._subclasses.append(cls)
@@ -226,7 +227,10 @@ class _TaggedUnion:
         sub_params = _parameters(subcls)
         if len(self._generics) != len(sub_params):
             return False
-        if not all(_compatible_types(l, r) for l, r in zip(self._generics, sub_params)):
+        if not all(
+            _compatible_types(actual, target)
+            for actual, target in zip(self._generics, sub_params, strict=True)
+        ):
             return False
         if any(
             not self._support_subclass(get_origin(base) or base)

@@ -58,7 +58,7 @@ def test_specific_implementation_child():
     with pytest.warns(UnsupportedSubclass):
 
         @dataclass
-        class SubSpecific(Specific):
+        class SubSpecific(Specific):  # type: ignore
             pass
 
 
@@ -66,7 +66,7 @@ def test_extra_generic_parameters():
     with pytest.warns(UnsupportedSubclass):
 
         @dataclass
-        class ExtraGeneric(Parent[U], Generic[U, V]):
+        class ExtraGeneric(Parent[U], Generic[U, V]):  # type: ignore
             c: U
             d: V
 
@@ -75,7 +75,7 @@ def test_unrelated_generic_parameters():
     with pytest.warns(UnsupportedSubclass):
 
         @dataclass
-        class UnrelatedGeneric(Parent[int], Generic[U]):
+        class UnrelatedGeneric(Parent[int], Generic[U]):  # type: ignore
             e: int
             f: U
 
@@ -84,7 +84,7 @@ def test_reordered_generics():
     with pytest.warns(UnsupportedSubclass):
 
         @dataclass
-        class DisorderedGeneric(Parent[U], Generic[T, U, V]):
+        class DisorderedGeneric(Parent[U], Generic[T, U, V]):  # type: ignore
             g: T
             h: U
             i: V
@@ -95,7 +95,7 @@ def test_unionised_child():
     with pytest.warns(UnsupportedSubclass):
 
         @dataclass
-        class UnionSubclass(Parent[int | U]):
+        class UnionSubclass(Parent[int | U]):  # type: ignore
             a: U
 
 
@@ -111,7 +111,7 @@ def test_additional_type_bounds():
     with pytest.warns(UnsupportedSubclass):
         # Adding bounds to the generic parameter is not supported
         @dataclass
-        class ConstrainedChild(Parent[B]):
+        class ConstrainedChild(Parent[B]):  # type: ignore
             cc: B
 
 
@@ -119,7 +119,7 @@ def test_adding_generics_to_nongeneric():
     with pytest.warns(UnsupportedSubclass):
 
         @dataclass
-        class NewGenerics(NonGenericParent, Generic[T]):
+        class NewGenerics(NonGenericParent, Generic[T]):  # type: ignore
             a: T
 
 
@@ -145,8 +145,6 @@ def test_annotated_child():
 
 @pytest.mark.xfail(reason="Pydantic #11363")
 def test_grandchild():
-    gc: Parent[int] = GrandChild(a="43")
-    print(gc)
     ch = deserialize(Parent[int], {"type": "GrandChild", "a": "42"})
     assert ch.a == 42
 
@@ -156,4 +154,4 @@ def test_non_generic_child():
         NonGenericParent, {"type": "NonGenericChild", "a": "42", "b": "3.14"}
     )
     assert ngc.a == 42
-    assert ngc.b == pytest.approx(3.14)
+    assert ngc.b == pytest.approx(3.14)  # type: ignore
