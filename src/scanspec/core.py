@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import itertools
+import sys
+import warnings
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from functools import lru_cache
 from inspect import isclass
+from types import GenericAlias
 from typing import (
     Any,
     Generic,
     Literal,
     TypeVar,
+    get_args,
+    get_origin,
 )
 
 import numpy as np
@@ -19,6 +24,19 @@ from pydantic import BaseModel, ConfigDict, Field, GetCoreSchemaHandler
 from pydantic.dataclasses import is_pydantic_dataclass, rebuild_dataclass
 from pydantic_core import CoreSchema
 from pydantic_core.core_schema import tagged_union_schema
+
+if sys.version_info >= (3, 12):
+    from types import get_original_bases
+else:
+    # function added to stdlib in 3.12
+    def get_original_bases(cls: type, /) -> tuple[Any, ...]:
+        try:
+            return cls.__dict__.get("__orig_bases__", cls.__bases__)
+        except AttributeError:
+            raise TypeError(
+                f"Expected an instance of type, not {type(cls).__name__!r}"
+            ) from None
+
 
 __all__ = [
     "Axis",
@@ -36,12 +54,18 @@ __all__ = [
 ]
 
 #: Used to ensure pydantic dataclasses error if given extra arguments
-StrictConfig: ConfigDict = {"extra": "forbid"}
+StrictConfig: ConfigDict = {"extra": "forbid", "arbitrary_types_allowed": True}
 
 C = TypeVar("C")
 T = TypeVar("T")
 
 GapArray = npt.NDArray[np.bool_]
+
+
+class UnsupportedSubclass(RuntimeWarning):
+    """Warning for subclasses that are not simple extensions of generic types."""
+
+    pass
 
 
 def discriminated_union_of_subclasses(
@@ -132,15 +156,16 @@ def discriminated_union_of_subclasses(
         setattr(subclass, discriminator, Field(subclass.__name__, repr=False))  # type: ignore
 
     def get_schema_of_union(
-        cls: type[C], source_type: Any, handler: GetCoreSchemaHandler
+        cls: type[C], actual_type: type, handler: GetCoreSchemaHandler
     ):
+        super(super_cls, cls).__init_subclass__()
         if cls is not super_cls:
             tagged_union.add_member(cls)
             return handler(cls)
         # Rebuild any dataclass (including this one) that references this union
         # Note that this has to be done after the creation of the dataclass so that
         # previously created classes can refer to this newly created class
-        return tagged_union.schema(handler)
+        return tagged_union.schema(actual_type, handler)
 
     super_cls.__init_subclass__ = classmethod(add_subclass_to_union)  # type: ignore
     super_cls.__get_pydantic_core_schema__ = classmethod(get_schema_of_union)  # type: ignore
@@ -157,9 +182,19 @@ class _TaggedUnion:
         self._discriminator = discriminator
         # The members of the tagged union, i.e. subclasses of the baseclass
         self._subclasses: list[type] = []
+        # The type parameters expected for the base class of the union
+        self._generics = _parameters(base_class)
 
     def add_member(self, cls: type):
         if cls in self._subclasses:
+            return
+        elif not self._support_subclass(cls):
+            warnings.warn(
+                f"Subclass {cls} has unsupported generics and will not be part "
+                "of the tagged union",
+                UnsupportedSubclass,
+                stacklevel=2,
+            )
             return
         self._subclasses.append(cls)
         for member in self._subclasses:
@@ -174,12 +209,54 @@ class _TaggedUnion:
             if issubclass(cls_or_func, BaseModel):
                 cls_or_func.model_rebuild(force=True)
 
-    def schema(self, handler: GetCoreSchemaHandler) -> CoreSchema:
+    def schema(self, actual_type: type, handler: GetCoreSchemaHandler) -> CoreSchema:
         return tagged_union_schema(
-            _make_schema(tuple(self._subclasses), handler),
+            _make_schema(
+                tuple(
+                    self._specify_generics(sub, actual_type) for sub in self._subclasses
+                ),
+                handler,
+            ),
             discriminator=self._discriminator,
             ref=self._base_class.__name__,
         )
+
+    def _support_subclass(self, subcls: type) -> bool:
+        if subcls == self._base_class:
+            return True
+        sub_params = _parameters(subcls)
+        if len(self._generics) != len(sub_params):
+            return False
+        if not all(
+            _compatible_types(actual, target)
+            for actual, target in zip(self._generics, sub_params, strict=True)
+        ):
+            return False
+        if any(
+            not self._support_subclass(get_origin(base) or base)
+            for base in get_original_bases(subcls)
+        ):
+            return False
+        return True
+
+    def _specify_generics(self, subcls: type, actual_type: type) -> type | GenericAlias:
+        args = get_args(actual_type)
+        if args:
+            return GenericAlias(subcls, args)
+        return subcls
+
+
+def _parameters(possibly_generic: type) -> tuple[Any, ...]:
+    return getattr(possibly_generic, "__parameters__", ())
+
+
+def _compatible_types(left: TypeVar, right: TypeVar) -> bool:
+    return (
+        left.__bound__ == right.__bound__
+        and left.__constraints__ == right.__constraints__
+        and left.__covariant__ == right.__covariant__
+        and left.__contravariant__ == right.__contravariant__
+    )
 
 
 @lru_cache(1)
