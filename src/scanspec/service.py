@@ -4,14 +4,13 @@ import base64
 import json
 from collections.abc import Mapping
 from enum import Enum
-from typing import Any
+from typing import Annotated, Any
 
 import numpy as np
 import numpy.typing as npt
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 from scanspec.core import AxesPoints, Frames, Path
@@ -33,8 +32,8 @@ Points = str | list[float]
 class ValidResponse:
     """Response model for spec validation."""
 
-    input_spec: Spec[str] = Field(description="The input scanspec")
-    valid_spec: Spec[str] = Field(description="The validated version of the spec")
+    input_spec: Annotated[Spec[str], "The input scanspec"]
+    valid_spec: Annotated[Spec[str], "The validated version of the spec"]
 
 
 class PointsFormat(str, Enum):
@@ -49,15 +48,14 @@ class PointsFormat(str, Enum):
 class PointsRequest:
     """A request for generated scan points."""
 
-    spec: Spec[str] = Field(description="The spec from which to generate points")
-    max_frames: int | None = Field(
-        description="The maximum number of points to return, if None will return "
-        "as many as calculated",
-        default=100000,
-    )
-    format: PointsFormat = Field(
-        description="The format in which to output the points data",
-        default=PointsFormat.FLOAT_LIST,
+    spec: Annotated[Spec[str], "The spec from which to generate points"]
+    max_frames: Annotated[
+        int,
+        "The maximum number of points to return, "
+        "if None will return as many as calculated",
+    ] = 100000
+    format: Annotated[PointsFormat, "The format in which to output the points data"] = (
+        PointsFormat.FLOAT_LIST
     )
 
 
@@ -65,54 +63,55 @@ class PointsRequest:
 class GeneratedPointsResponse:
     """Base class for responses that include generated point data."""
 
-    total_frames: int = Field(description="Total number of frames in spec")
-    returned_frames: int = Field(
-        description="Total of number of frames in this response, may be "
-        "less than total_frames due to downsampling etc."
-    )
-    format: PointsFormat = Field(description="Format of returned point data")
+    total_frames: Annotated[int, "Total number of frames in spec"]
+    returned_frames: Annotated[
+        int,
+        "Total of number of frames in this response, may be less than total_frames"
+        + " due to downsampling etc.",
+    ]
+    format: Annotated[PointsFormat, "Format of returned point data"]
 
 
 @dataclass
 class MidpointsResponse(GeneratedPointsResponse):
     """Midpoints of a generated scan."""
 
-    midpoints: Mapping[str, Points] = Field(
-        description="The midpoints of scan frames for each axis"
-    )
+    midpoints: Annotated[
+        Mapping[str, Points], "The midpoints of scan frames for each axis"
+    ]
 
 
 @dataclass
 class BoundsResponse(GeneratedPointsResponse):
     """Bounds of a generated scan."""
 
-    lower: Mapping[str, Points] = Field(
-        description="Lower bounds of scan frames if different from midpoints"
-    )
-    upper: Mapping[str, Points] = Field(
-        description="Upper bounds of scan frames if different from midpoints"
-    )
+    lower: Annotated[
+        Mapping[str, Points], "Lower bounds of scan frames if different from midpoints"
+    ]
+    upper: Annotated[
+        Mapping[str, Points], "Upper bounds of scan frames if different from midpoints"
+    ]
 
 
 @dataclass
 class GapResponse:
     """Presence of gaps in a generated scan."""
 
-    gap: list[bool] = Field(
-        description="Boolean array indicating if there is a gap between each frame"
-    )
+    gap: Annotated[
+        list[bool], "Boolean array indicating if there is a gap between each frame"
+    ]
 
 
 @dataclass
 class SmallestStepResponse:
     """Information about the smallest steps between points in a spec."""
 
-    absolute: float = Field(
-        description="Absolute smallest distance between two points on a single axis"
-    )
-    per_axis: Mapping[str, float] = Field(
-        description="Smallest distance between two points on each axis"
-    )
+    absolute: Annotated[
+        float, "Absolute smallest distance between two points on a single axis"
+    ]
+    per_axis: Annotated[
+        Mapping[str, float], "Smallest distance between two points on each axis"
+    ]
 
 
 #

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
 from dataclasses import is_dataclass
-from typing import Any, Generic, cast
+from typing import Annotated, Any, Generic, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -118,8 +118,8 @@ def _merge_axis_sets(axis_sets: list[set[Axis]]) -> Iterator[set[Axis]]:
 class CombinationOf(Region[Axis]):
     """Abstract baseclass for a combination of two regions, left and right."""
 
-    left: Region[Axis] = Field(description="The left-hand Region to combine")
-    right: Region[Axis] = Field(description="The right-hand Region to combine")
+    left: Annotated[Region[Axis], "The left-hand Region to combine"]
+    right: Annotated[Region[Axis], "The right-hand Region to combine"]
 
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         axis_sets = list(
@@ -204,9 +204,9 @@ class Range(Region[Axis]):
     array([False,  True,  True, False, False])
     """
 
-    axis: Axis = Field(description="The name matching the axis to mask in spec")
-    min: float = Field(description="The minimum inclusive value in the region")
-    max: float = Field(description="The minimum inclusive value in the region")
+    axis: Annotated[Axis, "The name matching the axis to mask in spec"]
+    min: Annotated[float, "The minimum inclusive value in the region"]
+    max: Annotated[float, "The minimum inclusive value in the region"]
 
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.axis}]
@@ -230,15 +230,13 @@ class Rectangle(Region[Axis]):
         spec = grid & Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30)
     """
 
-    x_axis: Axis = Field(description="The name matching the x axis of the spec")
-    y_axis: Axis = Field(description="The name matching the y axis of the spec")
-    x_min: float = Field(description="Minimum inclusive x value in the region")
-    y_min: float = Field(description="Minimum inclusive y value in the region")
-    x_max: float = Field(description="Maximum inclusive x value in the region")
-    y_max: float = Field(description="Maximum inclusive y value in the region")
-    angle: float = Field(
-        description="Clockwise rotation angle of the rectangle", default=0.0
-    )
+    x_axis: Annotated[Axis, "The name matching the x axis of the spec"]
+    y_axis: Annotated[Axis, "The name matching the y axis of the spec"]
+    x_min: Annotated[float, "Minimum inclusive x value in the region"]
+    y_min: Annotated[float, "Minimum inclusive y value in the region"]
+    x_max: Annotated[float, "Maximum inclusive x value in the region"]
+    y_max: Annotated[float, "Maximum inclusive y value in the region"]
+    angle: Annotated[float, "Clockwise rotation angle of the rectangle"] = 0.0
 
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
@@ -271,14 +269,18 @@ class Polygon(Region[Axis]):
         spec = grid & Polygon("x", "y", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])
     """
 
-    x_axis: Axis = Field(description="The name matching the x axis of the spec")
-    y_axis: Axis = Field(description="The name matching the y axis of the spec")
-    x_verts: list[float] = Field(
-        description="The Nx1 x coordinates of the polygons vertices", min_length=3
-    )
-    y_verts: list[float] = Field(
-        description="The Nx1 y coordinates of the polygons vertices", min_length=3
-    )
+    x_axis: Annotated[Axis, "The name matching the x axis of the spec"]
+    y_axis: Annotated[Axis, "The name matching the y axis of the spec"]
+    x_verts: Annotated[
+        list[float],
+        "The Nx1 x coordinates of the polygons vertices",
+        Field(min_length=3),
+    ]
+    y_verts: Annotated[
+        list[float],
+        "The Nx1 y coordinates of the polygons vertices",
+        Field(min_length=3),
+    ]
 
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
@@ -314,11 +316,11 @@ class Circle(Region[Axis]):
         spec = grid & Circle("x", "y", 1, 2, 0.9)
     """
 
-    x_axis: Axis = Field(description="The name matching the x axis of the spec")
-    y_axis: Axis = Field(description="The name matching the y axis of the spec")
-    x_middle: float = Field(description="The central x point of the circle")
-    y_middle: float = Field(description="The central y point of the circle")
-    radius: float = Field(description="Radius of the circle", gt=0.0)
+    x_axis: Annotated[Axis, "The name matching the x axis of the spec"]
+    y_axis: Annotated[Axis, "The name matching the y axis of the spec"]
+    x_middle: Annotated[float, "The central x point of the circle"]
+    y_middle: Annotated[float, "The central y point of the circle"]
+    radius: Annotated[float, "Radius of the circle", Field(gt=0.0)]
 
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
@@ -343,17 +345,17 @@ class Ellipse(Region[Axis]):
         spec = grid & Ellipse("x", "y", 5, 5, 2, 3, 75)
     """
 
-    x_axis: Axis = Field(description="The name matching the x axis of the spec")
-    y_axis: Axis = Field(description="The name matching the y axis of the spec")
-    x_middle: float = Field(description="The central x point of the ellipse")
-    y_middle: float = Field(description="The central y point of the ellipse")
-    x_radius: float = Field(
-        description="The radius along the x axis of the ellipse", gt=0.0
-    )
-    y_radius: float = Field(
-        description="The radius along the y axis of the ellipse", gt=0.0
-    )
-    angle: float = Field(description="The angle of the ellipse (degrees)", default=0.0)
+    x_axis: Annotated[Axis, "The name matching the x axis of the spec"]
+    y_axis: Annotated[Axis, "The name matching the y axis of the spec"]
+    x_middle: Annotated[float, "The central x point of the ellipse"]
+    y_middle: Annotated[float, "The central y point of the ellipse"]
+    x_radius: Annotated[
+        float, "The radius along the x axis of the ellipse", Field(gt=0.0)
+    ]
+    y_radius: Annotated[
+        float, "The radius along the y axis of the ellipse", Field(gt=0.0)
+    ]
+    angle: Annotated[float, "The angle of the ellipse (degrees)", Field(default=0.0)]
 
     def axis_sets(self) -> list[set[Axis]]:  # noqa: D102
         return [{self.x_axis, self.y_axis}]
