@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import Any, Generic, overload
+from typing import Annotated, Any, Generic, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -143,8 +143,8 @@ class Product(Spec[Axis]):
         spec = Line("y", 1, 2, 3) * Line("x", 3, 4, 12)
     """
 
-    outer: Spec[Axis] = Field(description="Will be executed once")
-    inner: Spec[Axis] = Field(description="Will be executed len(outer) times")
+    outer: Annotated[Spec[Axis], "Will be executed once"]
+    inner: Annotated[Spec[Axis], "Will be executed len(outer) times"]
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.outer.axes() + self.inner.axes()
@@ -180,12 +180,12 @@ class Repeat(Spec[Axis]):
     .. note:: There is no turnaround arrow at x=4
     """
 
-    num: int = Field(ge=1, description="Number of frames to produce")
-    gap: bool = Field(
-        description="If False and the slowest of the stack of Frames is snaked "
-        "then the end and start of consecutive iterations of Spec will have no gap",
-        default=True,
-    )
+    num: Annotated[int, "Number of frames to produce", Field(ge=1)]
+    gap: Annotated[
+        bool,
+        "If False and the slowest of the stack of Frames is snaked then the end and "
+        + "start of consecutive iterations of Spec will have no gap",
+    ] = True
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return []
@@ -219,12 +219,12 @@ class Zip(Spec[Axis]):
         spec = Line("z", 1, 2, 3) * Line("y", 3, 4, 5).zip(Line("x", 4, 5, 5))
     """
 
-    left: Spec[Axis] = Field(
-        description="The left-hand Spec to Zip, will appear earlier in axes"
-    )
-    right: Spec[Axis] = Field(
-        description="The right-hand Spec to Zip, will appear later in axes"
-    )
+    left: Annotated[
+        Spec[Axis], "The left-hand Spec to Zip, will appear earlier in axes"
+    ]
+    right: Annotated[
+        Spec[Axis], "The right-hand Spec to Zip, will appear later in axes"
+    ]
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.left.axes() + self.right.axes()
@@ -289,12 +289,11 @@ class Mask(Spec[Axis]):
     See Also: `why-squash-can-change-path`
     """
 
-    spec: Spec[Axis] = Field(description="The Spec containing the source midpoints")
-    region: Region[Axis] = Field(description="The Region that midpoints will be inside")
-    check_path_changes: bool = Field(
-        description="If True path through scan will not be modified by squash",
-        default=True,
-    )
+    spec: Annotated[Spec[Axis], "The Spec containing the source midpoints"]
+    region: Annotated[Region[Axis], "The Region that midpoints will be inside"]
+    check_path_changes: Annotated[
+        bool, "If True path through scan will not be modified by squash"
+    ] = True
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
@@ -352,9 +351,7 @@ class Snake(Spec[Axis]):
         spec = Line("y", 1, 3, 3) * ~Line("x", 3, 5, 5)
     """
 
-    spec: Spec[Axis] = Field(
-        description="The Spec to run in reverse every other iteration"
-    )
+    spec: Annotated[Spec[Axis], "The Spec to run in reverse every other iteration"]
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
@@ -382,20 +379,17 @@ class Concat(Spec[Axis]):
         spec = Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5))
     """
 
-    left: Spec[Axis] = Field(
-        description="The left-hand Spec to Concat, midpoints will appear earlier"
-    )
-    right: Spec[Axis] = Field(
-        description="The right-hand Spec to Concat, midpoints will appear later"
-    )
+    left: Annotated[
+        Spec[Axis], "The left-hand Spec to Concat, midpoints will appear earlier"
+    ]
+    right: Annotated[
+        Spec[Axis], "The right-hand Spec to Concat, midpoints will appear later"
+    ]
 
-    gap: bool = Field(
-        description="If True, force a gap in the output at the join", default=False
-    )
-    check_path_changes: bool = Field(
-        description="If True path through scan will not be modified by squash",
-        default=True,
-    )
+    gap: Annotated[bool, "If True, force a gap in the output at the join"] = False
+    check_path_changes: Annotated[
+        bool, "If True path through scan will not be modified by squash"
+    ] = True
 
     def axes(self) -> list[Axis]:  # noqa: D102
         left_axes, right_axes = self.left.axes(), self.right.axes()
@@ -432,11 +426,10 @@ class Squash(Spec[Axis]):
 
     """
 
-    spec: Spec[Axis] = Field(description="The Spec to squash the dimensions of")
-    check_path_changes: bool = Field(
-        description="If True path through scan will not be modified by squash",
-        default=True,
-    )
+    spec: Annotated[Spec[Axis], "The Spec to squash the dimensions of"]
+    check_path_changes: Annotated[
+        bool, "If True path through scan will not be modified by squash"
+    ] = True
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
@@ -487,10 +480,10 @@ class Line(Spec[Axis]):
         spec = Line("x", 1, 2, 5)
     """
 
-    axis: Axis = Field(description="An identifier for what to move")
-    start: float = Field(description="Midpoint of the first point of the line")
-    stop: float = Field(description="Midpoint of the last point of the line")
-    num: int = Field(ge=1, description="Number of frames to produce")
+    axis: Annotated[Axis, "An identifier for what to move"]
+    start: Annotated[float, "Midpoint of the first point of the line"]
+    stop: Annotated[float, "Midpoint of the last point of the line"]
+    num: Annotated[int, "Number of frames to produce", Field(ge=1)]
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
@@ -519,10 +512,10 @@ class Line(Spec[Axis]):
     @classmethod
     def bounded(
         cls: type[Line[Any]],
-        axis: OtherAxis = Field(description="An identifier for what to move"),
-        lower: float = Field(description="Lower bound of the first point of the line"),
-        upper: float = Field(description="Upper bound of the last point of the line"),
-        num: int = Field(ge=1, description="Number of frames to produce"),
+        axis: Annotated[OtherAxis, "An identifier for what to move"],
+        lower: Annotated[float, "Lower bound of the first point of the line"],
+        upper: Annotated[float, "Upper bound of the last point of the line"],
+        num: Annotated[int, "Number of frames to produce", Field(ge=1)],
     ) -> Line[OtherAxis]:
         """Specify a Line by extreme bounds instead of midpoints.
 
@@ -562,15 +555,15 @@ class Static(Spec[Axis]):
         spec = Line("y", 1, 2, 3).zip(Static("x", 3))
     """
 
-    axis: Axis = Field(description="An identifier for what to move")
-    value: float = Field(description="The value at each point")
-    num: int = Field(ge=1, description="Number of frames to produce", default=1)
+    axis: Annotated[Axis, "An identifier for what to move"]
+    value: Annotated[float, "The value at each point"]
+    num: Annotated[int, "Number of frames to produce", Field(ge=1)] = 1
 
     @classmethod
     def duration(
         cls: type[Static[Any]],
-        duration: float = Field(description="The duration of each static point"),
-        num: int = Field(ge=1, description="Number of frames to produce", default=1),
+        duration: Annotated[float, "The duration of each static point"],
+        num: Annotated[int, "Number of frames to produce", Field(ge=1)] = 1,
     ) -> Static[str]:
         """A static spec with no motion, only a duration repeated "num" times.
 
@@ -615,18 +608,14 @@ class Spiral(Spec[Axis]):
         spec = Spiral("x", "y", 1, 5, 10, 50, 30)
     """
 
-    # TODO: Make use of typing.Annotated upon fix of
-    # https://github.com/pydantic/pydantic/issues/3496
-    x_axis: Axis = Field(description="An identifier for what to move for x")
-    y_axis: Axis = Field(description="An identifier for what to move for y")
-    x_start: float = Field(description="x centre of the spiral")
-    y_start: float = Field(description="y centre of the spiral")
-    x_range: float = Field(description="x width of the spiral")
-    y_range: float = Field(description="y width of the spiral")
-    num: int = Field(ge=1, description="Number of frames to produce")
-    rotate: float = Field(
-        description="How much to rotate the angle of the spiral", default=0.0
-    )
+    x_axis: Annotated[Axis, "An identifier for what to move for x"]
+    y_axis: Annotated[Axis, "An identifier for what to move for y"]
+    x_start: Annotated[float, "x centre of the spiral"]
+    y_start: Annotated[float, "y centre of the spiral"]
+    x_range: Annotated[float, "x width of the spiral"]
+    y_range: Annotated[float, "y width of the spiral"]
+    num: Annotated[int, "Number of frames to produce", Field(ge=1)]
+    rotate: Annotated[float, "How much to rotate the angle of the spiral"] = 0.0
 
     def axes(self) -> list[Axis]:  # noqa: D102
         # TODO: reversed from __init__ args, a good idea?
@@ -661,15 +650,13 @@ class Spiral(Spec[Axis]):
     @classmethod
     def spaced(
         cls: type[Spiral[Any]],
-        x_axis: OtherAxis = Field(description="An identifier for what to move for x"),
-        y_axis: OtherAxis = Field(description="An identifier for what to move for y"),
-        x_start: float = Field(description="x centre of the spiral"),
-        y_start: float = Field(description="y centre of the spiral"),
-        radius: float = Field(description="radius of the spiral"),
-        dr: float = Field(description="difference between each ring"),
-        rotate: float = Field(
-            description="How much to rotate the angle of the spiral", default=0.0
-        ),
+        x_axis: Annotated[OtherAxis, "An identifier for what to move for x"],
+        y_axis: Annotated[OtherAxis, "An identifier for what to move for y"],
+        x_start: Annotated[float, "x centre of the spiral"],
+        y_start: Annotated[float, "y centre of the spiral"],
+        radius: Annotated[float, "radius of the spiral"],
+        dr: Annotated[float, "difference between each ring"],
+        rotate: Annotated[float, "How much to rotate the angle of the spiral"] = 0.0,
     ) -> Spiral[OtherAxis]:
         """Specify a Spiral equally spaced in "x_axis" and "y_axis".
 
