@@ -1,0 +1,1070 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>scanspec.core &#8212; scanspec 0.7.8 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=ddeecabf"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=30646c52"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_api/scanspec.core';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://bluesky.github.io/scanspec/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.7.8';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../_static/scanspec-logo.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="scanspec.specs" href="scanspec.specs.html" />
+    <link rel="prev" title="scanspec" href="scanspec.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.7.8" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/scanspec-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/scanspec-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">scanspec</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/bluesky/scanspec" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/bluesky/scanspec" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="scanspec.html">API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#"><code class="docutils literal notranslate"><span class="pre">scanspec.core</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="scanspec.specs.html"><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="scanspec.regions.html"><code class="docutils literal notranslate"><span class="pre">scanspec.regions</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="scanspec.plot.html"><code class="docutils literal notranslate"><span class="pre">scanspec.plot</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/rest_api.html">REST API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/bluesky/scanspec/releases">Release Notes</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../reference.html" class="nav-link">Reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="scanspec.html" class="nav-link"><code class="docutils literal notranslate"><span class="pre">scanspec</span></code></a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="docutils literal notranslate"><span class="pre">scanspec.core</span></code></span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-scanspec.core">
+<span id="scanspec-core"></span><h1><code class="docutils literal notranslate"><span class="pre">scanspec.core</span></code><a class="headerlink" href="#module-scanspec.core" title="Link to this heading">#</a></h1>
+<p>Core classes like <a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> and <a class="reference internal" href="#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>.</p>
+<p class="rubric">Members</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Axis</span></code></a></p></td>
+<td><p>A type variable for an <a class="reference internal" href="../explanations/technical-terms.html#axis"><span class="std std-ref">Axis</span></a> that can be specified for a scan</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scanspec.core.OtherAxis" title="scanspec.core.OtherAxis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OtherAxis</span></code></a></p></td>
+<td><p>Alternative axis variable to be used when two are required in the same type binding</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scanspec.core.if_instance_do" title="scanspec.core.if_instance_do"><code class="xref py py-obj docutils literal notranslate"><span class="pre">if_instance_do</span></code></a></p></td>
+<td><p>If x is of type cls then return func(x), otherwise return NotImplemented.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scanspec.core.AxesPoints" title="scanspec.core.AxesPoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AxesPoints</span></code></a></p></td>
+<td><p>Map of axes to float ndarray of points E.g.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Frames</span></code></a></p></td>
+<td><p>Represents a series of scan frames along a number of axes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scanspec.core.SnakedFrames" title="scanspec.core.SnakedFrames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SnakedFrames</span></code></a></p></td>
+<td><p>Like a <a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> object, but each alternate repetition will run in reverse.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scanspec.core.gap_between_frames" title="scanspec.core.gap_between_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gap_between_frames</span></code></a></p></td>
+<td><p>Is there a gap between end of frames1 and start of frames2.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scanspec.core.squash_frames" title="scanspec.core.squash_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">squash_frames</span></code></a></p></td>
+<td><p>Squash a stack of nested Frames into a single one.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scanspec.core.Path" title="scanspec.core.Path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Path</span></code></a></p></td>
+<td><p>A consumable route through a stack of Frames, representing a scan path.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scanspec.core.Midpoints" title="scanspec.core.Midpoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Midpoints</span></code></a></p></td>
+<td><p>Convenience iterable that produces the scan midpoints for each axis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scanspec.core.discriminated_union_of_subclasses" title="scanspec.core.discriminated_union_of_subclasses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">discriminated_union_of_subclasses</span></code></a></p></td>
+<td><p>Add all subclasses of super_cls to a discriminated union.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scanspec.core.StrictConfig" title="scanspec.core.StrictConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StrictConfig</span></code></a></p></td>
+<td><p>Used to ensure pydantic dataclasses error if given extra arguments</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="scanspec.core.Axis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">Axis</span></span><a class="headerlink" href="#scanspec.core.Axis" title="Link to this definition">#</a></dt>
+<dd><p>A type variable for an <a class="reference internal" href="../explanations/technical-terms.html#axis"><span class="std std-ref">Axis</span></a> that can be specified for a scan</p>
+<p>alias of TypeVar(‘Axis’, covariant=True)</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scanspec.core.OtherAxis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">OtherAxis</span></span><a class="headerlink" href="#scanspec.core.OtherAxis" title="Link to this definition">#</a></dt>
+<dd><p>Alternative axis variable to be used when two are required in the same type binding</p>
+<p>alias of TypeVar(‘OtherAxis’)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scanspec.core.if_instance_do">
+<span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">if_instance_do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">C</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">C</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.13)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">C</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T</span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#if_instance_do"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.if_instance_do" title="Link to this definition">#</a></dt>
+<dd><p>If x is of type cls then return func(x), otherwise return NotImplemented.</p>
+<p>Used as a helper when implementing operator overloading.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scanspec.core.AxesPoints">
+<span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">AxesPoints</span></span><a class="headerlink" href="#scanspec.core.AxesPoints" title="Link to this definition">#</a></dt>
+<dd><p>Map of axes to float ndarray of points
+E.g. {xmotor: array([0, 1, 2]), ymotor: array([2, 2, 2])}</p>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Axis</span></code></a>, <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float64</span></code>]]]</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scanspec.core.Frames">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">Frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">midpoints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.2)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#Frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Frames" title="Link to this definition">#</a></dt>
+<dd><p>Represents a series of scan frames along a number of axes.</p>
+<p>During a scan each axis will traverse lower-midpoint-upper for each frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>midpoints</strong> – The midpoints of scan frames for each axis</p></li>
+<li><p><strong>lower</strong> – Lower bounds of scan frames if different from midpoints</p></li>
+<li><p><strong>upper</strong> – Upper bounds of scan frames if different from midpoints</p></li>
+<li><p><strong>gap</strong> – If supplied, define if there is a gap between frame and previous
+otherwise it is calculated by looking at lower and upper bounds</p></li>
+</ul>
+</dd>
+</dl>
+<p>Typically used in two ways:</p>
+<ul class="simple">
+<li><p>A list of Frames objects returned from <a class="reference internal" href="scanspec.specs.html#scanspec.specs.Spec.calculate" title="scanspec.specs.Spec.calculate"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.calculate</span></code></a> represents a scan
+as a linear stack of frames. Interpreted as nested from slowest moving to
+fastest moving, so each faster Frames object will iterate once per
+position of the slower Frames object. It is passed to a <a class="reference internal" href="#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> for
+calculation of the actual scan path.</p></li>
+<li><p>A single Frames object returned from <a class="reference internal" href="#scanspec.core.Path.consume" title="scanspec.core.Path.consume"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Path.consume</span></code></a> represents a chunk of
+frames forming part of a scan path, for interpretation by the code
+that will actually perform the scan.</p></li>
+</ul>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../explanations/technical-terms.html#technical-terms"><span class="std std-ref">Technical Terms</span></a></p>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scanspec.core.Frames.midpoints">
+<span class="sig-name descname"><span class="pre">midpoints</span></span><a class="headerlink" href="#scanspec.core.Frames.midpoints" title="Link to this definition">#</a></dt>
+<dd><p>The midpoints of scan frames for each axis</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scanspec.core.Frames.lower">
+<span class="sig-name descname"><span class="pre">lower</span></span><a class="headerlink" href="#scanspec.core.Frames.lower" title="Link to this definition">#</a></dt>
+<dd><p>The lower bounds of each scan frame in each axis for fly-scanning</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scanspec.core.Frames.upper">
+<span class="sig-name descname"><span class="pre">upper</span></span><a class="headerlink" href="#scanspec.core.Frames.upper" title="Link to this definition">#</a></dt>
+<dd><p>The upper bounds of each scan frame in each axis for fly-scanning</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scanspec.core.Frames.gap">
+<span class="sig-name descname"><span class="pre">gap</span></span><a class="headerlink" href="#scanspec.core.Frames.gap" title="Link to this definition">#</a></dt>
+<dd><p>Whether there is a gap between this frame and the previous. First
+element is whether there is a gap between the last frame and the first</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scanspec.core.Frames.axes">
+<span class="sig-name descname"><span class="pre">axes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#Frames.axes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Frames.axes" title="Link to this definition">#</a></dt>
+<dd><p>The axes which will move during the scan.</p>
+<p>These will be present in <a class="reference internal" href="#scanspec.core.Frames.midpoints" title="scanspec.core.Frames.midpoints"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">midpoints</span></code></a>, <a class="reference internal" href="#scanspec.core.Frames.lower" title="scanspec.core.Frames.lower"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">lower</span></code></a> and <a class="reference internal" href="#scanspec.core.Frames.upper" title="scanspec.core.Frames.upper"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">upper</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scanspec.core.Frames.extract">
+<span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.signedinteger" title="(in NumPy v2.2)"><span class="pre">signedinteger</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calculate_gap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#Frames.extract"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Frames.extract" title="Link to this definition">#</a></dt>
+<dd><p>Return a new Frames object restricted to the indices provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indices</strong> – The indices of the frames to extract, modulo scan length</p></li>
+<li><p><strong>calculate_gap</strong> – If True then recalculate the gap from upper and lower</p></li>
+</ul>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span> <span class="o">=</span> <span class="n">Frames</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">midpoints</span>
+<span class="go">{&#39;x&#39;: array([2, 1, 2])}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scanspec.core.Frames.concat">
+<span class="sig-name descname"><span class="pre">concat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#Frames.concat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Frames.concat" title="Link to this definition">#</a></dt>
+<dd><p>Return a new Frames object concatenating self and other.</p>
+<p>Requires both Frames objects to have the same axes, but not necessarily in
+the same order. The order is inherited from self, so other may be reordered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> – The Frames to concatenate to self</p></li>
+<li><p><strong>gap</strong> – Whether to force a gap between the two Frames objects</p></li>
+</ul>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span> <span class="o">=</span> <span class="n">Frames</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frames2</span> <span class="o">=</span> <span class="n">Frames</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">frames2</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
+<span class="go">{&#39;x&#39;: array([1, 2, 3, 4, 5, 6]), &#39;y&#39;: array([6, 5, 4, 3, 2, 1])}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scanspec.core.Frames.zip">
+<span class="sig-name descname"><span class="pre">zip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#Frames.zip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Frames.zip" title="Link to this definition">#</a></dt>
+<dd><p>Return a new Frames object merging self and other.</p>
+<p>Require both Frames objects to not share axes.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">Frames</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Frames</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">fy</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
+<span class="go">{&#39;x&#39;: array([1, 2, 3]), &#39;y&#39;: array([5, 6, 7])}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scanspec.core.SnakedFrames">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">SnakedFrames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">midpoints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.2)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#SnakedFrames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.SnakedFrames" title="Link to this definition">#</a></dt>
+<dd><p>Like a <a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> object, but each alternate repetition will run in reverse.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="scanspec.core.SnakedFrames.from_frames">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.OtherAxis" title="scanspec.core.OtherAxis"><span class="pre">OtherAxis</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.core.SnakedFrames" title="scanspec.core.SnakedFrames"><span class="pre">SnakedFrames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.OtherAxis" title="scanspec.core.OtherAxis"><span class="pre">OtherAxis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#SnakedFrames.from_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.SnakedFrames.from_frames" title="Link to this definition">#</a></dt>
+<dd><p>Create a snaked version of a <a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scanspec.core.SnakedFrames.extract">
+<span class="sig-name descname"><span class="pre">extract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.2)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.signedinteger" title="(in NumPy v2.2)"><span class="pre">signedinteger</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calculate_gap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#SnakedFrames.extract"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.SnakedFrames.extract" title="Link to this definition">#</a></dt>
+<dd><p>Return a new Frames object restricted to the indices provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indices</strong> – The indices of the frames to extract, can extend past len(self)</p></li>
+<li><p><strong>calculate_gap</strong> – If True then recalculate the gap from upper and lower</p></li>
+</ul>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span> <span class="o">=</span> <span class="n">SnakedFrames</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]))</span><span class="o">.</span><span class="n">midpoints</span>
+<span class="go">{&#39;x&#39;: array([1, 2, 3, 3, 2, 1])}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scanspec.core.gap_between_frames">
+<span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">gap_between_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="../_modules/scanspec/core.html#gap_between_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.gap_between_frames" title="Link to this definition">#</a></dt>
+<dd><p>Is there a gap between end of frames1 and start of frames2.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scanspec.core.squash_frames">
+<span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">squash_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_path_changes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#squash_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.squash_frames" title="Link to this definition">#</a></dt>
+<dd><p>Squash a stack of nested Frames into a single one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stack</strong> – The Frames stack to squash, from slowest to fastest moving</p></li>
+<li><p><strong>check_path_changes</strong> – If True then check that nesting the output
+Frames object within others will provide the same path
+as nesting the input Frames stack within others</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../explanations/why-squash-can-change-path.html#why-squash-can-change-path"><span class="std std-ref">Why Squash (and Mask) can change the Path</span></a></p>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">SnakedFrames</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Frames</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">squash_frames</span><span class="p">([</span><span class="n">fy</span><span class="p">,</span> <span class="n">fx</span><span class="p">])</span><span class="o">.</span><span class="n">midpoints</span>
+<span class="go">{&#39;y&#39;: array([3, 3, 4, 4]), &#39;x&#39;: array([1, 2, 2, 1])}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scanspec.core.Path">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">Path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#Path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Path" title="Link to this definition">#</a></dt>
+<dd><p>A consumable route through a stack of Frames, representing a scan path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stack</strong> – The Frames stack describing the scan, from slowest to fastest
+moving</p></li>
+<li><p><strong>start</strong> – The index of where in the Path to start</p></li>
+<li><p><strong>num</strong> – The number of scan frames to produce after start. None means up to
+the end</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../how-to/iterate-a-spec.html#iterate-a-spec"><span class="std std-ref">How to Iterate a Spec</span></a></p>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scanspec.core.Path.stack">
+<span class="sig-name descname"><span class="pre">stack</span></span><a class="headerlink" href="#scanspec.core.Path.stack" title="Link to this definition">#</a></dt>
+<dd><p>The Frames stack describing the scan, from slowest to fastest moving</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scanspec.core.Path.index">
+<span class="sig-name descname"><span class="pre">index</span></span><a class="headerlink" href="#scanspec.core.Path.index" title="Link to this definition">#</a></dt>
+<dd><p>Index that is next to be consumed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scanspec.core.Path.lengths">
+<span class="sig-name descname"><span class="pre">lengths</span></span><a class="headerlink" href="#scanspec.core.Path.lengths" title="Link to this definition">#</a></dt>
+<dd><p>The lengths of all the stack</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scanspec.core.Path.end_index">
+<span class="sig-name descname"><span class="pre">end_index</span></span><a class="headerlink" href="#scanspec.core.Path.end_index" title="Link to this definition">#</a></dt>
+<dd><p>Index of the end frame, one more than the last index that will be
+produced</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scanspec.core.Path.consume">
+<span class="sig-name descname"><span class="pre">consume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#Path.consume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Path.consume" title="Link to this definition">#</a></dt>
+<dd><p>Consume at most num frames from the Path and return as a Frames object.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">SnakedFrames</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Frames</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">([</span><span class="n">fy</span><span class="p">,</span> <span class="n">fx</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
+<span class="go">{&#39;y&#39;: array([3, 3, 4]), &#39;x&#39;: array([1, 2, 2])}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
+<span class="go">{&#39;y&#39;: array([4]), &#39;x&#39;: array([1])}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
+<span class="go">{&#39;y&#39;: array([], dtype=int64), &#39;x&#39;: array([], dtype=int64)}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scanspec.core.Midpoints">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">Midpoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Frames" title="scanspec.core.Frames"><span class="pre">Frames</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scanspec/core.html#Midpoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Midpoints" title="Link to this definition">#</a></dt>
+<dd><p>Convenience iterable that produces the scan midpoints for each axis.</p>
+<p>For better performance, consume from a <a class="reference internal" href="#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>stack</strong> – The stack of Frames describing the scan, from slowest to fastest
+moving</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="../how-to/iterate-a-spec.html#iterate-a-spec"><span class="std std-ref">How to Iterate a Spec</span></a></p>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">SnakedFrames</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Frames</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mp</span> <span class="o">=</span> <span class="n">Midpoints</span><span class="p">([</span><span class="n">fy</span><span class="p">,</span> <span class="n">fx</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mp</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="go">{&#39;y&#39;: np.int64(3), &#39;x&#39;: np.int64(1)}</span>
+<span class="go">{&#39;y&#39;: np.int64(3), &#39;x&#39;: np.int64(2)}</span>
+<span class="go">{&#39;y&#39;: np.int64(4), &#39;x&#39;: np.int64(2)}</span>
+<span class="go">{&#39;y&#39;: np.int64(4), &#39;x&#39;: np.int64(1)}</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scanspec.core.Midpoints.stack">
+<span class="sig-name descname"><span class="pre">stack</span></span><a class="headerlink" href="#scanspec.core.Midpoints.stack" title="Link to this definition">#</a></dt>
+<dd><p>The stack of Frames describing the scan, from slowest to fastest moving</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="scanspec.core.Midpoints.axes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">axes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#scanspec.core.Midpoints.axes" title="Link to this definition">#</a></dt>
+<dd><p>The axes that will be present in each points dictionary.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scanspec.core.discriminated_union_of_subclasses">
+<span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">discriminated_union_of_subclasses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">super_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">C</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discriminator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'type'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">C</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#discriminated_union_of_subclasses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.discriminated_union_of_subclasses" title="Link to this definition">#</a></dt>
+<dd><p>Add all subclasses of super_cls to a discriminated union.</p>
+<p>For all subclasses of super_cls, add a discriminator field to identify
+the type. Raw JSON should look like {&lt;discriminator&gt;: &lt;type name&gt;, params for
+&lt;type name&gt;…}.</p>
+<p>Subclasses that extend this class must be Pydantic dataclasses, and types that
+need their schema to be updated when a new type that extends super_cls is
+created must be either Pydantic dataclasses or BaseModels.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@discriminated_union_of_subclasses</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Expression</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="o">...</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Add</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
+    <span class="n">left</span><span class="p">:</span> <span class="n">Expression</span>
+    <span class="n">right</span><span class="p">:</span> <span class="n">Expression</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Subtract</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
+    <span class="n">left</span><span class="p">:</span> <span class="n">Expression</span>
+    <span class="n">right</span><span class="p">:</span> <span class="n">Expression</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">IntLiteral</span><span class="p">(</span><span class="n">Expression</span><span class="p">):</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+
+
+<span class="n">my_sum</span> <span class="o">=</span> <span class="n">Add</span><span class="p">(</span><span class="n">IntLiteral</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">Subtract</span><span class="p">(</span><span class="n">IntLiteral</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">IntLiteral</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
+<span class="k">assert</span> <span class="n">my_sum</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span> <span class="o">==</span> <span class="mi">13</span>
+
+<span class="k">assert</span> <span class="n">my_sum</span> <span class="o">==</span> <span class="n">parse_obj_as</span><span class="p">(</span>
+    <span class="n">Expression</span><span class="p">,</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Add&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;IntLiteral&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
+        <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Subtract&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;IntLiteral&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
+            <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;IntLiteral&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>super_cls</strong> – The superclass of the union, Expression in the above example</p></li>
+<li><p><strong>discriminator</strong> – The discriminator that will be inserted into the
+serialized documents for type determination. Defaults to “type”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>decorated superclass with handling for subclasses to be added</dt><dd><p>to its discriminated union for deserialization</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Type</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scanspec.core.StrictConfig">
+<span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">StrictConfig</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ConfigDict</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True,</span> <span class="pre">'extra':</span> <span class="pre">'forbid'}</span></em><a class="headerlink" href="#scanspec.core.StrictConfig" title="Link to this definition">#</a></dt>
+<dd><p>Used to ensure pydantic dataclasses error if given extra arguments</p>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="scanspec.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><code class="docutils literal notranslate"><span class="pre">scanspec</span></code></p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="scanspec.specs.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code></p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Axis"><code class="docutils literal notranslate"><span class="pre">Axis</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.OtherAxis"><code class="docutils literal notranslate"><span class="pre">OtherAxis</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.if_instance_do"><code class="docutils literal notranslate"><span class="pre">if_instance_do()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.AxesPoints"><code class="docutils literal notranslate"><span class="pre">AxesPoints</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Frames"><code class="docutils literal notranslate"><span class="pre">Frames</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Frames.midpoints"><code class="docutils literal notranslate"><span class="pre">Frames.midpoints</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Frames.lower"><code class="docutils literal notranslate"><span class="pre">Frames.lower</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Frames.upper"><code class="docutils literal notranslate"><span class="pre">Frames.upper</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Frames.gap"><code class="docutils literal notranslate"><span class="pre">Frames.gap</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Frames.axes"><code class="docutils literal notranslate"><span class="pre">Frames.axes()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Frames.extract"><code class="docutils literal notranslate"><span class="pre">Frames.extract()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Frames.concat"><code class="docutils literal notranslate"><span class="pre">Frames.concat()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Frames.zip"><code class="docutils literal notranslate"><span class="pre">Frames.zip()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.SnakedFrames"><code class="docutils literal notranslate"><span class="pre">SnakedFrames</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.SnakedFrames.from_frames"><code class="docutils literal notranslate"><span class="pre">SnakedFrames.from_frames()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.SnakedFrames.extract"><code class="docutils literal notranslate"><span class="pre">SnakedFrames.extract()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.gap_between_frames"><code class="docutils literal notranslate"><span class="pre">gap_between_frames()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.squash_frames"><code class="docutils literal notranslate"><span class="pre">squash_frames()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Path"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Path.stack"><code class="docutils literal notranslate"><span class="pre">Path.stack</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Path.index"><code class="docutils literal notranslate"><span class="pre">Path.index</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Path.lengths"><code class="docutils literal notranslate"><span class="pre">Path.lengths</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Path.end_index"><code class="docutils literal notranslate"><span class="pre">Path.end_index</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Path.consume"><code class="docutils literal notranslate"><span class="pre">Path.consume()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Midpoints"><code class="docutils literal notranslate"><span class="pre">Midpoints</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Midpoints.stack"><code class="docutils literal notranslate"><span class="pre">Midpoints.stack</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.Midpoints.axes"><code class="docutils literal notranslate"><span class="pre">Midpoints.axes</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.discriminated_union_of_subclasses"><code class="docutils literal notranslate"><span class="pre">discriminated_union_of_subclasses()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.StrictConfig"><code class="docutils literal notranslate"><span class="pre">StrictConfig</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/bluesky/scanspec/edit/0.7.8/docs/_api/scanspec.core.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/_api/scanspec.core.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
