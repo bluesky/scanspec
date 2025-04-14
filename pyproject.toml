@@ -47,8 +47,6 @@ dev = [
     "strawberry-graphql[fastapi]",
     "tox-direct",
     "types-mock",
-    "httpx",
-    "myst-parser",
 ] # For development tests/docs
 
 [project.scripts]
