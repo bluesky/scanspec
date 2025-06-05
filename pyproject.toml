@@ -12,7 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 description = "Specify step and flyscan paths in a serializable, efficient and Pythonic way"
-dependencies = ["numpy", "click>=8.1", "pydantic==2.10.6"]
+dependencies = ["numpy", "click>=8.1", "pydantic>=2.0"]
 dynamic = ["version"]
 license.file = "LICENSE"
 readme = "README.md"
