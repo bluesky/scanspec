@@ -469,23 +469,23 @@ def test_beam_selector() -> None:
 
 def test_gap_repeat() -> None:
     # Check that no gap propogates to dim.gap for snaked axis
-    spec: Spec[str] = Repeat(10, gap=False) * ~Line.bounded(x, 11, 19, 1)
-    dim = spec.frames()
-    assert len(dim) == 10
-    assert dim.lower == {x: approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19])}
-    assert dim.upper == {x: approx([19, 11, 19, 11, 19, 11, 19, 11, 19, 11])}
-    assert dim.midpoints == {x: approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15])}
+    spec: Spec[str] = Repeat(10, gap=False) * ~Line.bounded(x, 11, 19, 1)  # type: ignore
+    dim = spec.frames()  # type: ignore
+    assert len(dim) == 10  # type: ignore
+    assert dim.lower == {x: approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19])}  # type: ignore
+    assert dim.upper == {x: approx([19, 11, 19, 11, 19, 11, 19, 11, 19, 11])}  # type: ignore
+    assert dim.midpoints == {x: approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15])}  # type: ignore
     assert dim.gap == ints("0000000000")
 
 
 def test_gap_repeat_non_snake() -> None:
     # Check that no gap doesn't propogate to dim.gap for non-snaked axis
-    spec: Spec[str] = Repeat(3, gap=False) * Line.bounded(x, 11, 19, 1)
-    dim = spec.frames()
-    assert len(dim) == 3
-    assert dim.lower == {x: approx([11, 11, 11])}
-    assert dim.upper == {x: approx([19, 19, 19])}
-    assert dim.midpoints == {x: approx([15, 15, 15])}
+    spec: Spec[str] = Repeat(3, gap=False) * Line.bounded(x, 11, 19, 1)  # type: ignore
+    dim = spec.frames()  # type: ignore
+    assert len(dim) == 3  # type: ignore
+    assert dim.lower == {x: approx([11, 11, 11])}  # type: ignore
+    assert dim.upper == {x: approx([19, 19, 19])}  # type: ignore
+    assert dim.midpoints == {x: approx([15, 15, 15])}  # type: ignore
     assert dim.gap == ints("111")
 
 

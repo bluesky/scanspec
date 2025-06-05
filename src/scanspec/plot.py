@@ -188,7 +188,7 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
                 plt_axes.add_patch(patches.Polygon(xy_verts, fill=False))
 
     # Plot the splines
-    tail: dict[str, npt.NDArray[np.float64] | None] = {a: None for a in axes}
+    tail: dict[str, npt.NDArray[np.float64] | None] = dict.fromkeys(axes)
     ranges = [max(float(np.max(v) - np.min(v)), 0.0001) for v in dim.midpoints.values()]
     seg_col = cycle(colors.TABLEAU_COLORS)
     last_index = 0
