@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>scanspec.specs &#8212; scanspec 0.7.8 documentation</title>
+    <title>scanspec.specs &#8212; scanspec 0.7.9.dev1+g7a323d7e documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=ddeecabf"></script>
+    <script src="../_static/documentation_options.js?v=f068a9a8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -53,7 +53,7 @@
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://bluesky.github.io/scanspec/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.7.8';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'main';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
@@ -64,7 +64,7 @@
     <link rel="prev" title="scanspec.core" href="scanspec.core.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.7.8" />
+  <meta name="docsearch:version" content="main" />
   </head>
   
   
@@ -475,10 +475,10 @@
   <section id="module-scanspec.specs">
 <span id="scanspec-specs"></span><h1><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code><a class="headerlink" href="#module-scanspec.specs" title="Link to this heading">#</a></h1>
 <p><a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a> and its subclasses.</p>
-<div class="graphviz"><object data="../_images/inheritance-28c13a050e6432c87e6edb9e7bddd3f3ed2925d6.svg" type="image/svg+xml" class="inheritance graphviz">
+<div class="graphviz"><object data="../_images/inheritance-c42b65ffe26143017a8c3b9043335986c8f7d574.svg" type="image/svg+xml" class="inheritance graphviz">
 <p class="warning">Inheritance diagram of scanspec.specs</p></object></div>
 <p class="rubric">Members</p>
-<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#scanspec.specs.DURATION" title="scanspec.specs.DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DURATION</span></code></a></p></td>
 <td><p>Can be used as a special key to indicate how long each point should be</p></td>
@@ -503,7 +503,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="scanspec.specs.Spec">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></span><span class="sig-name descname"><span class="pre">Spec</span></span><a class="reference internal" href="../_modules/scanspec/specs.html#Spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Spec" title="Link to this definition">#</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scanspec.specs.</span></span><span class="sig-name descname"><span class="pre">Spec</span></span><a class="reference internal" href="../_modules/scanspec/specs.html#Spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Spec" title="Link to this definition">#</a></dt>
 <dd><p>A serializable representation of the type and parameters of a scan.</p>
 <p>Abstract baseclass for the specification of a scan. Supports operators:</p>
 <ul class="simple">
@@ -564,7 +564,7 @@ If the first operand is an integer, wrap it in a <a class="reference internal" h
 
 <dl class="py method">
 <dt class="sig sig-object py" id="scanspec.specs.Spec.deserialize">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">Spec</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/specs.html#Spec.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Spec.deserialize" title="Link to this definition">#</a></dt>
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.specs.Spec" title="scanspec.specs.Spec"><span class="pre">Spec</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/specs.html#Spec.deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Spec.deserialize" title="Link to this definition">#</a></dt>
 <dd><p>Deserialize a Spec from a dictionary.</p>
 </dd></dl>
 
@@ -6779,7 +6779,7 @@ in the spec</p></li>
 
   
   <div class="tocsection editthispage">
-    <a href="https://github.com/bluesky/scanspec/edit/0.7.8/docs/_api/scanspec.specs.rst">
+    <a href="https://github.com/bluesky/scanspec/edit/main/docs/_api/scanspec.specs.rst">
       <i class="fa-solid fa-pencil"></i>
       
       
