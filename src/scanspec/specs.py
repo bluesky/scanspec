@@ -17,11 +17,11 @@ from pydantic.dataclasses import dataclass
 
 from .core import (
     Axis,
-    Frames,
+    Dimension,
     Midpoints,
     OtherAxis,
     Path,
-    SnakedFrames,
+    SnakedDimension,
     StrictConfig,
     discriminated_union_of_subclasses,
     gap_between_frames,
@@ -73,15 +73,15 @@ class Spec(Generic[Axis]):
 
     def calculate(
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:  # noqa: D102
-        """Produce a stack of nested `Frames` that form the scan.
+    ) -> list[Dimension[Axis]]:  # noqa: D102
+        """Produce a stack of nested `Dimension` that form the scan.
 
         Ordered from slowest moving to fastest moving.
         """
         raise NotImplementedError(self)
 
-    def frames(self) -> Frames[Axis]:
-        """Expand all the scan `Frames` and return them."""
+    def frames(self) -> Dimension[Axis]:
+        """Expand all the scan `Dimension` and return them."""
         return Path(self.calculate()).consume()
 
     def midpoints(self) -> Midpoints[Axis]:
@@ -151,7 +151,7 @@ class Product(Spec[Axis]):
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:
+    ) -> list[Dimension[Axis]]:
         frames_outer = self.outer.calculate(bounds=False, nested=nested)
         frames_inner = self.inner.calculate(bounds, nested=True)
         return frames_outer + frames_inner
@@ -182,7 +182,7 @@ class Repeat(Spec[Axis]):
 
     num: int = Field(ge=1, description="Number of frames to produce")
     gap: bool = Field(
-        description="If False and the slowest of the stack of Frames is snaked "
+        description="If False and the slowest of the stack of Dimension is snaked "
         "then the end and start of consecutive iterations of Spec will have no gap",
         default=True,
     )
@@ -192,8 +192,8 @@ class Repeat(Spec[Axis]):
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:
-        return [Frames({}, gap=np.full(self.num, self.gap))]
+    ) -> list[Dimension[Axis]]:
+        return [Dimension({}, gap=np.full(self.num, self.gap))]
 
 
 @dataclass(config=StrictConfig)
@@ -202,11 +202,11 @@ class Zip(Spec[Axis]):
 
     Typically formed using `Spec.zip`.
 
-    Stacks of Frames are merged by:
+    Stacks of Dimension are merged by:
 
-    - If right creates a stack of a single Frames object of size 1, expand it to
-      the size of the fastest Frames object created by left
-    - Merge individual Frames objects together from fastest to slowest
+    - If right creates a stack of a single Dimension object of size 1, expand it to
+      the size of the fastest Dimension object created by left
+    - Merge individual Dimension objects together from fastest to slowest
 
     This means that Zipping a Spec producing stack [l2, l1] with a Spec
     producing stack [r1] will assert len(l1)==len(r1), and produce
@@ -231,7 +231,7 @@ class Zip(Spec[Axis]):
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:
+    ) -> list[Dimension[Axis]]:
         frames_left = self.left.calculate(bounds, nested)
         frames_right = self.right.calculate(bounds, nested)
         assert len(frames_left) >= len(frames_right), (
@@ -239,30 +239,30 @@ class Zip(Spec[Axis]):
         )
 
         # Pad and expand the right to be the same size as left. Special case, if
-        # only one Frames object with size 1, expand to the right size
+        # only one Dimension object with size 1, expand to the right size
         if len(frames_right) == 1 and len(frames_right[0]) == 1:
-            # Take the 0th element N times to make a repeated Frames object
+            # Take the 0th element N times to make a repeated Dimension object
             indices = np.zeros(len(frames_left[-1]), dtype=np.int8)
             repeated = frames_right[0].extract(indices)
-            if isinstance(frames_left[-1], SnakedFrames):
-                repeated = SnakedFrames.from_frames(repeated)
+            if isinstance(frames_left[-1], SnakedDimension):
+                repeated = SnakedDimension.from_frames(repeated)
             frames_right = [repeated]
 
         # Left pad frames_right with Nones so they are the same size
         npad = len(frames_left) - len(frames_right)
-        padded_right: list[Frames[Axis] | None] = [None] * npad
+        padded_right: list[Dimension[Axis] | None] = [None] * npad
         # Mypy doesn't like this because lists are invariant:
         # https://github.com/python/mypy/issues/4244
         padded_right += frames_right  # type: ignore
 
         # Work through, zipping them together one by one
-        frames: list[Frames[Axis]] = []
+        frames: list[Dimension[Axis]] = []
         for left, right in zip(frames_left, padded_right, strict=False):
             if right is None:
                 combined = left
             else:
                 combined = left.zip(right)
-            assert isinstance(combined, Frames), (
+            assert isinstance(combined, Dimension), (
                 f"Padding went wrong {frames_left} {padded_right}"
             )
             frames.append(combined)
@@ -277,7 +277,7 @@ class Mask(Spec[Axis]):
     ``& | ^ -`` operators to its `Region` to avoid the need for brackets on
     combinations of Regions.
 
-    If a Region spans multiple Frames objects, they will be squashed together.
+    If a Region spans multiple Dimension objects, they will be squashed together.
 
     .. example_spec::
 
@@ -301,7 +301,7 @@ class Mask(Spec[Axis]):
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:
+    ) -> list[Dimension[Axis]]:
         frames = self.spec.calculate(bounds, nested)
         for axis_set in self.region.axis_sets():
             # Find the start and end index of any dimensions containing these axes
@@ -316,7 +316,7 @@ class Mask(Spec[Axis]):
                 squashed = squash_frames(frames[si : ei + 1], check_path_changes)
                 frames = frames[:si] + [squashed] + frames[ei + 1 :]
         # Generate masks from the midpoints showing what's inside
-        masked_frames: list[Frames[Axis]] = []
+        masked_frames: list[Dimension[Axis]] = []
         for f in frames:
             indices = get_mask(self.region, f.midpoints).nonzero()[0]
             masked_frames.append(f.extract(indices))
@@ -361,9 +361,9 @@ class Snake(Spec[Axis]):
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:
+    ) -> list[Dimension[Axis]]:
         return [
-            SnakedFrames.from_frames(segment)
+            SnakedDimension.from_frames(segment)
             for segment in self.spec.calculate(bounds, nested)
         ]
 
@@ -406,7 +406,7 @@ class Concat(Spec[Axis]):
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:
+    ) -> list[Dimension[Axis]]:
         dim_left = squash_frames(
             self.left.calculate(bounds, nested), nested and self.check_path_changes
         )
@@ -419,7 +419,7 @@ class Concat(Spec[Axis]):
 
 @dataclass(config=StrictConfig)
 class Squash(Spec[Axis]):
-    """Squash a stack of Frames together into a single expanded Frames object.
+    """Squash a stack of Dimension together into a single expanded Dimension object.
 
     See Also:
         `why-squash-can-change-path`
@@ -443,7 +443,7 @@ class Squash(Spec[Axis]):
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:
+    ) -> list[Dimension[Axis]]:
         dims = self.spec.calculate(bounds, nested)
         dim = squash_frames(dims, nested and self.check_path_changes)
         return [dim]
@@ -454,7 +454,7 @@ def _dimensions_from_indexes(
     axes: list[Axis],
     num: int,
     bounds: bool,
-) -> list[Frames[Axis]]:
+) -> list[Dimension[Axis]]:
     # Calc num midpoints (fences) from 0.5 .. num - 0.5
     midpoints_calc = func(np.linspace(0.5, num - 0.5, num, dtype=np.float64))
     midpoints = {a: midpoints_calc[a] for a in axes}
@@ -466,13 +466,13 @@ def _dimensions_from_indexes(
         # Points must have no gap as upper[a][i] == lower[a][i+1]
         # because we initialized it to be that way
         gap = np.zeros(num, dtype=np.bool_)
-        dimension = Frames(midpoints, lower, upper, gap)
+        dimension = Dimension(midpoints, lower, upper, gap)
         # But calc the first point as difference between first
         # and last
         gap[0] = gap_between_frames(dimension, dimension)
     else:
         # Gap can be calculated in Dimension
-        dimension = Frames(midpoints)
+        dimension = Dimension(midpoints)
     return [dimension]
 
 
@@ -511,7 +511,7 @@ class Line(Spec[Axis]):
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:
+    ) -> list[Dimension[Axis]]:
         return _dimensions_from_indexes(
             self._line_from_indexes, self.axes(), self.num, bounds
         )
@@ -592,7 +592,7 @@ class Static(Spec[Axis]):
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:
+    ) -> list[Dimension[Axis]]:
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
         )
@@ -653,7 +653,7 @@ class Spiral(Spec[Axis]):
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
-    ) -> list[Frames[Axis]]:
+    ) -> list[Dimension[Axis]]:
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self.num, bounds
         )
@@ -736,11 +736,11 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis | str]:
     return spec * Static.duration(duration, num)
 
 
-def get_constant_duration(frames: list[Frames[Any]]) -> float | None:
+def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
     """Returns the duration of a number of ScanSpec frames, if known and consistent.
 
     Args:
-        frames (List[Frames]): A number of Frame objects
+        frames (List[Dimension]): A number of Frame objects
 
     Returns:
         duration (float): if all frames have a consistent duration
