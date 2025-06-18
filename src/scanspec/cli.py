@@ -40,8 +40,8 @@ def plot(spec: str):
     from scanspec.plot import plot_spec
 
     axis_names = {c: c for c in string.ascii_lowercase}
-    eval_spec = eval(spec, locals=axis_names)
-    plot_spec(eval_spec)
+    eval_spec = eval(spec, locals=axis_names)  # type: ignore
+    plot_spec(eval_spec)  # type: ignore
 
 
 @cli.command()
