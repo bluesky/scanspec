@@ -21,6 +21,7 @@ from .core import (
     Midpoints,
     OtherAxis,
     Path,
+    ScanSlice,
     SnakedDimension,
     StrictConfig,
     discriminated_union_of_subclasses,
@@ -80,7 +81,7 @@ class Spec(Generic[Axis]):
         """
         raise NotImplementedError(self)
 
-    def frames(self) -> Dimension[Axis]:
+    def frames(self) -> ScanSlice[Axis]:
         """Expand all the scan `Dimension` and return them."""
         return Path(self.calculate()).consume()
 
@@ -477,6 +478,26 @@ def _dimensions_from_indexes(
 
 
 @dataclass(config=StrictConfig)
+class Duration(Spec[Axis]):
+    """Special dimension used to define the array of durations for each frame.
+
+    .. example_spec::
+
+        from scanspec.specs import Duration
+
+        spec = Duration(1,10)
+    """
+
+    duration: float = Field(description="Duration of each frame")
+    num: int = Field(ge=1, description="Number of frames to produce")
+
+    def calculate(self, bounds=True, nested=False) -> list[Dimension[Axis]]:
+        return [
+            Dimension(None, None, None, None, duration=np.full(self.num, self.duration))
+        ]
+
+
+@dataclass(config=StrictConfig)
 class Line(Spec[Axis]):
     """Linearly spaced frames with start and stop as first and last midpoints.
 
@@ -747,15 +768,13 @@ def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
         None: otherwise
 
     """
-    duration_frame = [
-        f for f in frames if DURATION in f.axes() and len(f.midpoints[DURATION])
-    ]
-    if len(duration_frame) != 1 or len(duration_frame[0]) < 1:
+    duration_frame = [f.duration for f in frames if f.duration is not None]
+    if len(duration_frame) != 1 or duration_frame[0].size < 1:
         # Either no frame has DURATION axis,
         #   the frame with a DURATION axis has 0 points,
         #   or multiple frames have DURATION axis
         return None
-    durations = duration_frame[0].midpoints[DURATION]
+    durations = duration_frame[0]
     first_duration = durations[0]
     if np.any(durations != first_duration):
         # Not all durations are the same

@@ -289,6 +289,30 @@ OtherAxis = TypeVar("OtherAxis")
 AxesPoints = dict[Axis, npt.NDArray[np.float64]]
 
 
+# @dataclass
+class ScanSlice(Generic[Axis]):
+    """Generalization of the Dimensions class.
+
+    Only holds information but no methods to handle it.
+    """
+
+    def __init__(
+        self,
+        axes: list[Axis],
+        midpoints: AxesPoints[Axis] | None = None,
+        lower: AxesPoints[Axis] | None = None,
+        upper: AxesPoints[Axis] | None = None,
+        gap: GapArray | None = None,
+        duration: DurationArray | None = None,
+    ):
+        self.axes = axes
+        self.midpoints = midpoints
+        self.lower = lower
+        self.upper = upper
+        self.gap = gap
+        self.duration = duration
+
+
 class Dimension(Generic[Axis]):
     """Represents a series of scan frames along a number of axes.
 
@@ -319,10 +343,11 @@ class Dimension(Generic[Axis]):
 
     def __init__(
         self,
-        midpoints: AxesPoints[Axis],
+        midpoints: AxesPoints[Axis] | None = None,
         lower: AxesPoints[Axis] | None = None,
         upper: AxesPoints[Axis] | None = None,
         gap: GapArray | None = None,
+        duration: DurationArray | None = None,
     ):
         #: The midpoints of scan frames for each axis
         self.midpoints = midpoints
@@ -330,11 +355,12 @@ class Dimension(Generic[Axis]):
         self.lower = lower or midpoints
         #: The upper bounds of each scan frame in each axis for fly-scanning
         self.upper = upper or midpoints
+        self.duration = duration
         if gap is not None:
             #: Whether there is a gap between this frame and the previous. First
             #: element is whether there is a gap between the last frame and the first
             self.gap = gap
-        else:
+        elif gap is None and self.upper is not None and self.lower is not None:
             # Need to calculate gap as not passed one
             # We have a gap if upper[i] != lower[i+1] for any axes
             axes_gap = [
@@ -344,31 +370,38 @@ class Dimension(Generic[Axis]):
                 )
             ]
             self.gap = np.logical_or.reduce(axes_gap)
+        else:
+            self.gap = GapArray(0)
         # Check all axes and ordering are the same
-        assert list(self.midpoints) == list(self.lower) == list(self.upper), (
-            f"Mismatching axes "
-            f"{list(self.midpoints)} != {list(self.lower)} != {list(self.upper)}"
-        )
-        # Check all lengths are the same
-        lengths = {
-            len(arr)
-            for d in (self.midpoints, self.lower, self.upper)
-            for arr in d.values()
-        }
-        lengths.add(len(self.gap))
-        assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
+        if (
+            self.midpoints is not None
+            and self.lower is not None
+            and self.upper is not None
+        ):
+            assert list(self.midpoints) == list(self.lower) == list(self.upper), (
+                f"Mismatching axes "
+                f"{list(self.midpoints)} != {list(self.lower)} != {list(self.upper)}"
+            )
+            # Check all lengths are the same
+            lengths = {
+                len(arr)
+                for d in (self.midpoints, self.lower, self.upper)
+                for arr in d.values()
+            }
+            lengths.add(len(self.gap))
+            assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
 
     def axes(self) -> list[Axis]:
         """The axes which will move during the scan.
 
         These will be present in `midpoints`, `lower` and `upper`.
         """
-        return list(self.midpoints.keys())
+        return list(self.midpoints.keys()) if self.midpoints is not None else []
 
     def __len__(self) -> int:
         """The number of frames in this section of the scan."""
         # All axespoints arrays are same length, pick the first one
-        return len(self.gap)
+        return len(self.gap) if self.gap is not None else 0
 
     def extract(
         self, indices: npt.NDArray[np.signedinteger[Any]], calculate_gap: bool = True
@@ -480,6 +513,18 @@ def _merge_frames(
         upper=dict_merge([fs.upper for fs in stack])
         if any(fs.midpoints is not fs.upper for fs in stack)
         else None,
+        duration=stack[0].duration,
+    )
+
+
+def Dimension2Slice(dimension: Dimension[Axis]):
+    return ScanSlice(
+        axes=dimension.axes(),
+        midpoints=dimension.midpoints,
+        upper=dimension.upper,
+        lower=dimension.lower,
+        gap=dimension.gap,
+        duration=dimension.duration,
     )
 
 
@@ -488,12 +533,15 @@ class SnakedDimension(Dimension[Axis]):
 
     def __init__(
         self,
-        midpoints: AxesPoints[Axis],
+        midpoints: AxesPoints[Axis] | None = None,
         lower: AxesPoints[Axis] | None = None,
         upper: AxesPoints[Axis] | None = None,
         gap: GapArray | None = None,
+        duration: DurationArray | None = None,
     ):
-        super().__init__(midpoints, lower=lower, upper=upper, gap=gap)
+        super().__init__(
+            midpoints, lower=lower, upper=upper, gap=gap, duration=duration
+        )
         # Override first element of gap to be True, as subsequent runs
         # of snake scans are always joined end -> start
         self.gap[0] = False
@@ -645,8 +693,8 @@ class Path(Generic[Axis]):
         if num is not None and start + num < self.end_index:
             self.end_index = start + num
 
-    def consume(self, num: int | None = None) -> Dimension[Axis]:
-        """Consume at most num frames from the Path and return as a Dimension object.
+    def consume(self, num: int | None = None) -> ScanSlice[Axis]:
+        """Consume at most num frames from the Path and return as a l object.
 
         >>> fx = SnakedDimension({"x": np.array([1, 2])})
         >>> fy = Dimension({"y": np.array([3, 4])})
@@ -665,7 +713,11 @@ class Path(Generic[Axis]):
         indices = np.arange(self.index, end_index)
         self.index = end_index
         stack: Dimension[Axis] = Dimension(
-            {}, {}, {}, np.zeros(indices.shape, dtype=np.bool_)
+            {},
+            {},
+            {},
+            np.zeros(indices.shape, dtype=np.bool_),
+            np.zeros(indices.shape, dtype=np.float64),
         )
         # Example numbers below from a 2x3x4 ZxYxX scan
         for i, frames in enumerate(self.stack):
@@ -691,7 +743,10 @@ class Path(Generic[Axis]):
                 sliced.gap &= in_gap
             # Zip it with the output Dimension object
             stack = stack.zip(sliced)
-        return stack
+
+        test_ = Dimension2Slice(stack)
+
+        return test_
 
     def __len__(self) -> int:
         """Number of frames left in a scan, reduces when `consume` is called."""
@@ -739,4 +794,4 @@ class Midpoints(Generic[Axis]):
         path = Path(self.stack)
         while len(path):
             frames = path.consume(1)
-            yield {a: frames.midpoints[a][0] for a in frames.axes()}
+            yield {a: frames.midpoints[a][0] for a in frames.axes}
