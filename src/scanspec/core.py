@@ -8,7 +8,6 @@ import warnings
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from functools import lru_cache
 from inspect import isclass
-from types import GenericAlias
 from typing import (
     Any,
     Generic,
@@ -239,10 +238,10 @@ class _TaggedUnion:
             return False
         return True
 
-    def _specify_generics(self, subcls: type, actual_type: type) -> type | GenericAlias:
+    def _specify_generics(self, subcls: type, actual_type: type) -> type:
         args = get_args(actual_type)
         if args:
-            return GenericAlias(subcls, args)
+            return subcls[args]  # type: ignore
         return subcls
 
 
