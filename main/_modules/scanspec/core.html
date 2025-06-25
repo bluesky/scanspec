@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.core &#8212; scanspec 0.7.9.dev1+g7a323d7e documentation</title>
+    <title>scanspec.core &#8212; scanspec 0.7.9.dev2+g83d85ad7 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=f068a9a8"></script>
+    <script src="../../_static/documentation_options.js?v=09467305"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -454,7 +454,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">inspect</span><span class="w"> </span><span class="kn">import</span> <span class="n">isclass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenericAlias</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Any</span><span class="p">,</span>
     <span class="n">Generic</span><span class="p">,</span>
@@ -688,10 +687,10 @@
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_specify_generics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subcls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">actual_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span> <span class="o">|</span> <span class="n">GenericAlias</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_specify_generics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subcls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">actual_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">actual_type</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">GenericAlias</span><span class="p">(</span><span class="n">subcls</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">subcls</span><span class="p">[</span><span class="n">args</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
         <span class="k">return</span> <span class="n">subcls</span>
 
 
