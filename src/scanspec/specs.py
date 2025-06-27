@@ -20,13 +20,13 @@ from .core import (
     Dimension,
     Midpoints,
     OtherAxis,
-    Path,
     SnakedDimension,
     StrictConfig,
     discriminated_union_of_subclasses,
     gap_between_frames,
     if_instance_do,
     squash_frames,
+    stack2dimension,
 )
 from .regions import Region, get_mask
 
@@ -82,7 +82,7 @@ class Spec(Generic[Axis]):
 
     def frames(self) -> Dimension[Axis]:
         """Expand all the scan `Dimension` and return them."""
-        return Path(self.calculate()).consume()
+        return stack2dimension(self.calculate())
 
     def midpoints(self) -> Midpoints[Axis]:
         """Return `Midpoints` that can be iterated point by point."""

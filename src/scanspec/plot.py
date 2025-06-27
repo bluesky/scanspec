@@ -12,7 +12,7 @@ from matplotlib.axes import Axes
 from mpl_toolkits.mplot3d import Axes3D, proj3d  # type: ignore
 from scipy import interpolate  # type: ignore
 
-from .core import Path
+from .core import stack2dimension
 from .regions import Circle, Ellipse, Polygon, Rectangle, Region, find_regions
 from .specs import DURATION, Spec
 
@@ -108,8 +108,8 @@ def _plot_spline(
             spline: npt.NDArray[np.float64] = interpolate.splev(tnew, tck)  # type: ignore
             # Scale the splines back to the original scaling
             unscaled_splines = [a * r for a, r in zip(spline, ranges, strict=False)]
-            _plot_arrays(axes, unscaled_splines, color=index_colours[start])
-            yield unscaled_splines
+            _plot_arrays(axes, list(unscaled_splines), color=index_colours[start])  # type: ignore
+            yield unscaled_splines  # type: ignore
 
 
 def plot_spec(spec: Spec[Any], title: str | None = None):
@@ -128,7 +128,7 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
         spec = cube & Circle("x", "y", 1, 2, 0.9)
     """
     dims = spec.calculate()
-    dim = Path(dims).consume()
+    dim = stack2dimension(dims)
     axes = [a for a in spec.axes() if a is not DURATION]
     ndims = len(axes)
 
