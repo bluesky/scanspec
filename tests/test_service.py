@@ -49,7 +49,10 @@ def test_subsampling(client: TestClient) -> None:
         "total_frames": 25,
         "returned_frames": 8,
         "format": "FLOAT_LIST",
-        "midpoints": {"x": [0.0, 0.0, 10.0, 10.0], "y": [0.0, 10.0, 0.0, 10.0]},
+        "midpoints": {
+            "x": [0.0, 0.0, 0.0, 0.0, 0.0, 2.5, 2.5, 2.5],
+            "y": [0.0, 2.5, 5.0, 7.5, 10, 0.0, 2.5, 5.0],
+        },
     }
 
 

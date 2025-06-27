@@ -14,7 +14,7 @@ from fastapi.openapi.utils import get_openapi
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-from scanspec.core import AxesPoints, Dimension, Path
+from scanspec.core import AxesPoints, Dimension, Path, stack2dimension
 
 from .specs import Line, Spec
 
@@ -247,7 +247,7 @@ def smallest_step(
 
     absolute = _calc_smallest_step(list(chunk.midpoints.values()))
     per_axis = {
-        axis: _calc_smallest_step([chunk.midpoints[axis]]) for axis in chunk.axes()
+        axis: _calc_smallest_step([chunk.midpoints[axis]]) for axis in chunk.axes
     }
 
     return SmallestStepResponse(absolute, per_axis)
@@ -272,8 +272,11 @@ def _to_chunk(request: PointsRequest) -> tuple[Dimension[str], int]:
     if max_frames and (max_frames < len(path)):
         # Cap the frames by the max limit
         path = _reduce_frames(dims, max_frames)
+
+    lengths = np.array([len(f) for f in dims])
+    indices = np.arange(0, max_frames, dtype=int)
     # WARNING: path object is consumed after this statement
-    return path.consume(max_frames), total_frames
+    return stack2dimension(dims, indices, lengths), total_frames
 
 
 def _format_axes_points(

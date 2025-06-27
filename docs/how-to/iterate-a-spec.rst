@@ -59,12 +59,12 @@ as you need. You can also give a maximum size to `Path.consume()`
 >>> len(path)
 3
 >>> chunk = path.consume(2)
->>> len(chunk)
+>>> len(chunk.midpoints["x"])
 2
 >>> len(path)
 1
 >>> chunk = path.consume(2)
->>> len(chunk)
+>>> len(chunk.midpoints["x"])
 1
 >>> len(path)
 0
@@ -75,7 +75,7 @@ You can also use this method to only run a subset of the scan:
 >>> len(path)
 1
 >>> chunk = path.consume()
->>> len(chunk)
+>>> len(chunk.midpoints["x"])
 1
 >>> len(path)
 0
