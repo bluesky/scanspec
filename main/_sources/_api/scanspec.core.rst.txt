@@ -31,8 +31,8 @@
         OtherAxis
         if_instance_do
         AxesPoints
-        Frames
-        SnakedFrames
+        Dimension
+        SnakedDimension
         gap_between_frames
         squash_frames
         Path

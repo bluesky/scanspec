@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>How to Iterate a Spec &#8212; scanspec 0.7.9.dev2+g83d85ad7 documentation</title>
+    <title>How to Iterate a Spec &#8212; scanspec 0.7.9.dev6+g25aba40d documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=09467305"></script>
+    <script src="../_static/documentation_options.js?v=ee77289f"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -490,7 +490,7 @@ points are unpacked point by point into point dictionaries</p>
 <p>If you are conducting a fly scan then you need the frames that the motor moves
 through. You can get that from the lower and upper bounds of each point. If the
 scan is small enough to fit in memory on the machine you can use the <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.frames" title="scanspec.specs.Spec.frames"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.frames()</span></code></a>
-method to produce a single <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> object containing the entire scan:</p>
+method to produce a single <code class="xref any docutils literal notranslate"><span class="pre">Frames</span></code> object containing the entire scan:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">frames</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span>
 <span class="go">3</span>
@@ -505,10 +505,10 @@ method to produce a single <a class="reference internal" href="../_api/scanspec.
 </section>
 <section id="if-you-want-the-most-performant-option">
 <h2>If you want the most performant option<a class="headerlink" href="#if-you-want-the-most-performant-option" title="Link to this heading">#</a></h2>
-<p>A <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> instance is a one-shot consumable view of the stack of <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a>
+<p>A <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> instance is a one-shot consumable view of the stack of <code class="xref any docutils literal notranslate"><span class="pre">Frames</span></code>
 objects created by <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.calculate" title="scanspec.specs.Spec.calculate"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.calculate()</span></code></a>. Once you have consumed it you
 should create a new instance of it. For performance reasons, you can keep the
-intermediate <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a> stack and create as many <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> wrappers to them
+intermediate <code class="xref any docutils literal notranslate"><span class="pre">Frames</span></code> stack and create as many <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> wrappers to them
 as you need. You can also give a maximum size to <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Path.consume" title="scanspec.core.Path.consume"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Path.consume()</span></code></a></p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span>
@@ -555,7 +555,7 @@ you can see it snakes back and forth:</p>
 <span class="go">array([1. , 1.5, 2. , 2. , 1.5, 1. ])</span>
 </pre></div>
 </div>
-<p>You can check where the gaps are by using the <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames.gap" title="scanspec.core.Frames.gap"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">Frames.gap</span></code></a> attribute:</p>
+<p>You can check where the gaps are by using the <code class="xref any docutils literal notranslate"><span class="pre">Frames.gap</span></code> attribute:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">gap</span>
 <span class="go">array([ True, False, False,  True, False, False])</span>
 </pre></div>

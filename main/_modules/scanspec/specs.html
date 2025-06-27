@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.specs &#8212; scanspec 0.7.9.dev2+g83d85ad7 documentation</title>
+    <title>scanspec.specs &#8212; scanspec 0.7.9.dev6+g25aba40d documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=09467305"></script>
+    <script src="../../_static/documentation_options.js?v=ee77289f"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -463,11 +463,11 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Axis</span><span class="p">,</span>
-    <span class="n">Frames</span><span class="p">,</span>
+    <span class="n">Dimension</span><span class="p">,</span>
     <span class="n">Midpoints</span><span class="p">,</span>
     <span class="n">OtherAxis</span><span class="p">,</span>
     <span class="n">Path</span><span class="p">,</span>
-    <span class="n">SnakedFrames</span><span class="p">,</span>
+    <span class="n">SnakedDimension</span><span class="p">,</span>
     <span class="n">StrictConfig</span><span class="p">,</span>
     <span class="n">discriminated_union_of_subclasses</span><span class="p">,</span>
     <span class="n">gap_between_frames</span><span class="p">,</span>
@@ -526,8 +526,8 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Spec.calculate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>  <span class="c1"># noqa: D102</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Produce a stack of nested `Frames` that form the scan.</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>  <span class="c1"># noqa: D102</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Produce a stack of nested `Dimension` that form the scan.</span>
 
 <span class="sd">        Ordered from slowest moving to fastest moving.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -536,8 +536,8 @@
 
 <div class="viewcode-block" id="Spec.frames">
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Spec.frames">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">frames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Expand all the scan `Frames` and return them.&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">frames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Expand all the scan `Dimension` and return them.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calculate</span><span class="p">())</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span></div>
 
 
@@ -634,7 +634,7 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Product.calculate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
         <span class="n">frames_outer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="n">nested</span><span class="p">)</span>
         <span class="n">frames_inner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">frames_outer</span> <span class="o">+</span> <span class="n">frames_inner</span></div>
@@ -669,7 +669,7 @@
 
     <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of frames to produce&quot;</span><span class="p">)</span>
     <span class="n">gap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If False and the slowest of the stack of Frames is snaked &quot;</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If False and the slowest of the stack of Dimension is snaked &quot;</span>
         <span class="s2">&quot;then the end and start of consecutive iterations of Spec will have no gap&quot;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
@@ -684,8 +684,8 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Repeat.calculate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">Frames</span><span class="p">({},</span> <span class="n">gap</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">))]</span></div>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">Dimension</span><span class="p">({},</span> <span class="n">gap</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">))]</span></div>
 </div>
 
 
@@ -698,11 +698,11 @@
 
 <span class="sd">    Typically formed using `Spec.zip`.</span>
 
-<span class="sd">    Stacks of Frames are merged by:</span>
+<span class="sd">    Stacks of Dimension are merged by:</span>
 
-<span class="sd">    - If right creates a stack of a single Frames object of size 1, expand it to</span>
-<span class="sd">      the size of the fastest Frames object created by left</span>
-<span class="sd">    - Merge individual Frames objects together from fastest to slowest</span>
+<span class="sd">    - If right creates a stack of a single Dimension object of size 1, expand it to</span>
+<span class="sd">      the size of the fastest Dimension object created by left</span>
+<span class="sd">    - Merge individual Dimension objects together from fastest to slowest</span>
 
 <span class="sd">    This means that Zipping a Spec producing stack [l2, l1] with a Spec</span>
 <span class="sd">    producing stack [r1] will assert len(l1)==len(r1), and produce</span>
@@ -732,7 +732,7 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Zip.calculate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
         <span class="n">frames_left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
         <span class="n">frames_right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames_left</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames_right</span><span class="p">),</span> <span class="p">(</span>
@@ -740,30 +740,30 @@
         <span class="p">)</span>
 
         <span class="c1"># Pad and expand the right to be the same size as left. Special case, if</span>
-        <span class="c1"># only one Frames object with size 1, expand to the right size</span>
+        <span class="c1"># only one Dimension object with size 1, expand to the right size</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames_right</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames_right</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># Take the 0th element N times to make a repeated Frames object</span>
+            <span class="c1"># Take the 0th element N times to make a repeated Dimension object</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frames_left</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
             <span class="n">repeated</span> <span class="o">=</span> <span class="n">frames_right</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frames_left</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">SnakedFrames</span><span class="p">):</span>
-                <span class="n">repeated</span> <span class="o">=</span> <span class="n">SnakedFrames</span><span class="o">.</span><span class="n">from_frames</span><span class="p">(</span><span class="n">repeated</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frames_left</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">SnakedDimension</span><span class="p">):</span>
+                <span class="n">repeated</span> <span class="o">=</span> <span class="n">SnakedDimension</span><span class="o">.</span><span class="n">from_frames</span><span class="p">(</span><span class="n">repeated</span><span class="p">)</span>
             <span class="n">frames_right</span> <span class="o">=</span> <span class="p">[</span><span class="n">repeated</span><span class="p">]</span>
 
         <span class="c1"># Left pad frames_right with Nones so they are the same size</span>
         <span class="n">npad</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames_left</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames_right</span><span class="p">)</span>
-        <span class="n">padded_right</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">npad</span>
+        <span class="n">padded_right</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">npad</span>
         <span class="c1"># Mypy doesn&#39;t like this because lists are invariant:</span>
         <span class="c1"># https://github.com/python/mypy/issues/4244</span>
         <span class="n">padded_right</span> <span class="o">+=</span> <span class="n">frames_right</span>  <span class="c1"># type: ignore</span>
 
         <span class="c1"># Work through, zipping them together one by one</span>
-        <span class="n">frames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">frames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">frames_left</span><span class="p">,</span> <span class="n">padded_right</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">right</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">combined</span> <span class="o">=</span> <span class="n">left</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">combined</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">combined</span><span class="p">,</span> <span class="n">Frames</span><span class="p">),</span> <span class="p">(</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">combined</span><span class="p">,</span> <span class="n">Dimension</span><span class="p">),</span> <span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Padding went wrong </span><span class="si">{</span><span class="n">frames_left</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">padded_right</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
             <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span>
@@ -782,7 +782,7 @@
 <span class="sd">    ``&amp; | ^ -`` operators to its `Region` to avoid the need for brackets on</span>
 <span class="sd">    combinations of Regions.</span>
 
-<span class="sd">    If a Region spans multiple Frames objects, they will be squashed together.</span>
+<span class="sd">    If a Region spans multiple Dimension objects, they will be squashed together.</span>
 
 <span class="sd">    .. example_spec::</span>
 
@@ -811,7 +811,7 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Mask.calculate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
         <span class="n">frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">axis_set</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">axis_sets</span><span class="p">():</span>
             <span class="c1"># Find the start and end index of any dimensions containing these axes</span>
@@ -826,7 +826,7 @@
                 <span class="n">squashed</span> <span class="o">=</span> <span class="n">squash_frames</span><span class="p">(</span><span class="n">frames</span><span class="p">[</span><span class="n">si</span> <span class="p">:</span> <span class="n">ei</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">check_path_changes</span><span class="p">)</span>
                 <span class="n">frames</span> <span class="o">=</span> <span class="n">frames</span><span class="p">[:</span><span class="n">si</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">squashed</span><span class="p">]</span> <span class="o">+</span> <span class="n">frames</span><span class="p">[</span><span class="n">ei</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
         <span class="c1"># Generate masks from the midpoints showing what&#39;s inside</span>
-        <span class="n">masked_frames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">masked_frames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">:</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">midpoints</span><span class="p">)</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">masked_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">indices</span><span class="p">))</span>
@@ -880,9 +880,9 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Snake.calculate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="p">[</span>
-            <span class="n">SnakedFrames</span><span class="o">.</span><span class="n">from_frames</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span>
+            <span class="n">SnakedDimension</span><span class="o">.</span><span class="n">from_frames</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">segment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
         <span class="p">]</span></div>
 </div>
@@ -934,7 +934,7 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Concat.calculate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
         <span class="n">dim_left</span> <span class="o">=</span> <span class="n">squash_frames</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">),</span> <span class="n">nested</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_path_changes</span>
         <span class="p">)</span>
@@ -951,7 +951,7 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Squash">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Squash</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Squash a stack of Frames together into a single expanded Frames object.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Squash a stack of Dimension together into a single expanded Dimension object.</span>
 
 <span class="sd">    See Also:</span>
 <span class="sd">        `why-squash-can-change-path`</span>
@@ -980,7 +980,7 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Squash.calculate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
         <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
         <span class="n">dim</span> <span class="o">=</span> <span class="n">squash_frames</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">nested</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_path_changes</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">dim</span><span class="p">]</span></div>
@@ -993,7 +993,7 @@
     <span class="n">axes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span>
     <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
     <span class="c1"># Calc num midpoints (fences) from 0.5 .. num - 0.5</span>
     <span class="n">midpoints_calc</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">num</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
     <span class="n">midpoints</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="n">midpoints_calc</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">}</span>
@@ -1005,13 +1005,13 @@
         <span class="c1"># Points must have no gap as upper[a][i] == lower[a][i+1]</span>
         <span class="c1"># because we initialized it to be that way</span>
         <span class="n">gap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
-        <span class="n">dimension</span> <span class="o">=</span> <span class="n">Frames</span><span class="p">(</span><span class="n">midpoints</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">gap</span><span class="p">)</span>
+        <span class="n">dimension</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">(</span><span class="n">midpoints</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">gap</span><span class="p">)</span>
         <span class="c1"># But calc the first point as difference between first</span>
         <span class="c1"># and last</span>
         <span class="n">gap</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">gap_between_frames</span><span class="p">(</span><span class="n">dimension</span><span class="p">,</span> <span class="n">dimension</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Gap can be calculated in Dimension</span>
-        <span class="n">dimension</span> <span class="o">=</span> <span class="n">Frames</span><span class="p">(</span><span class="n">midpoints</span><span class="p">)</span>
+        <span class="n">dimension</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">(</span><span class="n">midpoints</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">dimension</span><span class="p">]</span>
 
 
@@ -1057,7 +1057,7 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Line.calculate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="n">_dimensions_from_indexes</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_line_from_indexes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="n">bounds</span>
         <span class="p">)</span></div>
@@ -1153,7 +1153,7 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Static.calculate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="n">_dimensions_from_indexes</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_repeats_from_indexes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="n">bounds</span>
         <span class="p">)</span></div>
@@ -1223,7 +1223,7 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Spiral.calculate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
         <span class="k">return</span> <span class="n">_dimensions_from_indexes</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_spiral_from_indexes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="n">bounds</span>
         <span class="p">)</span></div>
@@ -1317,11 +1317,11 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">get_constant_duration</span><span class="p">(</span><span class="n">frames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Frames</span><span class="p">[</span><span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_constant_duration</span><span class="p">(</span><span class="n">frames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the duration of a number of ScanSpec frames, if known and consistent.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        frames (List[Frames]): A number of Frame objects</span>
+<span class="sd">        frames (List[Dimension]): A number of Frame objects</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        duration (float): if all frames have a consistent duration</span>

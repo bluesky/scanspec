@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Why Squash (and Mask) can change the Path &#8212; scanspec 0.7.9.dev2+g83d85ad7 documentation</title>
+    <title>Why Squash (and Mask) can change the Path &#8212; scanspec 0.7.9.dev6+g25aba40d documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=09467305"></script>
+    <script src="../_static/documentation_options.js?v=ee77289f"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -469,7 +469,7 @@
                   
   <section id="why-squash-and-mask-can-change-the-path">
 <span id="why-squash-can-change-path"></span><h1>Why Squash (and Mask) can change the Path<a class="headerlink" href="#why-squash-and-mask-can-change-the-path" title="Link to this heading">#</a></h1>
-<p>A Spec creates a stack of <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Frames" title="scanspec.core.Frames"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Frames</span></code></a>, some of which can be snaking. When snaking,
+<p>A Spec creates a stack of <code class="xref any docutils literal notranslate"><span class="pre">Frames</span></code>, some of which can be snaking. When snaking,
 every other run of that Frames object will run in reverse. <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Squash</span></code></a> and <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Mask</span></code></a>
 will merge Frames objects together. This may change the Path compared with the
 unsquashed version if the squashed Frames objects are nested within a slower

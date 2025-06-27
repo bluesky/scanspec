@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; scanspec 0.7.9.dev2+g83d85ad7 documentation</title>
+    <title>Index &#8212; scanspec 0.7.9.dev6+g25aba40d documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=09467305"></script>
+    <script src="_static/documentation_options.js?v=ee77289f"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -482,7 +482,7 @@
       </ul></li>
       <li><a href="_api/scanspec.core.html#scanspec.core.Midpoints.axes">axes (scanspec.core.Midpoints property)</a>
 </li>
-      <li><a href="_api/scanspec.core.html#scanspec.core.Frames.axes">axes() (scanspec.core.Frames method)</a>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.axes">axes() (scanspec.core.Dimension method)</a>
 
       <ul>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.axes">(scanspec.specs.Concat method)</a>
@@ -586,7 +586,7 @@
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Squash.check_path_changes">(scanspec.specs.Squash attribute)</a>
 </li>
       </ul></li>
-      <li><a href="_api/scanspec.core.html#scanspec.core.Frames.concat">concat() (scanspec.core.Frames method)</a>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.concat">concat() (scanspec.core.Dimension method)</a>
 
       <ul>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.concat">(scanspec.specs.Spec method)</a>
@@ -606,6 +606,8 @@
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.deserialize">(scanspec.specs.Spec static method)</a>
 </li>
       </ul></li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension">Dimension (class in scanspec.core)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.core.html#scanspec.core.discriminated_union_of_subclasses">discriminated_union_of_subclasses() (in module scanspec.core)</a>
@@ -624,10 +626,10 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.core.html#scanspec.core.Frames.extract">extract() (scanspec.core.Frames method)</a>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.extract">extract() (scanspec.core.Dimension method)</a>
 
       <ul>
-        <li><a href="_api/scanspec.core.html#scanspec.core.SnakedFrames.extract">(scanspec.core.SnakedFrames method)</a>
+        <li><a href="_api/scanspec.core.html#scanspec.core.SnakedDimension.extract">(scanspec.core.SnakedDimension method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -642,11 +644,9 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.core.html#scanspec.core.Frames">Frames (class in scanspec.core)</a>
-</li>
       <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.frames">frames() (scanspec.specs.Spec method)</a>
 </li>
-      <li><a href="_api/scanspec.core.html#scanspec.core.SnakedFrames.from_frames">from_frames() (scanspec.core.SnakedFrames class method)</a>
+      <li><a href="_api/scanspec.core.html#scanspec.core.SnakedDimension.from_frames">from_frames() (scanspec.core.SnakedDimension class method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -654,7 +654,7 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.core.html#scanspec.core.Frames.gap">gap (scanspec.core.Frames attribute)</a>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.gap">gap (scanspec.core.Dimension attribute)</a>
 
       <ul>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.gap">(scanspec.specs.Concat attribute)</a>
@@ -708,7 +708,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.core.html#scanspec.core.Path.lengths">lengths (scanspec.core.Path attribute)</a>
 </li>
-      <li><a href="_api/scanspec.core.html#scanspec.core.Frames.lower">lower (scanspec.core.Frames attribute)</a>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.lower">lower (scanspec.core.Dimension attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -744,7 +744,7 @@
 </li>
       <li><a href="_api/scanspec.core.html#scanspec.core.Midpoints">Midpoints (class in scanspec.core)</a>
 </li>
-      <li><a href="_api/scanspec.core.html#scanspec.core.Frames.midpoints">midpoints (scanspec.core.Frames attribute)</a>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.midpoints">midpoints (scanspec.core.Dimension attribute)</a>
 </li>
       <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.midpoints">midpoints() (scanspec.specs.Spec method)</a>
 </li>
@@ -888,7 +888,7 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.core.html#scanspec.core.SnakedFrames">SnakedFrames (class in scanspec.core)</a>
+      <li><a href="_api/scanspec.core.html#scanspec.core.SnakedDimension">SnakedDimension (class in scanspec.core)</a>
 </li>
       <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.spaced">spaced() (scanspec.specs.Spiral method)</a>
 </li>
@@ -972,7 +972,7 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.core.html#scanspec.core.Frames.upper">upper (scanspec.core.Frames attribute)</a>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.upper">upper (scanspec.core.Dimension attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1064,7 +1064,7 @@
 <h2 id="Z">Z</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.core.html#scanspec.core.Frames.zip">zip() (scanspec.core.Frames method)</a>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.zip">zip() (scanspec.core.Dimension method)</a>
 
       <ul>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.zip">(scanspec.specs.Spec method)</a>
