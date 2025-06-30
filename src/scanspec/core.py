@@ -6,6 +6,7 @@ import itertools
 import sys
 import warnings
 from collections.abc import Callable, Iterable, Iterator, Sequence
+from dataclasses import dataclass
 from functools import lru_cache
 from inspect import isclass
 from typing import (
@@ -292,27 +293,24 @@ OtherAxis = TypeVar("OtherAxis")
 AxesPoints = dict[Axis, npt.NDArray[np.float64]]
 
 
+@dataclass
 class Slice(Generic[Axis]):
     """Generalization of the Dimensions class.
 
     Only holds information but no methods to handle it.
     """
 
-    def __init__(
-        self,
-        axes: list[Axis],
-        midpoints: AxesPoints[Axis],
-        gap: GapArray,
-        lower: AxesPoints[Axis] | None = None,
-        upper: AxesPoints[Axis] | None = None,
-        duration: DurationArray | None = None,
-    ):
-        self.axes = axes
-        self.midpoints = midpoints
-        self.lower = lower
-        self.upper = upper
-        self.gap = gap
-        self.duration = duration
+    axes: list[Axis]
+    midpoints: AxesPoints[Axis]
+    gap: GapArray
+    lower: AxesPoints[Axis]
+    upper: AxesPoints[Axis]
+    duration: DurationArray | None = None
+
+    def __len__(self) -> int:
+        """The number of frames in this section of the scan."""
+        # All axespoints arrays are same length, pick the first one
+        return len(self.gap)
 
 
 class Dimension(Generic[Axis]):
@@ -669,7 +667,6 @@ def squash_frames(
     {'y': array([3, 3, 4, 4]), 'x': array([1, 2, 2, 1])}
 
     """
-    path = Path(stack)
     # Consuming a Path through these Dimension performs the squash
     squashed = stack2dimension(stack)
     # Check that the squash is the same as the original
@@ -694,7 +691,10 @@ def squash_frames(
         for i, frames in enumerate(stack):
             # A SnakedDimension within a non-snaking top level must repeat
             # an even number of times
-            if isinstance(frames, SnakedDimension) and np.prod(path.lengths[:i]) % 2:
+            if (
+                isinstance(frames, SnakedDimension)
+                and np.prod(Path(stack).lengths[:i]) % 2
+            ):
                 raise ValueError(
                     f"Cannot squash SnakingFrames inside a non-snaking Dimension "
                     f"when they do not repeat an even number of times "
