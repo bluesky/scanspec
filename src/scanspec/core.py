@@ -300,7 +300,6 @@ class Slice(Generic[Axis]):
     Only holds information but no methods to handle it.
     """
 
-    axes: list[Axis]
     midpoints: AxesPoints[Axis]
     gap: GapArray
     lower: AxesPoints[Axis]
@@ -311,6 +310,9 @@ class Slice(Generic[Axis]):
         """The number of frames in this section of the scan."""
         # All axespoints arrays are same length, pick the first one
         return len(self.gap)
+
+    def axes(self) -> list[Axis]:
+        return list(self.midpoints.keys())
 
 
 class Dimension(Generic[Axis]):
@@ -512,14 +514,10 @@ def stack2dimension(
     indices: npt.NDArray[np.signedinteger] | None = None,
     lengths: npt.NDArray[np.signedinteger] | None = None,
 ) -> Dimension[Axis]:
-    if lengths is not None:
-        lengths = lengths
-    else:
+    if lengths is None:
         lengths = np.array([len(f) for f in dimensions])
 
-    if indices is not None:
-        indices = indices
-    else:
+    if indices is None:
         indices = np.arange(0, int(np.prod(lengths)))
 
     stack: Dimension[Axis] = Dimension(
@@ -560,7 +558,6 @@ def dimension2slice(
     dimension: Dimension[Axis], duration: DurationArray | None
 ) -> Slice[Axis]:
     return Slice(
-        axes=dimension.axes(),
         midpoints=dimension.midpoints,
         gap=dimension.gap,
         upper=dimension.upper,
@@ -693,7 +690,7 @@ def squash_frames(
             # an even number of times
             if (
                 isinstance(frames, SnakedDimension)
-                and np.prod(Path(stack).lengths[:i]) % 2
+                and np.prod(np.array([len(f) for f in stack])[:i]) % 2
             ):
                 raise ValueError(
                     f"Cannot squash SnakingFrames inside a non-snaking Dimension "
@@ -807,4 +804,4 @@ class Midpoints(Generic[Axis]):
         path = Path(self.stack)
         while len(path):
             frames = path.consume(1)
-            yield {a: frames.midpoints[a][0] for a in frames.axes}
+            yield {a: frames.midpoints[a][0] for a in frames.axes()}

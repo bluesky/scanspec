@@ -247,7 +247,7 @@ def smallest_step(
 
     absolute = _calc_smallest_step(list(chunk.midpoints.values()))
     per_axis = {
-        axis: _calc_smallest_step([chunk.midpoints[axis]]) for axis in chunk.axes
+        axis: _calc_smallest_step([chunk.midpoints[axis]]) for axis in chunk.axes()
     }
 
     return SmallestStepResponse(absolute, per_axis)
@@ -273,10 +273,10 @@ def _to_chunk(request: PointsRequest) -> tuple[Dimension[str], int]:
         # Cap the frames by the max limit
         path = _reduce_frames(dims, max_frames)
 
-    lengths = np.array([len(f) for f in dims])
-    indices = np.arange(0, max_frames, dtype=int)
+    lengths = np.array([len(f) for f in path.stack])
+    indices = np.arange(0, int(np.prod(lengths)))
     # WARNING: path object is consumed after this statement
-    return stack2dimension(dims, indices, lengths), total_frames
+    return stack2dimension(path.stack, indices, lengths), total_frames
 
 
 def _format_axes_points(
