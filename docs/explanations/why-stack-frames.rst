@@ -1,7 +1,7 @@
 Why create a stack of Frames?
 =============================
 
-If a `Spec` tells you the parameters of a scan, `Frames` gives you the `Points
+If a `Spec` tells you the parameters of a scan, `Dimension` gives you the `Points
 <Point_>` that will let you actually execute the scan. A stack of Frames is
 interpreted as nested from slowest moving to fastest moving, so each faster
 Frames object will iterate once per position of the slower Frames object. When
