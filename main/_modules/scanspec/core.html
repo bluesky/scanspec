@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.core &#8212; scanspec 0.7.9.dev6+g25aba40d documentation</title>
+    <title>scanspec.core &#8212; scanspec 0.7.9.dev11+g09406ec4 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=ee77289f"></script>
+    <script src="../../_static/documentation_options.js?v=6ef60311"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -452,6 +452,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">inspect</span><span class="w"> </span><span class="kn">import</span> <span class="n">isclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -496,7 +497,11 @@
     <span class="s2">&quot;Midpoints&quot;</span><span class="p">,</span>
     <span class="s2">&quot;discriminated_union_of_subclasses&quot;</span><span class="p">,</span>
     <span class="s2">&quot;StrictConfig&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DURATION&quot;</span><span class="p">,</span>
 <span class="p">]</span>
+
+<span class="c1">#: Can be used as a special key to indicate how long each point should be</span>
+<span class="n">DURATION</span> <span class="o">=</span> <span class="s2">&quot;DURATION&quot;</span>
 
 <span class="c1">#: Used to ensure pydantic dataclasses error if given extra arguments</span>
 <span class="n">StrictConfig</span><span class="p">:</span> <span class="n">ConfigDict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;extra&quot;</span><span class="p">:</span> <span class="s2">&quot;forbid&quot;</span><span class="p">,</span> <span class="s2">&quot;arbitrary_types_allowed&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
@@ -740,6 +745,28 @@
 <span class="n">AxesPoints</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Axis</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span>
 
 
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Slice</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generalization of the Dimensions class.</span>
+
+<span class="sd">    Only holds information but no methods to handle it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">midpoints</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span>
+    <span class="n">gap</span><span class="p">:</span> <span class="n">GapArray</span>
+    <span class="n">lower</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span>
+    <span class="n">upper</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of frames in this section of the scan.&quot;&quot;&quot;</span>
+        <span class="c1"># All axespoints arrays are same length, pick the first one</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+
 <div class="viewcode-block" id="Dimension">
 <a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.Dimension">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Dimension</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
@@ -949,6 +976,63 @@
     <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">stack2dimension</span><span class="p">(</span>
+    <span class="n">dimensions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]],</span>
+    <span class="n">indices</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">signedinteger</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">lengths</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">signedinteger</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">lengths</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">lengths</span><span class="p">)))</span>
+
+    <span class="n">stack</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">(</span>
+        <span class="p">{},</span>
+        <span class="p">{},</span>
+        <span class="p">{},</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">indices</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="c1"># Example numbers below from a 2x3x4 ZxYxX scan</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frames</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dimensions</span><span class="p">):</span>
+        <span class="c1"># Number of times each frame will repeat: Z:12, Y:4, X:1</span>
+        <span class="n">repeats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">lengths</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:])</span>
+        <span class="c1"># Scan indices mapped to indices within Dimension object:</span>
+        <span class="c1"># Z:000000000000111111111111</span>
+        <span class="c1"># Y:000011112222000011112222</span>
+        <span class="c1"># X:012301230123012301230123</span>
+        <span class="k">if</span> <span class="n">repeats</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">dim_indices</span> <span class="o">=</span> <span class="n">indices</span> <span class="o">//</span> <span class="n">repeats</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dim_indices</span> <span class="o">=</span> <span class="n">indices</span>
+        <span class="c1"># Create the sliced frames</span>
+        <span class="n">sliced</span> <span class="o">=</span> <span class="n">frames</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">dim_indices</span><span class="p">,</span> <span class="n">calculate_gap</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">repeats</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Whether this frames contributes to the gap bit</span>
+            <span class="c1"># Z:000000000000100000000000</span>
+            <span class="c1"># Y:000010001000100010001000</span>
+            <span class="c1"># X:111111111111111111111111</span>
+            <span class="n">in_gap</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span> <span class="o">%</span> <span class="n">repeats</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="c1"># If in_gap, then keep the relevant gap bit</span>
+            <span class="n">sliced</span><span class="o">.</span><span class="n">gap</span> <span class="o">&amp;=</span> <span class="n">in_gap</span>
+        <span class="c1"># Zip it with the output Dimension object</span>
+        <span class="n">stack</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">sliced</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">stack</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">dimension2slice</span><span class="p">(</span>
+    <span class="n">dimension</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span> <span class="n">duration</span><span class="p">:</span> <span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Slice</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">Slice</span><span class="p">(</span>
+        <span class="n">midpoints</span><span class="o">=</span><span class="n">dimension</span><span class="o">.</span><span class="n">midpoints</span><span class="p">,</span>
+        <span class="n">gap</span><span class="o">=</span><span class="n">dimension</span><span class="o">.</span><span class="n">gap</span><span class="p">,</span>
+        <span class="n">upper</span><span class="o">=</span><span class="n">dimension</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
+        <span class="n">lower</span><span class="o">=</span><span class="n">dimension</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
+        <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
 <div class="viewcode-block" id="SnakedDimension">
 <a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.SnakedDimension">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SnakedDimension</span><span class="p">(</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
@@ -1061,9 +1145,8 @@
 <span class="sd">    {&#39;y&#39;: array([3, 3, 4, 4]), &#39;x&#39;: array([1, 2, 2, 1])}</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
     <span class="c1"># Consuming a Path through these Dimension performs the squash</span>
-    <span class="n">squashed</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">()</span>
+    <span class="n">squashed</span> <span class="o">=</span> <span class="n">stack2dimension</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
     <span class="c1"># Check that the squash is the same as the original</span>
     <span class="k">if</span> <span class="n">stack</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stack</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">SnakedDimension</span><span class="p">):</span>
         <span class="n">squashed</span> <span class="o">=</span> <span class="n">SnakedDimension</span><span class="o">.</span><span class="n">from_frames</span><span class="p">(</span><span class="n">squashed</span><span class="p">)</span>
@@ -1086,7 +1169,10 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frames</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stack</span><span class="p">):</span>
             <span class="c1"># A SnakedDimension within a non-snaking top level must repeat</span>
             <span class="c1"># an even number of times</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">SnakedDimension</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">lengths</span><span class="p">[:</span><span class="n">i</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">SnakedDimension</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">stack</span><span class="p">])[:</span><span class="n">i</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2</span>
+            <span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;Cannot squash SnakingFrames inside a non-snaking Dimension &quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;when they do not repeat an even number of times &quot;</span>
@@ -1130,7 +1216,7 @@
 
 <div class="viewcode-block" id="Path.consume">
 <a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.Path.consume">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">consume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Slice</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Consume at most num frames from the Path and return as a Dimension object.</span>
 
 <span class="sd">        &gt;&gt;&gt; fx = SnakedDimension({&quot;x&quot;: np.array([1, 2])})</span>
@@ -1149,34 +1235,14 @@
             <span class="n">end_index</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">+</span> <span class="n">num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span><span class="p">)</span>
         <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">end_index</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">end_index</span>
-        <span class="n">stack</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">(</span>
-            <span class="p">{},</span> <span class="p">{},</span> <span class="p">{},</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">indices</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
-        <span class="p">)</span>
-        <span class="c1"># Example numbers below from a 2x3x4 ZxYxX scan</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frames</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="p">):</span>
-            <span class="c1"># Number of times each frame will repeat: Z:12, Y:4, X:1</span>
-            <span class="n">repeats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lengths</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:])</span>
-            <span class="c1"># Scan indices mapped to indices within Dimension object:</span>
-            <span class="c1"># Z:000000000000111111111111</span>
-            <span class="c1"># Y:000011112222000011112222</span>
-            <span class="c1"># X:012301230123012301230123</span>
-            <span class="k">if</span> <span class="n">repeats</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">dim_indices</span> <span class="o">=</span> <span class="n">indices</span> <span class="o">//</span> <span class="n">repeats</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">dim_indices</span> <span class="o">=</span> <span class="n">indices</span>
-            <span class="c1"># Create the sliced frames</span>
-            <span class="n">sliced</span> <span class="o">=</span> <span class="n">frames</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">dim_indices</span><span class="p">,</span> <span class="n">calculate_gap</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">repeats</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="c1"># Whether this frames contributes to the gap bit</span>
-                <span class="c1"># Z:000000000000100000000000</span>
-                <span class="c1"># Y:000010001000100010001000</span>
-                <span class="c1"># X:111111111111111111111111</span>
-                <span class="n">in_gap</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span> <span class="o">%</span> <span class="n">repeats</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
-                <span class="c1"># If in_gap, then keep the relevant gap bit</span>
-                <span class="n">sliced</span><span class="o">.</span><span class="n">gap</span> <span class="o">&amp;=</span> <span class="n">in_gap</span>
-            <span class="c1"># Zip it with the output Dimension object</span>
-            <span class="n">stack</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">sliced</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">stack</span></div>
+
+        <span class="n">stack</span> <span class="o">=</span> <span class="n">stack2dimension</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lengths</span><span class="p">)</span>
+
+        <span class="n">duration</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">DURATION</span> <span class="ow">in</span> <span class="n">stack</span><span class="o">.</span><span class="n">axes</span><span class="p">():</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">DURATION</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dimension2slice</span><span class="p">(</span><span class="n">stack</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>

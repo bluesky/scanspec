@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>scanspec.core &#8212; scanspec 0.7.9.dev6+g25aba40d documentation</title>
+    <title>scanspec.core &#8212; scanspec 0.7.9.dev11+g09406ec4 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=ee77289f"></script>
+    <script src="../_static/documentation_options.js?v=6ef60311"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -514,6 +514,9 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#scanspec.core.StrictConfig" title="scanspec.core.StrictConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StrictConfig</span></code></a></p></td>
 <td><p>Used to ensure pydantic dataclasses error if given extra arguments</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scanspec.core.DURATION" title="scanspec.core.DURATION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DURATION</span></code></a></p></td>
+<td><p>Can be used as a special key to indicate how long each point should be</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -774,7 +777,7 @@ produced</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="scanspec.core.Path.consume">
-<span class="sig-name descname"><span class="pre">consume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">Dimension</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#Path.consume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Path.consume" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">consume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Slice</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#Path.consume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Path.consume" title="Link to this definition">#</a></dt>
 <dd><p>Consume at most num frames from the Path and return as a Dimension object.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">SnakedDimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
@@ -918,6 +921,12 @@ serialized documents for type determination. Defaults to “type”.</p></li>
 <dd><p>Used to ensure pydantic dataclasses error if given extra arguments</p>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="scanspec.core.DURATION">
+<span class="sig-prename descclassname"><span class="pre">scanspec.core.</span></span><span class="sig-name descname"><span class="pre">DURATION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DURATION'</span></em><a class="headerlink" href="#scanspec.core.DURATION" title="Link to this definition">#</a></dt>
+<dd><p>Can be used as a special key to indicate how long each point should be</p>
+</dd></dl>
+
 </section>
 
 
@@ -1004,6 +1013,7 @@ serialized documents for type determination. Defaults to “type”.</p></li>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.discriminated_union_of_subclasses"><code class="docutils literal notranslate"><span class="pre">discriminated_union_of_subclasses()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.StrictConfig"><code class="docutils literal notranslate"><span class="pre">StrictConfig</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scanspec.core.DURATION"><code class="docutils literal notranslate"><span class="pre">DURATION</span></code></a></li>
 </ul>
   </nav></div>
 
