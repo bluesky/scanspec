@@ -6,6 +6,7 @@ import itertools
 import sys
 import warnings
 from collections.abc import Callable, Iterable, Iterator, Sequence
+from dataclasses import dataclass
 from functools import lru_cache
 from inspect import isclass
 from typing import (
@@ -50,7 +51,11 @@ __all__ = [
     "Midpoints",
     "discriminated_union_of_subclasses",
     "StrictConfig",
+    "DURATION",
 ]
+
+#: Can be used as a special key to indicate how long each point should be
+DURATION = "DURATION"
 
 #: Used to ensure pydantic dataclasses error if given extra arguments
 StrictConfig: ConfigDict = {"extra": "forbid", "arbitrary_types_allowed": True}
@@ -288,6 +293,28 @@ OtherAxis = TypeVar("OtherAxis")
 AxesPoints = dict[Axis, npt.NDArray[np.float64]]
 
 
+@dataclass
+class Slice(Generic[Axis]):
+    """Generalization of the Dimensions class.
+
+    Only holds information but no methods to handle it.
+    """
+
+    midpoints: AxesPoints[Axis]
+    gap: GapArray
+    lower: AxesPoints[Axis]
+    upper: AxesPoints[Axis]
+    duration: DurationArray | None = None
+
+    def __len__(self) -> int:
+        """The number of frames in this section of the scan."""
+        # All axespoints arrays are same length, pick the first one
+        return len(self.gap)
+
+    def axes(self) -> list[Axis]:
+        return list(self.midpoints.keys())
+
+
 class Dimension(Generic[Axis]):
     """Represents a series of scan frames along a number of axes.
 
@@ -482,6 +509,63 @@ def _merge_frames(
     )
 
 
+def stack2dimension(
+    dimensions: list[Dimension[Axis]],
+    indices: npt.NDArray[np.signedinteger] | None = None,
+    lengths: npt.NDArray[np.signedinteger] | None = None,
+) -> Dimension[Axis]:
+    if lengths is None:
+        lengths = np.array([len(f) for f in dimensions])
+
+    if indices is None:
+        indices = np.arange(0, int(np.prod(lengths)))
+
+    stack: Dimension[Axis] = Dimension(
+        {},
+        {},
+        {},
+        np.zeros(indices.shape, dtype=np.bool_),
+    )
+    # Example numbers below from a 2x3x4 ZxYxX scan
+    for i, frames in enumerate(dimensions):
+        # Number of times each frame will repeat: Z:12, Y:4, X:1
+        repeats = np.prod(lengths[i + 1 :])
+        # Scan indices mapped to indices within Dimension object:
+        # Z:000000000000111111111111
+        # Y:000011112222000011112222
+        # X:012301230123012301230123
+        if repeats > 1:
+            dim_indices = indices // repeats
+        else:
+            dim_indices = indices
+        # Create the sliced frames
+        sliced = frames.extract(dim_indices, calculate_gap=False)
+        if repeats > 1:
+            # Whether this frames contributes to the gap bit
+            # Z:000000000000100000000000
+            # Y:000010001000100010001000
+            # X:111111111111111111111111
+            in_gap = (indices % repeats) == 0
+            # If in_gap, then keep the relevant gap bit
+            sliced.gap &= in_gap
+        # Zip it with the output Dimension object
+        stack = stack.zip(sliced)
+
+    return stack
+
+
+def dimension2slice(
+    dimension: Dimension[Axis], duration: DurationArray | None
+) -> Slice[Axis]:
+    return Slice(
+        midpoints=dimension.midpoints,
+        gap=dimension.gap,
+        upper=dimension.upper,
+        lower=dimension.lower,
+        duration=duration,
+    )
+
+
 class SnakedDimension(Dimension[Axis]):
     """Like a `Dimension` object, but each alternate repetition will run in reverse."""
 
@@ -580,9 +664,8 @@ def squash_frames(
     {'y': array([3, 3, 4, 4]), 'x': array([1, 2, 2, 1])}
 
     """
-    path = Path(stack)
     # Consuming a Path through these Dimension performs the squash
-    squashed = path.consume()
+    squashed = stack2dimension(stack)
     # Check that the squash is the same as the original
     if stack and isinstance(stack[0], SnakedDimension):
         squashed = SnakedDimension.from_frames(squashed)
@@ -605,7 +688,10 @@ def squash_frames(
         for i, frames in enumerate(stack):
             # A SnakedDimension within a non-snaking top level must repeat
             # an even number of times
-            if isinstance(frames, SnakedDimension) and np.prod(path.lengths[:i]) % 2:
+            if (
+                isinstance(frames, SnakedDimension)
+                and np.prod(np.array([len(f) for f in stack])[:i]) % 2
+            ):
                 raise ValueError(
                     f"Cannot squash SnakingFrames inside a non-snaking Dimension "
                     f"when they do not repeat an even number of times "
@@ -644,7 +730,7 @@ class Path(Generic[Axis]):
         if num is not None and start + num < self.end_index:
             self.end_index = start + num
 
-    def consume(self, num: int | None = None) -> Dimension[Axis]:
+    def consume(self, num: int | None = None) -> Slice[Axis]:
         """Consume at most num frames from the Path and return as a Dimension object.
 
         >>> fx = SnakedDimension({"x": np.array([1, 2])})
@@ -663,34 +749,14 @@ class Path(Generic[Axis]):
             end_index = min(self.index + num, self.end_index)
         indices = np.arange(self.index, end_index)
         self.index = end_index
-        stack: Dimension[Axis] = Dimension(
-            {}, {}, {}, np.zeros(indices.shape, dtype=np.bool_)
-        )
-        # Example numbers below from a 2x3x4 ZxYxX scan
-        for i, frames in enumerate(self.stack):
-            # Number of times each frame will repeat: Z:12, Y:4, X:1
-            repeats = np.prod(self.lengths[i + 1 :])
-            # Scan indices mapped to indices within Dimension object:
-            # Z:000000000000111111111111
-            # Y:000011112222000011112222
-            # X:012301230123012301230123
-            if repeats > 1:
-                dim_indices = indices // repeats
-            else:
-                dim_indices = indices
-            # Create the sliced frames
-            sliced = frames.extract(dim_indices, calculate_gap=False)
-            if repeats > 1:
-                # Whether this frames contributes to the gap bit
-                # Z:000000000000100000000000
-                # Y:000010001000100010001000
-                # X:111111111111111111111111
-                in_gap = (indices % repeats) == 0
-                # If in_gap, then keep the relevant gap bit
-                sliced.gap &= in_gap
-            # Zip it with the output Dimension object
-            stack = stack.zip(sliced)
-        return stack
+
+        stack = stack2dimension(self.stack, indices, self.lengths)
+
+        duration = None
+        if DURATION in stack.axes():
+            duration = stack.midpoints.pop(DURATION)
+
+        return dimension2slice(stack, duration)
 
     def __len__(self) -> int:
         """Number of frames left in a scan, reduces when `consume` is called."""

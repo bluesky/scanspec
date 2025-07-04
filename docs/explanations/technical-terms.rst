@@ -25,11 +25,11 @@ Point
 A single or multidimensional location in scan space. In the diagram above, each
 `frame_` is made up of lower, midpoint and upper Points. `Midpoints` are
 available as an interator from `Spec.midpoints`. Arrays of these are available
-as `Frames.lower`, `Frames.midpoints` and `Frames.upper`.
+as `Dimension.lower`, `Dimension.midpoints` and `Dimension.upper`.
 
 .. _frame_:
 
-Frame
+Dimension
 -----
 
 A vector of three `Points <point_>` in scan space: lower, midpoint, upper. They
@@ -39,13 +39,13 @@ section.
 
 .. _stack_:
 
-Stack of Frames
+Stack of Dimensions
 ---------------
 
-A repeatable, possibly snaking, series of `Frames` along a number of `Axes
-<axis_>`. In the diagram above, the whole Line produces a single `Frames`
-object, while a grid scan would be a stack of two `Frames` objects. A stack of
-`Frames` objects are produced by `Spec.calculate`.
+A repeatable, possibly snaking, series of `Dimension` along a number of `Axes
+<axis_>`. In the diagram above, the whole Line produces a single `Dimension`
+object, while a grid scan would be a stack of two `Dimension` objects. A stack of
+`Dimension` objects are produced by `Spec.calculate`.
 
 .. seealso:: `./why-stack-frames`
 
@@ -55,5 +55,5 @@ Path
 ----
 
 A consumable route through a _stack_. If the Line in the above diagram was
-stacked within another line of length 5, then the Path would contain 15 `Frames
-<frame_>`. A `Path` is created from a `list` of `Frames` objects.
+stacked within another line of length 5, then the Path would contain 15 `Dimensions
+<frame_>`. A `Path` is created from a `list` of `Dimension` objects.

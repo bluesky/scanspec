@@ -4,7 +4,7 @@ How to Iterate a Spec
 =====================
 
 A Spec is only the specification for a scan. To execute the scan we need the
-`Frames <frame_>`. We can do this in a few ways.
+`Dimension <frame_>`. We can do this in a few ways.
 
 If you only need the midpoints
 ------------------------------
@@ -31,7 +31,7 @@ If you need to do a fly scan
 If you are conducting a fly scan then you need the frames that the motor moves
 through. You can get that from the lower and upper bounds of each point. If the
 scan is small enough to fit in memory on the machine you can use the `Spec.frames()`
-method to produce a single `Frames` object containing the entire scan:
+method to produce a single `Dimension` object containing the entire scan:
 
 >>> segment = spec.frames()
 >>> len(segment)
@@ -47,10 +47,10 @@ method to produce a single `Frames` object containing the entire scan:
 If you want the most performant option
 --------------------------------------
 
-A `Path` instance is a one-shot consumable view of the stack of `Frames`
+A `Path` instance is a one-shot consumable view of the stack of `Dimension`
 objects created by `Spec.calculate()`. Once you have consumed it you
 should create a new instance of it. For performance reasons, you can keep the
-intermediate `Frames` stack and create as many `Path` wrappers to them
+intermediate `Dimension` stack and create as many `Path` wrappers to them
 as you need. You can also give a maximum size to `Path.consume()`
 
 >>> from scanspec.core import Path
@@ -95,7 +95,7 @@ you can see it snakes back and forth:
 >>> chunk.midpoints["x"]
 array([1. , 1.5, 2. , 2. , 1.5, 1. ])
 
-You can check where the gaps are by using the `Frames.gap` attribute:
+You can check where the gaps are by using the `Dimension.gap` attribute:
 
 >>> chunk.gap
 array([ True, False, False,  True, False, False])

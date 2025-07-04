@@ -14,7 +14,7 @@ from fastapi.openapi.utils import get_openapi
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-from scanspec.core import AxesPoints, Dimension, Path
+from scanspec.core import AxesPoints, Dimension, Path, stack2dimension
 
 from .specs import Line, Spec
 
@@ -272,8 +272,11 @@ def _to_chunk(request: PointsRequest) -> tuple[Dimension[str], int]:
     if max_frames and (max_frames < len(path)):
         # Cap the frames by the max limit
         path = _reduce_frames(dims, max_frames)
+
+    lengths = np.array([len(f) for f in path.stack])
+    indices = np.arange(0, int(np.prod(lengths)))
     # WARNING: path object is consumed after this statement
-    return path.consume(max_frames), total_frames
+    return stack2dimension(path.stack, indices, lengths), total_frames
 
 
 def _format_axes_points(
