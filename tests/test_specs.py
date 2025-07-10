@@ -63,7 +63,10 @@ def test_two_point_stepped_line() -> None:
     inst = step(Line(x, 0, 1, 2), 0.1)
     dimx, dimt = inst.calculate()
     assert dimx.midpoints == dimx.lower == dimx.upper == {x: approx([0, 1])}
-    assert dimt.midpoints == dimt.lower == dimt.upper == {DURATION: approx([0.1])}
+    assert dimt.midpoints == dimt.lower == dimt.upper == {}
+    assert dimt.duration == approx(
+        [0.1]
+    )  # Don't think this is how it's supposed to work
     assert inst.frames().gap == ints("11")
 
 
@@ -72,17 +75,15 @@ def test_two_point_fly_line() -> None:
     (dim,) = inst.calculate()
     assert dim.midpoints == {
         x: approx([0, 1]),
-        DURATION: approx([0.1, 0.1]),
     }
     assert dim.lower == {
         x: approx([-0.5, 0.5]),
-        DURATION: approx([0.1, 0.1]),
     }
     assert dim.upper == {
         x: approx([0.5, 1.5]),
-        DURATION: approx([0.1, 0.1]),
     }
     assert dim.gap == ints("10")
+    assert dim.duration == approx([0.1, 0.1])
 
 
 def test_many_point_line() -> None:

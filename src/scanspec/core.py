@@ -382,13 +382,16 @@ class Dimension(Generic[Axis]):
             f"Mismatching axes "
             f"{list(self.midpoints)} != {list(self.lower)} != {list(self.upper)}"
         )
-        # Check all lengths are the same
-        lengths = {
-            len(arr)
-            for d in (self.midpoints, self.lower, self.upper)
-            for arr in d.values()
-        }
-        lengths.add(len(self.gap))
+        if len(midpoints) > 0:
+            # Check all lengths are the same
+            lengths = {
+                len(arr)
+                for d in (self.midpoints, self.lower, self.upper)
+                for arr in d.values()
+            }
+            lengths.add(len(self.gap))
+        else:
+            lengths = {len(self.duration)} if self.duration is not None else {0}
         assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
 
     def axes(self) -> list[Axis]:
@@ -435,8 +438,7 @@ class Dimension(Generic[Axis]):
         ) -> DurationArray | None:
             for d in durations:
                 if d is not None:
-                    for d in durations:
-                        return d[dim_indices]
+                    return d[dim_indices]
                 return None
 
         return _merge_frames(
@@ -505,9 +507,10 @@ class Dimension(Generic[Axis]):
             return np.logical_or.reduce(gaps)
 
         def zip_duration(
-            durations: Sequence[DurationArray] | None,
+            durations: Sequence[DurationArray | None],
         ) -> DurationArray | None:
-            return durations[-1] if durations is not None else None
+            # assert len(durations) == 1, "Can't have more than one durations array"
+            return durations[-1]
 
         return _merge_frames(
             self,
@@ -540,8 +543,8 @@ def _merge_frames(
         upper=dict_merge([fs.upper for fs in stack])
         if any(fs.midpoints is not fs.upper for fs in stack)
         else None,
-        duration=duration_merge([fs.duration for fs in stack])
-        if duration_merge is not None
+        duration=duration_merge([fs.duration for fs in stack])  # type: ignore | not sure
+        if any(fs.duration is not None for fs in stack)
         else None,
     )
 

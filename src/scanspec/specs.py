@@ -244,19 +244,18 @@ class Zip(Spec[Axis]):
             # Take the 0th element N times to make a repeated Dimension object
             indices = np.zeros(len(frames_left[-1]), dtype=np.int8)
             repeated = frames_right[0].extract(indices)
+            # Check if frames_right is a Duration type frame
+            if (
+                len(repeated.midpoints) == 0
+                and repeated.duration is not None
+                and len(repeated.duration) != 0
+            ):
+                repeated.gap = np.full(len(repeated.duration), False)
+
             if isinstance(frames_left[-1], SnakedDimension):
                 repeated = SnakedDimension.from_frames(repeated)
             frames_right = [repeated]
 
-        if (
-            len(frames_right) == 1
-            and len(frames_right[0]) == len(frames_left[-1])
-            and isinstance(frames_left[-1], SnakedDimension)
-        ):
-            indices = np.zeros(len(frames_left[-1]), dtype=np.int8)
-            repeated = frames_right[0].extract(indices, calculate_gap=False)
-            repeated = SnakedDimension.from_frames(repeated)
-            frames_right = [repeated]
         # Left pad frames_right with Nones so they are the same size
         npad = len(frames_left) - len(frames_right)
         padded_right: list[Dimension[Axis] | None] = [None] * npad
@@ -565,6 +564,9 @@ class Duration(Spec[Axis]):
     value: float = Field(description="The value at each point")
     num: int = Field(ge=1, description="Number of frames to produce", default=1)
 
+    def axes(self) -> list[Axis]:  # noqa: D102
+        return []
+
     @classmethod
     def redefine(
         cls: type[Duration[Any]],
@@ -573,7 +575,9 @@ class Duration(Spec[Axis]):
     ) -> Duration[str]:
         return Duration(duration, num)
 
-    def calculate(self, bounds=True, nested=False) -> list[Dimension[Axis]]:
+    def calculate(
+        self, bounds: bool = True, nested: bool = False
+    ) -> list[Dimension[Axis]]:
         return [
             Dimension(
                 midpoints={},
@@ -750,8 +754,7 @@ def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
         spec = fly(Line("x", 1, 2, 3), 0.1)
 
     """
-    # return spec.zip(Static.duration(duration))
-    return spec.zip(Duration.redefine(duration, min(spec.shape())))
+    return spec.zip(Duration(duration, 1))
 
 
 def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis | str]:
@@ -770,8 +773,7 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis | str]:
         spec = step(Line("x", 1, 2, 3), 0.1)
 
     """
-    # return spec * Static.duration(duration, num)
-    return spec * Duration.redefine(duration, min(spec.shape()))
+    return spec * Duration(duration, 1)
 
 
 def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:

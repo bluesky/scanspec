@@ -597,6 +597,35 @@
                 "title": "DifferenceOf",
                 "description": "A point is in DifferenceOf(a, b) if in a and not in b.\n\nTypically created with the ``-`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) - Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True, False, False, False])"
             },
+            "Duration_str_": {
+                "properties": {
+                    "value": {
+                        "type": "number",
+                        "title": "Value",
+                        "description": "The value at each point"
+                    },
+                    "num": {
+                        "type": "integer",
+                        "minimum": 1.0,
+                        "title": "Num",
+                        "description": "Number of frames to produce",
+                        "default": 1
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Duration",
+                        "title": "Type",
+                        "default": "Duration"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "value"
+                ],
+                "title": "Duration",
+                "description": "A special spec used to hold information about the duration of each frame."
+            },
             "Ellipse_str_": {
                 "properties": {
                     "x_axis": {
@@ -1344,6 +1373,9 @@
                         "$ref": "#/components/schemas/Line_str_"
                     },
                     {
+                        "$ref": "#/components/schemas/Duration_str_"
+                    },
+                    {
                         "$ref": "#/components/schemas/Static_str_"
                     },
                     {
@@ -1354,6 +1386,7 @@
                     "propertyName": "type",
                     "mapping": {
                         "Concat": "#/components/schemas/Concat_str_-Input",
+                        "Duration": "#/components/schemas/Duration_str_",
                         "Line": "#/components/schemas/Line_str_",
                         "Mask": "#/components/schemas/Mask_str_-Input",
                         "Product": "#/components/schemas/Product_str_-Input",
@@ -1393,6 +1426,9 @@
                         "$ref": "#/components/schemas/Line_str_"
                     },
                     {
+                        "$ref": "#/components/schemas/Duration_str_"
+                    },
+                    {
                         "$ref": "#/components/schemas/Static_str_"
                     },
                     {
@@ -1403,6 +1439,7 @@
                     "propertyName": "type",
                     "mapping": {
                         "Concat": "#/components/schemas/Concat_str_-Output",
+                        "Duration": "#/components/schemas/Duration_str_",
                         "Line": "#/components/schemas/Line_str_",
                         "Mask": "#/components/schemas/Mask_str_-Output",
                         "Product": "#/components/schemas/Product_str_-Output",
