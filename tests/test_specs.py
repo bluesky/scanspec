@@ -64,9 +64,7 @@ def test_two_point_stepped_line() -> None:
     dimx, dimt = inst.calculate()
     assert dimx.midpoints == dimx.lower == dimx.upper == {x: approx([0, 1])}
     assert dimt.midpoints == dimt.lower == dimt.upper == {}
-    assert dimt.duration == approx(
-        [0.1]
-    )  # Don't think this is how it's supposed to work
+    assert dimt.duration == approx([0.1])
     assert inst.frames().gap == ints("11")
 
 

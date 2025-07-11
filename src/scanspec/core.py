@@ -367,7 +367,9 @@ class Dimension(Generic[Axis]):
             #: Whether there is a gap between this frame and the previous. First
             #: element is whether there is a gap between the last frame and the first
             self.gap = gap
-        else:
+        # If midpoints are provided and we don't have a gap array
+        # calculate it based on the midpoints
+        elif gap is None and len(self.midpoints) > 0:
             # Need to calculate gap as not passed one
             # We have a gap if upper[i] != lower[i+1] for any axes
             axes_gap = [
@@ -377,21 +379,24 @@ class Dimension(Generic[Axis]):
                 )
             ]
             self.gap = np.logical_or.reduce(axes_gap)
+        # If only duratiotn is provided we need to make gap have the same shape
+        # as the duration provided for the __len__ mmethod
+        elif gap is None and self.duration is not None and len(self.midpoints) == 0:
+            self.gap = np.full(len(self.duration), False)
         # Check all axes and ordering are the same
         assert list(self.midpoints) == list(self.lower) == list(self.upper), (
             f"Mismatching axes "
             f"{list(self.midpoints)} != {list(self.lower)} != {list(self.upper)}"
         )
-        if len(midpoints) > 0:
-            # Check all lengths are the same
-            lengths = {
-                len(arr)
-                for d in (self.midpoints, self.lower, self.upper)
-                for arr in d.values()
-            }
-            lengths.add(len(self.gap))
-        else:
-            lengths = {len(self.duration)} if self.duration is not None else {0}
+        # Check all lengths are the same
+        lengths = {
+            len(arr)
+            for d in (self.midpoints, self.lower, self.upper)
+            for arr in d.values()
+        }
+        lengths.add(len(self.gap))
+        if self.duration is not None:
+            lengths = {len(self.duration)}
         assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
 
     def axes(self) -> list[Axis]:
@@ -509,8 +514,11 @@ class Dimension(Generic[Axis]):
         def zip_duration(
             durations: Sequence[DurationArray | None],
         ) -> DurationArray | None:
-            # assert len(durations) == 1, "Can't have more than one durations array"
-            return durations[-1]
+            # Check if there are more than one duration being zipped
+            specified_durations = [d for d in durations if d is not None]
+            if len(specified_durations) != 1:
+                raise ValueError("Can't have more than one durations array")
+            return specified_durations[0]
 
         return _merge_frames(
             self,
@@ -565,7 +573,7 @@ def stack2dimension(
         {},
         {},
         np.zeros(indices.shape, dtype=np.bool_),
-        np.zeros(indices.shape, dtype=np.float64),
+        None,
     )
     # Example numbers below from a 2x3x4 ZxYxX scan
     for i, frames in enumerate(dimensions):

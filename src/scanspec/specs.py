@@ -244,13 +244,6 @@ class Zip(Spec[Axis]):
             # Take the 0th element N times to make a repeated Dimension object
             indices = np.zeros(len(frames_left[-1]), dtype=np.int8)
             repeated = frames_right[0].extract(indices)
-            # Check if frames_right is a Duration type frame
-            if (
-                len(repeated.midpoints) == 0
-                and repeated.duration is not None
-                and len(repeated.duration) != 0
-            ):
-                repeated.gap = np.full(len(repeated.duration), False)
 
             if isinstance(frames_left[-1], SnakedDimension):
                 repeated = SnakedDimension.from_frames(repeated)
@@ -561,19 +554,11 @@ Line.bounded = validate_call(Line.bounded)  # type:ignore
 class Duration(Spec[Axis]):
     """A special spec used to hold information about the duration of each frame."""
 
-    value: float = Field(description="The value at each point")
+    duration: float = Field(description="The value at each point")
     num: int = Field(ge=1, description="Number of frames to produce", default=1)
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return []
-
-    @classmethod
-    def redefine(
-        cls: type[Duration[Any]],
-        duration: float = Field(description="The duration of each static point"),
-        num: int = Field(ge=1, description="Number of frames to produce", default=1),
-    ) -> Duration[str]:
-        return Duration(duration, num)
 
     def calculate(
         self, bounds: bool = True, nested: bool = False
@@ -583,8 +568,8 @@ class Duration(Spec[Axis]):
                 midpoints={},
                 lower=None,
                 upper=None,
-                gap=np.full(self.num, False),
-                duration=np.full(self.num, self.value),
+                gap=None,
+                duration=np.full(self.num, self.duration),
             )
         ]
 
@@ -754,7 +739,7 @@ def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
         spec = fly(Line("x", 1, 2, 3), 0.1)
 
     """
-    return spec.zip(Duration(duration, 1))
+    return spec.zip(Duration(duration))
 
 
 def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis | str]:
@@ -773,7 +758,7 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis | str]:
         spec = step(Line("x", 1, 2, 3), 0.1)
 
     """
-    return spec * Duration(duration, 1)
+    return spec * Duration(duration)
 
 
 def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
