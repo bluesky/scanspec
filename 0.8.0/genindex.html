@@ -1,0 +1,1131 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index &#8212; scanspec 0.8.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="_static/documentation_options.js?v=486e5634"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=30646c52"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://bluesky.github.io/scanspec/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.8.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="_static/scanspec-logo.svg"/>
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.8.0" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/scanspec-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="_static/scanspec-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">scanspec</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/bluesky/scanspec" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="how-to.html">
+    How-to Guides
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanations.html">
+    Explanations
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="reference.html">
+    Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/bluesky/scanspec" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="_api/scanspec.html">API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="_api/scanspec.core.html"><code class="docutils literal notranslate"><span class="pre">scanspec.core</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/scanspec.specs.html"><code class="docutils literal notranslate"><span class="pre">scanspec.specs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/scanspec.regions.html"><code class="docutils literal notranslate"><span class="pre">scanspec.regions</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="_api/scanspec.plot.html"><code class="docutils literal notranslate"><span class="pre">scanspec.plot</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/rest_api.html">REST API</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Index</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/bluesky/scanspec/releases">Release Notes</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+
+<h1 id="index">Index</h1>
+
+<div class="genindex-jumpbox">
+ <a href="#_"><strong>_</strong></a>
+ | <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#X"><strong>X</strong></a>
+ | <a href="#Y"><strong>Y</strong></a>
+ | <a href="#Z"><strong>Z</strong></a>
+ 
+</div>
+<h2 id="_">_</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.html#scanspec.__version__">__version__ (in module scanspec)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.angle">angle (scanspec.regions.Ellipse attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.angle">(scanspec.regions.Rectangle attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Midpoints.axes">axes (scanspec.core.Midpoints property)</a>
+</li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.axes">axes() (scanspec.core.Dimension method)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.axes">(scanspec.specs.Concat method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.axes">(scanspec.specs.Line method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Mask.axes">(scanspec.specs.Mask method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.axes">(scanspec.specs.Product method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Repeat.axes">(scanspec.specs.Repeat method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Snake.axes">(scanspec.specs.Snake method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.axes">(scanspec.specs.Spec method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.axes">(scanspec.specs.Spiral method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Squash.axes">(scanspec.specs.Squash method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.axes">(scanspec.specs.Static method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Zip.axes">(scanspec.specs.Zip method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.AxesPoints">AxesPoints (in module scanspec.core)</a>
+</li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Axis">Axis (class in scanspec.core)</a>
+</li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Range.axis">axis (scanspec.regions.Range attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.axis">(scanspec.specs.Line attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.axis">(scanspec.specs.Static attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Circle.axis_sets">axis_sets() (scanspec.regions.Circle method)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.CombinationOf.axis_sets">(scanspec.regions.CombinationOf method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.axis_sets">(scanspec.regions.Ellipse method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Polygon.axis_sets">(scanspec.regions.Polygon method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Range.axis_sets">(scanspec.regions.Range method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.axis_sets">(scanspec.regions.Rectangle method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Region.axis_sets">(scanspec.regions.Region method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.bounded">bounded() (scanspec.specs.Line method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.calculate">calculate() (scanspec.specs.Concat method)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.calculate">(scanspec.specs.Line method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Mask.calculate">(scanspec.specs.Mask method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.calculate">(scanspec.specs.Product method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Repeat.calculate">(scanspec.specs.Repeat method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Snake.calculate">(scanspec.specs.Snake method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.calculate">(scanspec.specs.Spec method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.calculate">(scanspec.specs.Spiral method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Squash.calculate">(scanspec.specs.Squash method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.calculate">(scanspec.specs.Static method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Zip.calculate">(scanspec.specs.Zip method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.check_path_changes">check_path_changes (scanspec.specs.Concat attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Mask.check_path_changes">(scanspec.specs.Mask attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Squash.check_path_changes">(scanspec.specs.Squash attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.concat">concat() (scanspec.core.Dimension method)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.concat">(scanspec.specs.Spec method)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Path.consume">consume() (scanspec.core.Path method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Region.deserialize">deserialize() (scanspec.regions.Region static method)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.deserialize">(scanspec.specs.Spec static method)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension">Dimension (class in scanspec.core)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.discriminated_union_of_subclasses">discriminated_union_of_subclasses() (in module scanspec.core)</a>
+</li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.DURATION">DURATION (in module scanspec.core)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.DURATION">(in module scanspec.specs)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.duration">duration() (scanspec.specs.Static method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Path.end_index">end_index (scanspec.core.Path attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.extract">extract() (scanspec.core.Dimension method)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.core.html#scanspec.core.SnakedDimension.extract">(scanspec.core.SnakedDimension method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.find_regions">find_regions() (in module scanspec.regions)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.fly">fly() (in module scanspec.specs)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.frames">frames() (scanspec.specs.Spec method)</a>
+</li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.SnakedDimension.from_frames">from_frames() (scanspec.core.SnakedDimension class method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.gap">gap (scanspec.core.Dimension attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.gap">(scanspec.specs.Concat attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Repeat.gap">(scanspec.specs.Repeat attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.gap_between_frames">gap_between_frames() (in module scanspec.core)</a>
+</li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.get_mask">get_mask() (in module scanspec.regions)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.if_instance_do">if_instance_do() (in module scanspec.core)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Path.index">index (scanspec.core.Path attribute)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.inner">inner (scanspec.specs.Product attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.CombinationOf.left">left (scanspec.regions.CombinationOf attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.DifferenceOf.left">(scanspec.regions.DifferenceOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.IntersectionOf.left">(scanspec.regions.IntersectionOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.SymmetricDifferenceOf.left">(scanspec.regions.SymmetricDifferenceOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.UnionOf.left">(scanspec.regions.UnionOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.left">(scanspec.specs.Concat attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Zip.left">(scanspec.specs.Zip attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Path.lengths">lengths (scanspec.core.Path attribute)</a>
+</li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.lower">lower (scanspec.core.Dimension attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Circle.mask">mask() (scanspec.regions.Circle method)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.DifferenceOf.mask">(scanspec.regions.DifferenceOf method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.mask">(scanspec.regions.Ellipse method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.IntersectionOf.mask">(scanspec.regions.IntersectionOf method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Polygon.mask">(scanspec.regions.Polygon method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Range.mask">(scanspec.regions.Range method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.mask">(scanspec.regions.Rectangle method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Region.mask">(scanspec.regions.Region method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.SymmetricDifferenceOf.mask">(scanspec.regions.SymmetricDifferenceOf method)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.UnionOf.mask">(scanspec.regions.UnionOf method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Range.max">max (scanspec.regions.Range attribute)</a>
+</li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Midpoints">Midpoints (class in scanspec.core)</a>
+</li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.midpoints">midpoints (scanspec.core.Dimension attribute)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.midpoints">midpoints() (scanspec.specs.Spec method)</a>
+</li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Range.min">min (scanspec.regions.Range attribute)</a>
+</li>
+      <li>
+    module
+
+      <ul>
+        <li><a href="_api/scanspec.html#module-scanspec">scanspec</a>
+</li>
+        <li><a href="_api/scanspec.core.html#module-scanspec.core">scanspec.core</a>
+</li>
+        <li><a href="_api/scanspec.plot.html#module-scanspec.plot">scanspec.plot</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#module-scanspec.regions">scanspec.regions</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#module-scanspec.specs">scanspec.specs</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.num">num (scanspec.specs.Line attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Repeat.num">(scanspec.specs.Repeat attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.num">(scanspec.specs.Spiral attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.num">(scanspec.specs.Static attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.OtherAxis">OtherAxis (class in scanspec.core)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.outer">outer (scanspec.specs.Product attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Path">Path (class in scanspec.core)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.plot.html#scanspec.plot.plot_spec">plot_spec() (in module scanspec.plot)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Circle.radius">radius (scanspec.regions.Circle attribute)</a>
+</li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Region">Region (class in scanspec.regions)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Mask.region">region (scanspec.specs.Mask attribute)</a>
+</li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.CombinationOf.right">right (scanspec.regions.CombinationOf attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.DifferenceOf.right">(scanspec.regions.DifferenceOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.IntersectionOf.right">(scanspec.regions.IntersectionOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.SymmetricDifferenceOf.right">(scanspec.regions.SymmetricDifferenceOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.UnionOf.right">(scanspec.regions.UnionOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.right">(scanspec.specs.Concat attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Zip.right">(scanspec.specs.Zip attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.rotate">rotate (scanspec.specs.Spiral attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    scanspec
+
+      <ul>
+        <li><a href="_api/scanspec.html#module-scanspec">module</a>
+</li>
+      </ul></li>
+      <li>
+    scanspec.core
+
+      <ul>
+        <li><a href="_api/scanspec.core.html#module-scanspec.core">module</a>
+</li>
+      </ul></li>
+      <li>
+    scanspec.plot
+
+      <ul>
+        <li><a href="_api/scanspec.plot.html#module-scanspec.plot">module</a>
+</li>
+      </ul></li>
+      <li>
+    scanspec.regions
+
+      <ul>
+        <li><a href="_api/scanspec.regions.html#module-scanspec.regions">module</a>
+</li>
+      </ul></li>
+      <li>
+    scanspec.specs
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#module-scanspec.specs">module</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Region.serialize">serialize() (scanspec.regions.Region method)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.serialize">(scanspec.specs.Spec method)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.shape">shape() (scanspec.specs.Spec method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.SnakedDimension">SnakedDimension (class in scanspec.core)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.spaced">spaced() (scanspec.specs.Spiral method)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec">Spec (class in scanspec.specs)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Mask.spec">spec (scanspec.specs.Mask attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Snake.spec">(scanspec.specs.Snake attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Squash.spec">(scanspec.specs.Squash attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.squash_frames">squash_frames() (in module scanspec.core)</a>
+</li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Midpoints.stack">stack (scanspec.core.Midpoints attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.core.html#scanspec.core.Path.stack">(scanspec.core.Path attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.start">start (scanspec.specs.Line attribute)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.step">step() (in module scanspec.specs)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.stop">stop (scanspec.specs.Line attribute)</a>
+</li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.StrictConfig">StrictConfig (in module scanspec.core)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Circle.type">type (scanspec.regions.Circle attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.CombinationOf.type">(scanspec.regions.CombinationOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.DifferenceOf.type">(scanspec.regions.DifferenceOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.type">(scanspec.regions.Ellipse attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.IntersectionOf.type">(scanspec.regions.IntersectionOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Polygon.type">(scanspec.regions.Polygon attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Range.type">(scanspec.regions.Range attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.type">(scanspec.regions.Rectangle attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.SymmetricDifferenceOf.type">(scanspec.regions.SymmetricDifferenceOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.UnionOf.type">(scanspec.regions.UnionOf attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.type">(scanspec.specs.Concat attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.type">(scanspec.specs.Line attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Mask.type">(scanspec.specs.Mask attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.type">(scanspec.specs.Product attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Repeat.type">(scanspec.specs.Repeat attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Snake.type">(scanspec.specs.Snake attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.type">(scanspec.specs.Spiral attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Squash.type">(scanspec.specs.Squash attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.type">(scanspec.specs.Static attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Zip.type">(scanspec.specs.Zip attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.upper">upper (scanspec.core.Dimension attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.value">value (scanspec.specs.Static attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="X">X</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Circle.x_axis">x_axis (scanspec.regions.Circle attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.x_axis">(scanspec.regions.Ellipse attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Polygon.x_axis">(scanspec.regions.Polygon attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.x_axis">(scanspec.regions.Rectangle attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_axis">(scanspec.specs.Spiral attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.x_max">x_max (scanspec.regions.Rectangle attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Circle.x_middle">x_middle (scanspec.regions.Circle attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.x_middle">(scanspec.regions.Ellipse attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.x_min">x_min (scanspec.regions.Rectangle attribute)</a>
+</li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.x_radius">x_radius (scanspec.regions.Ellipse attribute)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_range">x_range (scanspec.specs.Spiral attribute)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_start">x_start (scanspec.specs.Spiral attribute)</a>
+</li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Polygon.x_verts">x_verts (scanspec.regions.Polygon attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Y">Y</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Circle.y_axis">y_axis (scanspec.regions.Circle attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.y_axis">(scanspec.regions.Ellipse attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Polygon.y_axis">(scanspec.regions.Polygon attribute)</a>
+</li>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.y_axis">(scanspec.regions.Rectangle attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.y_axis">(scanspec.specs.Spiral attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.y_max">y_max (scanspec.regions.Rectangle attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Circle.y_middle">y_middle (scanspec.regions.Circle attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.y_middle">(scanspec.regions.Ellipse attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.y_min">y_min (scanspec.regions.Rectangle attribute)</a>
+</li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.y_radius">y_radius (scanspec.regions.Ellipse attribute)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.y_range">y_range (scanspec.specs.Spiral attribute)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.y_start">y_start (scanspec.specs.Spiral attribute)</a>
+</li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Polygon.y_verts">y_verts (scanspec.regions.Polygon attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Z">Z</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.zip">zip() (scanspec.core.Dimension method)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.zip">(scanspec.specs.Spec method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
