@@ -30,7 +30,7 @@ as `Dimension.lower`, `Dimension.midpoints` and `Dimension.upper`.
 .. _frame_:
 
 Dimension
------
+---------
 
 A vector of three `Points <point_>` in scan space: lower, midpoint, upper. They
 describe the trajectory that should be taken while a detector is active while
@@ -40,7 +40,7 @@ section.
 .. _stack_:
 
 Stack of Dimensions
----------------
+-------------------
 
 A repeatable, possibly snaking, series of `Dimension` along a number of `Axes
 <axis_>`. In the diagram above, the whole Line produces a single `Dimension`
