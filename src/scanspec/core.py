@@ -55,9 +55,6 @@ __all__ = [
     "Slice",
 ]
 
-#: Can be used as a special key to indicate how long each point should be
-DURATION = "DURATION"
-
 #: Used to ensure pydantic dataclasses error if given extra arguments
 StrictConfig: ConfigDict = {"extra": "forbid", "arbitrary_types_allowed": True}
 
@@ -331,6 +328,7 @@ class Dimension(Generic[Axis]):
         upper: Upper bounds of scan frames if different from midpoints
         gap: If supplied, define if there is a gap between frame and previous
             otherwise it is calculated by looking at lower and upper bounds
+        duration: If supplied, defines the duration between each lower and upper point.
 
     Typically used in two ways:
 
@@ -380,7 +378,7 @@ class Dimension(Generic[Axis]):
             ]
             self.gap = np.logical_or.reduce(axes_gap)
         # If only duratiotn is provided we need to make gap have the same shape
-        # as the duration provided for the __len__ mmethod
+        # as the duration provided for the __len__ method
         elif gap is None and self.duration is not None and len(self.midpoints) == 0:
             self.gap = np.full(len(self.duration), False)
         # Check all axes and ordering are the same
@@ -486,7 +484,21 @@ class Dimension(Generic[Axis]):
             g[len(self)] = gap or gap_between_frames(self, other)
             return g
 
-        return _merge_frames(self, other, dict_merge=concat_dict, gap_merge=concat_gap)
+        def concat_duration(
+            durations: Sequence[DurationArray | None],
+        ) -> DurationArray | None:
+            # Check if there are more than one duration being zipped
+            specified_durations = [d for d in durations if d is not None]
+            d = np.concatenate(specified_durations)
+            return d
+
+        return _merge_frames(
+            self,
+            other,
+            dict_merge=concat_dict,
+            gap_merge=concat_gap,
+            duration_merge=concat_duration,
+        )
 
     def zip(self, other: Dimension[Axis]) -> Dimension[Axis]:
         """Return a new Dimension object merging self and other.
