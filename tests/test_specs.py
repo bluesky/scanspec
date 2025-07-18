@@ -1,4 +1,3 @@
-import re
 from typing import Any
 
 import pytest
@@ -6,8 +5,8 @@ import pytest
 from scanspec.core import Path, SnakedDimension
 from scanspec.regions import Circle, Ellipse, Polygon, Rectangle
 from scanspec.specs import (
-    DURATION,
     Concat,
+    ConstantDuration,
     Line,
     Mask,
     Repeat,
@@ -17,7 +16,7 @@ from scanspec.specs import (
     Static,
     Zip,
     fly,
-    get_constant_duration,
+    # get_constant_duration,
     step,
 )
 
@@ -30,16 +29,6 @@ def ints(s: str) -> Any:
     return approx([int(t) for t in s])
 
 
-def test_one_point_duration() -> None:
-    duration = Static.duration(1.0)
-    (dim,) = duration.calculate()
-    assert dim.midpoints == {DURATION: approx([1.0])}
-    assert dim.lower == {DURATION: approx([1.0])}
-    assert dim.upper == {DURATION: approx([1.0])}
-    assert not isinstance(dim, SnakedDimension)
-    assert dim.gap == ints("0")
-
-
 def test_one_point_line() -> None:
     inst = Line(x, 0, 1, 1)
     (dim,) = inst.calculate()
@@ -48,6 +37,7 @@ def test_one_point_line() -> None:
     assert dim.upper == {x: approx([0.5])}
     assert not isinstance(dim, SnakedDimension)
     assert dim.gap == ints("1")
+    assert dim.duration is None
 
 
 def test_two_point_line() -> None:
@@ -61,11 +51,10 @@ def test_two_point_line() -> None:
 
 def test_two_point_stepped_line() -> None:
     inst = step(Line(x, 0, 1, 2), 0.1)
-    dimx, dimt = inst.calculate()
-    assert dimx.midpoints == dimx.lower == dimx.upper == {x: approx([0, 1])}
-    assert dimt.midpoints == dimt.lower == dimt.upper == {}
-    assert dimt.duration == approx([0.1])
-    assert inst.frames().gap == ints("11")
+    (dim,) = inst.calculate()
+    assert dim.midpoints == {x: approx([0, 1])}
+    assert inst.frames().gap == ints("10")
+    assert dim.duration == approx([0.1, 0.1])
 
 
 def test_two_point_fly_line() -> None:
@@ -193,19 +182,27 @@ def test_squashed_product() -> None:
 
 
 def test_squashed_multiplied_snake_scan() -> None:
-    inst = Line(z, 1, 2, 2) * Squash(
-        Line(y, 1, 2, 2) * ~Line.bounded(x, 3, 7, 2) * Static.duration(9, 2)
+    inst = ConstantDuration(
+        Line(z, 1, 2, 2) * Squash(Line(y, 1, 2, 2) * ~Line.bounded(x, 3, 7, 2)),
+        9,
     )
-    assert inst.axes() == [z, y, x, DURATION]
+    assert inst.axes() == [z, y, x]
     dimz, dimxyt = inst.calculate()
-    for d in dimxyt.midpoints, dimxyt.lower, dimxyt.upper:
-        assert d == {
-            x: approx([4, 4, 6, 6, 6, 6, 4, 4]),
-            y: approx([1, 1, 1, 1, 2, 2, 2, 2]),
-            DURATION: approx([9, 9, 9, 9, 9, 9, 9, 9]),
-        }
-    assert dimz.midpoints == dimz.lower == dimz.upper == {z: approx([1, 2])}
-    assert inst.frames().gap == ints("1010101010101010")
+    assert dimxyt.midpoints == {
+        x: approx([4, 6, 6, 4]),
+        y: approx([1, 1, 2, 2]),
+    }
+    assert dimxyt.lower == {
+        x: approx([3, 5, 7, 5]),
+        y: approx([1, 1, 2, 2]),
+    }
+    assert dimxyt.upper == {
+        x: approx([5, 7, 5, 3]),
+        y: approx([1, 1, 2, 2]),
+    }
+    assert dimxyt.duration == approx([9, 9, 9, 9])
+    assert dimz.midpoints == {z: approx([1, 2])}
+    assert inst.frames().gap == ints("10101010")
 
 
 def test_product_snaking_lines() -> None:
@@ -312,17 +309,21 @@ def test_rect_region_intersection() -> None:
 
 def test_rect_region_difference() -> None:
     # Bracket to force testing Mask.__sub__ rather than Region.__sub__
-    inst = (
-        Line(y, 1, 3, 5) * Line(x, 0, 2, 3).zip(Static(DURATION, 0.1))
-        & Rectangle(x, y, 0, 1, 1.5, 2.2)
+    spec = (
+        Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(x, y, 0, 1, 1.5, 2.2)
     ) - Rectangle(x, y, 0.5, 1.5, 2, 2.5)
-    assert inst.axes() == [y, x, DURATION]
+
+    inst = ConstantDuration(
+        spec,
+        0.1,
+    )
+    assert inst.axes() == [y, x]
     (dim,) = inst.calculate()
     assert dim.midpoints == {
         x: approx([0, 1, 0, 0]),
         y: approx([1, 1, 1.5, 2]),
-        DURATION: approx([0.1, 0.1, 0.1, 0.1]),
     }
+    assert dim.duration == approx([0.1, 0.1, 0.1, 0.1])
     assert dim.gap == ints("1011")
 
 
@@ -547,61 +548,3 @@ def test_multiple_statics_with_grid():
 )
 def test_shape(spec: Spec[Any], expected_shape: tuple[int, ...]):
     assert expected_shape == spec.shape()
-
-
-def test_single_frame_single_point():
-    spec = Static.duration(0.1)
-    assert get_constant_duration(spec.calculate()) == 0.1
-
-
-def test_consistent_points():
-    spec: Spec[str] = Static.duration(0.1).concat(Static.duration(0.1))
-    assert get_constant_duration(spec.calculate()) == 0.1
-
-
-def test_inconsistent_points():
-    spec = Static.duration(0.1).concat(Static.duration(0.2))
-    assert get_constant_duration(spec.calculate()) is None
-
-
-def test_frame_with_multiple_axes():
-    spec = Static.duration(0.1).zip(Line.bounded("x", 0, 0, 1))
-    frames = spec.calculate()
-    assert len(frames) == 1
-    assert get_constant_duration(frames) == 0.1
-
-
-def test_inconsistent_frame_with_multiple_axes():
-    spec = (
-        Static.duration(0.1)
-        .concat(Static.duration(0.2))
-        .zip(Line.bounded("x", 0, 0, 2))
-    )
-    frames = spec.calculate()
-    assert len(frames) == 1
-    assert get_constant_duration(frames) is None
-
-
-def test_non_static_spec_duration():
-    spec = Line.bounded(DURATION, 0, 0, 3)
-    frames = spec.calculate()
-    assert len(frames) == 1
-    assert get_constant_duration(frames) == 0
-
-
-def test_multiple_duration_frames():
-    spec = (
-        Static.duration(0.1)
-        .concat(Static.duration(0.2))
-        .zip(Line.bounded(DURATION, 0, 0, 2))
-    )
-    with pytest.raises(
-        AssertionError, match=re.escape("Zipping would overwrite axes ['DURATION']")
-    ):
-        spec.calculate()
-    spec = (  # TODO: refactor when https://github.com/bluesky/scanspec/issues/90
-        Static.duration(0.1) * Line.bounded(DURATION, 0, 0, 2)
-    )
-    frames = spec.calculate()
-    assert len(frames) == 2
-    assert get_constant_duration(frames) is None
