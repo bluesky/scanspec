@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import Any, Generic, overload
+from typing import Any, Generic, Literal, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -31,7 +31,7 @@ from .core import (
 from .regions import Region, get_mask
 
 __all__ = [
-    "DURATION",
+    "ConstantDuration",
     "Spec",
     "Product",
     "Repeat",
@@ -47,9 +47,7 @@ __all__ = [
     "step",
 ]
 
-
-#: Can be used as a special key to indicate how long each point should be
-DURATION = "DURATION"
+VARIABLE_DURATION = "VARIABLE_DURATION"
 
 
 @discriminated_union_of_subclasses
@@ -64,10 +62,25 @@ class Spec(Generic[Axis]):
     - ``~``: `Snake` the Spec, reversing every other iteration of it
     """
 
+    def __post_init__(self):
+        # Call axes and duration as they do error checking for zip, product etc.
+        self.axes()
+        self.duration()
+
     def axes(self) -> list[Axis]:  # noqa: D102
         """Return the list of axes that are present in the scan.
 
         Ordered from slowest moving to fastest moving.
+        """
+        raise NotImplementedError(self)
+
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:
+        """Returns the duration of each scan point.
+
+        Return value will be one of:
+        - ``None``: No duration defined
+        - ``float``: A constant duration for each point
+        - `VARIABLE_DURATION`: A different duration for each point
         """
         raise NotImplementedError(self)
 
@@ -149,6 +162,19 @@ class Product(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.outer.axes() + self.inner.axes()
 
+    def duration(self):  # noqa: D102
+        if self.outer.duration() is None and self.inner.duration is None:
+            return None
+        else:
+            if self.outer.duration() == self.inner.duration:
+                return self.inner.duration()
+            elif self.outer.duration() is None:
+                return self.inner.duration()
+            elif self.inner.duration():
+                return self.outer.duration()
+            else:
+                return VARIABLE_DURATION
+
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
     ) -> list[Dimension[Axis]]:
@@ -190,6 +216,9 @@ class Repeat(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return []
 
+    def duration(self):  # noqa: D102
+        return None
+
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
     ) -> list[Dimension[Axis]]:
@@ -228,6 +257,19 @@ class Zip(Spec[Axis]):
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.left.axes() + self.right.axes()
+
+    def duration(self):  # noqa: D102
+        if self.left.duration() is None and self.right.duration is None:
+            return None
+        else:
+            if self.left.duration() == self.right.duration:
+                return self.right.duration()
+            elif self.left.duration() is None:
+                return self.right.duration()
+            elif self.right.duration():
+                return self.left.duration()
+            else:
+                return VARIABLE_DURATION
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
@@ -300,6 +342,12 @@ class Mask(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
+    def duration(self):  # noqa: D102
+        if self.spec.duration() is None:
+            return None
+        else:
+            return self.spec.duration()
+
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
     ) -> list[Dimension[Axis]]:
@@ -360,6 +408,9 @@ class Snake(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
+    def duration(self):  # noqa: D102
+        return self.spec.duration()
+
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
     ) -> list[Dimension[Axis]]:
@@ -405,6 +456,19 @@ class Concat(Spec[Axis]):
         assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
         return left_axes
 
+    def duration(self):  # noqa: D102
+        if self.left.duration() is None and self.right.duration is None:
+            return None
+        else:
+            if self.left.duration() == self.right.duration:
+                return self.right.duration()
+            elif self.left.duration() is None:
+                return self.right.duration()
+            elif self.right.duration():
+                return self.left.duration()
+            else:
+                return VARIABLE_DURATION
+
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
     ) -> list[Dimension[Axis]]:
@@ -441,6 +505,9 @@ class Squash(Spec[Axis]):
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
+
+    def duration(self):  # noqa: D102
+        return self.spec.duration()
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
@@ -495,6 +562,9 @@ class Line(Spec[Axis]):
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
+
+    def duration(self):  # noqa: D102
+        return None
 
     def _line_from_indexes(
         self, indexes: npt.NDArray[np.float64]
@@ -551,27 +621,38 @@ Line.bounded = validate_call(Line.bounded)  # type:ignore
 
 
 @dataclass(config=StrictConfig)
-class Duration(Spec[Axis]):
+class ConstantDuration(Spec[Axis]):
     """A special spec used to hold information about the duration of each frame."""
 
-    duration: float = Field(description="The value at each point")
-    num: int = Field(ge=1, description="Number of frames to produce", default=1)
+    spec: Spec[Axis] = Field(description="Spec contaning the path to be followed")
+    constant_duration: float = Field(description="The value at each point")
+    fly: bool = Field(
+        description="Define if the Spec is a fly or step scan", default=False
+    )
 
     def axes(self) -> list[Axis]:  # noqa: D102
-        return []
+        return self.spec.axes()
 
-    def calculate(
+    def duration(self) -> float:  # noqa: D102
+        if (
+            self.spec.duration() is not None
+            and self.spec.duration() != self.constant_duration
+        ):
+            raise ValueError(self)  # Maybe another error?
+        return self.constant_duration
+
+    def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
     ) -> list[Dimension[Axis]]:
-        return [
-            Dimension(
-                midpoints={},
-                lower=None,
-                upper=None,
-                gap=None,
-                duration=np.full(self.num, self.duration),
-            )
-        ]
+        dimensions = self.spec.calculate()
+        for d in dimensions:
+            if d.duration is not None and d.duration != self.duration:
+                raise ValueError(self)
+
+        dimensions[-1].duration = np.full(
+            len(dimensions[-1].midpoints[self.axes()[-1]]), self.constant_duration
+        )
+        return dimensions
 
 
 @dataclass(config=StrictConfig)
@@ -591,24 +672,11 @@ class Static(Spec[Axis]):
     value: float = Field(description="The value at each point")
     num: int = Field(ge=1, description="Number of frames to produce", default=1)
 
-    @classmethod
-    def duration(
-        cls: type[Static[Any]],
-        duration: float = Field(description="The duration of each static point"),
-        num: int = Field(ge=1, description="Number of frames to produce", default=1),
-    ) -> Static[str]:
-        """A static spec with no motion, only a duration repeated "num" times.
-
-        .. example_spec::
-
-            from scanspec.specs import Line, Static
-
-            spec = Line("y", 1, 2, 3).zip(Static.duration(0.1))
-        """
-        return Static(DURATION, duration, num)
-
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
+
+    def duration(self):  # noqa: D102
+        return None
 
     def _repeats_from_indexes(
         self, indexes: npt.NDArray[np.float64]
@@ -621,9 +689,6 @@ class Static(Spec[Axis]):
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
         )
-
-
-Static.duration = validate_call(Static.duration)  # type:ignore
 
 
 @dataclass(config=StrictConfig)
@@ -656,6 +721,9 @@ class Spiral(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         # TODO: reversed from __init__ args, a good idea?
         return [self.y_axis, self.x_axis]
+
+    def duration(self):  # noqa: D102
+        return None
 
     def _spiral_from_indexes(
         self, indexes: npt.NDArray[np.float64]
@@ -725,7 +793,7 @@ class Spiral(Spec[Axis]):
 Spiral.spaced = validate_call(Spiral.spaced)  # type:ignore
 
 
-def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
+def fly(spec: Spec[Axis], duration: float) -> Spec[Axis]:
     """Flyscan, zipping with fixed duration for every frame.
 
     Args:
@@ -739,10 +807,10 @@ def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
         spec = fly(Line("x", 1, 2, 3), 0.1)
 
     """
-    return spec.zip(Duration(duration))
+    return ConstantDuration(spec=spec, constant_duration=duration, fly=True)
 
 
-def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis | str]:
+def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
     """Step scan, with num frames of given duration at each frame in the spec.
 
     Args:
@@ -758,7 +826,7 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis | str]:
         spec = step(Line("x", 1, 2, 3), 0.1)
 
     """
-    return spec * Duration(duration)
+    return ConstantDuration(spec, duration, fly=False)
 
 
 def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
@@ -772,17 +840,14 @@ def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
         None: otherwise
 
     """
-    duration_frame = [
-        f for f in frames if DURATION in f.axes() and len(f.midpoints[DURATION])
-    ]
-    if len(duration_frame) != 1 or len(duration_frame[0]) < 1:
-        # Either no frame has DURATION axis,
-        #   the frame with a DURATION axis has 0 points,
-        #   or multiple frames have DURATION axis
+    duration_frames = [f.duration for f in frames if f.duration is not None]
+    if len(duration_frames) == 0:
+        # List of frames has no frame with duration in it
         return None
-    durations = duration_frame[0].midpoints[DURATION]
-    first_duration = durations[0]
-    if np.any(durations != first_duration):
-        # Not all durations are the same
-        return None
+    # First element of the first duration array
+    first_duration = duration_frames[0][0]
+    for frame in duration_frames:
+        if np.any(frame != first_duration):
+            # Not all durations are the same
+            return None
     return first_duration
