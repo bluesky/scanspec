@@ -381,6 +381,8 @@ class Dimension(Generic[Axis]):
         # as the duration provided for the __len__ method
         elif gap is None and self.duration is not None and len(self.midpoints) == 0:
             self.gap = np.full(len(self.duration), False)
+        else:
+            raise ValueError("self.gap is undefined")
         # Check all axes and ordering are the same
         assert list(self.midpoints) == list(self.lower) == list(self.upper), (
             f"Mismatching axes "
@@ -442,7 +444,7 @@ class Dimension(Generic[Axis]):
             for d in durations:
                 if d is not None:
                     return d[dim_indices]
-                return None
+            return None
 
         return _merge_frames(
             self,
@@ -488,9 +490,11 @@ class Dimension(Generic[Axis]):
             durations: Sequence[DurationArray | None],
         ) -> DurationArray | None:
             # Check if there are more than one duration being zipped
-            specified_durations = [d for d in durations if d is not None]
-            d = np.concatenate(specified_durations)
-            return d
+            if any(d is None for d in durations):
+                raise ValueError(
+                    "Can't concatenate dimensions unless all or none provide durations"
+                )
+            return np.concatenate(durations)  # type: ignore
 
         return _merge_frames(
             self,
@@ -526,7 +530,8 @@ class Dimension(Generic[Axis]):
         def zip_duration(
             durations: Sequence[DurationArray | None],
         ) -> DurationArray | None:
-            # Check if there are more than one duration being zipped
+            # We will be passed a sequence of durations where at least one
+            # is not None. We require that there is precisely one
             specified_durations = [d for d in durations if d is not None]
             if len(specified_durations) != 1:
                 raise ValueError("Can't have more than one durations array")
@@ -545,8 +550,7 @@ def _merge_frames(
     *stack: Dimension[Axis],
     dict_merge: Callable[[Sequence[AxesPoints[Axis]]], AxesPoints[Axis]],  # type: ignore
     gap_merge: Callable[[Sequence[GapArray]], GapArray | None],
-    duration_merge: Callable[[Sequence[DurationArray]], DurationArray | None]
-    | None = None,
+    duration_merge: Callable[[Sequence[DurationArray | None]], DurationArray | None],
 ) -> Dimension[Axis]:
     types = {type(fs) for fs in stack}
     assert len(types) == 1, f"Mismatching types for {stack}"
@@ -563,7 +567,7 @@ def _merge_frames(
         upper=dict_merge([fs.upper for fs in stack])
         if any(fs.midpoints is not fs.upper for fs in stack)
         else None,
-        duration=duration_merge([fs.duration for fs in stack])  # type: ignore | not sure
+        duration=duration_merge([fs.duration for fs in stack])
         if any(fs.duration is not None for fs in stack)
         else None,
     )

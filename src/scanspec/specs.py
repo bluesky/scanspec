@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Callable, Mapping
 from typing import Any, Generic, Literal, overload
 
@@ -162,18 +163,11 @@ class Product(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.outer.axes() + self.inner.axes()
 
-    def duration(self):  # noqa: D102
-        if self.outer.duration() is None and self.inner.duration is None:
-            return None
-        else:
-            if self.outer.duration() == self.inner.duration:
-                return self.inner.duration()
-            elif self.outer.duration() is None:
-                return self.inner.duration()
-            elif self.inner.duration():
-                return self.outer.duration()
-            else:
-                return VARIABLE_DURATION
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
+        outer, inner = self.outer.duration(), self.inner.duration()
+        if outer is not None and inner is not None:
+            raise ValueError("Both outer and inner define a duration")
+        return inner if inner is not None else outer
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
@@ -216,7 +210,7 @@ class Repeat(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return []
 
-    def duration(self):  # noqa: D102
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
         return None
 
     def calculate(  # noqa: D102
@@ -258,18 +252,11 @@ class Zip(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.left.axes() + self.right.axes()
 
-    def duration(self):  # noqa: D102
-        if self.left.duration() is None and self.right.duration is None:
-            return None
-        else:
-            if self.left.duration() == self.right.duration:
-                return self.right.duration()
-            elif self.left.duration() is None:
-                return self.right.duration()
-            elif self.right.duration():
-                return self.left.duration()
-            else:
-                return VARIABLE_DURATION
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
+        left, right = self.left.duration(), self.right.duration()
+        if left is not None and right is not None:
+            raise ValueError("Both left and right define a duration")
+        return left if left is not None else right
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
@@ -342,11 +329,8 @@ class Mask(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
-    def duration(self):  # noqa: D102
-        if self.spec.duration() is None:
-            return None
-        else:
-            return self.spec.duration()
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
+        return self.spec.duration()
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
@@ -408,7 +392,7 @@ class Snake(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
-    def duration(self):  # noqa: D102
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
         return self.spec.duration()
 
     def calculate(  # noqa: D102
@@ -456,18 +440,17 @@ class Concat(Spec[Axis]):
         assert set(left_axes) == set(right_axes), f"axes {left_axes} != {right_axes}"
         return left_axes
 
-    def duration(self):  # noqa: D102
-        if self.left.duration() is None and self.right.duration is None:
-            return None
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
+        left, right = self.left.duration(), self.right.duration()
+        if left == right:
+            # They are producing the same duration
+            return left
+        elif left is None or right is None:
+            # They aren't both None, but if one is then raise
+            raise ValueError("Only one of left and right defines a duration")
         else:
-            if self.left.duration() == self.right.duration:
-                return self.right.duration()
-            elif self.left.duration() is None:
-                return self.right.duration()
-            elif self.right.duration():
-                return self.left.duration()
-            else:
-                return VARIABLE_DURATION
+            # They both exist, but are different, so are variable
+            return VARIABLE_DURATION
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
@@ -506,7 +489,7 @@ class Squash(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
-    def duration(self):  # noqa: D102
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
         return self.spec.duration()
 
     def calculate(  # noqa: D102
@@ -563,7 +546,7 @@ class Line(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
 
-    def duration(self):  # noqa: D102
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
         return None
 
     def _line_from_indexes(
@@ -633,12 +616,9 @@ class ConstantDuration(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
-    def duration(self) -> float:  # noqa: D102
-        if (
-            self.spec.duration() is not None
-            and self.spec.duration() != self.constant_duration
-        ):
-            raise ValueError(self)  # Maybe another error?
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
+        if self.spec.duration() is not None:
+            raise ValueError(f"{self.spec} already defines a duration")
         return self.constant_duration
 
     def calculate(  # noqa: D102
@@ -648,10 +628,20 @@ class ConstantDuration(Spec[Axis]):
         for d in dimensions:
             if d.duration is not None and d.duration != self.duration:
                 raise ValueError(self)
-
-        dimensions[-1].duration = np.full(
-            len(dimensions[-1].midpoints[self.axes()[-1]]), self.constant_duration
-        )
+        if self.fly:
+            dimensions[-1].duration = np.full(
+                len(dimensions[-1].midpoints[self.axes()[-1]]), self.constant_duration
+            )
+        else:
+            step_duration: Dimension[Axis] = Dimension(
+                midpoints={},
+                gap=None,
+                duration=np.full(
+                    len(dimensions[-1].midpoints[self.axes()[-1]]),
+                    self.constant_duration,
+                ),
+            )
+            dimensions = dimensions + [step_duration]
         return dimensions
 
 
@@ -675,7 +665,7 @@ class Static(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
 
-    def duration(self):  # noqa: D102
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
         return None
 
     def _repeats_from_indexes(
@@ -722,7 +712,7 @@ class Spiral(Spec[Axis]):
         # TODO: reversed from __init__ args, a good idea?
         return [self.y_axis, self.x_axis]
 
-    def duration(self):  # noqa: D102
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
         return None
 
     def _spiral_from_indexes(
@@ -840,6 +830,11 @@ def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
         None: otherwise
 
     """
+    warnings.warn(
+        "get_constant_duration method is deprecated! Use spec.duration() instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     duration_frames = [f.duration for f in frames if f.duration is not None]
     if len(duration_frames) == 0:
         # List of frames has no frame with duration in it

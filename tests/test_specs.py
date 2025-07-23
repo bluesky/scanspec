@@ -51,10 +51,10 @@ def test_two_point_line() -> None:
 
 def test_two_point_stepped_line() -> None:
     inst = step(Line(x, 0, 1, 2), 0.1)
-    (dim,) = inst.calculate()
+    (dim, dimt) = inst.calculate()
     assert dim.midpoints == {x: approx([0, 1])}
-    assert inst.frames().gap == ints("10")
-    assert dim.duration == approx([0.1, 0.1])
+    assert dim.gap == ints("10")
+    assert dimt.duration == approx([0.1, 0.1])
 
 
 def test_two_point_fly_line() -> None:
@@ -185,6 +185,7 @@ def test_squashed_multiplied_snake_scan() -> None:
     inst = ConstantDuration(
         Line(z, 1, 2, 2) * Squash(Line(y, 1, 2, 2) * ~Line.bounded(x, 3, 7, 2)),
         9,
+        fly=True,
     )
     assert inst.axes() == [z, y, x]
     dimz, dimxyt = inst.calculate()
@@ -318,12 +319,12 @@ def test_rect_region_difference() -> None:
         0.1,
     )
     assert inst.axes() == [y, x]
-    (dim,) = inst.calculate()
+    (dim, dimt) = inst.calculate()
     assert dim.midpoints == {
         x: approx([0, 1, 0, 0]),
         y: approx([1, 1, 1.5, 2]),
     }
-    assert dim.duration == approx([0.1, 0.1, 0.1, 0.1])
+    assert dimt.duration == approx([0.1, 0.1, 0.1, 0.1])
     assert dim.gap == ints("1011")
 
 
