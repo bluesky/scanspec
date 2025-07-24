@@ -637,7 +637,7 @@ class ConstantDuration(Spec[Axis]):
                 midpoints={},
                 gap=None,
                 duration=np.full(
-                    len(dimensions[-1].midpoints[self.axes()[-1]]),
+                    1,
                     self.constant_duration,
                 ),
             )
