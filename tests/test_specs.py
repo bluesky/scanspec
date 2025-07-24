@@ -51,10 +51,10 @@ def test_two_point_line() -> None:
 
 def test_two_point_stepped_line() -> None:
     inst = step(Line(x, 0, 1, 2), 0.1)
-    (dim, dimt) = inst.calculate()
+    (dim,) = inst.calculate()
     assert dim.midpoints == {x: approx([0, 1])}
-    assert dim.gap == ints("10")
-    assert dimt.duration == approx([0.1])
+    assert dim.gap == ints("11")
+    assert dim.duration == approx([0.1, 0.1])
 
 
 def test_two_point_fly_line() -> None:
@@ -185,7 +185,7 @@ def test_squashed_multiplied_snake_scan() -> None:
     inst: Spec[str] = Line(z, 1, 2, 2) * Squash(
         Line(y, 1, 2, 2)
         * ~Line.bounded(x, 3, 7, 2)
-        * ConstantDuration(Repeat(2), 9, fly=False)  # type: ignore
+        * ConstantDuration(constant_duration=9, spec=Repeat(2), fly=False)  # type: ignore
     )
     assert inst.axes() == [z, y, x]
     (dimz, dimxyt) = inst.calculate()
@@ -308,17 +308,17 @@ def test_rect_region_difference() -> None:
     ) - Rectangle(x, y, 0.5, 1.5, 2, 2.5)
 
     inst = ConstantDuration(
-        spec,
         0.1,
+        spec,
     )
     assert inst.axes() == [y, x]
-    (dim, dimt) = inst.calculate()
+    (dim,) = inst.calculate()
     assert dim.midpoints == {
         x: approx([0, 1, 0, 0]),
         y: approx([1, 1, 1.5, 2]),
     }
-    assert dimt.duration == approx([0.1])
-    assert dim.gap == ints("1011")
+    assert dim.duration == approx([0.1, 0.1, 0.1, 0.1])
+    assert dim.gap == ints("1111")
 
 
 def test_rect_region_symmetricdifference() -> None:
@@ -549,7 +549,7 @@ def test_constant_duration():
     spec2 = step(Line("y", 0, 1, 2), 2)
 
     with pytest.raises(ValueError):
-        ConstantDuration(spec1, 2)
+        ConstantDuration(2, spec1)
 
     with pytest.raises(ValueError):
         spec1.zip(spec2)

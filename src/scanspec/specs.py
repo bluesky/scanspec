@@ -165,9 +165,9 @@ class Product(Spec[Axis]):
 
     def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
         outer, inner = self.outer.duration(), self.inner.duration()
-        if outer is not None and inner is not None:
-            raise ValueError("Both outer and inner define a duration")
-        return inner if inner is not None else outer
+        if outer is not None:
+            raise ValueError("Outer axes defined a duration")
+        return inner
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
@@ -607,42 +607,50 @@ Line.bounded = validate_call(Line.bounded)  # type:ignore
 class ConstantDuration(Spec[Axis]):
     """A special spec used to hold information about the duration of each frame."""
 
-    spec: Spec[Axis] = Field(description="Spec contaning the path to be followed")
     constant_duration: float = Field(description="The value at each point")
+    spec: Spec[Axis] | None = Field(
+        description="Spec contaning the path to be followed"
+    )
     fly: bool = Field(
         description="Define if the Spec is a fly or step scan", default=False
     )
 
     def axes(self) -> list[Axis]:  # noqa: D102
-        return self.spec.axes()
+        if self.spec:
+            return self.spec.axes()
+        else:
+            return []
 
     def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
-        if self.spec.duration() is not None:
+        if self.spec and self.spec.duration() is not None:
             raise ValueError(f"{self.spec} already defines a duration")
         return self.constant_duration
 
     def calculate(  # noqa: D102
         self, bounds: bool = True, nested: bool = False
     ) -> list[Dimension[Axis]]:
-        dimensions = self.spec.calculate()
-        for d in dimensions:
-            if d.duration is not None and d.duration != self.duration:
-                raise ValueError(self)
-        if self.fly:
+        if self.spec:
+            dimensions = (
+                self.spec.calculate() if self.fly else self.spec.calculate(bounds=False)
+            )
+            for d in dimensions:
+                if d.duration is not None and d.duration != self.duration:
+                    raise ValueError(self)
             dimensions[-1].duration = np.full(
-                len(dimensions[-1].midpoints[self.axes()[-1]]), self.constant_duration
+                len(dimensions[-1].gap),
+                self.constant_duration,
             )
+            return dimensions
         else:
-            step_duration: Dimension[Axis] = Dimension(
-                midpoints={},
-                gap=None,
-                duration=np.full(
-                    1,
-                    self.constant_duration,
-                ),
+            # Had to do it like this otherwise it will complain about typing
+            empty_dim: Dimension[Axis] = Dimension(
+                {},
+                {},
+                {},
+                None,
+                duration=np.full(1, self.constant_duration),
             )
-            dimensions = dimensions + [step_duration]
-        return dimensions
+            return [empty_dim]
 
 
 @dataclass(config=StrictConfig)
@@ -797,7 +805,7 @@ def fly(spec: Spec[Axis], duration: float) -> Spec[Axis]:
         spec = fly(Line("x", 1, 2, 3), 0.1)
 
     """
-    return ConstantDuration(spec=spec, constant_duration=duration, fly=True)
+    return ConstantDuration(constant_duration=duration, spec=spec, fly=True)
 
 
 def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
@@ -816,7 +824,7 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
         spec = step(Line("x", 1, 2, 3), 0.1)
 
     """
-    return ConstantDuration(spec, duration, fly=False)
+    return ConstantDuration(constant_duration=duration, spec=spec, fly=False)
 
 
 def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
