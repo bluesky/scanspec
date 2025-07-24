@@ -547,14 +547,21 @@
             },
             "ConstantDuration_str_-Input": {
                 "properties": {
-                    "spec": {
-                        "$ref": "#/components/schemas/Spec-Input",
-                        "description": "Spec contaning the path to be followed"
-                    },
                     "constant_duration": {
                         "type": "number",
                         "title": "Constant Duration",
                         "description": "The value at each point"
+                    },
+                    "spec": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Spec-Input"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Spec contaning the path to be followed"
                     },
                     "fly": {
                         "type": "boolean",
@@ -572,22 +579,29 @@
                 "additionalProperties": false,
                 "type": "object",
                 "required": [
-                    "spec",
-                    "constant_duration"
+                    "constant_duration",
+                    "spec"
                 ],
                 "title": "ConstantDuration",
                 "description": "A special spec used to hold information about the duration of each frame."
             },
             "ConstantDuration_str_-Output": {
                 "properties": {
-                    "spec": {
-                        "$ref": "#/components/schemas/Spec-Output",
-                        "description": "Spec contaning the path to be followed"
-                    },
                     "constant_duration": {
                         "type": "number",
                         "title": "Constant Duration",
                         "description": "The value at each point"
+                    },
+                    "spec": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Spec-Output"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Spec contaning the path to be followed"
                     },
                     "fly": {
                         "type": "boolean",
@@ -605,8 +619,8 @@
                 "additionalProperties": false,
                 "type": "object",
                 "required": [
-                    "spec",
-                    "constant_duration"
+                    "constant_duration",
+                    "spec"
                 ],
                 "title": "ConstantDuration",
                 "description": "A special spec used to hold information about the duration of each frame."
