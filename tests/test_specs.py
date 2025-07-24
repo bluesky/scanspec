@@ -54,7 +54,7 @@ def test_two_point_stepped_line() -> None:
     (dim, dimt) = inst.calculate()
     assert dim.midpoints == {x: approx([0, 1])}
     assert dim.gap == ints("10")
-    assert dimt.duration == approx([0.1, 0.1])
+    assert dimt.duration == approx([0.1])
 
 
 def test_two_point_fly_line() -> None:
@@ -182,28 +182,21 @@ def test_squashed_product() -> None:
 
 
 def test_squashed_multiplied_snake_scan() -> None:
-    inst = ConstantDuration(
-        Line(z, 1, 2, 2) * Squash(Line(y, 1, 2, 2) * ~Line.bounded(x, 3, 7, 2)),
-        9,
-        fly=True,
+    inst: Spec[str] = Line(z, 1, 2, 2) * Squash(
+        Line(y, 1, 2, 2)
+        * ~Line.bounded(x, 3, 7, 2)
+        * ConstantDuration(Repeat(2), 9, fly=False)  # type: ignore
     )
     assert inst.axes() == [z, y, x]
-    dimz, dimxyt = inst.calculate()
-    assert dimxyt.midpoints == {
-        x: approx([4, 6, 6, 4]),
-        y: approx([1, 1, 2, 2]),
-    }
-    assert dimxyt.lower == {
-        x: approx([3, 5, 7, 5]),
-        y: approx([1, 1, 2, 2]),
-    }
-    assert dimxyt.upper == {
-        x: approx([5, 7, 5, 3]),
-        y: approx([1, 1, 2, 2]),
-    }
-    assert dimxyt.duration == approx([9, 9, 9, 9])
-    assert dimz.midpoints == {z: approx([1, 2])}
-    assert inst.frames().gap == ints("10101010")
+    (dimz, dimxyt) = inst.calculate()
+    for d in dimxyt.midpoints, dimxyt.lower, dimxyt.upper:
+        assert d == {
+            x: approx([4, 4, 6, 6, 6, 6, 4, 4]),
+            y: approx([1, 1, 1, 1, 2, 2, 2, 2]),
+        }
+    assert dimxyt.duration == approx([9, 9, 9, 9, 9, 9, 9, 9])
+    assert dimz.midpoints == dimz.lower == dimz.upper == {z: approx([1, 2])}
+    assert inst.frames().gap == ints("1111111111111111")
 
 
 def test_product_snaking_lines() -> None:
@@ -324,7 +317,7 @@ def test_rect_region_difference() -> None:
         x: approx([0, 1, 0, 0]),
         y: approx([1, 1, 1.5, 2]),
     }
-    assert dimt.duration == approx([0.1, 0.1, 0.1, 0.1])
+    assert dimt.duration == approx([0.1])
     assert dim.gap == ints("1011")
 
 
@@ -549,3 +542,20 @@ def test_multiple_statics_with_grid():
 )
 def test_shape(spec: Spec[Any], expected_shape: tuple[int, ...]):
     assert expected_shape == spec.shape()
+
+
+def test_constant_duration():
+    spec1 = fly(Line("x", 0, 1, 2), 1)
+    spec2 = step(Line("y", 0, 1, 2), 2)
+
+    with pytest.raises(ValueError):
+        ConstantDuration(spec1, 2)
+
+    with pytest.raises(ValueError):
+        spec1.zip(spec2)
+
+    with pytest.raises(ValueError):
+        spec1 = fly(spec1, 2)
+
+    with pytest.raises(ValueError):
+        spec1.concat(fly(spec2, 1))
