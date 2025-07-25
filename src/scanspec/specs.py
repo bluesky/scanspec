@@ -647,12 +647,6 @@ class ConstantDuration(Spec[Axis]):
     ) -> list[Dimension[Axis]]:
         if self.spec:
             dimensions = self.spec.calculate(bounds=bounds)
-            for d in dimensions:
-                if d.duration is not None:
-                    raise ValueError(
-                        f"Cannot add ConstantDuration to a spec that already\
-                        has a duration: {self.spec}"
-                    )
             dimensions[-1].duration = np.full(
                 len(dimensions[-1].gap),
                 self.constant_duration,
