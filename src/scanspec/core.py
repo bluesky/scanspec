@@ -494,6 +494,8 @@ class Dimension(Generic[Axis]):
                 raise ValueError(
                     "Can't concatenate dimensions unless all or none provide durations"
                 )
+            # Need a `type ignore`` here otherwise typing assumes durations can be None,
+            # which is not possible as it would raise an error on the line above
             return np.concatenate(durations)  # type: ignore
 
         return _merge_frames(

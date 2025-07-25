@@ -2,11 +2,13 @@ from typing import Any
 
 import pytest
 
-from scanspec.core import Path, SnakedDimension
+from scanspec.core import Dimension, Path, SnakedDimension
 from scanspec.regions import Circle, Ellipse, Polygon, Rectangle
 from scanspec.specs import (
+    VARIABLE_DURATION,
     Concat,
     ConstantDuration,
+    Fly,
     Line,
     Mask,
     Repeat,
@@ -15,8 +17,6 @@ from scanspec.specs import (
     Squash,
     Static,
     Zip,
-    fly,
-    # get_constant_duration,
     step,
 )
 
@@ -52,13 +52,13 @@ def test_two_point_line() -> None:
 def test_two_point_stepped_line() -> None:
     inst = step(Line(x, 0, 1, 2), 0.1)
     (dim,) = inst.calculate()
-    assert dim.midpoints == {x: approx([0, 1])}
+    assert dim.midpoints == dim.lower == dim.upper == {x: approx([0, 1])}
     assert dim.gap == ints("11")
     assert dim.duration == approx([0.1, 0.1])
 
 
 def test_two_point_fly_line() -> None:
-    inst = fly(Line(x, 0, 1, 2), 0.1)
+    inst = Fly(ConstantDuration(constant_duration=0.1, spec=Line(x, 0, 1, 2)))
     (dim,) = inst.calculate()
     assert dim.midpoints == {
         x: approx([0, 1]),
@@ -80,6 +80,50 @@ def test_many_point_line() -> None:
     assert dim.lower == {x: approx([-0.125, 0.125, 0.375, 0.625, 0.875])}
     assert dim.upper == {x: approx([0.125, 0.375, 0.625, 0.875, 1.125])}
     assert dim.gap == ints("10000")
+
+
+def test_empty_dimension() -> None:
+    with pytest.raises(ValueError):
+        Dimension(midpoints={}, upper={}, lower={}, gap=None, duration=None)
+
+
+def test_concat() -> None:
+    (dim1,) = Fly(
+        spec=ConstantDuration(constant_duration=1, spec=Line("x", 0, 1, 2))
+    ).calculate()
+    (dim2,) = Line("x", 3, 4, 2).calculate()
+
+    # spec2 has no duration which will raise an error in concat_duration
+    with pytest.raises(ValueError):
+        dim1.concat(dim2)
+
+    (dim2,) = Fly(
+        spec=ConstantDuration(constant_duration=1, spec=Line("x", 3, 4, 2))
+    ).calculate()
+
+    dim1.concat(dim2)
+
+    assert dim1.duration == approx([1, 1])
+
+
+def test_zip() -> None:
+    (dim1,) = Fly(
+        spec=ConstantDuration(constant_duration=1, spec=Line("x", 0, 1, 2))
+    ).calculate()
+
+    (dim2,) = Fly(
+        spec=ConstantDuration(constant_duration=2, spec=Line("y", 3, 4, 2))
+    ).calculate()
+
+    with pytest.raises(ValueError):
+        dim1.zip(dim2)
+
+
+def test_one_point_duration() -> None:
+    duration = ConstantDuration(1.0)  # type: ignore
+    (dim,) = duration.calculate()  # type: ignore
+    assert dim.duration == approx([1.0])
+    assert duration.axes() == []
 
 
 def test_one_point_bounded_line() -> None:
@@ -185,7 +229,7 @@ def test_squashed_multiplied_snake_scan() -> None:
     inst: Spec[str] = Line(z, 1, 2, 2) * Squash(
         Line(y, 1, 2, 2)
         * ~Line.bounded(x, 3, 7, 2)
-        * ConstantDuration(constant_duration=9, spec=Repeat(2), fly=False)  # type: ignore
+        * ConstantDuration(constant_duration=9, spec=Repeat(2, gap=False))  # type: ignore
     )
     assert inst.axes() == [z, y, x]
     (dimz, dimxyt) = inst.calculate()
@@ -196,7 +240,7 @@ def test_squashed_multiplied_snake_scan() -> None:
         }
     assert dimxyt.duration == approx([9, 9, 9, 9, 9, 9, 9, 9])
     assert dimz.midpoints == dimz.lower == dimz.upper == {z: approx([1, 2])}
-    assert inst.frames().gap == ints("1111111111111111")
+    assert inst.frames().gap == ints("1010101010101010")
 
 
 def test_product_snaking_lines() -> None:
@@ -220,6 +264,13 @@ def test_product_snaking_lines() -> None:
     assert dim.gap == ints("101010")
 
 
+def test_product_duration() -> None:
+    with pytest.raises(ValueError):
+        Fly(ConstantDuration(1, Line(y, 1, 2, 3))) * Fly(
+            ConstantDuration(1, ~Line(x, 0, 1, 2))
+        )  # type: ignore
+
+
 def test_concat_lines() -> None:
     inst = Concat(Line(x, 0, 1, 2), Line(x, 1, 2, 3))
     assert inst.axes() == [x]
@@ -228,6 +279,16 @@ def test_concat_lines() -> None:
     assert dim.lower == {x: approx([-0.5, 0.5, 0.75, 1.25, 1.75])}
     assert dim.upper == {x: approx([0.5, 1.5, 1.25, 1.75, 2.25])}
     assert dim.gap == ints("10100")
+
+    # Test concating one Spec with duration and another one without
+    with pytest.raises(ValueError):
+        Concat(ConstantDuration(1, Line(x, 0, 1, 2)), Line(x, 1, 2, 3))
+
+    # Variable duration concat
+    spec = Concat(
+        ConstantDuration(1, Line(x, 0, 1, 2)), ConstantDuration(2, Line(x, 1, 2, 3))
+    )
+    assert spec.duration() == VARIABLE_DURATION
 
 
 def test_rect_region() -> None:
@@ -545,7 +606,7 @@ def test_shape(spec: Spec[Any], expected_shape: tuple[int, ...]):
 
 
 def test_constant_duration():
-    spec1 = fly(Line("x", 0, 1, 2), 1)
+    spec1 = Fly(ConstantDuration(spec=Line("x", 0, 1, 2), constant_duration=1))
     spec2 = step(Line("y", 0, 1, 2), 2)
 
     with pytest.raises(ValueError):
@@ -555,7 +616,7 @@ def test_constant_duration():
         spec1.zip(spec2)
 
     with pytest.raises(ValueError):
-        spec1 = fly(spec1, 2)
+        spec1 = ConstantDuration(1, spec1)
 
     with pytest.raises(ValueError):
-        spec1.concat(fly(spec2, 1))
+        spec1.concat(Fly(ConstantDuration(1, spec2)))

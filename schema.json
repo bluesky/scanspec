@@ -563,12 +563,6 @@
                         ],
                         "description": "Spec contaning the path to be followed"
                     },
-                    "fly": {
-                        "type": "boolean",
-                        "title": "Fly",
-                        "description": "Define if the Spec is a fly or step scan",
-                        "default": false
-                    },
                     "type": {
                         "type": "string",
                         "const": "ConstantDuration",
@@ -579,8 +573,7 @@
                 "additionalProperties": false,
                 "type": "object",
                 "required": [
-                    "constant_duration",
-                    "spec"
+                    "constant_duration"
                 ],
                 "title": "ConstantDuration",
                 "description": "A special spec used to hold information about the duration of each frame."
@@ -603,12 +596,6 @@
                         ],
                         "description": "Spec contaning the path to be followed"
                     },
-                    "fly": {
-                        "type": "boolean",
-                        "title": "Fly",
-                        "description": "Define if the Spec is a fly or step scan",
-                        "default": false
-                    },
                     "type": {
                         "type": "string",
                         "const": "ConstantDuration",
@@ -619,8 +606,7 @@
                 "additionalProperties": false,
                 "type": "object",
                 "required": [
-                    "constant_duration",
-                    "spec"
+                    "constant_duration"
                 ],
                 "title": "ConstantDuration",
                 "description": "A special spec used to hold information about the duration of each frame."
@@ -736,6 +722,48 @@
                 ],
                 "title": "Ellipse",
                 "description": "Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Line\n\n    grid = Line(\"y\", 3, 8, 10) * ~Line(\"x\", 1 ,8, 10)\n    spec = grid & Ellipse(\"x\", \"y\", 5, 5, 2, 3, 75)"
+            },
+            "Fly_str_-Input": {
+                "properties": {
+                    "spec": {
+                        "$ref": "#/components/schemas/Spec-Input",
+                        "description": "Spec contaning the path to be followed"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Fly",
+                        "title": "Type",
+                        "default": "Fly"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "spec"
+                ],
+                "title": "Fly",
+                "description": "Spec that represents a fly scan."
+            },
+            "Fly_str_-Output": {
+                "properties": {
+                    "spec": {
+                        "$ref": "#/components/schemas/Spec-Output",
+                        "description": "Spec contaning the path to be followed"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Fly",
+                        "title": "Type",
+                        "default": "Fly"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "spec"
+                ],
+                "title": "Fly",
+                "description": "Spec that represents a fly scan."
             },
             "GapResponse": {
                 "properties": {
@@ -1424,6 +1452,9 @@
                         "$ref": "#/components/schemas/Line_str_"
                     },
                     {
+                        "$ref": "#/components/schemas/Fly_str_-Input"
+                    },
+                    {
                         "$ref": "#/components/schemas/ConstantDuration_str_-Input"
                     },
                     {
@@ -1438,6 +1469,7 @@
                     "mapping": {
                         "Concat": "#/components/schemas/Concat_str_-Input",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Input",
+                        "Fly": "#/components/schemas/Fly_str_-Input",
                         "Line": "#/components/schemas/Line_str_",
                         "Mask": "#/components/schemas/Mask_str_-Input",
                         "Product": "#/components/schemas/Product_str_-Input",
@@ -1477,6 +1509,9 @@
                         "$ref": "#/components/schemas/Line_str_"
                     },
                     {
+                        "$ref": "#/components/schemas/Fly_str_-Output"
+                    },
+                    {
                         "$ref": "#/components/schemas/ConstantDuration_str_-Output"
                     },
                     {
@@ -1491,6 +1526,7 @@
                     "mapping": {
                         "Concat": "#/components/schemas/Concat_str_-Output",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Output",
+                        "Fly": "#/components/schemas/Fly_str_-Output",
                         "Line": "#/components/schemas/Line_str_",
                         "Mask": "#/components/schemas/Mask_str_-Output",
                         "Product": "#/components/schemas/Product_str_-Output",
