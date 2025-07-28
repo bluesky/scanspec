@@ -17,7 +17,6 @@ from scanspec.specs import (
     Squash,
     Static,
     Zip,
-    step,
 )
 
 from . import approx
@@ -40,6 +39,13 @@ def test_one_point_line() -> None:
     assert dim.duration is None
 
 
+def test_one_point_duration() -> None:
+    duration = ConstantDuration[Any](1.0)
+    (dim,) = duration.calculate()
+    assert dim.duration == approx([1.0])
+    assert duration.axes() == []
+
+
 def test_two_point_line() -> None:
     inst = Line(x, 0, 1, 2)
     (dim,) = inst.calculate(bounds=True)
@@ -50,7 +56,7 @@ def test_two_point_line() -> None:
 
 
 def test_two_point_stepped_line() -> None:
-    inst = step(Line(x, 0, 1, 2), 0.1)
+    inst = ConstantDuration(0.1, Line(x, 0, 1, 2))
     (dim,) = inst.calculate()
     assert dim.midpoints == dim.lower == dim.upper == {x: approx([0, 1])}
     assert dim.gap == ints("11")
@@ -83,47 +89,33 @@ def test_many_point_line() -> None:
 
 
 def test_empty_dimension() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as msg:
         Dimension(midpoints={}, upper={}, lower={}, gap=None, duration=None)
+    assert "self.gap is undefined" in str(msg.value)
 
 
 def test_concat() -> None:
-    (dim1,) = Fly(
-        spec=ConstantDuration(constant_duration=1, spec=Line("x", 0, 1, 2))
-    ).calculate()
-    (dim2,) = Line("x", 3, 4, 2).calculate()
+    dim1 = Fly(spec=ConstantDuration(constant_duration=1, spec=Line("x", 0, 1, 2)))
+    dim2 = Line("x", 3, 4, 2)
 
-    # spec2 has no duration which will raise an error in concat_duration
-    with pytest.raises(ValueError):
-        dim1.concat(dim2)
+    with pytest.raises(ValueError) as msg:
+        Concat(dim1, dim2)
+    assert "Only one of left and right defines a duration" in str(msg.value)
 
-    (dim2,) = Fly(
-        spec=ConstantDuration(constant_duration=1, spec=Line("x", 3, 4, 2))
-    ).calculate()
+    dim2 = Fly(spec=ConstantDuration(constant_duration=1, spec=Line("x", 3, 4, 2)))
 
-    dim1.concat(dim2)
+    spec = Concat(dim1, dim2)
 
-    assert dim1.duration == approx([1, 1])
+    assert spec.frames().duration == approx([1, 1, 1, 1])
 
 
 def test_zip() -> None:
-    (dim1,) = Fly(
-        spec=ConstantDuration(constant_duration=1, spec=Line("x", 0, 1, 2))
-    ).calculate()
+    dim1 = Fly(spec=ConstantDuration(constant_duration=1, spec=Line("x", 0, 1, 2)))
+    dim2 = Fly(spec=ConstantDuration(constant_duration=2, spec=Line("y", 3, 4, 2)))
 
-    (dim2,) = Fly(
-        spec=ConstantDuration(constant_duration=2, spec=Line("y", 3, 4, 2))
-    ).calculate()
-
-    with pytest.raises(ValueError):
-        dim1.zip(dim2)
-
-
-def test_one_point_duration() -> None:
-    duration = ConstantDuration[Any](1.0)
-    (dim,) = duration.calculate()
-    assert dim.duration == approx([1.0])
-    assert duration.axes() == []
+    with pytest.raises(ValueError) as cm:
+        Zip(dim1, dim2)
+    assert "Both left and right define a duration" in str(cm.value)
 
 
 def test_one_point_bounded_line() -> None:
@@ -265,10 +257,11 @@ def test_product_snaking_lines() -> None:
 
 
 def test_product_duration() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as msg:
         _ = Fly(ConstantDuration(1, Line(y, 1, 2, 3))) * Fly(
             ConstantDuration(1, ~Line(x, 0, 1, 2))
         )
+    assert "Outer axes defined a duration" in str(msg.value)
 
 
 def test_concat_lines() -> None:
@@ -281,8 +274,9 @@ def test_concat_lines() -> None:
     assert dim.gap == ints("10100")
 
     # Test concating one Spec with duration and another one without
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as msg:
         Concat(ConstantDuration(1, Line(x, 0, 1, 2)), Line(x, 1, 2, 3))
+    assert "Only one of left and right defines a duration" in str(msg.value)
 
     # Variable duration concat
     spec = Concat(
@@ -607,16 +601,16 @@ def test_shape(spec: Spec[Any], expected_shape: tuple[int, ...]):
 
 def test_constant_duration():
     spec1 = Fly(ConstantDuration(spec=Line("x", 0, 1, 2), constant_duration=1))
-    spec2 = step(Line("y", 0, 1, 2), 2)
+    spec2 = ConstantDuration(2, Line("x", 0, 1, 2))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as msg:
         ConstantDuration(2, spec1)
+    assert f"{spec1} already defines a duration" in str(msg.value)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as msg:
         spec1.zip(spec2)
+    assert "Both left and right define a duration" in str(msg.value)
 
-    with pytest.raises(ValueError):
-        spec1 = ConstantDuration(1, spec1)
-
-    with pytest.raises(ValueError):
-        spec1.concat(Fly(ConstantDuration(1, spec2)))
+    with pytest.raises(ValueError) as msg:
+        spec1.concat(Line("x", 0, 1, 2))
+    assert "Only one of left and right defines a duration" in str(msg.value)

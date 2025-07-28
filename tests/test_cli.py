@@ -83,21 +83,21 @@ def test_plot_1D_line() -> None:
     lines = axes.lines
     assert len(lines) == 4
     # Splines
-    assert_min_max_2d(lines[0], 0.5, 1.5, 0, 0)
-    assert_min_max_2d(lines[1], 1.5, 2.5, 0, 0)
+    assert_min_max_2d(lines[0], 1.0, 1.0, 0, 0)
+    assert_min_max_2d(lines[1], 1.0, 2.0, 0, 0)
     # Capture points
-    assert_min_max_2d(lines[2], 1, 2, 0, 0, length=2)
+    assert_min_max_2d(lines[2], 1.0, 2.0, 0.0, 0.0, length=2)
     # End
-    assert_min_max_2d(lines[3], 2.5, 2.5, 0, 0)
+    assert_min_max_2d(lines[3], 2.0, 2.0, 0, 0)
     # Arrows
     texts = cast(list[Annotation], axes.texts)
     assert len(texts) == 1
-    assert tuple(texts[0].xy) == (0.5, 0)
+    assert tuple(texts[0].xy) == (2.0, 0)
 
 
 def test_plot_1D_line_snake_repeat() -> None:
     runner = CliRunner()
-    spec = '2 * ~Line.bounded("x", 1, 2, 1)'
+    spec = 'Fly(2 * ~Line.bounded("x", 1, 2, 1))'
     with patch("scanspec.plot.plt.show"):
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.stdout == ""
@@ -123,7 +123,7 @@ def test_plot_1D_line_snake_repeat() -> None:
 
 def test_plot_1D_step() -> None:
     runner = CliRunner()
-    spec = 'step(Line("x", 1, 2, 2), 0.1)'
+    spec = 'ConstantDuration(0.1,Line("x", 1, 2, 2))'
     with patch("scanspec.plot.plt.show"):
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.stdout == ""
@@ -146,7 +146,7 @@ def test_plot_1D_step() -> None:
 
 def test_plot_2D_line() -> None:
     runner = CliRunner()
-    spec = 'Line("y", 2, 3, 2) * Snake(Line("x", 1, 2, 2))'
+    spec = 'Fly(Line("y", 2, 3, 2) * Snake(Line("x", 1, 2, 2)))'
     with patch("scanspec.plot.plt.show"):
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.exit_code == 0
@@ -174,7 +174,8 @@ def test_plot_2D_line() -> None:
 
 def test_plot_2D_line_rect_region() -> None:
     runner = CliRunner()
-    spec = "Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(x, y, 0, 1.1, 1.5, 2.1, 30)"
+    spec = "Fly(Line(y, 1, 3, 5) * Line(x, 0, 2, 3)\
+          & Rectangle(x, y, 0, 1.1, 1.5, 2.1, 30))"
     with patch("scanspec.plot.plt.show"):
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.exit_code == 0
@@ -210,7 +211,7 @@ def test_plot_2D_line_rect_region() -> None:
 
 def test_plot_3D_line() -> None:
     runner = CliRunner()
-    spec = 'Snake(Line("z", 5, 6, 2) * Line("y", 2, 3, 2) * Line("x", 1, 2, 2))'
+    spec = 'Fly(Snake(Line("z", 5, 6, 2) * Line("y", 2, 3, 2) * Line("x", 1, 2, 2)))'
     with patch("scanspec.plot.plt.show"):
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.exit_code == 0
