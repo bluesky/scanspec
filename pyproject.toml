@@ -12,7 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 description = "Specify step and flyscan paths in a serializable, efficient and Pythonic way"
-dependencies = ["numpy", "click>=8.1", "pydantic>=2.0", "Pillow==11.0.0"]
+dependencies = ["numpy", "click>=8.1", "pydantic>=2.0"]
 dynamic = ["version"]
 license.file = "LICENSE"
 readme = "README.md"
@@ -46,6 +46,7 @@ dev = [
     "sphinxcontrib-openapi",
     "tox-direct",
     "types-mock",
+    "Pillow==11.0.0",
 ]
 
 [project.scripts]
