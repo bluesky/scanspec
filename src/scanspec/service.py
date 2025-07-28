@@ -223,7 +223,7 @@ def gap(
     dims = spec.calculate()  # Grab dimensions from spec
     path = Path(dims)  # Convert to a path
     gap = list(path.consume().gap)
-    return GapResponse(gap)  # type: ignore
+    return GapResponse(gap)
 
 
 @app.post("/smalleststep", response_model=SmallestStepResponse)
@@ -296,7 +296,7 @@ def _format_axes_points(
 
     """
     if format is PointsFormat.FLOAT_LIST:
-        return {axis: list(points) for axis, points in axes_points.items()}  # type: ignore
+        return {axis: list(points) for axis, points in axes_points.items()}
     elif format is PointsFormat.STRING:
         return {axis: str(points) for axis, points in axes_points.items()}
     elif format is PointsFormat.BASE64_ENCODED:

@@ -283,7 +283,7 @@ class Zip(Spec[Axis]):
         padded_right: list[Dimension[Axis] | None] = [None] * npad
         # Mypy doesn't like this because lists are invariant:
         # https://github.com/python/mypy/issues/4244
-        padded_right += frames_right  # type: ignore
+        padded_right += frames_right
 
         # Work through, zipping them together one by one
         frames: list[Dimension[Axis]] = []

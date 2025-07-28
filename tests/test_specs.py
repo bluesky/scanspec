@@ -120,8 +120,8 @@ def test_zip() -> None:
 
 
 def test_one_point_duration() -> None:
-    duration = ConstantDuration(1.0)  # type: ignore
-    (dim,) = duration.calculate()  # type: ignore
+    duration = ConstantDuration[Any](1.0)
+    (dim,) = duration.calculate()
     assert dim.duration == approx([1.0])
     assert duration.axes() == []
 
@@ -226,10 +226,10 @@ def test_squashed_product() -> None:
 
 
 def test_squashed_multiplied_snake_scan() -> None:
-    inst: Spec[str] = Line(z, 1, 2, 2) * Squash(
+    inst = Line(z, 1, 2, 2) * Squash(
         Line(y, 1, 2, 2)
         * ~Line.bounded(x, 3, 7, 2)
-        * ConstantDuration(constant_duration=9, spec=Repeat(2, gap=False))  # type: ignore
+        * ConstantDuration(9, Repeat[str](2, gap=False))  # until #177
     )
     assert inst.axes() == [z, y, x]
     (dimz, dimxyt) = inst.calculate()
@@ -266,9 +266,9 @@ def test_product_snaking_lines() -> None:
 
 def test_product_duration() -> None:
     with pytest.raises(ValueError):
-        Fly(ConstantDuration(1, Line(y, 1, 2, 3))) * Fly(
+        _ = Fly(ConstantDuration(1, Line(y, 1, 2, 3))) * Fly(
             ConstantDuration(1, ~Line(x, 0, 1, 2))
-        )  # type: ignore
+        )
 
 
 def test_concat_lines() -> None:
@@ -524,23 +524,23 @@ def test_beam_selector() -> None:
 
 def test_gap_repeat() -> None:
     # Check that no gap propogates to dim.gap for snaked axis
-    spec: Spec[str] = Repeat(10, gap=False) * ~Line.bounded(x, 11, 19, 1)  # type: ignore
-    dim = spec.frames()  # type: ignore
-    assert len(dim) == 10  # type: ignore
-    assert dim.lower == {x: approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19])}  # type: ignore
-    assert dim.upper == {x: approx([19, 11, 19, 11, 19, 11, 19, 11, 19, 11])}  # type: ignore
-    assert dim.midpoints == {x: approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15])}  # type: ignore
+    spec = Repeat[str](10, gap=False) * ~Line.bounded(x, 11, 19, 1)
+    dim = spec.frames()
+    assert len(dim) == 10
+    assert dim.lower == {x: approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19])}
+    assert dim.upper == {x: approx([19, 11, 19, 11, 19, 11, 19, 11, 19, 11])}
+    assert dim.midpoints == {x: approx([15, 15, 15, 15, 15, 15, 15, 15, 15, 15])}
     assert dim.gap == ints("0000000000")
 
 
 def test_gap_repeat_non_snake() -> None:
     # Check that no gap doesn't propogate to dim.gap for non-snaked axis
-    spec: Spec[str] = Repeat(3, gap=False) * Line.bounded(x, 11, 19, 1)  # type: ignore
-    dim = spec.frames()  # type: ignore
-    assert len(dim) == 3  # type: ignore
-    assert dim.lower == {x: approx([11, 11, 11])}  # type: ignore
-    assert dim.upper == {x: approx([19, 19, 19])}  # type: ignore
-    assert dim.midpoints == {x: approx([15, 15, 15])}  # type: ignore
+    spec = Repeat[str](3, gap=False) * Line.bounded(x, 11, 19, 1)
+    dim = spec.frames()
+    assert len(dim) == 3
+    assert dim.lower == {x: approx([11, 11, 11])}
+    assert dim.upper == {x: approx([19, 19, 19])}
+    assert dim.midpoints == {x: approx([15, 15, 15])}
     assert dim.gap == ints("111")
 
 
