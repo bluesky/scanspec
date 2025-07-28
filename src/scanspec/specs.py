@@ -109,6 +109,11 @@ class Spec(Generic[Axis]):
     def __rmul__(self, other: int) -> Product[Axis]:
         return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
 
+    def __rmatmul__(self, other: float) -> Product[Axis]:
+        return if_instance_do(
+            other, float, lambda o: Product(ConstantDuration(o), self)
+        )
+
     @overload
     def __mul__(self, other: Spec[Axis]) -> Product[Axis]: ...
 
@@ -789,6 +794,29 @@ class Spiral(Spec[Axis]):
 Spiral.spaced = validate_call(Spiral.spaced)  # type:ignore
 
 
+def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
+    """Flyscan, zipping with fixed duration for every frame.
+
+    Args:
+        spec: The source `Spec` to continuously move
+        duration: How long to spend at each frame in the spec
+
+    .. example_spec::
+
+        from scanspec.specs import Line, fly
+
+        spec = fly(Line("x", 1, 2, 3), 0.1)
+
+    """
+    warnings.warn(
+        f"fly method is deprecated! Use {duration} @ spec instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
+    return ConstantDuration(constant_duration=duration, spec=spec)
+
+
 def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
     """Step scan, with num frames of given duration at each frame in the spec.
 
@@ -805,6 +833,11 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
         spec = step(Line("x", 1, 2, 3), 0.1)
 
     """
+    warnings.warn(
+        f"step method is deprecated! Use {duration} @ spec instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return ConstantDuration(constant_duration=duration, spec=spec)
 
 
