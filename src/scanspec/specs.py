@@ -83,7 +83,7 @@ class Spec(Generic[Axis]):
         - ``float``: A constant duration for each point
         - `VARIABLE_DURATION`: A different duration for each point
         """
-        raise NotImplementedError(self)
+        return None
 
     def calculate(
         self, bounds: bool = False, nested: bool = False
@@ -94,9 +94,9 @@ class Spec(Generic[Axis]):
         """
         raise NotImplementedError(self)
 
-    def frames(self) -> Dimension[Axis]:
+    def frames(self, bounds: bool = False) -> Dimension[Axis]:
         """Expand all the scan `Dimension` and return them."""
-        return stack2dimension(self.calculate())
+        return stack2dimension(self.calculate(bounds=bounds))
 
     def midpoints(self) -> Midpoints[Axis]:
         """Return `Midpoints` that can be iterated point by point."""
@@ -170,7 +170,7 @@ class Product(Spec[Axis]):
         return inner
 
     def calculate(  # noqa: D102
-        self, bounds: bool = True, nested: bool = False
+        self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         frames_outer = self.outer.calculate(bounds=False, nested=nested)
         frames_inner = self.inner.calculate(bounds, nested=True)
@@ -210,11 +210,8 @@ class Repeat(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return []
 
-    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
-        return None
-
     def calculate(  # noqa: D102
-        self, bounds: bool = True, nested: bool = False
+        self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         return [Dimension({}, gap=np.full(self.num, self.gap))]
 
@@ -259,7 +256,7 @@ class Zip(Spec[Axis]):
         return left if left is not None else right
 
     def calculate(  # noqa: D102
-        self, bounds: bool = True, nested: bool = False
+        self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         frames_left = self.left.calculate(bounds, nested)
         frames_right = self.right.calculate(bounds, nested)
@@ -333,7 +330,7 @@ class Mask(Spec[Axis]):
         return self.spec.duration()
 
     def calculate(  # noqa: D102
-        self, bounds: bool = True, nested: bool = False
+        self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         frames = self.spec.calculate(bounds, nested)
         for axis_set in self.region.axis_sets():
@@ -396,7 +393,7 @@ class Snake(Spec[Axis]):
         return self.spec.duration()
 
     def calculate(  # noqa: D102
-        self, bounds: bool = True, nested: bool = False
+        self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         return [
             SnakedDimension.from_frames(segment)
@@ -453,7 +450,7 @@ class Concat(Spec[Axis]):
             return VARIABLE_DURATION
 
     def calculate(  # noqa: D102
-        self, bounds: bool = True, nested: bool = False
+        self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         dim_left = squash_frames(
             self.left.calculate(bounds, nested), nested and self.check_path_changes
@@ -493,7 +490,7 @@ class Squash(Spec[Axis]):
         return self.spec.duration()
 
     def calculate(  # noqa: D102
-        self, bounds: bool = True, nested: bool = False
+        self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         dims = self.spec.calculate(bounds, nested)
         dim = squash_frames(dims, nested and self.check_path_changes)
@@ -546,9 +543,6 @@ class Line(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
 
-    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
-        return None
-
     def _line_from_indexes(
         self, indexes: npt.NDArray[np.float64]
     ) -> dict[Axis, npt.NDArray[np.float64]]:
@@ -564,7 +558,7 @@ class Line(Spec[Axis]):
         return {self.axis: indexes * step + first}
 
     def calculate(  # noqa: D102
-        self, bounds: bool = True, nested: bool = False
+        self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         return _dimensions_from_indexes(
             self._line_from_indexes, self.axes(), self.num, bounds
@@ -616,7 +610,7 @@ class Fly(Spec[Axis]):
         return self.spec.duration()
 
     def calculate(  # noqa: D102
-        self, bounds: bool = True, nested: bool = False
+        self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         return self.spec.calculate(bounds=True, nested=nested)
 
@@ -683,16 +677,13 @@ class Static(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
 
-    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
-        return None
-
     def _repeats_from_indexes(
         self, indexes: npt.NDArray[np.float64]
     ) -> dict[Axis, npt.NDArray[np.float64]]:
         return {self.axis: np.full(len(indexes), self.value)}
 
     def calculate(  # noqa: D102
-        self, bounds: bool = True, nested: bool = False
+        self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         return _dimensions_from_indexes(
             self._repeats_from_indexes, self.axes(), self.num, bounds
@@ -730,9 +721,6 @@ class Spiral(Spec[Axis]):
         # TODO: reversed from __init__ args, a good idea?
         return [self.y_axis, self.x_axis]
 
-    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
-        return None
-
     def _spiral_from_indexes(
         self, indexes: npt.NDArray[np.float64]
     ) -> dict[Axis, npt.NDArray[np.float64]]:
@@ -753,7 +741,7 @@ class Spiral(Spec[Axis]):
         }
 
     def calculate(  # noqa: D102
-        self, bounds: bool = True, nested: bool = False
+        self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self.num, bounds
