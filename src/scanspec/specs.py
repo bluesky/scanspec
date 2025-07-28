@@ -45,7 +45,6 @@ __all__ = [
     "Static",
     "Spiral",
     "Fly",
-    "fly",
     "step",
 ]
 
@@ -800,23 +799,6 @@ class Spiral(Spec[Axis]):
 
 
 Spiral.spaced = validate_call(Spiral.spaced)  # type:ignore
-
-
-def fly(spec: Spec[Axis], duration: float) -> Spec[Axis]:
-    """Flyscan, zipping with fixed duration for every frame.
-
-    Args:
-        spec: The source `Spec` to continuously move
-        duration: How long to spend at each frame in the spec
-
-    .. example_spec::
-
-        from scanspec.specs import Line, fly
-
-        spec = fly(Line("x", 1, 2, 3), 0.1)
-
-    """
-    return ConstantDuration(constant_duration=duration, spec=spec)
 
 
 def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
