@@ -52,6 +52,7 @@ __all__ = [
     "discriminated_union_of_subclasses",
     "StrictConfig",
     "DURATION",
+    "Slice",
 ]
 
 #: Can be used as a special key to indicate how long each point should be
@@ -312,6 +313,10 @@ class Slice(Generic[Axis]):
         return len(self.gap)
 
     def axes(self) -> list[Axis]:
+        """The axes which will move during the scan.
+
+        These will be present in `midpoints`, `lower` and `upper`.
+        """
         return list(self.midpoints.keys())
 
 
