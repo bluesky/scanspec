@@ -367,7 +367,7 @@ class Dimension(Generic[Axis]):
             self.gap = gap
         # If midpoints are provided and we don't have a gap array
         # calculate it based on the midpoints
-        elif gap is None and len(self.midpoints) > 0:
+        elif self.midpoints:
             # Need to calculate gap as not passed one
             # We have a gap if upper[i] != lower[i+1] for any axes
             axes_gap = [
@@ -379,7 +379,7 @@ class Dimension(Generic[Axis]):
             self.gap = np.logical_or.reduce(axes_gap)
         # If only duratiotn is provided we need to make gap have the same shape
         # as the duration provided for the __len__ method
-        elif gap is None and self.duration is not None and len(self.midpoints) == 0:
+        elif self.duration is not None:
             self.gap = np.full(len(self.duration), False)
         else:
             raise ValueError("self.gap is undefined")
