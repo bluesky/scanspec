@@ -365,9 +365,11 @@ def test_rect_region_difference() -> None:
         Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(x, y, 0, 1, 1.5, 2.2)
     ) - Rectangle(x, y, 0.5, 1.5, 2, 2.5)
 
-    inst = ConstantDuration(
-        0.1,
-        spec,
+    inst = Fly(
+        ConstantDuration(
+            0.1,
+            spec,
+        )
     )
     assert inst.axes() == [y, x]
     (dim,) = inst.calculate()
@@ -376,7 +378,7 @@ def test_rect_region_difference() -> None:
         y: approx([1, 1, 1.5, 2]),
     }
     assert dim.duration == approx([0.1, 0.1, 0.1, 0.1])
-    assert dim.gap == ints("1111")
+    assert dim.gap == ints("1011")
 
 
 def test_rect_region_symmetricdifference() -> None:

@@ -611,7 +611,7 @@ class Fly(Spec[Axis]):
     def axes(self) -> list[Axis]:  # noqa: D102
         return self.spec.axes()
 
-    def duration(self):  # noqa: D102
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
         return self.spec.duration()
 
     def calculate(  # noqa: D102
