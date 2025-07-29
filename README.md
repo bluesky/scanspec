@@ -31,11 +31,11 @@ An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
 each point:
 
 ```python
-from scanspec.specs import Line, fly
+from scanspec.specs import Line, Fly, ConstantDuration
 from scanspec.regions import Circle
 
 grid = Line(y, 2.1, 3.8, 12) * ~Line(x, 0.5, 1.5, 10)
-spec = fly(grid, 0.4) & Circle(x, y, 1.0, 2.8, radius=0.5)
+spec = Fly(ConstantDuration(0.4, grid)) & Circle(x, y, 1.0, 2.8, radius=0.5)
 ```
 
 Which when plotted looks like:
@@ -48,8 +48,8 @@ Scan points can be iterated through directly for convenience:
 for point in spec.midpoints():
     print(point)
 # ...
-# {'y': 3.1818181818181817, 'x': 0.8333333333333333, 'DURATION': 0.4}
-# {'y': 3.1818181818181817, 'x': 0.7222222222222222, 'DURATION': 0.4}
+# {'y': 3.1818181818181817, 'x': 0.8333333333333333}
+# {'y': 3.1818181818181817, 'x': 0.7222222222222222}
 ```
 
 or a Path created from the stack of Frames and chunks of a given length
@@ -60,12 +60,13 @@ from scanspec.core import Path
 
 stack = spec.calculate()
 len(stack[0])  # 44
-stack[0].axes()  # ['y', 'x', 'DURATION']
+stack[0].axes()  # ['y', 'x']
 
 path = Path(stack, start=5, num=30)
 chunk = path.consume(10)
 chunk.midpoints  # {'x': <ndarray len=10>, 'y': <ndarray len=10>, 'DURATION': <ndarray len=10>}
 chunk.upper  # bounds are same dimensionality as positions
+chunk.duration # duration of each frame
 ```
 
 <!-- README only content. Anything below this line won't be included in index.md -->
