@@ -17,6 +17,9 @@ from scanspec.specs import (
     Squash,
     Static,
     Zip,
+    fly,
+    get_constant_duration,
+    step,
 )
 
 from . import approx
@@ -614,3 +617,42 @@ def test_constant_duration():
     with pytest.raises(ValueError) as msg:
         spec1.concat(Line("x", 0, 1, 2))
     assert "Only one of left and right defines a duration" in str(msg.value)
+
+
+@pytest.mark.filterwarnings("ignore:fly")
+def test_fly():
+    spec = fly(Line("x", 0, 1, 5), 0.1)
+    (dim,) = spec.calculate()
+    assert dim.midpoints == {x: approx([0, 0.25, 0.5, 0.75, 1])}
+    assert dim.duration == approx(
+        [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+        ]
+    )
+
+
+@pytest.mark.filterwarnings("ignore:step")
+def test_step():
+    (dim,) = step(Line("x", 0, 1, 5), 0.1).calculate()
+    assert (
+        dim.midpoints == dim.lower == dim.upper == {x: approx([0, 0.25, 0.5, 0.75, 1])}
+    )
+    assert dim.duration == approx(
+        [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+        ]
+    )
+
+
+@pytest.mark.filterwarnings("ignore:get_constant_duration")
+def test_get_constant_duration():
+    spec = Fly(ConstantDuration(1, Line("x", 0, 1, 4))).calculate()
+    assert get_constant_duration(spec) == 1
