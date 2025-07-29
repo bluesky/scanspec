@@ -51,7 +51,6 @@ __all__ = [
     "Midpoints",
     "discriminated_union_of_subclasses",
     "StrictConfig",
-    "DURATION",
     "Slice",
 ]
 
