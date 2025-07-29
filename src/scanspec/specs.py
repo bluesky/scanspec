@@ -809,7 +809,7 @@ def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
 
     """
     warnings.warn(
-        f"fly method is deprecated! Use Fly(ConstnatDuration({duration},spec)) instead",
+        f"fly method is deprecated! Use Fly(ConstantDuration({duration},spec)) instead",
         DeprecationWarning,
         stacklevel=2,
     )
