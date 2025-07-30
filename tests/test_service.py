@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from scanspec.service import PointsFormat, PointsRequest, app
-from scanspec.specs import Line
+from scanspec.specs import Fly, Line
 
 
 @pytest.fixture
@@ -59,18 +59,18 @@ def test_subsampling(client: TestClient) -> None:
     [
         (
             PointsFormat.FLOAT_LIST,
-            [0, 0.25, 0.5, 0.75, 1],
-            [0, 0.25, 0.5, 0.75, 1],
+            [-0.125, 0.125, 0.375, 0.625, 0.875],
+            [0.125, 0.375, 0.625, 0.875, 1.125],
         ),
         (
             PointsFormat.STRING,
-            "[0.   0.25 0.5  0.75 1.  ]",
-            "[0.   0.25 0.5  0.75 1.  ]",
+            "[-0.125  0.125  0.375  0.625  0.875]",
+            "[0.125 0.375 0.625 0.875 1.125]",
         ),
         (
             PointsFormat.BASE64_ENCODED,
-            "AAAAAAAAAAAAAAAAAADQPwAAAAAAAOA/AAAAAAAA6D8AAAAAAADwPw==",
-            "AAAAAAAAAAAAAAAAAADQPwAAAAAAAOA/AAAAAAAA6D8AAAAAAADwPw==",
+            "AAAAAAAAwL8AAAAAAADAPwAAAAAAANg/AAAAAAAA5D8AAAAAAADsPw==",
+            "AAAAAAAAwD8AAAAAAADYPwAAAAAAAOQ/AAAAAAAA7D8AAAAAAADyPw==",
         ),
     ],
     ids=["float_list", "string", "base64"],
@@ -78,7 +78,7 @@ def test_subsampling(client: TestClient) -> None:
 def test_bounds(
     client: TestClient, format: PointsFormat, expected_lower: Any, expected_upper: Any
 ) -> None:
-    request = PointsRequest(Line("x", 0.0, 1.0, 5), max_frames=5, format=format)
+    request = PointsRequest(Fly(Line("x", 0.0, 1.0, 5)), max_frames=5, format=format)
     response = client.post("/bounds", json=asdict(request))
     assert response.status_code == 200
     assert response.json() == {
@@ -93,11 +93,11 @@ def test_bounds(
 # GAP TEST(S) #
 def test_gap(client: TestClient) -> None:
     # If not defined specs will default to a step scan
-    spec = Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 3)
+    spec = Fly(Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 3))
     response = client.post("/gap", json=spec.serialize())
     assert response.status_code == 200
     assert response.json() == {
-        "gap": [True, True, True, True, True, True, True, True, True]
+        "gap": [True, False, False, True, False, False, True, False, False]
     }
 
 
