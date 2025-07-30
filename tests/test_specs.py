@@ -644,6 +644,8 @@ def test_fly():
     spec = fly(Line("x", 0, 1, 5), 0.1)
     (dim,) = spec.calculate()
     assert dim.midpoints == {x: approx([0, 0.25, 0.5, 0.75, 1])}
+    assert dim.upper == {x: approx([0.125, 0.375, 0.625, 0.875, 1.125])}
+    assert dim.lower == {x: approx([-0.125, 0.125, 0.375, 0.625, 0.875])}
     assert dim.duration == approx(
         [
             0.1,

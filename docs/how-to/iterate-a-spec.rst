@@ -90,9 +90,8 @@ You may need to know where there is a gap between points, so that you can do
 something in the turnaround. For example, if we take the x axis of a grid scan,
 you can see it snakes back and forth:
 
->>> from scanspec.specs import Line, Fly, ConstantDuration
->>> spec = Line("y", 0, 1, 2) * ~Line("x", 1, 2, 3)
->>> grid = Fly(ConstantDuration(0.1,spec))
+>>> from scanspec.specs import Line, Fly
+>>> grid = Fly(0.1 @ Line("y", 0, 1, 2) * ~Line("x", 1, 2, 3))
 >>> chunk = grid.frames()
 >>> chunk.midpoints["x"]
 array([1. , 1.5, 2. , 2. , 1.5, 1. ])

@@ -31,11 +31,11 @@ An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
 each point:
 
 ```python
-from scanspec.specs import Line, Fly, ConstantDuration
+from scanspec.specs import Line, Fly
 from scanspec.regions import Circle
 
 grid = Line(y, 2.1, 3.8, 12) * ~Line(x, 0.5, 1.5, 10)
-spec = Fly(ConstantDuration(0.4, grid)) & Circle(x, y, 1.0, 2.8, radius=0.5)
+spec = Fly(0.4 @ grid) & Circle(x, y, 1.0, 2.8, radius=0.5)
 ```
 
 Which when plotted looks like:

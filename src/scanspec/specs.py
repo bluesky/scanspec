@@ -46,6 +46,7 @@ __all__ = [
     "Spiral",
     "Fly",
     "step",
+    "fly",
 ]
 
 VARIABLE_DURATION = "VARIABLE_DURATION"
@@ -809,12 +810,12 @@ def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
 
     """
     warnings.warn(
-        f"fly method is deprecated! Use Fly(ConstantDuration({duration},spec)) instead",
+        f"fly method is deprecated! Use Fly({duration} @ spec) instead",
         DeprecationWarning,
         stacklevel=2,
     )
 
-    return ConstantDuration(constant_duration=duration, spec=spec)
+    return Fly(duration @ spec)
 
 
 def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
@@ -838,7 +839,7 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
         DeprecationWarning,
         stacklevel=2,
     )
-    return ConstantDuration(constant_duration=duration, spec=spec)
+    return duration @ spec
 
 
 def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
