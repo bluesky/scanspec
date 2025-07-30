@@ -64,7 +64,7 @@ stack[0].axes()  # ['y', 'x']
 
 path = Path(stack, start=5, num=30)
 chunk = path.consume(10)
-chunk.midpoints  # {'x': <ndarray len=10>, 'y': <ndarray len=10>, 'DURATION': <ndarray len=10>}
+chunk.midpoints  # {'x': <ndarray len=10>, 'y': <ndarray len=10>}
 chunk.upper  # bounds are same dimensionality as positions
 chunk.duration # duration of each frame
 ```
