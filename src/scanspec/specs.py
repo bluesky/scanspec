@@ -109,9 +109,9 @@ class Spec(Generic[Axis]):
     def __rmul__(self, other: int) -> Product[Axis]:
         return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
 
-    def __rmatmul__(self, other: float) -> Product[Axis]:
+    def __rmatmul__(self, other: float) -> ConstantDuration[Axis]:
         return if_instance_do(
-            other, float, lambda o: Product(ConstantDuration(o), self)
+            other, float, lambda o: ConstantDuration(constant_duration=o, spec=self)
         )
 
     @overload
