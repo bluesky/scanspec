@@ -59,7 +59,7 @@ def test_two_point_line() -> None:
 
 
 def test_two_point_stepped_line() -> None:
-    inst = ConstantDuration(0.1, Line(x, 0, 1, 2))
+    inst = 0.1 @ Line("x", 0, 1, 2)
     (dim,) = inst.calculate()
     assert dim.midpoints == dim.lower == dim.upper == {x: approx([0, 1])}
     assert dim.gap == ints("11")
@@ -111,6 +111,16 @@ def test_concat() -> None:
 
     assert spec.frames().duration == approx([1, 1, 1, 1])
 
+    # Check that concat on the Dimension class works as expected
+    (dim1,) = Line("x", 3, 4, 2).calculate()
+    (dim2,) = ConstantDuration(1, Line("x", 3, 4, 2)).calculate()
+
+    with pytest.raises(ValueError) as msg:
+        dim1.concat(dim2)
+    assert "Can't concatenate dimensions unless all or none provide durations" in str(
+        msg.value
+    )
+
 
 def test_zip() -> None:
     dim1 = Fly(spec=ConstantDuration(constant_duration=1, spec=Line("x", 0, 1, 2)))
@@ -119,6 +129,14 @@ def test_zip() -> None:
     with pytest.raises(ValueError) as cm:
         Zip(dim1, dim2)
     assert "Both left and right define a duration" in str(cm.value)
+
+    # Forcing the Specs into dimensions and trying to zip them
+    (dim1,) = dim1.calculate()
+    (dim2,) = dim2.calculate()
+
+    with pytest.raises(ValueError) as cm:
+        dim1.zip(dim2)
+    assert "Can't have more than one durations array" in str(cm.value)
 
 
 def test_one_point_bounded_line() -> None:
@@ -658,3 +676,9 @@ def test_step():
 def test_get_constant_duration():
     spec = Fly(ConstantDuration(1, Line("x", 0, 1, 4))).calculate()
     assert get_constant_duration(spec) == 1
+
+    spec = Concat(
+        ConstantDuration(1, Line(x, 0, 1, 2)), ConstantDuration(2, Line(x, 1, 2, 3))
+    ).calculate()
+
+    assert get_constant_duration(spec) is None
