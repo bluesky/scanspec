@@ -23,7 +23,6 @@ requires-python = ">=3.10"
 plotting = ["scipy", "matplotlib"]
 # REST service support
 service = ["fastapi>=0.100.0", "uvicorn"]
-# For development tests/docs
 dev = [
     # This syntax is supported since pip 21.2
     # https://github.com/pypa/pip/issues/10393
@@ -44,9 +43,11 @@ dev = [
     "sphinx-copybutton",
     "sphinx-design",
     "sphinxcontrib-openapi",
+    "strawberry-graphql[debug-server]",
+    "strawberry-graphql[fastapi]",
     "tox-direct",
     "types-mock",
-]
+] # For development tests/docs
 
 [project.scripts]
 scanspec = "scanspec.cli:cli"
