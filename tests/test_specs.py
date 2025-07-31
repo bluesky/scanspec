@@ -67,7 +67,7 @@ def test_two_point_stepped_line() -> None:
 
 
 def test_two_point_fly_line() -> None:
-    inst = Fly(ConstantDuration(constant_duration=0.1, spec=Line(x, 0, 1, 2)))
+    inst = Fly(0.1 @ Line(x, 0, 1, 2))
     (dim,) = inst.calculate()
     assert dim.midpoints == {
         x: approx([0, 1]),
@@ -98,14 +98,14 @@ def test_empty_dimension() -> None:
 
 
 def test_concat() -> None:
-    dim1 = Fly(spec=ConstantDuration(constant_duration=1, spec=Line("x", 0, 1, 2)))
+    dim1 = Fly(1.0 @ Line("x", 0, 1, 2))
     dim2 = Line("x", 3, 4, 2)
 
     with pytest.raises(ValueError) as msg:
         Concat(dim1, dim2)
     assert "Only one of left and right defines a duration" in str(msg.value)
 
-    dim2 = Fly(spec=ConstantDuration(constant_duration=1, spec=Line("x", 3, 4, 2)))
+    dim2 = Fly(1.0 @ Line("x", 3, 4, 2))
 
     spec = Concat(dim1, dim2)
 
@@ -113,7 +113,7 @@ def test_concat() -> None:
 
     # Check that concat on the Dimension class works as expected
     (dim1,) = Line("x", 3, 4, 2).calculate()
-    (dim2,) = ConstantDuration(1, Line("x", 3, 4, 2)).calculate()
+    (dim2,) = (1.0 @ Line("x", 3, 4, 2)).calculate()
 
     with pytest.raises(ValueError) as msg:
         dim1.concat(dim2)
@@ -123,8 +123,8 @@ def test_concat() -> None:
 
 
 def test_zip() -> None:
-    dim1 = Fly(spec=ConstantDuration(constant_duration=1, spec=Line("x", 0, 1, 2)))
-    dim2 = Fly(spec=ConstantDuration(constant_duration=2, spec=Line("y", 3, 4, 2)))
+    dim1 = Fly(1.0 @ Line("x", 0, 1, 2))
+    dim2 = Fly(2.0 @ Line("y", 3, 4, 2))
 
     with pytest.raises(ValueError) as cm:
         Zip(dim1, dim2)
@@ -242,7 +242,7 @@ def test_squashed_multiplied_snake_scan() -> None:
     inst = Line(z, 1, 2, 2) * Squash(
         Line(y, 1, 2, 2)
         * ~Line.bounded(x, 3, 7, 2)
-        * ConstantDuration(9, Repeat[str](2, gap=False))  # until #177
+        * (9.0 @ Repeat[str](2, gap=False))  # until #177
     )
     assert inst.axes() == [z, y, x]
     (dimz, dimxyt) = inst.calculate()
@@ -279,9 +279,7 @@ def test_product_snaking_lines() -> None:
 
 def test_product_duration() -> None:
     with pytest.raises(ValueError) as msg:
-        _ = Fly(ConstantDuration(1, Line(y, 1, 2, 3))) * Fly(
-            ConstantDuration(1, ~Line(x, 0, 1, 2))
-        )
+        _ = Fly(1.0 @ Line(y, 1, 2, 3)) * Fly(1.0 @ ~Line(x, 0, 1, 2))
     assert "Outer axes defined a duration" in str(msg.value)
 
 
@@ -296,13 +294,11 @@ def test_concat_lines() -> None:
 
     # Test concating one Spec with duration and another one without
     with pytest.raises(ValueError) as msg:
-        Concat(ConstantDuration(1, Line(x, 0, 1, 2)), Line(x, 1, 2, 3))
+        Concat((1.0 @ Line(x, 0, 1, 2)), Line(x, 1, 2, 3))
     assert "Only one of left and right defines a duration" in str(msg.value)
 
     # Variable duration concat
-    spec = Concat(
-        ConstantDuration(1, Line(x, 0, 1, 2)), ConstantDuration(2, Line(x, 1, 2, 3))
-    )
+    spec = Concat(1.0 @ Line(x, 0, 1, 2), 2.0 @ Line(x, 1, 2, 3))
     assert spec.duration() == VARIABLE_DURATION
 
 
@@ -383,12 +379,7 @@ def test_rect_region_difference() -> None:
         Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(x, y, 0, 1, 1.5, 2.2)
     ) - Rectangle(x, y, 0.5, 1.5, 2, 2.5)
 
-    inst = Fly(
-        ConstantDuration(
-            0.1,
-            spec,
-        )
-    )
+    inst = Fly(0.1 @ spec)
     assert inst.axes() == [y, x]
     (dim,) = inst.calculate()
     assert dim.midpoints == {
@@ -623,11 +614,11 @@ def test_shape(spec: Spec[Any], expected_shape: tuple[int, ...]):
 
 
 def test_constant_duration():
-    spec1 = Fly(ConstantDuration(spec=Line("x", 0, 1, 2), constant_duration=1))
-    spec2 = ConstantDuration(2, Line("x", 0, 1, 2))
+    spec1 = Fly(1.0 @ Line("x", 0, 1, 2))
+    spec2 = 2.0 @ Line("x", 0, 1, 2)
 
     with pytest.raises(ValueError) as msg:
-        ConstantDuration(2, spec1)
+        2.0 @ spec1  # type: ignore
     assert f"{spec1} already defines a duration" in str(msg.value)
 
     with pytest.raises(ValueError) as msg:
@@ -676,11 +667,9 @@ def test_step():
 
 @pytest.mark.filterwarnings("ignore:get_constant_duration")
 def test_get_constant_duration():
-    spec = Fly(ConstantDuration(1, Line("x", 0, 1, 4))).calculate()
+    spec = Fly(1.0 @ Line("x", 0, 1, 4)).calculate()
     assert get_constant_duration(spec) == 1
 
-    spec = Concat(
-        ConstantDuration(1, Line(x, 0, 1, 2)), ConstantDuration(2, Line(x, 1, 2, 3))
-    ).calculate()
+    spec = Concat(1.0 @ Line(x, 0, 1, 2), 2.0 @ Line(x, 1, 2, 3)).calculate()
 
     assert get_constant_duration(spec) is None

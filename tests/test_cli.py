@@ -123,7 +123,7 @@ def test_plot_1D_line_snake_repeat() -> None:
 
 def test_plot_1D_step() -> None:
     runner = CliRunner()
-    spec = 'ConstantDuration(0.1,Line("x", 1, 2, 2))'
+    spec = '0.1 @ Line("x", 1, 2, 2)'
     with patch("scanspec.plot.plt.show"):
         result = runner.invoke(cli.cli, ["plot", spec])
     assert result.stdout == ""
