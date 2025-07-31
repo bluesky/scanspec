@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.core &#8212; scanspec 0.8.1.dev2+g0fd755c7 documentation</title>
+    <title>scanspec.core &#8212; scanspec 0.8.1.dev3+g117d2954 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=9f949d4b"></script>
+    <script src="../../_static/documentation_options.js?v=e822ba0f"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -497,12 +497,8 @@
     <span class="s2">&quot;Midpoints&quot;</span><span class="p">,</span>
     <span class="s2">&quot;discriminated_union_of_subclasses&quot;</span><span class="p">,</span>
     <span class="s2">&quot;StrictConfig&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;DURATION&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Slice&quot;</span><span class="p">,</span>
 <span class="p">]</span>
-
-<span class="c1">#: Can be used as a special key to indicate how long each point should be</span>
-<span class="n">DURATION</span> <span class="o">=</span> <span class="s2">&quot;DURATION&quot;</span>
 
 <span class="c1">#: Used to ensure pydantic dataclasses error if given extra arguments</span>
 <span class="n">StrictConfig</span><span class="p">:</span> <span class="n">ConfigDict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;extra&quot;</span><span class="p">:</span> <span class="s2">&quot;forbid&quot;</span><span class="p">,</span> <span class="s2">&quot;arbitrary_types_allowed&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
@@ -791,6 +787,7 @@
 <span class="sd">        upper: Upper bounds of scan frames if different from midpoints</span>
 <span class="sd">        gap: If supplied, define if there is a gap between frame and previous</span>
 <span class="sd">            otherwise it is calculated by looking at lower and upper bounds</span>
+<span class="sd">        duration: If supplied, defines the duration between each lower and upper point.</span>
 
 <span class="sd">    Typically used in two ways:</span>
 
@@ -814,6 +811,7 @@
         <span class="n">lower</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">upper</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">gap</span><span class="p">:</span> <span class="n">GapArray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">duration</span><span class="p">:</span> <span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="c1">#: The midpoints of scan frames for each axis</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span> <span class="o">=</span> <span class="n">midpoints</span>
@@ -821,11 +819,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">lower</span> <span class="o">=</span> <span class="n">lower</span> <span class="ow">or</span> <span class="n">midpoints</span>
         <span class="c1">#: The upper bounds of each scan frame in each axis for fly-scanning</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">upper</span> <span class="o">=</span> <span class="n">upper</span> <span class="ow">or</span> <span class="n">midpoints</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
         <span class="k">if</span> <span class="n">gap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1">#: Whether there is a gap between this frame and the previous. First</span>
             <span class="c1">#: element is whether there is a gap between the last frame and the first</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gap</span> <span class="o">=</span> <span class="n">gap</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># If midpoints are provided and we don&#39;t have a gap array</span>
+        <span class="c1"># calculate it based on the midpoints</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="p">:</span>
             <span class="c1"># Need to calculate gap as not passed one</span>
             <span class="c1"># We have a gap if upper[i] != lower[i+1] for any axes</span>
             <span class="n">axes_gap</span> <span class="o">=</span> <span class="p">[</span>
@@ -835,6 +836,12 @@
                 <span class="p">)</span>
             <span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">axes_gap</span><span class="p">)</span>
+        <span class="c1"># If only duratiotn is provided we need to make gap have the same shape</span>
+        <span class="c1"># as the duration provided for the __len__ method</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;self.gap is undefined&quot;</span><span class="p">)</span>
         <span class="c1"># Check all axes and ordering are the same</span>
         <span class="k">assert</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lower</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upper</span><span class="p">),</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Mismatching axes &quot;</span>
@@ -847,6 +854,8 @@
             <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="p">}</span>
         <span class="n">lengths</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lengths</span> <span class="o">=</span> <span class="p">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="p">)}</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Mismatching lengths </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
 
 <div class="viewcode-block" id="Dimension.axes">
@@ -893,7 +902,20 @@
                     <span class="k">return</span> <span class="n">gap</span><span class="p">[</span><span class="n">dim_indices</span><span class="p">]</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="k">return</span> <span class="n">_merge_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_merge</span><span class="o">=</span><span class="n">extract_dict</span><span class="p">,</span> <span class="n">gap_merge</span><span class="o">=</span><span class="n">extract_gap</span><span class="p">)</span></div>
+        <span class="k">def</span><span class="w"> </span><span class="nf">extract_duration</span><span class="p">(</span>
+            <span class="n">durations</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">durations</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">dim_indices</span><span class="p">]</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">_merge_frames</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">dict_merge</span><span class="o">=</span><span class="n">extract_dict</span><span class="p">,</span>
+            <span class="n">gap_merge</span><span class="o">=</span><span class="n">extract_gap</span><span class="p">,</span>
+            <span class="n">duration_merge</span><span class="o">=</span><span class="n">extract_duration</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Dimension.concat">
@@ -931,7 +953,25 @@
             <span class="n">g</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span> <span class="o">=</span> <span class="n">gap</span> <span class="ow">or</span> <span class="n">gap_between_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">g</span>
 
-        <span class="k">return</span> <span class="n">_merge_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">dict_merge</span><span class="o">=</span><span class="n">concat_dict</span><span class="p">,</span> <span class="n">gap_merge</span><span class="o">=</span><span class="n">concat_gap</span><span class="p">)</span></div>
+        <span class="k">def</span><span class="w"> </span><span class="nf">concat_duration</span><span class="p">(</span>
+            <span class="n">durations</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Check if there are more than one duration being zipped</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">durations</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Can&#39;t concatenate dimensions unless all or none provide durations&quot;</span>
+                <span class="p">)</span>
+            <span class="c1"># Need a `type ignore`` here otherwise typing assumes durations can be None,</span>
+            <span class="c1"># which is not possible as it would raise an error on the line above</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">durations</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+
+        <span class="k">return</span> <span class="n">_merge_frames</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">other</span><span class="p">,</span>
+            <span class="n">dict_merge</span><span class="o">=</span><span class="n">concat_dict</span><span class="p">,</span>
+            <span class="n">gap_merge</span><span class="o">=</span><span class="n">concat_gap</span><span class="p">,</span>
+            <span class="n">duration_merge</span><span class="o">=</span><span class="n">concat_duration</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Dimension.zip">
@@ -959,7 +999,23 @@
             <span class="c1"># gap[i] = self.gap[i] | other.gap[i]</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">gaps</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">_merge_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">dict_merge</span><span class="o">=</span><span class="n">zip_dict</span><span class="p">,</span> <span class="n">gap_merge</span><span class="o">=</span><span class="n">zip_gap</span><span class="p">)</span></div>
+        <span class="k">def</span><span class="w"> </span><span class="nf">zip_duration</span><span class="p">(</span>
+            <span class="n">durations</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># We will be passed a sequence of durations where at least one</span>
+            <span class="c1"># is not None. We require that there is precisely one</span>
+            <span class="n">specified_durations</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">durations</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">specified_durations</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t have more than one durations array&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">specified_durations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">_merge_frames</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">other</span><span class="p">,</span>
+            <span class="n">dict_merge</span><span class="o">=</span><span class="n">zip_dict</span><span class="p">,</span>
+            <span class="n">gap_merge</span><span class="o">=</span><span class="n">zip_gap</span><span class="p">,</span>
+            <span class="n">duration_merge</span><span class="o">=</span><span class="n">zip_duration</span><span class="p">,</span>
+        <span class="p">)</span></div>
 </div>
 
 
@@ -968,6 +1024,7 @@
     <span class="o">*</span><span class="n">stack</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span>
     <span class="n">dict_merge</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]],</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]],</span>  <span class="c1"># type: ignore</span>
     <span class="n">gap_merge</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">GapArray</span><span class="p">]],</span> <span class="n">GapArray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">duration_merge</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]],</span> <span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
     <span class="n">types</span> <span class="o">=</span> <span class="p">{</span><span class="nb">type</span><span class="p">(</span><span class="n">fs</span><span class="p">)</span> <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">stack</span><span class="p">}</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">types</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Mismatching types for </span><span class="si">{</span><span class="n">stack</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -983,6 +1040,9 @@
         <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">upper</span><span class="o">=</span><span class="n">dict_merge</span><span class="p">([</span><span class="n">fs</span><span class="o">.</span><span class="n">upper</span> <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">stack</span><span class="p">])</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">midpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">fs</span><span class="o">.</span><span class="n">upper</span> <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">stack</span><span class="p">)</span>
+        <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">duration</span><span class="o">=</span><span class="n">duration_merge</span><span class="p">([</span><span class="n">fs</span><span class="o">.</span><span class="n">duration</span> <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">stack</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">fs</span> <span class="ow">in</span> <span class="n">stack</span><span class="p">)</span>
         <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -1003,6 +1063,7 @@
         <span class="p">{},</span>
         <span class="p">{},</span>
         <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">indices</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">),</span>
+        <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="c1"># Example numbers below from a 2x3x4 ZxYxX scan</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frames</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dimensions</span><span class="p">):</span>
@@ -1032,15 +1093,13 @@
     <span class="k">return</span> <span class="n">stack</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">dimension2slice</span><span class="p">(</span>
-    <span class="n">dimension</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span> <span class="n">duration</span><span class="p">:</span> <span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Slice</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">dimension2slice</span><span class="p">(</span><span class="n">dimension</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Slice</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
     <span class="k">return</span> <span class="n">Slice</span><span class="p">(</span>
         <span class="n">midpoints</span><span class="o">=</span><span class="n">dimension</span><span class="o">.</span><span class="n">midpoints</span><span class="p">,</span>
         <span class="n">gap</span><span class="o">=</span><span class="n">dimension</span><span class="o">.</span><span class="n">gap</span><span class="p">,</span>
         <span class="n">upper</span><span class="o">=</span><span class="n">dimension</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span>
         <span class="n">lower</span><span class="o">=</span><span class="n">dimension</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span>
-        <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+        <span class="n">duration</span><span class="o">=</span><span class="n">dimension</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -1055,8 +1114,11 @@
         <span class="n">lower</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">upper</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">gap</span><span class="p">:</span> <span class="n">GapArray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">duration</span><span class="p">:</span> <span class="n">DurationArray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">midpoints</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">upper</span><span class="p">,</span> <span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">midpoints</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">upper</span><span class="p">,</span> <span class="n">gap</span><span class="o">=</span><span class="n">gap</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span>
+        <span class="p">)</span>
         <span class="c1"># Override first element of gap to be True, as subsequent runs</span>
         <span class="c1"># of snake scans are always joined end -&gt; start</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1068,7 +1130,9 @@
         <span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">SnakedDimension</span><span class="p">[</span><span class="n">Any</span><span class="p">]],</span> <span class="n">frames</span><span class="p">:</span> <span class="n">Dimension</span><span class="p">[</span><span class="n">OtherAxis</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SnakedDimension</span><span class="p">[</span><span class="n">OtherAxis</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a snaked version of a `Dimension` object.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">frames</span><span class="o">.</span><span class="n">midpoints</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">gap</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">frames</span><span class="o">.</span><span class="n">midpoints</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">gap</span><span class="p">,</span> <span class="n">frames</span><span class="o">.</span><span class="n">duration</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="SnakedDimension.extract">
@@ -1103,7 +1167,11 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="n">gap</span> <span class="o">=</span> <span class="kc">None</span>
-
+        <span class="n">duration</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">duration</span><span class="p">[</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">backwards</span><span class="p">,</span> <span class="n">length</span> <span class="o">-</span> <span class="n">indices</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span> <span class="o">%</span> <span class="n">length</span>
+            <span class="p">]</span>
         <span class="c1"># Apply to midpoints</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
             <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[</span><span class="n">snake_indices</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
@@ -1121,6 +1189,7 @@
             <span class="p">}</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper</span>
             <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
         <span class="p">)</span></div>
 </div>
 
@@ -1249,11 +1318,7 @@
 
         <span class="n">stack</span> <span class="o">=</span> <span class="n">stack2dimension</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lengths</span><span class="p">)</span>
 
-        <span class="n">duration</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">DURATION</span> <span class="ow">in</span> <span class="n">stack</span><span class="o">.</span><span class="n">axes</span><span class="p">():</span>
-            <span class="n">duration</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">DURATION</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">dimension2slice</span><span class="p">(</span><span class="n">stack</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">dimension2slice</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>

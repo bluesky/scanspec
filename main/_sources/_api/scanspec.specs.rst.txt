@@ -3,7 +3,6 @@
         
         
         
-        
 
 .. automodule:: scanspec.specs
     :members:
@@ -19,9 +18,8 @@
     .. autosummary::
         :nosignatures:
     
-        DURATION
         Spec
-        fly
         step
+        fly
     
     

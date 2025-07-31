@@ -13,7 +13,6 @@
         
         
         
-        
 
 .. automodule:: scanspec.core
     :members:
@@ -41,7 +40,6 @@
         Midpoints
         discriminated_union_of_subclasses
         StrictConfig
-        DURATION
         Slice
     
     

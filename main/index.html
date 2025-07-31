@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>scanspec &#8212; scanspec 0.8.1.dev2+g0fd755c7 documentation</title>
+    <title>scanspec &#8212; scanspec 0.8.1.dev3+g117d2954 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=9f949d4b"></script>
+    <script src="_static/documentation_options.js?v=e822ba0f"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -460,11 +460,11 @@ can be produced and expanded Paths created to consume chunk by chunk.</p>
 </div>
 <p>An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
 each point:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">fly</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Fly</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.regions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Circle</span>
 
 <span class="n">grid</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mf">3.8</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-<span class="n">spec</span> <span class="o">=</span> <span class="n">fly</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="mf">0.4</span> <span class="o">@</span> <span class="n">grid</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Which when plotted looks like:</p>
@@ -473,8 +473,8 @@ each point:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">midpoints</span><span class="p">():</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
 <span class="c1"># ...</span>
-<span class="c1"># {&#39;y&#39;: 3.1818181818181817, &#39;x&#39;: 0.8333333333333333, &#39;DURATION&#39;: 0.4}</span>
-<span class="c1"># {&#39;y&#39;: 3.1818181818181817, &#39;x&#39;: 0.7222222222222222, &#39;DURATION&#39;: 0.4}</span>
+<span class="c1"># {&#39;y&#39;: 3.1818181818181817, &#39;x&#39;: 0.8333333333333333}</span>
+<span class="c1"># {&#39;y&#39;: 3.1818181818181817, &#39;x&#39;: 0.7222222222222222}</span>
 </pre></div>
 </div>
 <p>or a Path created from the stack of Frames and chunks of a given length
@@ -483,12 +483,13 @@ consumed from it for performance:</p>
 
 <span class="n">stack</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span>
 <span class="nb">len</span><span class="p">(</span><span class="n">stack</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># 44</span>
-<span class="n">stack</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>  <span class="c1"># [&#39;y&#39;, &#39;x&#39;, &#39;DURATION&#39;]</span>
+<span class="n">stack</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>  <span class="c1"># [&#39;y&#39;, &#39;x&#39;]</span>
 
 <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">stack</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
 <span class="n">chunk</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span>  <span class="c1"># {&#39;x&#39;: &lt;ndarray len=10&gt;, &#39;y&#39;: &lt;ndarray len=10&gt;, &#39;DURATION&#39;: &lt;ndarray len=10&gt;}</span>
+<span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span>  <span class="c1"># {&#39;x&#39;: &lt;ndarray len=10&gt;, &#39;y&#39;: &lt;ndarray len=10&gt;}</span>
 <span class="n">chunk</span><span class="o">.</span><span class="n">upper</span>  <span class="c1"># bounds are same dimensionality as positions</span>
+<span class="n">chunk</span><span class="o">.</span><span class="n">duration</span> <span class="c1"># duration of each frame</span>
 </pre></div>
 </div>
 <section id="how-the-documentation-is-structured">
