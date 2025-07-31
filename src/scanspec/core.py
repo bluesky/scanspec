@@ -51,12 +51,8 @@ __all__ = [
     "Midpoints",
     "discriminated_union_of_subclasses",
     "StrictConfig",
-    "DURATION",
     "Slice",
 ]
-
-#: Can be used as a special key to indicate how long each point should be
-DURATION = "DURATION"
 
 #: Used to ensure pydantic dataclasses error if given extra arguments
 StrictConfig: ConfigDict = {"extra": "forbid", "arbitrary_types_allowed": True}
@@ -331,6 +327,7 @@ class Dimension(Generic[Axis]):
         upper: Upper bounds of scan frames if different from midpoints
         gap: If supplied, define if there is a gap between frame and previous
             otherwise it is calculated by looking at lower and upper bounds
+        duration: If supplied, defines the duration between each lower and upper point.
 
     Typically used in two ways:
 
@@ -354,6 +351,7 @@ class Dimension(Generic[Axis]):
         lower: AxesPoints[Axis] | None = None,
         upper: AxesPoints[Axis] | None = None,
         gap: GapArray | None = None,
+        duration: DurationArray | None = None,
     ):
         #: The midpoints of scan frames for each axis
         self.midpoints = midpoints
@@ -361,11 +359,14 @@ class Dimension(Generic[Axis]):
         self.lower = lower or midpoints
         #: The upper bounds of each scan frame in each axis for fly-scanning
         self.upper = upper or midpoints
+        self.duration = duration
         if gap is not None:
             #: Whether there is a gap between this frame and the previous. First
             #: element is whether there is a gap between the last frame and the first
             self.gap = gap
-        else:
+        # If midpoints are provided and we don't have a gap array
+        # calculate it based on the midpoints
+        elif self.midpoints:
             # Need to calculate gap as not passed one
             # We have a gap if upper[i] != lower[i+1] for any axes
             axes_gap = [
@@ -375,6 +376,12 @@ class Dimension(Generic[Axis]):
                 )
             ]
             self.gap = np.logical_or.reduce(axes_gap)
+        # If only duratiotn is provided we need to make gap have the same shape
+        # as the duration provided for the __len__ method
+        elif self.duration is not None:
+            self.gap = np.full(len(self.duration), False)
+        else:
+            raise ValueError("self.gap is undefined")
         # Check all axes and ordering are the same
         assert list(self.midpoints) == list(self.lower) == list(self.upper), (
             f"Mismatching axes "
@@ -387,6 +394,8 @@ class Dimension(Generic[Axis]):
             for arr in d.values()
         }
         lengths.add(len(self.gap))
+        if self.duration is not None:
+            lengths = {len(self.duration)}
         assert len(lengths) <= 1, f"Mismatching lengths {list(lengths)}"
 
     def axes(self) -> list[Axis]:
@@ -428,7 +437,20 @@ class Dimension(Generic[Axis]):
                     return gap[dim_indices]
             return None
 
-        return _merge_frames(self, dict_merge=extract_dict, gap_merge=extract_gap)
+        def extract_duration(
+            durations: Iterable[DurationArray | None],
+        ) -> DurationArray | None:
+            for d in durations:
+                if d is not None:
+                    return d[dim_indices]
+            return None
+
+        return _merge_frames(
+            self,
+            dict_merge=extract_dict,
+            gap_merge=extract_gap,
+            duration_merge=extract_duration,
+        )
 
     def concat(self, other: Dimension[Axis], gap: bool = False) -> Dimension[Axis]:
         """Return a new Dimension object concatenating self and other.
@@ -463,7 +485,25 @@ class Dimension(Generic[Axis]):
             g[len(self)] = gap or gap_between_frames(self, other)
             return g
 
-        return _merge_frames(self, other, dict_merge=concat_dict, gap_merge=concat_gap)
+        def concat_duration(
+            durations: Sequence[DurationArray | None],
+        ) -> DurationArray | None:
+            # Check if there are more than one duration being zipped
+            if any(d is None for d in durations):
+                raise ValueError(
+                    "Can't concatenate dimensions unless all or none provide durations"
+                )
+            # Need a `type ignore`` here otherwise typing assumes durations can be None,
+            # which is not possible as it would raise an error on the line above
+            return np.concatenate(durations)  # type: ignore
+
+        return _merge_frames(
+            self,
+            other,
+            dict_merge=concat_dict,
+            gap_merge=concat_gap,
+            duration_merge=concat_duration,
+        )
 
     def zip(self, other: Dimension[Axis]) -> Dimension[Axis]:
         """Return a new Dimension object merging self and other.
@@ -488,13 +528,30 @@ class Dimension(Generic[Axis]):
             # gap[i] = self.gap[i] | other.gap[i]
             return np.logical_or.reduce(gaps)
 
-        return _merge_frames(self, other, dict_merge=zip_dict, gap_merge=zip_gap)
+        def zip_duration(
+            durations: Sequence[DurationArray | None],
+        ) -> DurationArray | None:
+            # We will be passed a sequence of durations where at least one
+            # is not None. We require that there is precisely one
+            specified_durations = [d for d in durations if d is not None]
+            if len(specified_durations) != 1:
+                raise ValueError("Can't have more than one durations array")
+            return specified_durations[0]
+
+        return _merge_frames(
+            self,
+            other,
+            dict_merge=zip_dict,
+            gap_merge=zip_gap,
+            duration_merge=zip_duration,
+        )
 
 
 def _merge_frames(
     *stack: Dimension[Axis],
     dict_merge: Callable[[Sequence[AxesPoints[Axis]]], AxesPoints[Axis]],  # type: ignore
     gap_merge: Callable[[Sequence[GapArray]], GapArray | None],
+    duration_merge: Callable[[Sequence[DurationArray | None]], DurationArray | None],
 ) -> Dimension[Axis]:
     types = {type(fs) for fs in stack}
     assert len(types) == 1, f"Mismatching types for {stack}"
@@ -510,6 +567,9 @@ def _merge_frames(
         else None,
         upper=dict_merge([fs.upper for fs in stack])
         if any(fs.midpoints is not fs.upper for fs in stack)
+        else None,
+        duration=duration_merge([fs.duration for fs in stack])
+        if any(fs.duration is not None for fs in stack)
         else None,
     )
 
@@ -530,6 +590,7 @@ def stack2dimension(
         {},
         {},
         np.zeros(indices.shape, dtype=np.bool_),
+        None,
     )
     # Example numbers below from a 2x3x4 ZxYxX scan
     for i, frames in enumerate(dimensions):
@@ -559,15 +620,13 @@ def stack2dimension(
     return stack
 
 
-def dimension2slice(
-    dimension: Dimension[Axis], duration: DurationArray | None
-) -> Slice[Axis]:
+def dimension2slice(dimension: Dimension[Axis]) -> Slice[Axis]:
     return Slice(
         midpoints=dimension.midpoints,
         gap=dimension.gap,
         upper=dimension.upper,
         lower=dimension.lower,
-        duration=duration,
+        duration=dimension.duration,
     )
 
 
@@ -580,8 +639,11 @@ class SnakedDimension(Dimension[Axis]):
         lower: AxesPoints[Axis] | None = None,
         upper: AxesPoints[Axis] | None = None,
         gap: GapArray | None = None,
+        duration: DurationArray | None = None,
     ):
-        super().__init__(midpoints, lower=lower, upper=upper, gap=gap)
+        super().__init__(
+            midpoints, lower=lower, upper=upper, gap=gap, duration=duration
+        )
         # Override first element of gap to be True, as subsequent runs
         # of snake scans are always joined end -> start
         self.gap[0] = False
@@ -591,7 +653,9 @@ class SnakedDimension(Dimension[Axis]):
         cls: type[SnakedDimension[Any]], frames: Dimension[OtherAxis]
     ) -> SnakedDimension[OtherAxis]:
         """Create a snaked version of a `Dimension` object."""
-        return cls(frames.midpoints, frames.lower, frames.upper, frames.gap)
+        return cls(
+            frames.midpoints, frames.lower, frames.upper, frames.gap, frames.duration
+        )
 
     def extract(
         self, indices: npt.NDArray[np.signedinteger[Any]], calculate_gap: bool = True
@@ -623,7 +687,11 @@ class SnakedDimension(Dimension[Axis]):
         else:
             cls = type(self)
             gap = None
-
+        duration = None
+        if self.duration is not None:
+            duration = self.duration[
+                np.where(backwards, length - indices, indices) % length
+            ]
         # Apply to midpoints
         return cls(
             {k: v[snake_indices] for k, v in self.midpoints.items()},
@@ -641,6 +709,7 @@ class SnakedDimension(Dimension[Axis]):
             }
             if self.midpoints is not self.upper
             else None,
+            duration=duration,
         )
 
 
@@ -757,11 +826,7 @@ class Path(Generic[Axis]):
 
         stack = stack2dimension(self.stack, indices, self.lengths)
 
-        duration = None
-        if DURATION in stack.axes():
-            duration = stack.midpoints.pop(DURATION)
-
-        return dimension2slice(stack, duration)
+        return dimension2slice(stack)
 
     def __len__(self) -> int:
         """Number of frames left in a scan, reduces when `consume` is called."""

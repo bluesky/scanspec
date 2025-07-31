@@ -17,7 +17,7 @@ is the case.
     will fail with `ValueError`
 
 Squash unsnaked axis into a snaked Dimensions
------------------------------------------
+---------------------------------------------
 
 Squashing Dimension objects together will take the snake setting of the slowest
 moving Dimension object in the squash. If this squashed Dimension object is nested

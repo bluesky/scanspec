@@ -14,7 +14,7 @@ from scipy import interpolate  # type: ignore
 
 from .core import stack2dimension
 from .regions import Circle, Ellipse, Polygon, Rectangle, Region, find_regions
-from .specs import DURATION, Spec
+from .specs import Spec
 
 __all__ = ["plot_spec"]
 
@@ -129,7 +129,7 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
     """
     dims = spec.calculate()
     dim = stack2dimension(dims)
-    axes = [a for a in spec.axes() if a is not DURATION]
+    axes = spec.axes()
     ndims = len(axes)
 
     # Setup axes

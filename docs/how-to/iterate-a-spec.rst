@@ -30,10 +30,11 @@ If you need to do a fly scan
 
 If you are conducting a fly scan then you need the frames that the motor moves
 through. You can get that from the lower and upper bounds of each point. If the
-scan is small enough to fit in memory on the machine you can use the `Spec.frames()`
+scan is small enough to fit in memory on the machine you can use the `Fly(spec).frames()`
 method to produce a single `Dimension` object containing the entire scan:
 
->>> segment = spec.frames()
+>>> from scanspec.specs import Fly
+>>> segment = Fly(spec).frames()
 >>> len(segment)
 3
 >>> segment.lower
@@ -89,8 +90,8 @@ You may need to know where there is a gap between points, so that you can do
 something in the turnaround. For example, if we take the x axis of a grid scan,
 you can see it snakes back and forth:
 
->>> from scanspec.specs import Line, fly
->>> grid = fly(Line("y", 0, 1, 2) * ~Line("x", 1, 2, 3), 0.1)
+>>> from scanspec.specs import Line, Fly
+>>> grid = Fly(0.1 @ (Line("y", 0, 1, 2) * ~Line("x", 1, 2, 3)))
 >>> chunk = grid.frames()
 >>> chunk.midpoints["x"]
 array([1. , 1.5, 2. , 2. , 1.5, 1. ])

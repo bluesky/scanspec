@@ -46,6 +46,7 @@ dev = [
     "sphinxcontrib-openapi",
     "tox-direct",
     "types-mock",
+    "Pillow==11.0.0",
 ]
 
 [project.scripts]

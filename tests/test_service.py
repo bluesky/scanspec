@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from scanspec.service import PointsFormat, PointsRequest, app
-from scanspec.specs import Line
+from scanspec.specs import Fly, Line
 
 
 @pytest.fixture
@@ -78,7 +78,7 @@ def test_subsampling(client: TestClient) -> None:
 def test_bounds(
     client: TestClient, format: PointsFormat, expected_lower: Any, expected_upper: Any
 ) -> None:
-    request = PointsRequest(Line("x", 0.0, 1.0, 5), max_frames=5, format=format)
+    request = PointsRequest(Fly(Line("x", 0.0, 1.0, 5)), max_frames=5, format=format)
     response = client.post("/bounds", json=asdict(request))
     assert response.status_code == 200
     assert response.json() == {
@@ -92,7 +92,8 @@ def test_bounds(
 
 # GAP TEST(S) #
 def test_gap(client: TestClient) -> None:
-    spec = Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 3)
+    # If not defined specs will default to a step scan
+    spec = Fly(Line("y", 0.0, 10.0, 3) * Line("x", 0.0, 10.0, 3))
     response = client.post("/gap", json=spec.serialize())
     assert response.status_code == 200
     assert response.json() == {
