@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Callable, Mapping
-from typing import Any, Generic, Literal, overload
+from typing import Any, Generic, Literal, SupportsFloat, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -110,9 +110,11 @@ class Spec(Generic[Axis]):
     def __rmul__(self, other: int) -> Product[Axis]:
         return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
 
-    def __rmatmul__(self, other: float) -> ConstantDuration[Axis]:
+    def __rmatmul__(self, other: SupportsFloat) -> ConstantDuration[Axis]:
         return if_instance_do(
-            other, float, lambda o: ConstantDuration(constant_duration=o, spec=self)
+            other,
+            SupportsFloat,
+            lambda o: ConstantDuration(constant_duration=float(o), spec=self),
         )
 
     @overload
