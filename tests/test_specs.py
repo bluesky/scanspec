@@ -630,6 +630,11 @@ def test_constant_duration():
     assert "Only one of left and right defines a duration" in str(msg.value)
 
 
+def test_int_duration():
+    spec1 = 1 @ Line("x", 0, 1, 2)
+    assert spec1.duration() == 1.0
+
+
 @pytest.mark.filterwarnings("ignore:fly")
 def test_fly():
     spec = fly(Line("x", 0, 1, 5), 0.1)
