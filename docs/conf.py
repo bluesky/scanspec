@@ -74,6 +74,7 @@ nitpick_ignore = [
     ("py:class", "scanspec.core.C"),
     ("py:class", "scanspec.core.T"),
     ("py:class", "pydantic.config.ConfigDict"),
+    ("py:class", "numpy.float64"),
 ]
 
 # Both the class’ and the __init__ method’s docstring are concatenated and
