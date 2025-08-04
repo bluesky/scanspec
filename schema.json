@@ -31,6 +31,7 @@
                                             "num": 4,
                                             "type": "Line"
                                         },
+                                        "gap": true,
                                         "type": "Product"
                                     }
                                 ]
@@ -90,6 +91,7 @@
                                                 "num": 4,
                                                 "type": "Line"
                                             },
+                                            "gap": true,
                                             "type": "Product"
                                         },
                                         "max_frames": 1024,
@@ -152,6 +154,7 @@
                                                 "num": 4,
                                                 "type": "Line"
                                             },
+                                            "gap": true,
                                             "type": "Product"
                                         },
                                         "max_frames": 1024,
@@ -213,6 +216,7 @@
                                             "num": 4,
                                             "type": "Line"
                                         },
+                                        "gap": true,
                                         "type": "Product"
                                     }
                                 ]
@@ -271,6 +275,7 @@
                                             "num": 4,
                                             "type": "Line"
                                         },
+                                        "gap": true,
                                         "type": "Product"
                                     }
                                 ]
@@ -505,7 +510,7 @@
                     "right"
                 ],
                 "title": "Concat",
-                "description": "Concatenate two Specs together, running one after the other.\n\nEach Dimension of left and right must contain the same axes. Typically\nformed using `Spec.concat`.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = Line(\"x\", 1, 3, 3).concat(Line(\"x\", 4, 5, 5))"
+                "description": "Concatenate two Specs together, running one after the other.\n\nEach Dimension of left and right must contain the same axes. Typically\nformed using `Spec.concat`.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"x\", 1, 3, 3).concat(Line(\"x\", 4, 5, 5)))"
             },
             "Concat_str_-Output": {
                 "properties": {
@@ -543,7 +548,7 @@
                     "right"
                 ],
                 "title": "Concat",
-                "description": "Concatenate two Specs together, running one after the other.\n\nEach Dimension of left and right must contain the same axes. Typically\nformed using `Spec.concat`.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = Line(\"x\", 1, 3, 3).concat(Line(\"x\", 4, 5, 5))"
+                "description": "Concatenate two Specs together, running one after the other.\n\nEach Dimension of left and right must contain the same axes. Typically\nformed using `Spec.concat`.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"x\", 1, 3, 3).concat(Line(\"x\", 4, 5, 5)))"
             },
             "ConstantDuration_str_-Input": {
                 "properties": {
@@ -576,7 +581,7 @@
                     "constant_duration"
                 ],
                 "title": "ConstantDuration",
-                "description": "A special spec used to hold information about the duration of each frame."
+                "description": "Apply a constant duration to every point in a Spec.\n\nTypically applied with the ``@`` modifier.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = 0.1 @ Line(\"x\", 1, 2, 3)"
             },
             "ConstantDuration_str_-Output": {
                 "properties": {
@@ -609,7 +614,7 @@
                     "constant_duration"
                 ],
                 "title": "ConstantDuration",
-                "description": "A special spec used to hold information about the duration of each frame."
+                "description": "Apply a constant duration to every point in a Spec.\n\nTypically applied with the ``@`` modifier.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = 0.1 @ Line(\"x\", 1, 2, 3)"
             },
             "DifferenceOf_str_-Input": {
                 "properties": {
@@ -742,7 +747,7 @@
                     "spec"
                 ],
                 "title": "Fly",
-                "description": "Spec that represents a fly scan."
+                "description": "Move through lower to upper bounds of the Spec rather than stopping.\n\nThis is commonly termed a \"fly scan\" rather than a \"step scan\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"x\", 1, 2, 3))"
             },
             "Fly_str_-Output": {
                 "properties": {
@@ -763,7 +768,7 @@
                     "spec"
                 ],
                 "title": "Fly",
-                "description": "Spec that represents a fly scan."
+                "description": "Move through lower to upper bounds of the Spec rather than stopping.\n\nThis is commonly termed a \"fly scan\" rather than a \"step scan\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"x\", 1, 2, 3))"
             },
             "GapResponse": {
                 "properties": {
@@ -887,7 +892,7 @@
                     "num"
                 ],
                 "title": "Line",
-                "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = Line(\"x\", 1, 2, 5)"
+                "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"x\", 1, 2, 5))"
             },
             "Mask_str_-Input": {
                 "properties": {
@@ -919,7 +924,7 @@
                     "region"
                 ],
                 "title": "Mask",
-                "description": "Restrict Spec to only midpoints that fall inside the given Region.\n\nTypically created with the ``&`` operator. It also pushes down the\n``& | ^ -`` operators to its `Region` to avoid the need for brackets on\ncombinations of Regions.\n\nIf a Region spans multiple Dimension objects, they will be squashed together.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Line\n\n    spec = Line(\"y\", 1, 3, 3) * Line(\"x\", 3, 5, 5) & Circle(\"x\", \"y\", 4, 2, 1.2)\n\nSee Also: `why-squash-can-change-path`"
+                "description": "Restrict Spec to only midpoints that fall inside the given Region.\n\nTypically created with the ``&`` operator. It also pushes down the\n``& | ^ -`` operators to its `Region` to avoid the need for brackets on\ncombinations of Regions.\n\nIf a Region spans multiple Dimension objects, they will be squashed together.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Fly, Line\n\n    region = Circle(\"x\", \"y\", 4, 2, 1.2)\n    spec = Fly(Line(\"y\", 1, 3, 3) * Line(\"x\", 3, 5, 5) & region)\n\nSee Also: `why-squash-can-change-path`"
             },
             "Mask_str_-Output": {
                 "properties": {
@@ -951,7 +956,7 @@
                     "region"
                 ],
                 "title": "Mask",
-                "description": "Restrict Spec to only midpoints that fall inside the given Region.\n\nTypically created with the ``&`` operator. It also pushes down the\n``& | ^ -`` operators to its `Region` to avoid the need for brackets on\ncombinations of Regions.\n\nIf a Region spans multiple Dimension objects, they will be squashed together.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Line\n\n    spec = Line(\"y\", 1, 3, 3) * Line(\"x\", 3, 5, 5) & Circle(\"x\", \"y\", 4, 2, 1.2)\n\nSee Also: `why-squash-can-change-path`"
+                "description": "Restrict Spec to only midpoints that fall inside the given Region.\n\nTypically created with the ``&`` operator. It also pushes down the\n``& | ^ -`` operators to its `Region` to avoid the need for brackets on\ncombinations of Regions.\n\nIf a Region spans multiple Dimension objects, they will be squashed together.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Fly, Line\n\n    region = Circle(\"x\", \"y\", 4, 2, 1.2)\n    spec = Fly(Line(\"y\", 1, 3, 3) * Line(\"x\", 3, 5, 5) & region)\n\nSee Also: `why-squash-can-change-path`"
             },
             "MidpointsResponse": {
                 "properties": {
@@ -1091,12 +1096,34 @@
             "Product_str_-Input": {
                 "properties": {
                     "outer": {
-                        "$ref": "#/components/schemas/Spec-Input",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Spec-Input"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ],
+                        "title": "Outer",
                         "description": "Will be executed once"
                     },
                     "inner": {
-                        "$ref": "#/components/schemas/Spec-Input",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Spec-Input"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ],
+                        "title": "Inner",
                         "description": "Will be executed len(outer) times"
+                    },
+                    "gap": {
+                        "type": "boolean",
+                        "title": "Gap",
+                        "description": "If False and the outer spec is an integer and the inner spec is snaked then the end and start of consecutive iterations of inner will have no gap",
+                        "default": true
                     },
                     "type": {
                         "type": "string",
@@ -1112,17 +1139,39 @@
                     "inner"
                 ],
                 "title": "Product",
-                "description": "Outer product of two Specs, nesting inner within outer.\n\nThis means that inner will run in its entirety at each point in outer.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = Line(\"y\", 1, 2, 3) * Line(\"x\", 3, 4, 12)"
+                "description": "Outer product of two Specs, nesting inner within outer.\n\nThis means that inner will run in its entirety at each point in outer.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 2, 3) * Line(\"x\", 3, 4, 12))\n\nAn inner integer can be used to repeat the same point many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 2, 3) * 2)\n\nAn outer integer can be used to repeat the same scan many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(2 * ~Line.bounded(\"x\", 3, 4, 1))\n\nIf you want snaked axes to have no gap between iterations you can do:\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line, Product\n\n    spec = Fly(Product(2, ~Line.bounded(\"x\", 3, 4, 1), gap=False))\n\n.. note:: There is no turnaround arrow at x=4"
             },
             "Product_str_-Output": {
                 "properties": {
                     "outer": {
-                        "$ref": "#/components/schemas/Spec-Output",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Spec-Output"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ],
+                        "title": "Outer",
                         "description": "Will be executed once"
                     },
                     "inner": {
-                        "$ref": "#/components/schemas/Spec-Output",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/Spec-Output"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ],
+                        "title": "Inner",
                         "description": "Will be executed len(outer) times"
+                    },
+                    "gap": {
+                        "type": "boolean",
+                        "title": "Gap",
+                        "description": "If False and the outer spec is an integer and the inner spec is snaked then the end and start of consecutive iterations of inner will have no gap",
+                        "default": true
                     },
                     "type": {
                         "type": "string",
@@ -1138,7 +1187,7 @@
                     "inner"
                 ],
                 "title": "Product",
-                "description": "Outer product of two Specs, nesting inner within outer.\n\nThis means that inner will run in its entirety at each point in outer.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = Line(\"y\", 1, 2, 3) * Line(\"x\", 3, 4, 12)"
+                "description": "Outer product of two Specs, nesting inner within outer.\n\nThis means that inner will run in its entirety at each point in outer.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 2, 3) * Line(\"x\", 3, 4, 12))\n\nAn inner integer can be used to repeat the same point many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 2, 3) * 2)\n\nAn outer integer can be used to repeat the same scan many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(2 * ~Line.bounded(\"x\", 3, 4, 1))\n\nIf you want snaked axes to have no gap between iterations you can do:\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line, Product\n\n    spec = Fly(Product(2, ~Line.bounded(\"x\", 3, 4, 1), gap=False))\n\n.. note:: There is no turnaround arrow at x=4"
             },
             "Range_str_": {
                 "properties": {
@@ -1330,35 +1379,6 @@
                     }
                 }
             },
-            "Repeat_str_": {
-                "properties": {
-                    "num": {
-                        "type": "integer",
-                        "minimum": 1.0,
-                        "title": "Num",
-                        "description": "Number of frames to produce"
-                    },
-                    "gap": {
-                        "type": "boolean",
-                        "title": "Gap",
-                        "description": "If False and the slowest of the stack of Dimension is snaked then the end and start of consecutive iterations of Spec will have no gap",
-                        "default": true
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Repeat",
-                        "title": "Type",
-                        "default": "Repeat"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "num"
-                ],
-                "title": "Repeat",
-                "description": "Repeat an empty frame num times.\n\nCan be used on the outside of a scan to repeat the same scan many times.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = 2 * ~Line.bounded(\"x\", 3, 4, 1)\n\nIf you want snaked axes to have no gap between iterations you can do:\n\n.. example_spec::\n\n    from scanspec.specs import Line, Repeat\n\n    spec = Repeat(2, gap=False) * ~Line.bounded(\"x\", 3, 4, 1)\n\n.. note:: There is no turnaround arrow at x=4"
-            },
             "SmallestStepResponse": {
                 "properties": {
                     "absolute": {
@@ -1402,7 +1422,7 @@
                     "spec"
                 ],
                 "title": "Snake",
-                "description": "Run the Spec in reverse on every other iteration when nested.\n\nTypically created with the ``~`` operator.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = Line(\"y\", 1, 3, 3) * ~Line(\"x\", 3, 5, 5)"
+                "description": "Run the Spec in reverse on every other iteration when nested.\n\nTypically created with the ``~`` operator.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 3, 3) * ~Line(\"x\", 3, 5, 5))"
             },
             "Snake_str_-Output": {
                 "properties": {
@@ -1423,15 +1443,12 @@
                     "spec"
                 ],
                 "title": "Snake",
-                "description": "Run the Spec in reverse on every other iteration when nested.\n\nTypically created with the ``~`` operator.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = Line(\"y\", 1, 3, 3) * ~Line(\"x\", 3, 5, 5)"
+                "description": "Run the Spec in reverse on every other iteration when nested.\n\nTypically created with the ``~`` operator.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 3, 3) * ~Line(\"x\", 3, 5, 5))"
             },
             "Spec-Input": {
                 "oneOf": [
                     {
                         "$ref": "#/components/schemas/Product_str_-Input"
-                    },
-                    {
-                        "$ref": "#/components/schemas/Repeat_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Zip_str_-Input"
@@ -1473,7 +1490,6 @@
                         "Line": "#/components/schemas/Line_str_",
                         "Mask": "#/components/schemas/Mask_str_-Input",
                         "Product": "#/components/schemas/Product_str_-Input",
-                        "Repeat": "#/components/schemas/Repeat_str_",
                         "Snake": "#/components/schemas/Snake_str_-Input",
                         "Spiral": "#/components/schemas/Spiral_str_",
                         "Squash": "#/components/schemas/Squash_str_-Input",
@@ -1486,9 +1502,6 @@
                 "oneOf": [
                     {
                         "$ref": "#/components/schemas/Product_str_-Output"
-                    },
-                    {
-                        "$ref": "#/components/schemas/Repeat_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Zip_str_-Output"
@@ -1530,7 +1543,6 @@
                         "Line": "#/components/schemas/Line_str_",
                         "Mask": "#/components/schemas/Mask_str_-Output",
                         "Product": "#/components/schemas/Product_str_-Output",
-                        "Repeat": "#/components/schemas/Repeat_str_",
                         "Snake": "#/components/schemas/Snake_str_-Output",
                         "Spiral": "#/components/schemas/Spiral_str_",
                         "Squash": "#/components/schemas/Squash_str_-Output",
@@ -1602,7 +1614,7 @@
                     "num"
                 ],
                 "title": "Spiral",
-                "description": "Archimedean spiral of \"x_axis\" and \"y_axis\".\n\nStarts at centre point (\"x_start\", \"y_start\") with angle \"rotate\". Produces\n\"num\" points in a spiral spanning width of \"x_range\" and height of \"y_range\"\n\n.. example_spec::\n\n    from scanspec.specs import Spiral\n\n    spec = Spiral(\"x\", \"y\", 1, 5, 10, 50, 30)"
+                "description": "Archimedean spiral of \"x_axis\" and \"y_axis\".\n\nStarts at centre point (\"x_start\", \"y_start\") with angle \"rotate\". Produces\n\"num\" points in a spiral spanning width of \"x_range\" and height of \"y_range\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Spiral\n\n    spec = Fly(Spiral(\"x\", \"y\", 1, 5, 10, 50, 30))"
             },
             "Squash_str_-Input": {
                 "properties": {
@@ -1629,7 +1641,7 @@
                     "spec"
                 ],
                 "title": "Squash",
-                "description": "Squash a stack of Dimension together into a single expanded Dimension object.\n\nSee Also:\n    `why-squash-can-change-path`\n\n.. example_spec::\n\n    from scanspec.specs import Line, Squash\n\n    spec = Squash(Line(\"y\", 1, 2, 3) * Line(\"x\", 0, 1, 4))"
+                "description": "Squash a stack of Dimension together into a single expanded Dimension object.\n\nSee Also:\n    `why-squash-can-change-path`\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line, Squash\n\n    spec = Fly(Squash(Line(\"y\", 1, 2, 3) * Line(\"x\", 0, 1, 4)))"
             },
             "Squash_str_-Output": {
                 "properties": {
@@ -1656,7 +1668,7 @@
                     "spec"
                 ],
                 "title": "Squash",
-                "description": "Squash a stack of Dimension together into a single expanded Dimension object.\n\nSee Also:\n    `why-squash-can-change-path`\n\n.. example_spec::\n\n    from scanspec.specs import Line, Squash\n\n    spec = Squash(Line(\"y\", 1, 2, 3) * Line(\"x\", 0, 1, 4))"
+                "description": "Squash a stack of Dimension together into a single expanded Dimension object.\n\nSee Also:\n    `why-squash-can-change-path`\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line, Squash\n\n    spec = Fly(Squash(Line(\"y\", 1, 2, 3) * Line(\"x\", 0, 1, 4)))"
             },
             "Static_str_": {
                 "properties": {
@@ -1691,7 +1703,7 @@
                     "value"
                 ],
                 "title": "Static",
-                "description": "A static frame, repeated num times, with axis at value.\n\nCan be used to set axis=value at every point in a scan.\n\n.. example_spec::\n\n    from scanspec.specs import Line, Static\n\n    spec = Line(\"y\", 1, 2, 3).zip(Static(\"x\", 3))"
+                "description": "A static frame, repeated num times, with axis at value.\n\nCan be used to set axis=value at every point in a scan.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line, Static\n\n    spec = Fly(Line(\"y\", 1, 2, 3).zip(Static(\"x\", 3)))"
             },
             "SymmetricDifferenceOf_str_-Input": {
                 "properties": {
@@ -1873,7 +1885,7 @@
                     "right"
                 ],
                 "title": "Zip",
-                "description": "Run two Specs in parallel, merging their midpoints together.\n\nTypically formed using `Spec.zip`.\n\nStacks of Dimension are merged by:\n\n- If right creates a stack of a single Dimension object of size 1, expand it to\n  the size of the fastest Dimension object created by left\n- Merge individual Dimension objects together from fastest to slowest\n\nThis means that Zipping a Spec producing stack [l2, l1] with a Spec\nproducing stack [r1] will assert len(l1)==len(r1), and produce\nstack [l2, l1.zip(r1)].\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = Line(\"z\", 1, 2, 3) * Line(\"y\", 3, 4, 5).zip(Line(\"x\", 4, 5, 5))"
+                "description": "Run two Specs in parallel, merging their midpoints together.\n\nTypically formed using `Spec.zip`.\n\nStacks of Dimension are merged by:\n\n- If right creates a stack of a single Dimension object of size 1, expand it to\n  the size of the fastest Dimension object created by left\n- Merge individual Dimension objects together from fastest to slowest\n\nThis means that Zipping a Spec producing stack [l2, l1] with a Spec\nproducing stack [r1] will assert len(l1)==len(r1), and produce\nstack [l2, l1.zip(r1)].\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"z\", 1, 2, 3) * Line(\"y\", 3, 4, 5).zip(Line(\"x\", 4, 5, 5)))"
             },
             "Zip_str_-Output": {
                 "properties": {
@@ -1899,7 +1911,7 @@
                     "right"
                 ],
                 "title": "Zip",
-                "description": "Run two Specs in parallel, merging their midpoints together.\n\nTypically formed using `Spec.zip`.\n\nStacks of Dimension are merged by:\n\n- If right creates a stack of a single Dimension object of size 1, expand it to\n  the size of the fastest Dimension object created by left\n- Merge individual Dimension objects together from fastest to slowest\n\nThis means that Zipping a Spec producing stack [l2, l1] with a Spec\nproducing stack [r1] will assert len(l1)==len(r1), and produce\nstack [l2, l1.zip(r1)].\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = Line(\"z\", 1, 2, 3) * Line(\"y\", 3, 4, 5).zip(Line(\"x\", 4, 5, 5))"
+                "description": "Run two Specs in parallel, merging their midpoints together.\n\nTypically formed using `Spec.zip`.\n\nStacks of Dimension are merged by:\n\n- If right creates a stack of a single Dimension object of size 1, expand it to\n  the size of the fastest Dimension object created by left\n- Merge individual Dimension objects together from fastest to slowest\n\nThis means that Zipping a Spec producing stack [l2, l1] with a Spec\nproducing stack [r1] will assert len(l1)==len(r1), and produce\nstack [l2, l1.zip(r1)].\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"z\", 1, 2, 3) * Line(\"y\", 3, 4, 5).zip(Line(\"x\", 4, 5, 5)))"
             }
         }
     }

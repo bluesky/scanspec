@@ -396,5 +396,6 @@ def scanspec_schema_text() -> str:
             openapi_version=app.openapi_version,
             description=app.description,
             routes=app.routes,
-        )
+        ),
+        indent=4,
     )

@@ -268,7 +268,9 @@ def _make_schema(
     return {member.__name__: handler(member) for member in members}
 
 
-def if_instance_do(x: C, cls: type[C], func: Callable[[C], T]) -> T:
+def if_instance_do(
+    x: C, cls: type[C] | tuple[type[C], Any], func: Callable[[C], T]
+) -> T:
     """If x is of type cls then return func(x), otherwise return NotImplemented.
 
     Used as a helper when implementing operator overloading.
@@ -311,7 +313,7 @@ class Slice(Generic[Axis]):
     def axes(self) -> list[Axis]:
         """The axes which will move during the scan.
 
-        These will be present in `midpoints`, `lower` and `upper`.
+        These will be present in ``midpoints``, ``lower`` and ``upper``.
         """
         return list(self.midpoints.keys())
 

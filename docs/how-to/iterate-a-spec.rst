@@ -30,7 +30,7 @@ If you need to do a fly scan
 
 If you are conducting a fly scan then you need the frames that the motor moves
 through. You can get that from the lower and upper bounds of each point. If the
-scan is small enough to fit in memory on the machine you can use the `Fly(spec).frames()`
+scan is small enough to fit in memory on the machine you can use the `Spec.frames`
 method to produce a single `Dimension` object containing the entire scan:
 
 >>> from scanspec.specs import Fly

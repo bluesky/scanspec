@@ -52,8 +52,10 @@ def test_product_lines_serializes() -> None:
     ob = Line("z", 4, 5, 6) * Line("y", 2, 3, 5) * Line("x", 0, 1, 4)
     serialized = {
         "type": "Product",
+        "gap": True,
         "outer": {
             "type": "Product",
+            "gap": True,
             "outer": {
                 "type": "Line",
                 "axis": "z",
