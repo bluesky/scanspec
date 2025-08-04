@@ -13,7 +13,7 @@ documentation. Consider a 1D line scan:
 Axis
 ----
 
-A fixed reference that can be scanned, i.e. a motor or the `frame_` `DURATION`.
+A fixed reference that can be scanned, i.e. a motor.
 In the diagram above, the Axis is ``x``. `Spec.axes` will return the Axes that
 should be scanned for a given Spec.
 
