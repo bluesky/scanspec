@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.specs &#8212; scanspec 1.0a2.dev2+gc3791b23b documentation</title>
+    <title>scanspec.specs &#8212; scanspec 1.0a2.dev5+g4f84a7e43 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=c7935b45"></script>
+    <script src="../../_static/documentation_options.js?v=8bfd7a13"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -455,7 +455,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">SupportsFloat</span><span class="p">,</span> <span class="n">overload</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">SupportsFloat</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
@@ -481,7 +481,6 @@
     <span class="s2">&quot;ConstantDuration&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Spec&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Product&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Repeat&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Zip&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Mask&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Snake&quot;</span><span class="p">,</span>
@@ -493,8 +492,11 @@
     <span class="s2">&quot;Fly&quot;</span><span class="p">,</span>
     <span class="s2">&quot;step&quot;</span><span class="p">,</span>
     <span class="s2">&quot;fly&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VARIABLE_DURATION&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
+<span class="c1">#: A string returned from `Spec.duration` to signify it produces</span>
+<span class="c1">#: a different duration for each point</span>
 <span class="n">VARIABLE_DURATION</span> <span class="o">=</span> <span class="s2">&quot;VARIABLE_DURATION&quot;</span>
 
 
@@ -506,8 +508,8 @@
 
 <span class="sd">    Abstract baseclass for the specification of a scan. Supports operators:</span>
 
-<span class="sd">    - ``*``: Outer `Product` of two Specs, nesting the second within the first.</span>
-<span class="sd">      If the first operand is an integer, wrap it in a `Repeat`</span>
+<span class="sd">    - ``*``: Outer `Product` of two Specs or ints, nesting the second within the first.</span>
+<span class="sd">    - ``@``: `ConstantDuration` of the Spec, setting a constant duration for each point.</span>
 <span class="sd">    - ``&amp;``: `Mask` the Spec with a `Region`, excluding midpoints outside of it</span>
 <span class="sd">    - ``~``: `Snake` the Spec, reversing every other iteration of it</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -573,26 +575,16 @@
         <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate</span><span class="p">())</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Product</span><span class="p">(</span><span class="n">Repeat</span><span class="p">(</span><span class="n">o</span><span class="p">),</span> <span class="bp">self</span><span class="p">))</span>
-
     <span class="k">def</span><span class="w"> </span><span class="fm">__rmatmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">SupportsFloat</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConstantDuration</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span>
-            <span class="n">other</span><span class="p">,</span>
-            <span class="n">SupportsFloat</span><span class="p">,</span>
-            <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">ConstantDuration</span><span class="p">(</span><span class="n">constant_duration</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">o</span><span class="p">),</span> <span class="n">spec</span><span class="o">=</span><span class="bp">self</span><span class="p">),</span>
+            <span class="n">other</span><span class="p">,</span> <span class="n">SupportsFloat</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">ConstantDuration</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">o</span><span class="p">),</span> <span class="bp">self</span><span class="p">)</span>
         <span class="p">)</span>
 
-    <span class="nd">@overload</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span> <span class="o">...</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">Spec</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Product</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
 
-    <span class="nd">@overload</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">OtherAxis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span> <span class="o">|</span> <span class="n">OtherAxis</span><span class="p">]:</span> <span class="o">...</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__mul__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="n">Spec</span><span class="p">[</span><span class="n">OtherAxis</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span> <span class="o">|</span> <span class="n">OtherAxis</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Spec</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">Spec</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mask</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
@@ -641,27 +633,65 @@
 
 <span class="sd">    .. example_spec::</span>
 
-<span class="sd">        from scanspec.specs import Line</span>
+<span class="sd">        from scanspec.specs import Fly, Line</span>
 
-<span class="sd">        spec = Line(&quot;y&quot;, 1, 2, 3) * Line(&quot;x&quot;, 3, 4, 12)</span>
+<span class="sd">        spec = Fly(Line(&quot;y&quot;, 1, 2, 3) * Line(&quot;x&quot;, 3, 4, 12))</span>
+
+<span class="sd">    An inner integer can be used to repeat the same point many times.</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Fly, Line</span>
+
+<span class="sd">        spec = Fly(Line(&quot;y&quot;, 1, 2, 3) * 2)</span>
+
+<span class="sd">    An outer integer can be used to repeat the same scan many times.</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Fly, Line</span>
+
+<span class="sd">        spec = Fly(2 * ~Line.bounded(&quot;x&quot;, 3, 4, 1))</span>
+
+<span class="sd">    If you want snaked axes to have no gap between iterations you can do:</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Fly, Line, Product</span>
+
+<span class="sd">        spec = Fly(Product(2, ~Line.bounded(&quot;x&quot;, 3, 4, 1), gap=False))</span>
+
+<span class="sd">    .. note:: There is no turnaround arrow at x=4</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">outer</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Will be executed once&quot;</span><span class="p">)</span>
-    <span class="n">inner</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Will be executed len(outer) times&quot;</span><span class="p">)</span>
+    <span class="n">outer</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Will be executed once&quot;</span><span class="p">)</span>
+    <span class="n">inner</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Will be executed len(outer) times&quot;</span><span class="p">)</span>
+    <span class="n">gap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If False and the outer spec is an integer and the inner spec is &quot;</span>
+        <span class="s2">&quot;snaked then the end and start of consecutive iterations of inner will have no &quot;</span>
+        <span class="s2">&quot;gap&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
 
 <div class="viewcode-block" id="Product.axes">
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Product.axes">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>  <span class="c1"># noqa: D102</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span></div>
+        <span class="n">outer_axes</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>
+        <span class="n">inner_axes</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">outer_axes</span> <span class="o">+</span> <span class="n">inner_axes</span></div>
 
 
 <div class="viewcode-block" id="Product.duration">
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Product.duration">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">duration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;VARIABLE_DURATION&quot;</span><span class="p">]:</span>  <span class="c1"># noqa: D102</span>
-        <span class="n">outer</span><span class="p">,</span> <span class="n">inner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="o">.</span><span class="n">duration</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">duration</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">outer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Outer axes defined a duration&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">inner</span></div>
+        <span class="n">outer_duration</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="o">.</span><span class="n">duration</span><span class="p">()</span>
+        <span class="n">inner_duration</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">duration</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">outer_duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">inner_duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both inner and outer specs defined a duration&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">outer_duration</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">inner_duration</span></div>
 
 
 <div class="viewcode-block" id="Product.calculate">
@@ -669,57 +699,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
-        <span class="n">frames_outer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="n">nested</span><span class="p">)</span>
-        <span class="n">frames_inner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">frames_outer</span> <span class="o">+</span> <span class="n">frames_inner</span></div>
-</div>
-
-
-
-<div class="viewcode-block" id="Repeat">
-<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Repeat">[docs]</a>
-<span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">Repeat</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Repeat an empty frame num times.</span>
-
-<span class="sd">    Can be used on the outside of a scan to repeat the same scan many times.</span>
-
-<span class="sd">    .. example_spec::</span>
-
-<span class="sd">        from scanspec.specs import Line</span>
-
-<span class="sd">        spec = 2 * ~Line.bounded(&quot;x&quot;, 3, 4, 1)</span>
-
-<span class="sd">    If you want snaked axes to have no gap between iterations you can do:</span>
-
-<span class="sd">    .. example_spec::</span>
-
-<span class="sd">        from scanspec.specs import Line, Repeat</span>
-
-<span class="sd">        spec = Repeat(2, gap=False) * ~Line.bounded(&quot;x&quot;, 3, 4, 1)</span>
-
-<span class="sd">    .. note:: There is no turnaround arrow at x=4</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of frames to produce&quot;</span><span class="p">)</span>
-    <span class="n">gap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If False and the slowest of the stack of Dimension is snaked &quot;</span>
-        <span class="s2">&quot;then the end and start of consecutive iterations of Spec will have no gap&quot;</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span>
-
-<div class="viewcode-block" id="Repeat.axes">
-<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Repeat.axes">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>  <span class="c1"># noqa: D102</span>
-        <span class="k">return</span> <span class="p">[]</span></div>
-
-
-<div class="viewcode-block" id="Repeat.calculate">
-<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Repeat.calculate">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">Dimension</span><span class="p">({},</span> <span class="n">gap</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">))]</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">dims_outer</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]({},</span> <span class="n">gap</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">))]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dims_outer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outer</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="n">nested</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">dims_inner</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]({},</span> <span class="n">gap</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="p">,</span> <span class="kc">False</span><span class="p">))]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dims_inner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dims_outer</span> <span class="o">+</span> <span class="n">dims_inner</span></div>
 </div>
 
 
@@ -744,9 +732,9 @@
 
 <span class="sd">    .. example_spec::</span>
 
-<span class="sd">        from scanspec.specs import Line</span>
+<span class="sd">        from scanspec.specs import Fly, Line</span>
 
-<span class="sd">        spec = Line(&quot;z&quot;, 1, 2, 3) * Line(&quot;y&quot;, 3, 4, 5).zip(Line(&quot;x&quot;, 4, 5, 5))</span>
+<span class="sd">        spec = Fly(Line(&quot;z&quot;, 1, 2, 3) * Line(&quot;y&quot;, 3, 4, 5).zip(Line(&quot;x&quot;, 4, 5, 5)))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">left</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -831,9 +819,10 @@
 <span class="sd">    .. example_spec::</span>
 
 <span class="sd">        from scanspec.regions import Circle</span>
-<span class="sd">        from scanspec.specs import Line</span>
+<span class="sd">        from scanspec.specs import Fly, Line</span>
 
-<span class="sd">        spec = Line(&quot;y&quot;, 1, 3, 3) * Line(&quot;x&quot;, 3, 5, 5) &amp; Circle(&quot;x&quot;, &quot;y&quot;, 4, 2, 1.2)</span>
+<span class="sd">        region = Circle(&quot;x&quot;, &quot;y&quot;, 4, 2, 1.2)</span>
+<span class="sd">        spec = Fly(Line(&quot;y&quot;, 1, 3, 3) * Line(&quot;x&quot;, 3, 5, 5) &amp; region)</span>
 
 <span class="sd">    See Also: `why-squash-can-change-path`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -911,9 +900,9 @@
 
 <span class="sd">    .. example_spec::</span>
 
-<span class="sd">        from scanspec.specs import Line</span>
+<span class="sd">        from scanspec.specs import Fly, Line</span>
 
-<span class="sd">        spec = Line(&quot;y&quot;, 1, 3, 3) * ~Line(&quot;x&quot;, 3, 5, 5)</span>
+<span class="sd">        spec = Fly(Line(&quot;y&quot;, 1, 3, 3) * ~Line(&quot;x&quot;, 3, 5, 5))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -956,9 +945,9 @@
 
 <span class="sd">    .. example_spec::</span>
 
-<span class="sd">        from scanspec.specs import Line</span>
+<span class="sd">        from scanspec.specs import Fly, Line</span>
 
-<span class="sd">        spec = Line(&quot;x&quot;, 1, 3, 3).concat(Line(&quot;x&quot;, 4, 5, 5))</span>
+<span class="sd">        spec = Fly(Line(&quot;x&quot;, 1, 3, 3).concat(Line(&quot;x&quot;, 4, 5, 5)))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">left</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -1029,9 +1018,9 @@
 
 <span class="sd">    .. example_spec::</span>
 
-<span class="sd">        from scanspec.specs import Line, Squash</span>
+<span class="sd">        from scanspec.specs import Fly, Line, Squash</span>
 
-<span class="sd">        spec = Squash(Line(&quot;y&quot;, 1, 2, 3) * Line(&quot;x&quot;, 0, 1, 4))</span>
+<span class="sd">        spec = Fly(Squash(Line(&quot;y&quot;, 1, 2, 3) * Line(&quot;x&quot;, 0, 1, 4)))</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1100,9 +1089,9 @@
 
 <span class="sd">    .. example_spec::</span>
 
-<span class="sd">        from scanspec.specs import Line</span>
+<span class="sd">        from scanspec.specs import Fly, Line</span>
 
-<span class="sd">        spec = Line(&quot;x&quot;, 1, 2, 5)</span>
+<span class="sd">        spec = Fly(Line(&quot;x&quot;, 1, 2, 5))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">)</span>
@@ -1154,9 +1143,9 @@
 
 <span class="sd">        .. example_spec::</span>
 
-<span class="sd">            from scanspec.specs import Line</span>
+<span class="sd">            from scanspec.specs import Fly, Line</span>
 
-<span class="sd">            spec = Line.bounded(&quot;x&quot;, 1, 2, 5)</span>
+<span class="sd">            spec = Fly(Line.bounded(&quot;x&quot;, 1, 2, 5))</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">half_step</span> <span class="o">=</span> <span class="p">(</span><span class="n">upper</span> <span class="o">-</span> <span class="n">lower</span><span class="p">)</span> <span class="o">/</span> <span class="n">num</span> <span class="o">/</span> <span class="mi">2</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">lower</span> <span class="o">+</span> <span class="n">half_step</span>
@@ -1181,7 +1170,16 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Fly">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Fly</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Spec that represents a fly scan.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Move through lower to upper bounds of the Spec rather than stopping.</span>
+
+<span class="sd">    This is commonly termed a &quot;fly scan&quot; rather than a &quot;step scan&quot;</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Fly, Line</span>
+
+<span class="sd">        spec = Fly(Line(&quot;x&quot;, 1, 2, 3))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Spec contaning the path to be followed&quot;</span><span class="p">)</span>
 
@@ -1211,7 +1209,16 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.ConstantDuration">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConstantDuration</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A special spec used to hold information about the duration of each frame.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply a constant duration to every point in a Spec.</span>
+
+<span class="sd">    Typically applied with the ``@`` modifier.</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Line</span>
+
+<span class="sd">        spec = 0.1 @ Line(&quot;x&quot;, 1, 2, 3)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">constant_duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The value at each point&quot;</span><span class="p">)</span>
     <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -1271,9 +1278,9 @@
 
 <span class="sd">    .. example_spec::</span>
 
-<span class="sd">        from scanspec.specs import Line, Static</span>
+<span class="sd">        from scanspec.specs import Fly, Line, Static</span>
 
-<span class="sd">        spec = Line(&quot;y&quot;, 1, 2, 3).zip(Static(&quot;x&quot;, 3))</span>
+<span class="sd">        spec = Fly(Line(&quot;y&quot;, 1, 2, 3).zip(Static(&quot;x&quot;, 3)))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move&quot;</span><span class="p">)</span>
@@ -1314,9 +1321,9 @@
 
 <span class="sd">    .. example_spec::</span>
 
-<span class="sd">        from scanspec.specs import Spiral</span>
+<span class="sd">        from scanspec.specs import Fly, Spiral</span>
 
-<span class="sd">        spec = Spiral(&quot;x&quot;, &quot;y&quot;, 1, 5, 10, 50, 30)</span>
+<span class="sd">        spec = Fly(Spiral(&quot;x&quot;, &quot;y&quot;, 1, 5, 10, 50, 30))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># TODO: Make use of typing.Annotated upon fix of</span>
@@ -1387,9 +1394,9 @@
 
 <span class="sd">        .. example_spec::</span>
 
-<span class="sd">            from scanspec.specs import Spiral</span>
+<span class="sd">            from scanspec.specs import Fly, Spiral</span>
 
-<span class="sd">            spec = Spiral.spaced(&quot;x&quot;, &quot;y&quot;, 0, 0, 10, 3)</span>
+<span class="sd">            spec = Fly(Spiral.spaced(&quot;x&quot;, &quot;y&quot;, 0, 0, 10, 3))</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># phi = sqrt(4 * pi * num)</span>
         <span class="c1"># and: n_rings = phi / (2 * pi)</span>
@@ -1423,11 +1430,9 @@
 <span class="sd">        spec: The source `Spec` to continuously move</span>
 <span class="sd">        duration: How long to spend at each frame in the spec</span>
 
-<span class="sd">    .. example_spec::</span>
+<span class="sd">    .. deprecated:: 1.0.0</span>
 
-<span class="sd">        from scanspec.specs import Line, fly</span>
-
-<span class="sd">        spec = fly(Line(&quot;x&quot;, 1, 2, 3), 0.1)</span>
+<span class="sd">        You should use `Fly` and `ConstantDuration` instead</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
@@ -1451,11 +1456,9 @@
 <span class="sd">        num: Number of frames to produce with given duration at each of frame</span>
 <span class="sd">            in the spec</span>
 
-<span class="sd">    .. example_spec::</span>
+<span class="sd">    .. deprecated:: 1.0.0</span>
 
-<span class="sd">        from scanspec.specs import Line, step</span>
-
-<span class="sd">        spec = step(Line(&quot;x&quot;, 1, 2, 3), 0.1)</span>
+<span class="sd">        You should use `ConstantDuration` instead.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>

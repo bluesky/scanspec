@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>How to Serialize and Deserialize a Spec &#8212; scanspec 1.0a2.dev2+gc3791b23b documentation</title>
+    <title>How to Serialize and Deserialize a Spec &#8212; scanspec 1.0a2.dev5+g4f84a7e43 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=c7935b45"></script>
+    <script src="../_static/documentation_options.js?v=8bfd7a13"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -472,14 +472,14 @@
 </div>
 <p>This Spec has a <a class="reference external" href="https://docs.python.org/3/library/functions.html#repr" title="(in Python v3.13)"><code class="xref any docutils literal notranslate"><span class="pre">repr</span></code></a> that shows its parameters it was instantiated with:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span>
-<span class="go">Product(outer=Line(axis=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(axis=&#39;x&#39;, start=1.0, stop=2.0, num=3))</span>
+<span class="go">Product(outer=Line(axis=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(axis=&#39;x&#39;, start=1.0, stop=2.0, num=3), gap=True)</span>
 </pre></div>
 </div>
 <section id="how-to-serialize">
 <h2>How to Serialize<a class="headerlink" href="#how-to-serialize" title="Link to this heading">#</a></h2>
 <p>We can recursively serialize it to a dictionary:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
-<span class="go">{&#39;outer&#39;: {&#39;axis&#39;: &#39;y&#39;, &#39;start&#39;: 4.0, &#39;stop&#39;: 5.0, &#39;num&#39;: 6, &#39;type&#39;: &#39;Line&#39;}, &#39;inner&#39;: {&#39;axis&#39;: &#39;x&#39;, &#39;start&#39;: 1.0, &#39;stop&#39;: 2.0, &#39;num&#39;: 3, &#39;type&#39;: &#39;Line&#39;}, &#39;type&#39;: &#39;Product&#39;}</span>
+<span class="go">{&#39;outer&#39;: {&#39;axis&#39;: &#39;y&#39;, &#39;start&#39;: 4.0, &#39;stop&#39;: 5.0, &#39;num&#39;: 6, &#39;type&#39;: &#39;Line&#39;}, &#39;inner&#39;: {&#39;axis&#39;: &#39;x&#39;, &#39;start&#39;: 1.0, &#39;stop&#39;: 2.0, &#39;num&#39;: 3, &#39;type&#39;: &#39;Line&#39;}, &#39;gap&#39;: True, &#39;type&#39;: &#39;Product&#39;}</span>
 </pre></div>
 </div>
 </section>
@@ -487,7 +487,7 @@
 <h2>How to Deserialize<a class="headerlink" href="#how-to-deserialize" title="Link to this heading">#</a></h2>
 <p>We can turn this back into a spec using <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.deserialize" title="scanspec.specs.Spec.deserialize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.deserialize</span></code></a>:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Spec</span><span class="o">.</span><span class="n">deserialize</span><span class="p">({</span><span class="s1">&#39;outer&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mf">4.0</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Line&#39;</span><span class="p">},</span> <span class="s1">&#39;inner&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Line&#39;</span><span class="p">},</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Product&#39;</span><span class="p">})</span>
-<span class="go">Product(outer=Line(axis=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(axis=&#39;x&#39;, start=1.0, stop=2.0, num=3))</span>
+<span class="go">Product(outer=Line(axis=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(axis=&#39;x&#39;, start=1.0, stop=2.0, num=3), gap=True)</span>
 </pre></div>
 </div>
 </section>

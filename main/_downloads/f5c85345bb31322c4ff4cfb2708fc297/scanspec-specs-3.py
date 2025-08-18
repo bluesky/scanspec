@@ -1,7 +1,7 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Line, Repeat
+from scanspec.specs import Fly, Line
 
-spec = Repeat(2, gap=False) * ~Line.bounded("x", 3, 4, 1)
+spec = Fly(Line("y", 1, 2, 3) * 2)
 plot_spec(spec)

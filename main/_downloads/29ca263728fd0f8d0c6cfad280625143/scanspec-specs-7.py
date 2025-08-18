@@ -1,7 +1,9 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Line
+from scanspec.regions import Circle
+from scanspec.specs import Fly, Line
 
-spec = Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5))
+region = Circle("x", "y", 4, 2, 1.2)
+spec = Fly(Line("y", 1, 3, 3) * Line("x", 3, 5, 5) & region)
 plot_spec(spec)

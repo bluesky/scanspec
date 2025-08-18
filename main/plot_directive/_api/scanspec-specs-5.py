@@ -1,8 +1,7 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.regions import Circle
-from scanspec.specs import Line
+from scanspec.specs import Fly, Line, Product
 
-spec = Line("y", 1, 3, 3) * Line("x", 3, 5, 5) & Circle("x", "y", 4, 2, 1.2)
+spec = Fly(Product(2, ~Line.bounded("x", 3, 4, 1), gap=False))
 plot_spec(spec)

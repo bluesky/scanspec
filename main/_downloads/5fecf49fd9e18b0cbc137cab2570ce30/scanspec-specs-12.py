@@ -1,7 +1,7 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Spiral
+from scanspec.specs import Fly, Line
 
-spec = Spiral("x", "y", 1, 5, 10, 50, 30)
+spec = Fly(Line.bounded("x", 1, 2, 5))
 plot_spec(spec)

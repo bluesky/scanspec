@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.core &#8212; scanspec 1.0a2.dev2+gc3791b23b documentation</title>
+    <title>scanspec.core &#8212; scanspec 1.0a2.dev5+g4f84a7e43 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=c7935b45"></script>
+    <script src="../../_static/documentation_options.js?v=8bfd7a13"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -719,7 +719,9 @@
 
 <div class="viewcode-block" id="if_instance_do">
 <a class="viewcode-back" href="../../_api/scanspec.core.html#scanspec.core.if_instance_do">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">if_instance_do</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">C</span><span class="p">],</span> <span class="n">T</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">if_instance_do</span><span class="p">(</span>
+    <span class="n">x</span><span class="p">:</span> <span class="n">C</span><span class="p">,</span> <span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">C</span><span class="p">]</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="n">C</span><span class="p">],</span> <span class="n">Any</span><span class="p">],</span> <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">C</span><span class="p">],</span> <span class="n">T</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;If x is of type cls then return func(x), otherwise return NotImplemented.</span>
 
 <span class="sd">    Used as a helper when implementing operator overloading.</span>
@@ -767,7 +769,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The axes which will move during the scan.</span>
 
-<span class="sd">        These will be present in `midpoints`, `lower` and `upper`.</span>
+<span class="sd">        These will be present in ``midpoints``, ``lower`` and ``upper``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">midpoints</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 </div>
