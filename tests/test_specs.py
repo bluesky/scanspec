@@ -550,6 +550,17 @@ def test_gap_repeat_non_snake() -> None:
     assert dim.gap == ints("111")
 
 
+@pytest.mark.parametrize("gap", [True, False])
+def test_gap_repeat_right_hand_side(gap: bool) -> None:
+    # Check that 2 repeats of each frame means a gap on each change in x, no
+    # matter what the setting of the gap argument
+    spec = Product(Line(x, 11, 19, 2), 2, gap=gap)
+    dim = spec.frames(bounds=True)
+    assert len(dim) == 4
+    assert dim.lower == dim.midpoints == dim.upper == {x: approx([11, 11, 19, 19])}
+    assert dim.gap == ints("1010")
+
+
 def test_multiple_statics():
     part_1 = Static("y", 2) * Static("z", 3) * Line("x", 0, 10, 2)
     part_2 = Static("y", 4) * Static("z", 5) * Line("x", 0, 10, 2)
