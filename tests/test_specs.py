@@ -11,7 +11,7 @@ from scanspec.specs import (
     Fly,
     Line,
     Mask,
-    Repeat,
+    Product,
     Spec,
     Spiral,
     Squash,
@@ -240,9 +240,7 @@ def test_squashed_product() -> None:
 
 def test_squashed_multiplied_snake_scan() -> None:
     inst = Line(z, 1, 2, 2) * Squash(
-        Line(y, 1, 2, 2)
-        * ~Line.bounded(x, 3, 7, 2)
-        * (9.0 @ Repeat[str](2, gap=False))  # until #177
+        9.0 @ Line(y, 1, 2, 2) * ~Line.bounded(x, 3, 7, 2) * 2
     )
     assert inst.axes() == [z, y, x]
     (dimz, dimxyt) = inst.calculate()
@@ -280,7 +278,7 @@ def test_product_snaking_lines() -> None:
 def test_product_duration() -> None:
     with pytest.raises(ValueError) as msg:
         _ = Fly(1.0 @ Line(y, 1, 2, 3)) * Fly(1.0 @ ~Line(x, 0, 1, 2))
-    assert "Outer axes defined a duration" in str(msg.value)
+    assert "Both inner and outer specs defined a duration" in str(msg.value)
 
 
 def test_concat_lines() -> None:
@@ -532,7 +530,7 @@ def test_beam_selector() -> None:
 
 def test_gap_repeat() -> None:
     # Check that no gap propogates to dim.gap for snaked axis
-    spec = Repeat[str](10, gap=False) * ~Line.bounded(x, 11, 19, 1)
+    spec = Product(10, ~Line.bounded(x, 11, 19, 1), gap=False)
     dim = spec.frames(bounds=True)
     assert len(dim) == 10
     assert dim.lower == {x: approx([11, 19, 11, 19, 11, 19, 11, 19, 11, 19])}
@@ -543,13 +541,24 @@ def test_gap_repeat() -> None:
 
 def test_gap_repeat_non_snake() -> None:
     # Check that no gap doesn't propogate to dim.gap for non-snaked axis
-    spec = Repeat[str](3, gap=False) * Line.bounded(x, 11, 19, 1)
+    spec = Product(3, Line.bounded(x, 11, 19, 1), gap=False)
     dim = spec.frames(bounds=True)
     assert len(dim) == 3
     assert dim.lower == {x: approx([11, 11, 11])}
     assert dim.upper == {x: approx([19, 19, 19])}
     assert dim.midpoints == {x: approx([15, 15, 15])}
     assert dim.gap == ints("111")
+
+
+@pytest.mark.parametrize("gap", [True, False])
+def test_gap_repeat_right_hand_side(gap: bool) -> None:
+    # Check that 2 repeats of each frame means a gap on each change in x, no
+    # matter what the setting of the gap argument
+    spec = Product(Line(x, 11, 19, 2), 2, gap=gap)
+    dim = spec.frames(bounds=True)
+    assert len(dim) == 4
+    assert dim.lower == dim.midpoints == dim.upper == {x: approx([11, 11, 19, 19])}
+    assert dim.gap == ints("1010")
 
 
 def test_multiple_statics():

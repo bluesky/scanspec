@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Callable, Mapping
-from typing import Any, Generic, Literal, SupportsFloat, overload
+from typing import Any, Generic, Literal, SupportsFloat
 
 import numpy as np
 import numpy.typing as npt
@@ -35,7 +35,6 @@ __all__ = [
     "ConstantDuration",
     "Spec",
     "Product",
-    "Repeat",
     "Zip",
     "Mask",
     "Snake",
@@ -47,8 +46,11 @@ __all__ = [
     "Fly",
     "step",
     "fly",
+    "VARIABLE_DURATION",
 ]
 
+#: A string returned from `Spec.duration` to signify it produces
+#: a different duration for each point
 VARIABLE_DURATION = "VARIABLE_DURATION"
 
 
@@ -58,8 +60,8 @@ class Spec(Generic[Axis]):
 
     Abstract baseclass for the specification of a scan. Supports operators:
 
-    - ``*``: Outer `Product` of two Specs, nesting the second within the first.
-      If the first operand is an integer, wrap it in a `Repeat`
+    - ``*``: Outer `Product` of two Specs or ints, nesting the second within the first.
+    - ``@``: `ConstantDuration` of the Spec, setting a constant duration for each point.
     - ``&``: `Mask` the Spec with a `Region`, excluding midpoints outside of it
     - ``~``: `Snake` the Spec, reversing every other iteration of it
     """
@@ -107,26 +109,16 @@ class Spec(Generic[Axis]):
         """Return the final, simplified shape of the scan."""
         return tuple(len(dim) for dim in self.calculate())
 
-    def __rmul__(self, other: int) -> Product[Axis]:
-        return if_instance_do(other, int, lambda o: Product(Repeat(o), self))
-
     def __rmatmul__(self, other: SupportsFloat) -> ConstantDuration[Axis]:
         return if_instance_do(
-            other,
-            SupportsFloat,
-            lambda o: ConstantDuration(constant_duration=float(o), spec=self),
+            other, SupportsFloat, lambda o: ConstantDuration(float(o), self)
         )
 
-    @overload
-    def __mul__(self, other: Spec[Axis]) -> Product[Axis]: ...
+    def __rmul__(self, other: Spec[Axis] | int) -> Product[Axis]:
+        return if_instance_do(other, (Spec, int), lambda o: Product(o, self))
 
-    @overload
-    def __mul__(self, other: Spec[OtherAxis]) -> Product[Axis | OtherAxis]: ...
-
-    def __mul__(
-        self, other: Spec[Axis] | Spec[OtherAxis]
-    ) -> Product[Axis] | Product[Axis | OtherAxis]:
-        return if_instance_do(other, Spec, lambda o: Product(self, o))
+    def __mul__(self, other: Spec[Axis] | int) -> Product[Axis]:
+        return if_instance_do(other, (Spec, int), lambda o: Product(self, o))
 
     def __and__(self, other: Region[Axis]) -> Mask[Axis]:
         return if_instance_do(other, Region, lambda o: Mask(self, o))
@@ -160,68 +152,73 @@ class Product(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Line
+        from scanspec.specs import Fly, Line
 
-        spec = Line("y", 1, 2, 3) * Line("x", 3, 4, 12)
-    """
+        spec = Fly(Line("y", 1, 2, 3) * Line("x", 3, 4, 12))
 
-    outer: Spec[Axis] = Field(description="Will be executed once")
-    inner: Spec[Axis] = Field(description="Will be executed len(outer) times")
-
-    def axes(self) -> list[Axis]:  # noqa: D102
-        return self.outer.axes() + self.inner.axes()
-
-    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
-        outer, inner = self.outer.duration(), self.inner.duration()
-        if outer is not None:
-            raise ValueError("Outer axes defined a duration")
-        return inner
-
-    def calculate(  # noqa: D102
-        self, bounds: bool = False, nested: bool = False
-    ) -> list[Dimension[Axis]]:
-        frames_outer = self.outer.calculate(bounds=False, nested=nested)
-        frames_inner = self.inner.calculate(bounds, nested=True)
-        return frames_outer + frames_inner
-
-
-@dataclass(config=StrictConfig)
-class Repeat(Spec[Axis]):
-    """Repeat an empty frame num times.
-
-    Can be used on the outside of a scan to repeat the same scan many times.
+    An inner integer can be used to repeat the same point many times.
 
     .. example_spec::
 
-        from scanspec.specs import Line
+        from scanspec.specs import Fly, Line
 
-        spec = 2 * ~Line.bounded("x", 3, 4, 1)
+        spec = Fly(Line("y", 1, 2, 3) * 2)
+
+    An outer integer can be used to repeat the same scan many times.
+
+    .. example_spec::
+
+        from scanspec.specs import Fly, Line
+
+        spec = Fly(2 * ~Line.bounded("x", 3, 4, 1))
 
     If you want snaked axes to have no gap between iterations you can do:
 
     .. example_spec::
 
-        from scanspec.specs import Line, Repeat
+        from scanspec.specs import Fly, Line, Product
 
-        spec = Repeat(2, gap=False) * ~Line.bounded("x", 3, 4, 1)
+        spec = Fly(Product(2, ~Line.bounded("x", 3, 4, 1), gap=False))
 
     .. note:: There is no turnaround arrow at x=4
     """
 
-    num: int = Field(ge=1, description="Number of frames to produce")
+    outer: Spec[Axis] | int = Field(description="Will be executed once")
+    inner: Spec[Axis] | int = Field(description="Will be executed len(outer) times")
     gap: bool = Field(
-        description="If False and the slowest of the stack of Dimension is snaked "
-        "then the end and start of consecutive iterations of Spec will have no gap",
+        description="If False and the outer spec is an integer and the inner spec is "
+        "snaked then the end and start of consecutive iterations of inner will have no "
+        "gap",
         default=True,
     )
 
     def axes(self) -> list[Axis]:  # noqa: D102
-        return []
+        outer_axes = [] if isinstance(self.outer, int) else self.outer.axes()
+        inner_axes = [] if isinstance(self.inner, int) else self.inner.axes()
+        return outer_axes + inner_axes
+
+    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
+        outer_duration = None if isinstance(self.outer, int) else self.outer.duration()
+        inner_duration = None if isinstance(self.inner, int) else self.inner.duration()
+        if outer_duration is not None:
+            if inner_duration is not None:
+                raise ValueError("Both inner and outer specs defined a duration")
+            return outer_duration
+        else:
+            return inner_duration
 
     def calculate(  # noqa: D102
         self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
-        return [Dimension({}, gap=np.full(self.num, self.gap))]
+        if isinstance(self.outer, int):
+            dims_outer = [Dimension[Axis]({}, gap=np.full(self.outer, self.gap))]
+        else:
+            dims_outer = self.outer.calculate(bounds=False, nested=nested)
+        if isinstance(self.inner, int):
+            dims_inner = [Dimension[Axis]({}, gap=np.full(self.inner, False))]
+        else:
+            dims_inner = self.inner.calculate(bounds, nested=True)
+        return dims_outer + dims_inner
 
 
 @dataclass(config=StrictConfig)
@@ -242,9 +239,9 @@ class Zip(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Line
+        from scanspec.specs import Fly, Line
 
-        spec = Line("z", 1, 2, 3) * Line("y", 3, 4, 5).zip(Line("x", 4, 5, 5))
+        spec = Fly(Line("z", 1, 2, 3) * Line("y", 3, 4, 5).zip(Line("x", 4, 5, 5)))
     """
 
     left: Spec[Axis] = Field(
@@ -317,9 +314,10 @@ class Mask(Spec[Axis]):
     .. example_spec::
 
         from scanspec.regions import Circle
-        from scanspec.specs import Line
+        from scanspec.specs import Fly, Line
 
-        spec = Line("y", 1, 3, 3) * Line("x", 3, 5, 5) & Circle("x", "y", 4, 2, 1.2)
+        region = Circle("x", "y", 4, 2, 1.2)
+        spec = Fly(Line("y", 1, 3, 3) * Line("x", 3, 5, 5) & region)
 
     See Also: `why-squash-can-change-path`
     """
@@ -385,9 +383,9 @@ class Snake(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Line
+        from scanspec.specs import Fly, Line
 
-        spec = Line("y", 1, 3, 3) * ~Line("x", 3, 5, 5)
+        spec = Fly(Line("y", 1, 3, 3) * ~Line("x", 3, 5, 5))
     """
 
     spec: Spec[Axis] = Field(
@@ -418,9 +416,9 @@ class Concat(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Line
+        from scanspec.specs import Fly, Line
 
-        spec = Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5))
+        spec = Fly(Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5)))
     """
 
     left: Spec[Axis] = Field(
@@ -479,9 +477,9 @@ class Squash(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Line, Squash
+        from scanspec.specs import Fly, Line, Squash
 
-        spec = Squash(Line("y", 1, 2, 3) * Line("x", 0, 1, 4))
+        spec = Fly(Squash(Line("y", 1, 2, 3) * Line("x", 0, 1, 4)))
 
     """
 
@@ -538,9 +536,9 @@ class Line(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Line
+        from scanspec.specs import Fly, Line
 
-        spec = Line("x", 1, 2, 5)
+        spec = Fly(Line("x", 1, 2, 5))
     """
 
     axis: Axis = Field(description="An identifier for what to move")
@@ -584,9 +582,9 @@ class Line(Spec[Axis]):
 
         .. example_spec::
 
-            from scanspec.specs import Line
+            from scanspec.specs import Fly, Line
 
-            spec = Line.bounded("x", 1, 2, 5)
+            spec = Fly(Line.bounded("x", 1, 2, 5))
         """
         half_step = (upper - lower) / num / 2
         start = lower + half_step
@@ -607,7 +605,16 @@ Line.bounded = validate_call(Line.bounded)  # type:ignore
 
 @dataclass(config=StrictConfig)
 class Fly(Spec[Axis]):
-    """Spec that represents a fly scan."""
+    """Move through lower to upper bounds of the Spec rather than stopping.
+
+    This is commonly termed a "fly scan" rather than a "step scan"
+
+    .. example_spec::
+
+        from scanspec.specs import Fly, Line
+
+        spec = Fly(Line("x", 1, 2, 3))
+    """
 
     spec: Spec[Axis] = Field(description="Spec contaning the path to be followed")
 
@@ -625,7 +632,16 @@ class Fly(Spec[Axis]):
 
 @dataclass(config=StrictConfig)
 class ConstantDuration(Spec[Axis]):
-    """A special spec used to hold information about the duration of each frame."""
+    """Apply a constant duration to every point in a Spec.
+
+    Typically applied with the ``@`` modifier.
+
+    .. example_spec::
+
+        from scanspec.specs import Line
+
+        spec = 0.1 @ Line("x", 1, 2, 3)
+    """
 
     constant_duration: float = Field(description="The value at each point")
     spec: Spec[Axis] | None = Field(
@@ -673,9 +689,9 @@ class Static(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Line, Static
+        from scanspec.specs import Fly, Line, Static
 
-        spec = Line("y", 1, 2, 3).zip(Static("x", 3))
+        spec = Fly(Line("y", 1, 2, 3).zip(Static("x", 3)))
     """
 
     axis: Axis = Field(description="An identifier for what to move")
@@ -707,9 +723,9 @@ class Spiral(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Spiral
+        from scanspec.specs import Fly, Spiral
 
-        spec = Spiral("x", "y", 1, 5, 10, 50, 30)
+        spec = Fly(Spiral("x", "y", 1, 5, 10, 50, 30))
     """
 
     # TODO: Make use of typing.Annotated upon fix of
@@ -772,9 +788,9 @@ class Spiral(Spec[Axis]):
 
         .. example_spec::
 
-            from scanspec.specs import Spiral
+            from scanspec.specs import Fly, Spiral
 
-            spec = Spiral.spaced("x", "y", 0, 0, 10, 3)
+            spec = Fly(Spiral.spaced("x", "y", 0, 0, 10, 3))
         """
         # phi = sqrt(4 * pi * num)
         # and: n_rings = phi / (2 * pi)
@@ -804,11 +820,9 @@ def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
         spec: The source `Spec` to continuously move
         duration: How long to spend at each frame in the spec
 
-    .. example_spec::
+    .. deprecated:: 1.0.0
 
-        from scanspec.specs import Line, fly
-
-        spec = fly(Line("x", 1, 2, 3), 0.1)
+        You should use `Fly` and `ConstantDuration` instead
 
     """
     warnings.warn(
@@ -829,11 +843,9 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
         num: Number of frames to produce with given duration at each of frame
             in the spec
 
-    .. example_spec::
+    .. deprecated:: 1.0.0
 
-        from scanspec.specs import Line, step
-
-        spec = step(Line("x", 1, 2, 3), 0.1)
+        You should use `ConstantDuration` instead.
 
     """
     warnings.warn(
