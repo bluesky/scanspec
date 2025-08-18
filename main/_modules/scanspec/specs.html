@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.specs &#8212; scanspec 0.8.1.dev3+g117d2954 documentation</title>
+    <title>scanspec.specs &#8212; scanspec 1.0a2.dev2+gc3791b23b documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=e822ba0f"></script>
+    <script src="../../_static/documentation_options.js?v=c7935b45"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -455,7 +455,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">overload</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">SupportsFloat</span><span class="p">,</span> <span class="n">overload</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
@@ -576,9 +576,11 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Product</span><span class="p">(</span><span class="n">Repeat</span><span class="p">(</span><span class="n">o</span><span class="p">),</span> <span class="bp">self</span><span class="p">))</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__rmatmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConstantDuration</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__rmatmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">SupportsFloat</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConstantDuration</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span>
-            <span class="n">other</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">ConstantDuration</span><span class="p">(</span><span class="n">constant_duration</span><span class="o">=</span><span class="n">o</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">other</span><span class="p">,</span>
+            <span class="n">SupportsFloat</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">ConstantDuration</span><span class="p">(</span><span class="n">constant_duration</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">o</span><span class="p">),</span> <span class="n">spec</span><span class="o">=</span><span class="bp">self</span><span class="p">),</span>
         <span class="p">)</span>
 
     <span class="nd">@overload</span>
