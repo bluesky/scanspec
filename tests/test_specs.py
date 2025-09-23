@@ -1,10 +1,12 @@
 from typing import Any
 
+import numpy as np
 import pytest
 
 from scanspec.core import Axis, Dimension, Path, SnakedDimension
 from scanspec.specs import (
     VARIABLE_DURATION,
+    Array,
     Concat,
     ConstantDuration,
     Ellipse,
@@ -562,6 +564,89 @@ def test_constant_duration():
 def test_int_duration():
     spec1 = 1 @ Linspace("x", 0, 1, 2)
     assert spec1.duration() == 1.0
+
+
+def test_array_spec():
+    points = [
+        0.0,
+        1.0,
+        2.0,
+        2.5,
+        3.0,
+        4.0,
+        4.5,
+    ]
+    bounds = [-0.5, 0.5, 1.5, 2.25, 2.75, 3.5, 4.25, 4.75]
+    spec = Array(axis="x", _midpoints=np.asarray(points))
+    (dim,) = spec.calculate()
+    assert dim.midpoints == {"x": approx(points)}
+    assert dim.lower == {"x": approx(bounds[0:-1])}
+    assert dim.upper == {"x": approx(bounds[1:])}
+
+
+def test_array_spec_upper_lower_only():
+    points = [0.0, 1.0, 2.0, 3.0, 4.0]
+    low = [-0.5, 0.5, 1.5, 2.5, 3.5]
+    up = [0.5, 1.5, 2.5, 3.5, 4.5]
+    spec = Array(
+        axis="x",
+        _midpoints=None,
+        _lower=np.asarray(low),
+        _upper=np.asarray(up),
+        _gap=None,
+        _duration=None,
+    )
+    (dim,) = spec.calculate()
+    assert dim.midpoints == {"x": approx(points)}
+    assert dim.gap == ints("10000")
+
+
+def test_array_spec_raises():
+    points = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
+    low = np.array([-0.5, 0.5, 1.5])
+    up = np.array([0.5, 1.5, 2.5, 3.5])
+
+    with pytest.raises(ValueError, match="Must pass a valid combination of arrays"):
+        Array("x").calculate()
+
+    with pytest.raises(ValueError, match="Must pass a valid combination of arrays"):
+        Array("x", _midpoints=points, _lower=low).calculate()
+
+    with pytest.raises(ValueError, match="Arrays must have the same size"):
+        Array("x", _midpoints=points, _lower=low, _upper=up).calculate()
+
+    with pytest.raises(ValueError, match="Arrays must have the same size"):
+        Array("x", _lower=low, _upper=up).calculate()
+
+
+def test_array_spec_fly():
+    points = [
+        0.0,
+        1.0,
+        2.0,
+        2.5,
+        3.0,
+        4.0,
+        4.5,
+    ]
+    bounds = [-0.5, 0.5, 1.5, 2.25, 2.75, 3.5, 4.25, 4.75]
+
+    spec = Fly(1 @ Array("x", np.asarray(points)))
+    (dim,) = spec.calculate()
+    assert dim.midpoints == {"x": approx(points)}
+    assert dim.lower == {"x": approx(bounds[0:-1])}
+    assert dim.upper == {"x": approx(bounds[1:])}
+    assert dim.duration == approx(
+        [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+        ]
+    )
 
 
 @pytest.mark.filterwarnings("ignore:fly")
