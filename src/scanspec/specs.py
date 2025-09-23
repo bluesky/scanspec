@@ -47,6 +47,7 @@ __all__ = [
     "Static",
     "Spiral",
     "Fly",
+    "Array",
     "step",
     "fly",
     "VARIABLE_DURATION",
@@ -803,6 +804,123 @@ class Spiral(Spec[Axis]):
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self._num, bounds
         )
+
+
+@dataclass(config=StrictConfig)
+class Array(Spec[Axis]):
+    """User defined array containing position of the frames to acquire.
+
+    Array can be of midpoints, making so that upper and lower bounds are calculated.
+    Or bounds can be provided and the midpoints are calculated based on it.
+
+    .. example_spec::
+
+        import numpy as np
+
+        from scanspec.specs import Fly, Array
+
+        array = np.array([-2.0, -1.0 ,0.0, 1.0, 2.0, 3.0])
+        spec = Fly(Spiral("x", array))
+    """
+
+    axis: Axis = Field(description="An identifier for what to move")
+    _midpoints: npt.NDArray[np.float64] | None = Field(
+        description="Array describing the midpoint of each frame", default=None
+    )
+    _upper: npt.NDArray[np.float64] | None = Field(
+        description="Array describing the upper bounds of the array", default=None
+    )
+    _lower: npt.NDArray[np.float64] | None = Field(
+        description="Array describing the lower bounds of the array", default=None
+    )
+    _gap: npt.NDArray[np.bool] | None = Field(
+        description="Array describing gap regions in the trajectory", default=None
+    )
+    _duration: npt.NDArray[np.float64] | None = Field(
+        description="Array describing the duration of each point in the array",
+        default=None,
+    )
+
+    def axes(self) -> list[Axis]:  # noqa: D102
+        return [self.axis]
+
+    def duration(self) -> None | float | Literal["VARIABLE_DURATION"]:  # noqa: D102
+        if not self._duration:
+            return None
+        elif len(set(self._duration)) == 1:
+            return self._duration[0]
+        else:
+            return VARIABLE_DURATION
+
+    def calculate(  # noqa: D102
+        self, bounds: bool = False, nested: bool = False
+    ) -> list[Dimension[Axis]]:
+        gap = self._gap if self._gap is not None else None
+        dur = self._duration if self._duration is not None else None
+
+        # Case where we have at least the midpoints array.
+        # We assume no gaps between the points
+        if self._midpoints is not None and self._upper is None and self._lower is None:
+            l_bound = self._midpoints[0] - (
+                (self._midpoints[1] - self._midpoints[0]) / 2
+            )
+            u_bound = self._midpoints[-1] + (
+                (self._midpoints[-1] - self._midpoints[-2]) / 2
+            )
+
+            diff = np.diff(self._midpoints) / 2
+
+            lower = np.empty(len(self._midpoints), dtype=float)
+            upper = np.empty(len(self._midpoints), dtype=float)
+            l_diff = self._midpoints[1:] - diff
+            lower = np.append([l_bound], l_diff)
+            u_diff = self._midpoints[0:-1] + diff
+            upper = np.append(u_diff, u_bound)
+            mid = self._midpoints
+
+        # Case where the users passed the upper and lower bounds arrays.
+        # We'll need to calculate the midpoints array by averaging the
+        # value between lower and upper
+        elif (
+            self._midpoints is None
+            and self._upper is not None
+            and self._lower is not None
+        ):
+            if len(self._lower) != len(self._upper):
+                raise ValueError("Arrays must have the same size")
+            mid = np.empty(len(self._lower), dtype=np.float64)
+            upper = self._upper
+            lower = self._lower
+            mid = lower + ((upper - lower) / 2)
+
+        # Case where all three arrays were passed by the users.
+        # We need to check that they have all the same size
+        elif (
+            self._midpoints is not None
+            and self._upper is not None
+            and self._lower is not None
+        ):
+            if len(self._midpoints) != len(self._lower) or len(self._midpoints) != len(
+                self._upper
+            ):
+                raise ValueError("Arrays must have the same size")
+            mid = self._midpoints
+            lower = self._lower
+            upper = self._upper
+            pass
+
+        else:
+            raise ValueError("Must pass a valid combination of arrays")
+
+        new_dim: Dimension[Axis] = Dimension(
+            {self.axis: np.asarray(mid)},
+            {self.axis: np.asarray(lower)},
+            {self.axis: np.asarray(upper)},
+            gap,
+            dur,
+        )
+
+        return [new_dim]
 
 
 def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
