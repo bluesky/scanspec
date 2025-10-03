@@ -39,10 +39,9 @@ def plot(spec: str):
     """Plot a scanspec."""
     from scanspec.plot import plot_spec
 
-    for letter in string.ascii_lowercase:
-        locals()[letter] = letter
-    eval_spec = eval(spec)
-    plot_spec(eval_spec)
+    axis_names = {c: c for c in string.ascii_lowercase}
+    eval_spec = eval(spec, locals=axis_names)  # type: ignore
+    plot_spec(eval_spec)  # type: ignore
 
 
 @cli.command()
