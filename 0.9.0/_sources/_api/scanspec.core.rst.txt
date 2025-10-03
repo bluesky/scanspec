@@ -1,0 +1,45 @@
+``scanspec.core``
+=================
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+.. automodule:: scanspec.core
+    :members:
+
+    
+    
+    
+
+    
+    
+    .. rubric:: Members
+
+    .. autosummary::
+        :nosignatures:
+    
+        Axis
+        OtherAxis
+        if_instance_do
+        AxesPoints
+        Dimension
+        SnakedDimension
+        gap_between_frames
+        squash_frames
+        Path
+        Midpoints
+        discriminated_union_of_subclasses
+        StrictConfig
+        Slice
+    
+    
