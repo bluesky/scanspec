@@ -319,7 +319,7 @@ def test_rect_region() -> None:
     assert dim.gap == ints("101010")
 
 
-def test_rect_region_3D() -> None:
+def test_rect_region_3d() -> None:
     inst = Static(z, 3.2, 2) * Line(y, 1, 3, 5) * Line(x, 0, 2, 3) & Rectangle(
         x, y, 0, 1, 1.5, 2.2
     )

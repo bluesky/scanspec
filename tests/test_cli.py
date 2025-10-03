@@ -73,7 +73,7 @@ def assert_3d_arrow(
     assert artist.verts3d[2][1] == approx(z)
 
 
-def test_plot_1D_line() -> None:
+def test_plot_1d_line() -> None:
     runner = CliRunner()
     spec = 'Fly(Line("x", 1, 2, 2))'
     with patch("scanspec.plot.plt.show"):
@@ -95,7 +95,7 @@ def test_plot_1D_line() -> None:
     assert tuple(texts[0].xy) == (0.5, 0)
 
 
-def test_plot_1D_line_snake_repeat() -> None:
+def test_plot_1d_line_snake_repeat() -> None:
     runner = CliRunner()
     spec = 'Fly(2 * ~Line.bounded("x", 1, 2, 1))'
     with patch("scanspec.plot.plt.show"):
@@ -121,7 +121,7 @@ def test_plot_1D_line_snake_repeat() -> None:
     assert tuple(texts[1].xy) == approx([2, 0])
 
 
-def test_plot_1D_step() -> None:
+def test_plot_1d_step() -> None:
     runner = CliRunner()
     spec = '0.1 @ Line("x", 1, 2, 2)'
     with patch("scanspec.plot.plt.show"):
@@ -144,7 +144,7 @@ def test_plot_1D_step() -> None:
     assert tuple(texts[0].xy) == (2, 0)
 
 
-def test_plot_2D_line() -> None:
+def test_plot_2d_line() -> None:
     runner = CliRunner()
     spec = 'Fly(Line("y", 2, 3, 2) * Snake(Line("x", 1, 2, 2)))'
     with patch("scanspec.plot.plt.show"):
@@ -172,7 +172,7 @@ def test_plot_2D_line() -> None:
     assert tuple(texts[1].xy) == approx([2.5, 3])
 
 
-def test_plot_2D_line_rect_region() -> None:
+def test_plot_2d_line_rect_region() -> None:
     runner = CliRunner()
     spec = "Fly(Line(y, 1, 3, 5) * Line(x, 0, 2, 3)\
           & Rectangle(x, y, 0, 1.1, 1.5, 2.1, 30))"
@@ -209,7 +209,7 @@ def test_plot_2D_line_rect_region() -> None:
     assert p.angle == 30
 
 
-def test_plot_3D_line() -> None:
+def test_plot_3d_line() -> None:
     runner = CliRunner()
     spec = 'Fly(Snake(Line("z", 5, 6, 2) * Line("y", 2, 3, 2) * Line("x", 1, 2, 2)))'
     with patch("scanspec.plot.plt.show"):

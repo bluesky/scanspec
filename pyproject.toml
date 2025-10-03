@@ -30,7 +30,7 @@ dev = [
     # https://github.com/pypa/pip/issues/10393
     "scanspec[plotting]",
     "scanspec[service]",
-    "autodoc_pydantic",
+    "autodoc-pydantic",
     "copier",
     "httpx",
     "myst-parser",
@@ -197,3 +197,6 @@ convention = "google"
 "tests/**/*" = [
     "D", # Don't check docstrings in tests
 ]
+
+[tool.uv.sources]
+autodoc-pydantic = { git = "https://github.com/coretl/autodoc_pydantic.git", rev = "0b95311d8d10fce67a9ecd5830330364e31fa49c" }

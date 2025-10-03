@@ -62,6 +62,5 @@
     // Mount the parent as /workspaces so we can pip install peers as editable
     "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind",
     // After the container is created, install the python project in editable form
-    // autodoc_pydantic @ git+https://github.com/coretl/autodoc_pydantic.git@0b95311d8d10fce67a9ecd5830330364e31fa49c
     "postCreateCommand": "uv sync && uv run pre-commit install --install-hooks"
 }
