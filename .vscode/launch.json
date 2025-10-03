@@ -14,29 +14,6 @@
                 "debug-test"
             ],
             "console": "integratedTerminal",
-            "env": {
-                // Enable break on exception when debugging tests (see: tests/conftest.py)
-                "PYTEST_RAISE": "1",
-            },
-        },
-        {
-            "name": "Python (Current File)",
-            "type": "python",
-            "request": "launch",
-            "justMyCode": false,
-            "console": "integratedTerminal",
-            "program": "${file}"
-        },
-        {
-            "name": "Scanspec Service",
-            "type": "python",
-            "request": "launch",
-            "justMyCode": false,
-            "console": "integratedTerminal",
-            "module": "scanspec",
-            "args": [
-                "service"
-            ]
         }
     ]
 }
