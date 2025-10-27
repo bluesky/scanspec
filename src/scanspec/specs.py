@@ -40,6 +40,7 @@ __all__ = [
     "Snake",
     "Concat",
     "Squash",
+    "Linspace",
     "Line",
     "Static",
     "Spiral",
@@ -531,14 +532,20 @@ def _dimensions_from_indexes(
 
 
 @dataclass(config=StrictConfig)
-class Line(Spec[Axis]):
+class Linspace(Spec[Axis]):
     """Linearly spaced frames with start and stop as first and last midpoints.
+
+    This class is intended to handle linearly spaced frames defined with a
+    specific number of frames.
+
+    .. seealso::
+        `Range`: For linearly spaced frames defined with a step size.
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("x", 1, 2, 5))
+        spec = Fly(Linspace("x", 1, 2, 5))
     """
 
     axis: Axis = Field(description="An identifier for what to move")
@@ -572,13 +579,13 @@ class Line(Spec[Axis]):
 
     @classmethod
     def bounded(
-        cls: type[Line[Any]],
+        cls: type[Linspace[Any]],
         axis: OtherAxis = Field(description="An identifier for what to move"),
         lower: float = Field(description="Lower bound of the first point of the line"),
         upper: float = Field(description="Upper bound of the last point of the line"),
         num: int = Field(ge=1, description="Number of frames to produce"),
-    ) -> Line[OtherAxis]:
-        """Specify a Line by extreme bounds instead of midpoints.
+    ) -> Linspace[OtherAxis]:
+        """Specify a Linspace by extreme bounds instead of midpoints.
 
         .. example_spec::
 
@@ -600,7 +607,94 @@ class Line(Spec[Axis]):
 """
 Defers wrapping function with validate_call until class is fully instantiated
 """
-Line.bounded = validate_call(Line.bounded)  # type:ignore
+Linspace.bounded = validate_call(Linspace.bounded)  # type:ignore
+
+
+@dataclass(config=StrictConfig)
+class Range(Spec[Axis]):
+    """Linearly spaced frames with start and stop as first and last midpoints.
+
+    This class is intended to handle linearly spaced frames defined with a
+    specific step size.
+
+    .. seealso::
+        `Linspace`: For linearly spaced frames defined with a number of frames.
+
+    .. example_spec::
+
+        from scanspec.specs import Fly, Linspace
+
+        spec = Fly(Linspace("x", 1, 2, 5))
+    """
+
+    axis: Axis = Field(description="An identifier for what to move")
+    start: float = Field(description="Midpoint of the first point of the line")
+    stop: float = Field(description="Midpoint of the last point of the line")
+    step: float = Field(description="Step size")
+
+    def __post_init__(self):
+        if self.step == 0:
+            raise ValueError("step myst be nonzero")
+
+    def axes(self) -> list[Axis]:  # noqa: D102
+        return [self.axis]
+
+    def _line_from_indexes(
+        self, indexes: npt.NDArray[np.float64]
+    ) -> dict[Axis, npt.NDArray[np.float64]]:
+        step = abs(self.step) * np.sign(self.stop - self.start)
+        first = self.start - step / 2
+        return {self.axis: indexes * step + first}
+
+    def calculate(  # noqa: D102
+        self, bounds: bool = False, nested: bool = False
+    ) -> list[Dimension[Axis]]:
+        step = abs(self.step)
+        distance = abs(self.stop - self.start)
+        # +1 to include start
+        num = int(distance // step) + 1
+        if np.isclose(step * num, distance):
+            # +1 to include stop
+            num = num + 1
+        return _dimensions_from_indexes(
+            self._line_from_indexes, self.axes(), num, bounds
+        )
+
+    @classmethod
+    def bounded(
+        cls: type[Range[Any]],
+        axis: OtherAxis = Field(description="An identifier for what to move"),
+        lower: float = Field(description="Lower bound of the first point of the line"),
+        upper: float = Field(description="Upper bound of the last point of the line"),
+        step: float = Field(description="Step size"),
+    ) -> Range[OtherAxis]:
+        """Specify a Range by extreme bounds instead of midpoints.
+
+        .. example_spec::
+
+            from scanspec.specs import Fly, Range
+
+            spec = Fly(Range.bounded("x", 1, 5, 2))
+        """
+        distance = abs(upper - lower)
+        if distance < abs(step):
+            # exactly one point at the center
+            step = distance / 2
+            start = stop = (upper + lower) / 2
+        else:
+            half_step = abs(step) / 2 * np.sign(upper - lower)
+            start = lower + half_step
+            stop = upper - half_step
+        return cls(axis, start, stop, step)
+
+
+"""
+Defers wrapping function with validate_call until class is fully instantiated
+"""
+Range.bounded = validate_call(Range.bounded)  # type:ignore
+
+# Define alias for Range
+Line = Range
 
 
 @dataclass(config=StrictConfig)
