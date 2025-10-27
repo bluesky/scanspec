@@ -21,15 +21,15 @@
                                             "axis": "y",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "num": 3,
-                                            "type": "Line"
+                                            "step": 3.0,
+                                            "type": "Range"
                                         },
                                         "inner": {
                                             "axis": "x",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "num": 4,
-                                            "type": "Line"
+                                            "step": 4.0,
+                                            "type": "Range"
                                         },
                                         "gap": true,
                                         "type": "Product"
@@ -81,15 +81,15 @@
                                                 "axis": "y",
                                                 "start": 0.0,
                                                 "stop": 10.0,
-                                                "num": 3,
-                                                "type": "Line"
+                                                "step": 3.0,
+                                                "type": "Range"
                                             },
                                             "inner": {
                                                 "axis": "x",
                                                 "start": 0.0,
                                                 "stop": 10.0,
-                                                "num": 4,
-                                                "type": "Line"
+                                                "step": 4.0,
+                                                "type": "Range"
                                             },
                                             "gap": true,
                                             "type": "Product"
@@ -144,15 +144,15 @@
                                                 "axis": "y",
                                                 "start": 0.0,
                                                 "stop": 10.0,
-                                                "num": 3,
-                                                "type": "Line"
+                                                "step": 3.0,
+                                                "type": "Range"
                                             },
                                             "inner": {
                                                 "axis": "x",
                                                 "start": 0.0,
                                                 "stop": 10.0,
-                                                "num": 4,
-                                                "type": "Line"
+                                                "step": 4.0,
+                                                "type": "Range"
                                             },
                                             "gap": true,
                                             "type": "Product"
@@ -206,15 +206,15 @@
                                             "axis": "y",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "num": 3,
-                                            "type": "Line"
+                                            "step": 3.0,
+                                            "type": "Range"
                                         },
                                         "inner": {
                                             "axis": "x",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "num": 4,
-                                            "type": "Line"
+                                            "step": 4.0,
+                                            "type": "Range"
                                         },
                                         "gap": true,
                                         "type": "Product"
@@ -265,15 +265,15 @@
                                             "axis": "y",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "num": 3,
-                                            "type": "Line"
+                                            "step": 3.0,
+                                            "type": "Range"
                                         },
                                         "inner": {
                                             "axis": "x",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "num": 4,
-                                            "type": "Line"
+                                            "step": 4.0,
+                                            "type": "Range"
                                         },
                                         "gap": true,
                                         "type": "Product"
@@ -853,7 +853,7 @@
                 "title": "IntersectionOf",
                 "description": "A point is in IntersectionOf(a, b) if in both a and b.\n\nTypically created with the ``&`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) & Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False, False,  True, False, False])"
             },
-            "Line_str_": {
+            "Linspace_str_": {
                 "properties": {
                     "axis": {
                         "type": "string",
@@ -878,9 +878,9 @@
                     },
                     "type": {
                         "type": "string",
-                        "const": "Line",
+                        "const": "Linspace",
                         "title": "Type",
-                        "default": "Line"
+                        "default": "Linspace"
                     }
                 },
                 "additionalProperties": false,
@@ -891,8 +891,8 @@
                     "stop",
                     "num"
                 ],
-                "title": "Line",
-                "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"x\", 1, 2, 5))"
+                "title": "Linspace",
+                "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\nThis class is intended to handle linearly spaced frames defined with a\nspecific number of frames.\n\n.. seealso::\n    `Range`: For linearly spaced frames defined with a step size.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"x\", 1, 2, 5))"
             },
             "Mask_str_-Input": {
                 "properties": {
@@ -1189,40 +1189,6 @@
                 "title": "Product",
                 "description": "Outer product of two Specs, nesting inner within outer.\n\nThis means that inner will run in its entirety at each point in outer.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 2, 3) * Line(\"x\", 3, 4, 12))\n\nAn inner integer can be used to repeat the same point many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 2, 3) * 2)\n\nAn outer integer can be used to repeat the same scan many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(2 * ~Line.bounded(\"x\", 3, 4, 1))\n\nIf you want snaked axes to have no gap between iterations you can do:\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line, Product\n\n    spec = Fly(Product(2, ~Line.bounded(\"x\", 3, 4, 1), gap=False))\n\n.. note:: There is no turnaround arrow at x=4"
             },
-            "Range_str_": {
-                "properties": {
-                    "axis": {
-                        "type": "string",
-                        "title": "Axis",
-                        "description": "The name matching the axis to mask in spec"
-                    },
-                    "min": {
-                        "type": "number",
-                        "title": "Min",
-                        "description": "The minimum inclusive value in the region"
-                    },
-                    "max": {
-                        "type": "number",
-                        "title": "Max",
-                        "description": "The minimum inclusive value in the region"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Range",
-                        "title": "Type",
-                        "default": "Range"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "axis",
-                    "min",
-                    "max"
-                ],
-                "title": "Range",
-                "description": "Mask contains points of axis >= min and <= max.\n\n>>> r = Range(\"x\", 1, 2)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True, False, False])"
-            },
             "Rectangle_str_": {
                 "properties": {
                     "x_axis": {
@@ -1299,7 +1265,7 @@
                         "$ref": "#/components/schemas/SymmetricDifferenceOf_str_-Input"
                     },
                     {
-                        "$ref": "#/components/schemas/Range_str_"
+                        "$ref": "#/components/schemas/scanspec__regions__Range_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Rectangle_str_"
@@ -1323,7 +1289,7 @@
                         "Ellipse": "#/components/schemas/Ellipse_str_",
                         "IntersectionOf": "#/components/schemas/IntersectionOf_str_-Input",
                         "Polygon": "#/components/schemas/Polygon_str_",
-                        "Range": "#/components/schemas/Range_str_",
+                        "Range": "#/components/schemas/scanspec__regions__Range_str_",
                         "Rectangle": "#/components/schemas/Rectangle_str_",
                         "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf_str_-Input",
                         "UnionOf": "#/components/schemas/UnionOf_str_-Input"
@@ -1348,7 +1314,7 @@
                         "$ref": "#/components/schemas/SymmetricDifferenceOf_str_-Output"
                     },
                     {
-                        "$ref": "#/components/schemas/Range_str_"
+                        "$ref": "#/components/schemas/scanspec__regions__Range_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Rectangle_str_"
@@ -1372,7 +1338,7 @@
                         "Ellipse": "#/components/schemas/Ellipse_str_",
                         "IntersectionOf": "#/components/schemas/IntersectionOf_str_-Output",
                         "Polygon": "#/components/schemas/Polygon_str_",
-                        "Range": "#/components/schemas/Range_str_",
+                        "Range": "#/components/schemas/scanspec__regions__Range_str_",
                         "Rectangle": "#/components/schemas/Rectangle_str_",
                         "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf_str_-Output",
                         "UnionOf": "#/components/schemas/UnionOf_str_-Output"
@@ -1466,7 +1432,10 @@
                         "$ref": "#/components/schemas/Squash_str_-Input"
                     },
                     {
-                        "$ref": "#/components/schemas/Line_str_"
+                        "$ref": "#/components/schemas/Linspace_str_"
+                    },
+                    {
+                        "$ref": "#/components/schemas/scanspec__specs__Range_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Fly_str_-Input"
@@ -1487,9 +1456,10 @@
                         "Concat": "#/components/schemas/Concat_str_-Input",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Input",
                         "Fly": "#/components/schemas/Fly_str_-Input",
-                        "Line": "#/components/schemas/Line_str_",
+                        "Linspace": "#/components/schemas/Linspace_str_",
                         "Mask": "#/components/schemas/Mask_str_-Input",
                         "Product": "#/components/schemas/Product_str_-Input",
+                        "Range": "#/components/schemas/scanspec__specs__Range_str_",
                         "Snake": "#/components/schemas/Snake_str_-Input",
                         "Spiral": "#/components/schemas/Spiral_str_",
                         "Squash": "#/components/schemas/Squash_str_-Input",
@@ -1519,7 +1489,10 @@
                         "$ref": "#/components/schemas/Squash_str_-Output"
                     },
                     {
-                        "$ref": "#/components/schemas/Line_str_"
+                        "$ref": "#/components/schemas/Linspace_str_"
+                    },
+                    {
+                        "$ref": "#/components/schemas/scanspec__specs__Range_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Fly_str_-Output"
@@ -1540,9 +1513,10 @@
                         "Concat": "#/components/schemas/Concat_str_-Output",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Output",
                         "Fly": "#/components/schemas/Fly_str_-Output",
-                        "Line": "#/components/schemas/Line_str_",
+                        "Linspace": "#/components/schemas/Linspace_str_",
                         "Mask": "#/components/schemas/Mask_str_-Output",
                         "Product": "#/components/schemas/Product_str_-Output",
+                        "Range": "#/components/schemas/scanspec__specs__Range_str_",
                         "Snake": "#/components/schemas/Snake_str_-Output",
                         "Spiral": "#/components/schemas/Spiral_str_",
                         "Squash": "#/components/schemas/Squash_str_-Output",
@@ -1912,6 +1886,80 @@
                 ],
                 "title": "Zip",
                 "description": "Run two Specs in parallel, merging their midpoints together.\n\nTypically formed using `Spec.zip`.\n\nStacks of Dimension are merged by:\n\n- If right creates a stack of a single Dimension object of size 1, expand it to\n  the size of the fastest Dimension object created by left\n- Merge individual Dimension objects together from fastest to slowest\n\nThis means that Zipping a Spec producing stack [l2, l1] with a Spec\nproducing stack [r1] will assert len(l1)==len(r1), and produce\nstack [l2, l1.zip(r1)].\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"z\", 1, 2, 3) * Line(\"y\", 3, 4, 5).zip(Line(\"x\", 4, 5, 5)))"
+            },
+            "scanspec__regions__Range_str_": {
+                "properties": {
+                    "axis": {
+                        "type": "string",
+                        "title": "Axis",
+                        "description": "The name matching the axis to mask in spec"
+                    },
+                    "min": {
+                        "type": "number",
+                        "title": "Min",
+                        "description": "The minimum inclusive value in the region"
+                    },
+                    "max": {
+                        "type": "number",
+                        "title": "Max",
+                        "description": "The minimum inclusive value in the region"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Range",
+                        "title": "Type",
+                        "default": "Range"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "axis",
+                    "min",
+                    "max"
+                ],
+                "title": "Range",
+                "description": "Mask contains points of axis >= min and <= max.\n\n>>> r = Range(\"x\", 1, 2)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True, False, False])"
+            },
+            "scanspec__specs__Range_str_": {
+                "properties": {
+                    "axis": {
+                        "type": "string",
+                        "title": "Axis",
+                        "description": "An identifier for what to move"
+                    },
+                    "start": {
+                        "type": "number",
+                        "title": "Start",
+                        "description": "Midpoint of the first point of the line"
+                    },
+                    "stop": {
+                        "type": "number",
+                        "title": "Stop",
+                        "description": "Midpoint of the last point of the line"
+                    },
+                    "step": {
+                        "type": "number",
+                        "title": "Step",
+                        "description": "Step size"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Range",
+                        "title": "Type",
+                        "default": "Range"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "axis",
+                    "start",
+                    "stop",
+                    "step"
+                ],
+                "title": "Range",
+                "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\nThis class is intended to handle linearly spaced frames defined with a\nspecific step size.\n\n.. seealso::\n    `Linspace`: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"x\", 1, 2, 5))"
             }
         }
     }
