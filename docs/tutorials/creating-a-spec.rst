@@ -4,17 +4,17 @@ Creating a Scan Spec
 This tutorial shows how to create Scan Specs of increasing complexity, plotting
 the results.
 
-Line
-----
+Linspace
+--------
 
-We'll start with a simple one, a `Line`. If you enter the following code into an
+We'll start with a simple one, a `Linspace`. If you enter the following code into an
 interactive Python terminal, it should plot a graph of a 1D line:
 
 .. example_spec::
 
-    from scanspec.specs import Line
+    from scanspec.specs import Linspace
 
-    spec = Line("x", 1, 2, 5)
+    spec = Linspace("x", 1, 2, 5)
 
 This will create a Spec with 5 frames, the first centred on 1, the last centred
 on 2. The black dots mark the midpoints on the Path. The coloured lines mark the
@@ -28,33 +28,33 @@ Plotting from the commandline
 To quickly plot Scan Specs you can use the commandline client. The input is
 evaluated with variables ``a`` to ``z`` defined and the output plotted.
 
-For example, for the Line example above you would type::
+For example, for the Linspace example above you would type::
 
-    $ scanspec plot 'Line(x, 1, 2, 5)'
+    $ scanspec plot 'Linspace(x, 1, 2, 5)'
 
 
-Line with 2 axes
-----------------
+Linspace with 2 axes
+--------------------
 
-If we want to plot a Line in two axes, we can do this with `Zip`, or `Spec.zip`:
+If we want to plot a Linspace in two axes, we can do this with `Zip`, or `Spec.zip`:
 
 .. example_spec::
 
-    from scanspec.specs import Line
+    from scanspec.specs import Linspace
 
-    spec = Line("y", 3, 4, 5).zip(Line("x", 1, 2, 5))
+    spec = Linspace("y", 3, 4, 5).zip(Linspace("x", 1, 2, 5))
 
 
 Grid
 ----
 
-We can make a grid by creating the `Product` of 2 Lines with the ``*`` operator:
+We can make a grid by creating the `Product` of 2 Linspaces with the ``*`` operator:
 
 .. example_spec::
 
-    from scanspec.specs import Line
+    from scanspec.specs import Linspace
 
-    spec = Line("y", 3, 4, 3) * Line("x", 1, 2, 5)
+    spec = Linspace("y", 3, 4, 3) * Linspace("x", 1, 2, 5)
 
 The plot shows grey arrowed lines marking the turnarounds. These are added by
 the plotting function as an indication of what a scanning program might do
@@ -71,9 +71,9 @@ Spec of our grid we get:
 
 .. example_spec::
 
-    from scanspec.specs import Line
+    from scanspec.specs import Linspace
 
-    spec = Line("y", 3, 4, 3) * ~Line("x", 1, 2, 5)
+    spec = Linspace("y", 3, 4, 3) * ~Linspace("x", 1, 2, 5)
 
 
 Masking with Regions
@@ -84,10 +84,10 @@ given `Region` using the ``&`` operator:
 
 .. example_spec::
 
-    from scanspec.specs import Line
+    from scanspec.specs import Linspace
     from scanspec.regions import Circle
 
-    spec = Line("y", 3, 4, 3) * ~Line("x", 1, 2, 5) & Circle("x", "y", 1.5, 3.5, 0.6)
+    spec = Linspace("y", 3, 4, 3) * ~Linspace("x", 1, 2, 5) & Circle("x", "y", 1.5, 3.5, 0.6)
 
 
 Masking with Multiple Regions
@@ -104,10 +104,10 @@ For example:
 
 .. example_spec::
 
-    from scanspec.specs import Line
+    from scanspec.specs import Linspace
     from scanspec.regions import Circle
 
-    spec = Line("y", 3, 4, 3) * ~Line("x", 1, 2, 5) & Circle("x", "y", 1.5, 3.5, 0.6) - Circle("x", "y", 1.4, 3.5, 0.2)
+    spec = Linspace("y", 3, 4, 3) * ~Linspace("x", 1, 2, 5) & Circle("x", "y", 1.5, 3.5, 0.6) - Circle("x", "y", 1.4, 3.5, 0.2)
 
 
 Conclusion
