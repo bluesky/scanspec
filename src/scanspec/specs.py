@@ -42,6 +42,7 @@ __all__ = [
     "Squash",
     "Linspace",
     "Line",
+    "Range",
     "Static",
     "Spiral",
     "Fly",
@@ -153,33 +154,33 @@ class Product(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("y", 1, 2, 3) * Line("x", 3, 4, 12))
+        spec = Fly(Linspace("y", 1, 2, 3) * Linspace("x", 3, 4, 12))
 
     An inner integer can be used to repeat the same point many times.
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("y", 1, 2, 3) * 2)
+        spec = Fly(Linspace("y", 1, 2, 3) * 2)
 
     An outer integer can be used to repeat the same scan many times.
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(2 * ~Line.bounded("x", 3, 4, 1))
+        spec = Fly(2 * ~Linspace.bounded("x", 3, 4, 1))
 
     If you want snaked axes to have no gap between iterations you can do:
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line, Product
+        from scanspec.specs import Fly, Linspace, Product
 
-        spec = Fly(Product(2, ~Line.bounded("x", 3, 4, 1), gap=False))
+        spec = Fly(Product(2, ~Linspace.bounded("x", 3, 4, 1), gap=False))
 
     .. note:: There is no turnaround arrow at x=4
     """
@@ -240,9 +241,11 @@ class Zip(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("z", 1, 2, 3) * Line("y", 3, 4, 5).zip(Line("x", 4, 5, 5)))
+        spec = Fly(
+            Linspace("z", 1, 2, 3) * Linspace("y", 3, 4, 5).zip(Linspace("x", 4, 5, 5))
+        )
     """
 
     left: Spec[Axis] = Field(
@@ -315,10 +318,10 @@ class Mask(Spec[Axis]):
     .. example_spec::
 
         from scanspec.regions import Circle
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
         region = Circle("x", "y", 4, 2, 1.2)
-        spec = Fly(Line("y", 1, 3, 3) * Line("x", 3, 5, 5) & region)
+        spec = Fly(Linspace("y", 1, 3, 3) * Linspace("x", 3, 5, 5) & region)
 
     See Also: `why-squash-can-change-path`
     """
@@ -384,9 +387,9 @@ class Snake(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("y", 1, 3, 3) * ~Line("x", 3, 5, 5))
+        spec = Fly(Linspace("y", 1, 3, 3) * ~Linspace("x", 3, 5, 5))
     """
 
     spec: Spec[Axis] = Field(
@@ -417,9 +420,9 @@ class Concat(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5)))
+        spec = Fly(Linspace("x", 1, 3, 3).concat(Linspace("x", 4, 5, 5)))
     """
 
     left: Spec[Axis] = Field(
@@ -478,9 +481,9 @@ class Squash(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line, Squash
+        from scanspec.specs import Fly, Linspace, Squash
 
-        spec = Fly(Squash(Line("y", 1, 2, 3) * Line("x", 0, 1, 4)))
+        spec = Fly(Squash(Linspace("y", 1, 2, 3) * Linspace("x", 0, 1, 4)))
 
     """
 
@@ -589,9 +592,9 @@ class Linspace(Spec[Axis]):
 
         .. example_spec::
 
-            from scanspec.specs import Fly, Line
+            from scanspec.specs import Fly, Linspace
 
-            spec = Fly(Line.bounded("x", 1, 2, 5))
+            spec = Fly(Linspace.bounded("x", 1, 2, 5))
         """
         half_step = (upper - lower) / num / 2
         start = lower + half_step
@@ -622,9 +625,9 @@ class Range(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Linspace
+        from scanspec.specs import Fly, Range
 
-        spec = Fly(Linspace("x", 1, 2, 5))
+        spec = Fly(Range("x", 1, 2, 0.25))
     """
 
     axis: Axis = Field(description="An identifier for what to move")
@@ -705,9 +708,9 @@ class Fly(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("x", 1, 2, 3))
+        spec = Fly(Linspace("x", 1, 2, 3))
     """
 
     spec: Spec[Axis] = Field(description="Spec contaning the path to be followed")
@@ -732,9 +735,9 @@ class ConstantDuration(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Line
+        from scanspec.specs import Linspace
 
-        spec = 0.1 @ Line("x", 1, 2, 3)
+        spec = 0.1 @ Linspace("x", 1, 2, 3)
     """
 
     constant_duration: float = Field(description="The value at each point")
@@ -783,9 +786,9 @@ class Static(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line, Static
+        from scanspec.specs import Fly, Linspace, Static
 
-        spec = Fly(Line("y", 1, 2, 3).zip(Static("x", 3)))
+        spec = Fly(Linspace("y", 1, 2, 3).zip(Static("x", 3)))
     """
 
     axis: Axis = Field(description="An identifier for what to move")

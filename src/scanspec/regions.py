@@ -224,9 +224,9 @@ class Rectangle(Region[Axis]):
     .. example_spec::
 
         from scanspec.regions import Rectangle
-        from scanspec.specs import Line
+        from scanspec.specs import Linspace
 
-        grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
+        grid = Linspace("y", 1, 3, 10) * ~Linspace("x", 0, 2, 10)
         spec = grid & Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30)
     """
 
@@ -265,9 +265,9 @@ class Polygon(Region[Axis]):
     .. example_spec::
 
         from scanspec.regions import Polygon
-        from scanspec.specs import Line
+        from scanspec.specs import Linspace
 
-        grid = Line("y", 3, 8, 10) * ~Line("x", 1 ,8, 10)
+        grid = Linspace("y", 3, 8, 10) * ~Linspace("x", 1 ,8, 10)
         spec = grid & Polygon("x", "y", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])
     """
 
@@ -308,9 +308,9 @@ class Circle(Region[Axis]):
     .. example_spec::
 
         from scanspec.regions import Circle
-        from scanspec.specs import Line
+        from scanspec.specs import Linspace
 
-        grid = Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
+        grid = Linspace("y", 1, 3, 10) * ~Linspace("x", 0, 2, 10)
         spec = grid & Circle("x", "y", 1, 2, 0.9)
     """
 
@@ -337,9 +337,9 @@ class Ellipse(Region[Axis]):
     .. example_spec::
 
         from scanspec.regions import Ellipse
-        from scanspec.specs import Line
+        from scanspec.specs import Linspace
 
-        grid = Line("y", 3, 8, 10) * ~Line("x", 1 ,8, 10)
+        grid = Linspace("y", 3, 8, 10) * ~Linspace("x", 1 ,8, 10)
         spec = grid & Ellipse("x", "y", 5, 5, 2, 3, 75)
     """
 
