@@ -43,7 +43,7 @@ Stack of Dimensions
 -------------------
 
 A repeatable, possibly snaking, series of `Dimension` along a number of `Axes
-<axis_>`. In the diagram above, the whole Line produces a single `Dimension`
+<axis_>`. In the diagram above, the whole Linspace produces a single `Dimension`
 object, while a grid scan would be a stack of two `Dimension` objects. A stack of
 `Dimension` objects are produced by `Spec.calculate`.
 
@@ -54,6 +54,6 @@ object, while a grid scan would be a stack of two `Dimension` objects. A stack o
 Path
 ----
 
-A consumable route through a _stack_. If the Line in the above diagram was
+A consumable route through a _stack_. If the Linspace in the above diagram was
 stacked within another line of length 5, then the Path would contain 15 `Dimensions
 <frame_>`. A `Path` is created from a `list` of `Dimension` objects.
