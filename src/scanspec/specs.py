@@ -820,7 +820,7 @@ class Array(Spec[Axis]):
         from scanspec.specs import Fly, Array
 
         array = np.array([-2.0, -1.0 ,0.0, 1.0, 2.0, 3.0])
-        spec = Fly(Spiral("x", array))
+        spec = Fly(Array("x", array))
     """
 
     axis: Axis = Field(description="An identifier for what to move")
@@ -858,8 +858,8 @@ class Array(Spec[Axis]):
         gap = self._gap if self._gap is not None else None
         dur = self._duration if self._duration is not None else None
 
-        # Case where we have at least the midpoints array.
-        # We assume no gaps between the points
+        # Case where only the midpoints array is provided.
+        # Assume no gaps between the points
         if self._midpoints is not None and self._upper is None and self._lower is None:
             l_bound = self._midpoints[0] - (
                 (self._midpoints[1] - self._midpoints[0]) / 2
@@ -878,8 +878,8 @@ class Array(Spec[Axis]):
             upper = np.append(u_diff, u_bound)
             mid = self._midpoints
 
-        # Case where the users passed the upper and lower bounds arrays.
-        # We'll need to calculate the midpoints array by averaging the
+        # Case where the users provided the upper and lower bound arrays.
+        # Need to calculate the midpoints array by averaging the
         # value between lower and upper
         elif (
             self._midpoints is None
@@ -893,8 +893,8 @@ class Array(Spec[Axis]):
             lower = self._lower
             mid = lower + ((upper - lower) / 2)
 
-        # Case where all three arrays were passed by the users.
-        # We need to check that they have all the same size
+        # Case where all three arrays were provided by the users.
+        # Need to check that they have all the same size
         elif (
             self._midpoints is not None
             and self._upper is not None
@@ -910,7 +910,7 @@ class Array(Spec[Axis]):
             pass
 
         else:
-            raise ValueError("Must pass a valid combination of arrays")
+            raise ValueError("Must provide a valid combination of arrays")
 
         new_dim: Dimension[Axis] = Dimension(
             {self.axis: np.asarray(mid)},
