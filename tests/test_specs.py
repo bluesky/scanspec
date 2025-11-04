@@ -144,6 +144,37 @@ def test_many_point_range(step: float) -> None:
     assert dim.gap == ints("10000")
 
 
+@pytest.mark.parametrize(
+    "range_args,mid,lower,upper,gap",
+    [
+        ((0, 1, 0.8), 0.4, 0, 0.8, "1"),  # step smaller than range
+        ((0, 1, 1), 0.5, 0, 1, "1"),  # step same as range
+        ((0, 1, 1.2), 0.5, 0, 1, "1"),  # step larger than range
+    ],
+)
+def test_one_point_bounded_range(
+    range_args: list[float], mid: float, lower: float, upper: float, gap: str
+) -> None:
+    inst = Range.bounded(x, *range_args)
+    (dim,) = inst.calculate(bounds=True)
+    assert dim.midpoints == {x: approx([mid])}
+    assert dim.lower == {x: approx([lower])}
+    assert dim.upper == {x: approx([upper])}
+    assert not isinstance(dim, SnakedDimension)
+    assert dim.gap == ints(gap)
+    assert dim.duration is None
+
+
+@pytest.mark.parametrize("step", [0.25, 0.25 + 1e-8])
+def test_many_point_bounded_range(step: float):
+    inst = Range.bounded(x, 0, 1, step)
+    (dim,) = inst.calculate(bounds=True)
+    assert dim.midpoints == {x: approx([0.125, 0.375, 0.625, 0.875])}
+    assert dim.lower == {x: approx([0.0, 0.25, 0.5, 0.75])}
+    assert dim.upper == {x: approx([0.25, 0.5, 0.75, 1.0])}
+    assert dim.gap == ints("1000")
+
+
 def test_empty_dimension() -> None:
     with pytest.raises(ValueError) as msg:
         Dimension(midpoints={}, upper={}, lower={}, gap=None, duration=None)
