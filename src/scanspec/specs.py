@@ -637,7 +637,7 @@ class Range(Spec[Axis]):
 
     def __post_init__(self):
         if self.step == 0:
-            raise ValueError("step myst be nonzero")
+            raise ValueError("step must be nonzero")
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
