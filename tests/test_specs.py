@@ -12,6 +12,7 @@ from scanspec.specs import (
     Linspace,
     Mask,
     Product,
+    Range,
     Spec,
     Spiral,
     Squash,
@@ -84,6 +85,58 @@ def test_two_point_fly_linspace() -> None:
 
 def test_many_point_linspace() -> None:
     inst = Linspace(x, 0, 1, 5)
+    (dim,) = inst.calculate(bounds=True)
+    assert dim.midpoints == {x: approx([0, 0.25, 0.5, 0.75, 1])}
+    assert dim.lower == {x: approx([-0.125, 0.125, 0.375, 0.625, 0.875])}
+    assert dim.upper == {x: approx([0.125, 0.375, 0.625, 0.875, 1.125])}
+    assert dim.gap == ints("10000")
+
+
+def test_zero_step_range() -> None:
+    with pytest.raises(ValueError):
+        Range(x, 0, 1, 0)
+
+
+def test_one_point_range() -> None:
+    inst = Range(x, 0, 1, 2)
+    (dim,) = inst.calculate(bounds=True)
+    assert dim.midpoints == {x: approx([0])}
+    assert dim.lower == {x: approx([-1])}
+    assert dim.upper == {x: approx([1])}
+    assert not isinstance(dim, SnakedDimension)
+    assert dim.gap == ints("1")
+    assert dim.duration is None
+
+
+@pytest.mark.parametrize("step", [1, 1 + 1e-8])
+def test_two_point_range(step: float) -> None:
+    inst = Range(x, 0, 1, step)
+    (dim,) = inst.calculate(bounds=True)
+    assert dim.midpoints == {x: approx([0, 1])}
+    assert dim.lower == {x: approx([-0.5, 0.5])}
+    assert dim.upper == {x: approx([0.5, 1.5])}
+    assert dim.gap == ints("10")
+
+
+def test_two_point_fly_range() -> None:
+    inst = Fly(0.1 @ Range(x, 0, 1, 1))
+    (dim,) = inst.calculate()
+    assert dim.midpoints == {
+        x: approx([0, 1]),
+    }
+    assert dim.lower == {
+        x: approx([-0.5, 0.5]),
+    }
+    assert dim.upper == {
+        x: approx([0.5, 1.5]),
+    }
+    assert dim.gap == ints("10")
+    assert dim.duration == approx([0.1, 0.1])
+
+
+@pytest.mark.parametrize("step", [0.25, 0.25 + 1e-8])
+def test_many_point_range(step: float) -> None:
+    inst = Range(x, 0, 1, step)
     (dim,) = inst.calculate(bounds=True)
     assert dim.midpoints == {x: approx([0, 0.25, 0.5, 0.75, 1])}
     assert dim.lower == {x: approx([-0.125, 0.125, 0.375, 0.625, 0.875])}
