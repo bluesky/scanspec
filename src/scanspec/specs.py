@@ -822,21 +822,23 @@ class Spiral(Spec[Axis]):
 
         from scanspec.specs import Fly, Spiral
 
-        spec = Fly(Spiral("x", "y", 1, 5, 10, 50, 30))
+        spec = Fly(Spiral("x", 1, 10, 2.5, "y", 5, 50))
     """
 
-    # TODO: Make use of typing.Annotated upon fix of
-    # https://github.com/pydantic/pydantic/issues/3496
     x_axis: Axis = Field(description="An identifier for what to move for x")
+    x_centre: float = Field(description="x centre of the spiral")
+    x_diameter: float = Field(description="x width of the spiral")
+    x_step: float = Field(description="Radial spacing along x")  # TODO: rethink name
     y_axis: Axis = Field(description="An identifier for what to move for y")
-    x_start: float = Field(description="x centre of the spiral")
-    y_start: float = Field(description="y centre of the spiral")
-    x_range: float = Field(description="x width of the spiral")
-    y_range: float = Field(description="y width of the spiral")
-    num: int = Field(ge=1, description="Number of frames to produce")
-    rotate: float = Field(
-        description="How much to rotate the angle of the spiral", default=0.0
+    y_centre: float = Field(description="y centre of the spiral")
+    y_diameter: float | None = Field(
+        description="y width of the spiral (defaults to x_diameter)", default=None
     )
+
+    def __post_init__(self):
+        # populate defaults
+        if self.y_diameter is None:
+            self.y_diameter = self.x_diameter
 
     def axes(self) -> list[Axis]:  # noqa: D102
         # TODO: reversed from __init__ args, a good idea?
@@ -852,62 +854,31 @@ class Spiral(Spec[Axis]):
         # so: phi = sqrt(4 * pi * num)
         phi = np.sqrt(4 * np.pi * indexes)
         # indexes are 0..num inclusive, and diameter is 2x biggest phi
-        diameter = 2 * np.sqrt(4 * np.pi * self.num)
+        diameter = 2 * np.sqrt(4 * np.pi * self._num)
         # scale so that the spiral is strictly smaller than the range
-        x_scale = self.x_range / diameter
-        y_scale = self.y_range / diameter
+        x_scale = self.x_diameter / diameter
+        y_scale = self.y_diameter / diameter
         return {
-            self.y_axis: self.y_start + y_scale * phi * np.cos(phi + self.rotate),
-            self.x_axis: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
+            self.y_axis: self.y_centre + y_scale * phi * np.cos(phi),
+            self.x_axis: self.x_centre + x_scale * phi * np.sin(phi),
         }
+
+    def _estimate_num(self):
+        # we want each frame to roughly be separated by step size
+        # occupy roughly the same frame_area = step**2
+        # num frames = ellipse_area / frame_area
+        assert self.y_diameter is not None  # ensured in __post_init__
+        ellipse_area = np.pi * self.x_diameter * self.y_diameter / 4
+        num = ellipse_area / self.x_step**2
+        return int(num) + 1
 
     def calculate(  # noqa: D102
         self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
+        self._num = self._estimate_num()
         return _dimensions_from_indexes(
-            self._spiral_from_indexes, self.axes(), self.num, bounds
+            self._spiral_from_indexes, self.axes(), self._num, bounds
         )
-
-    @classmethod
-    def spaced(
-        cls: type[Spiral[Any]],
-        x_axis: OtherAxis = Field(description="An identifier for what to move for x"),
-        y_axis: OtherAxis = Field(description="An identifier for what to move for y"),
-        x_start: float = Field(description="x centre of the spiral"),
-        y_start: float = Field(description="y centre of the spiral"),
-        radius: float = Field(description="radius of the spiral"),
-        dr: float = Field(description="difference between each ring"),
-        rotate: float = Field(
-            description="How much to rotate the angle of the spiral", default=0.0
-        ),
-    ) -> Spiral[OtherAxis]:
-        """Specify a Spiral equally spaced in "x_axis" and "y_axis".
-
-        .. example_spec::
-
-            from scanspec.specs import Fly, Spiral
-
-            spec = Fly(Spiral.spaced("x", "y", 0, 0, 10, 3))
-        """
-        # phi = sqrt(4 * pi * num)
-        # and: n_rings = phi / (2 * pi)
-        # so: n_rings * 2 * pi = sqrt(4 * pi * num)
-        # so: num = n_rings^2 * pi
-        n_rings = radius / dr
-        num = int(n_rings**2 * np.pi)
-        return cls(
-            x_axis,
-            y_axis,
-            x_start,
-            y_start,
-            radius * 2,
-            radius * 2,
-            num,
-            rotate,
-        )
-
-
-Spiral.spaced = validate_call(Spiral.spaced)  # type:ignore
 
 
 def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:

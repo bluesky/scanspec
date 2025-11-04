@@ -82,7 +82,7 @@ def test_product_lines_serializes() -> None:
 
 def test_complex_nested_serializes() -> None:
     ob = Mask(
-        Spiral.spaced("x", "y", 0, 0, 10, 3),
+        Spiral("x", 0, 20, 0.5, "y", 0),
         UnionOf(
             Circle("x", "y", x_middle=0, y_middle=1, radius=4),
             Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30),
@@ -91,13 +91,12 @@ def test_complex_nested_serializes() -> None:
     serialized = {
         "spec": {
             "x_axis": "x",
+            "x_centre": 0.0,
+            "x_diameter": 20.0,
+            "x_step": 0.5,
             "y_axis": "y",
-            "x_start": 0.0,
-            "y_start": 0.0,
-            "x_range": 20.0,
-            "y_range": 20.0,
-            "num": 34,
-            "rotate": 0.0,
+            "y_centre": 0.0,
+            "y_diameter": 20.0,
             "type": "Spiral",
         },
         "region": {
@@ -180,7 +179,7 @@ def test_detects_invalid_serialized(serialized: Mapping[str, Any]) -> None:
 
 def test_vanilla_serialization():
     ob = Mask(
-        Spiral.spaced("x", "y", 0, 0, 10, 3),
+        Spiral("x", 0, 10, 3, "y", 0),
         UnionOf(
             Circle("x", "y", x_middle=0, y_middle=1, radius=4),
             Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30),

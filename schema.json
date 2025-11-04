@@ -1532,42 +1532,42 @@
                         "title": "X Axis",
                         "description": "An identifier for what to move for x"
                     },
+                    "x_centre": {
+                        "type": "number",
+                        "title": "X Centre",
+                        "description": "x centre of the spiral"
+                    },
+                    "x_diameter": {
+                        "type": "number",
+                        "title": "X Diameter",
+                        "description": "x width of the spiral"
+                    },
+                    "x_step": {
+                        "type": "number",
+                        "title": "X Step",
+                        "description": "Radial spacing along x"
+                    },
                     "y_axis": {
                         "type": "string",
                         "title": "Y Axis",
                         "description": "An identifier for what to move for y"
                     },
-                    "x_start": {
+                    "y_centre": {
                         "type": "number",
-                        "title": "X Start",
-                        "description": "x centre of the spiral"
-                    },
-                    "y_start": {
-                        "type": "number",
-                        "title": "Y Start",
+                        "title": "Y Centre",
                         "description": "y centre of the spiral"
                     },
-                    "x_range": {
-                        "type": "number",
-                        "title": "X Range",
-                        "description": "x width of the spiral"
-                    },
-                    "y_range": {
-                        "type": "number",
-                        "title": "Y Range",
-                        "description": "y width of the spiral"
-                    },
-                    "num": {
-                        "type": "integer",
-                        "minimum": 1.0,
-                        "title": "Num",
-                        "description": "Number of frames to produce"
-                    },
-                    "rotate": {
-                        "type": "number",
-                        "title": "Rotate",
-                        "description": "How much to rotate the angle of the spiral",
-                        "default": 0.0
+                    "y_diameter": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Y Diameter",
+                        "description": "y width of the spiral (defaults to x_diameter)"
                     },
                     "type": {
                         "type": "string",
@@ -1580,15 +1580,14 @@
                 "type": "object",
                 "required": [
                     "x_axis",
+                    "x_centre",
+                    "x_diameter",
+                    "x_step",
                     "y_axis",
-                    "x_start",
-                    "y_start",
-                    "x_range",
-                    "y_range",
-                    "num"
+                    "y_centre"
                 ],
                 "title": "Spiral",
-                "description": "Archimedean spiral of \"x_axis\" and \"y_axis\".\n\nStarts at centre point (\"x_start\", \"y_start\") with angle \"rotate\". Produces\n\"num\" points in a spiral spanning width of \"x_range\" and height of \"y_range\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Spiral\n\n    spec = Fly(Spiral(\"x\", \"y\", 1, 5, 10, 50, 30))"
+                "description": "Archimedean spiral of \"x_axis\" and \"y_axis\".\n\nStarts at centre point (\"x_start\", \"y_start\") with angle \"rotate\". Produces\n\"num\" points in a spiral spanning width of \"x_range\" and height of \"y_range\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Spiral\n\n    spec = Fly(Spiral(\"x\", 1, 10, 2.5, \"y\", 5, 50))"
             },
             "Squash_str_-Input": {
                 "properties": {

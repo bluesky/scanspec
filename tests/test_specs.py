@@ -150,27 +150,22 @@ def test_many_point_bounded_linspace() -> None:
 
 
 def test_spiral() -> None:
-    inst = Spiral(x, y, 0, 10, 5, 50, 10)
+    inst = Spiral(x, 0, 5, 2, y, 10, 10)
     (dim,) = inst.calculate(bounds=True)
     assert dim.midpoints == {
-        y: approx([5.4, 6.4, 19.7, 23.8, 15.4, 1.7, -8.6, -10.7, -4.1, 8.3], abs=0.1),
+        y: approx([9.0, 9.2, 11.9, 12.7, 11.0, 8.3, 6.2, 5.8, 7.1, 9.6], abs=0.1),
         x: approx([0.3, -0.9, -0.7, 0.5, 1.5, 1.6, 0.7, -0.6, -1.8, -2.4], abs=0.1),
     }
     assert dim.lower == {
-        y: approx([10.0, 2.7, 13.3, 23.5, 20.9, 8.7, -4.2, -10.8, -8.4, 1.6], abs=0.1),
+        y: approx([10.0, 8.5, 10.6, 12.7, 12.1, 9.7, 7.1, 5.8, 6.3, 8.3], abs=0.1),
         x: approx([0.0, -0.3, -1.0, -0.1, 1.1, 1.7, 1.3, 0.0, -1.2, -2.2], abs=0.1),
     }
     assert dim.upper == {
-        y: approx([2.7, 13.3, 23.5, 20.9, 8.7, -4.2, -10.8, -8.4, 1.6, 15.3], abs=0.1),
+        y: approx([8.5, 10.6, 12.7, 12.1, 9.7, 7.1, 5.8, 6.3, 8.3, 11.0], abs=0.1),
         x: approx([-0.3, -1.0, -0.1, 1.1, 1.7, 1.3, 0.0, -1.2, -2.2, -2.4], abs=0.1),
     }
     assert not isinstance(dim, SnakedDimension)
     assert dim.gap == ints("1000000000")
-
-
-def test_spaced_spiral() -> None:
-    inst = Spiral.spaced(x, y, 0, 10, 5, 1)
-    assert inst == Spiral(x, y, 0, 10, 10, 10, 78)
 
 
 def test_zipped_linspaces() -> None:
@@ -601,7 +596,7 @@ def test_multiple_statics_with_grid():
     [
         (Linspace("x", 0.0, 1.0, 1), (1,)),
         (Linspace("x", 0.0, 1.0, 5), (5,)),
-        (Spiral("x", "y", 0.0, 0.0, 1.0, 1.0, 5, 0.0), (5,)),
+        (Spiral("x", 0.0, 1.0, 0.5, "y", 0.0), (4,)),
         (Linspace("x", 0.0, 1.0, 2) * Linspace("y", 0.0, 1.0, 2), (2, 2)),
         (Squash(Linspace("x", 0.0, 1.0, 2) * Linspace("y", 0.0, 1.0, 2)), (4,)),
         (Zip(Linspace("x", 0.0, 1.0, 2), Linspace("y", 0.0, 1.0, 2)), (2,)),
