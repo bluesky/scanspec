@@ -680,14 +680,14 @@ class Range(Spec[Axis]):
             spec = Fly(Range.bounded("x", 1, 5, 2))
         """
         distance = abs(upper - lower)
-        if distance < abs(step):
-            # exactly one point at the center
-            step = distance / 2
-            start = stop = (upper + lower) / 2
-        else:
-            half_step = abs(step) / 2 * np.sign(upper - lower)
-            start = lower + half_step
-            stop = upper - half_step
+        direction = np.sign(upper - lower)
+        step = min(distance, abs(step))  # produce at least one frame
+        half_step = step / 2 * direction
+        start = lower + half_step
+        stop = upper - half_step
+        if stop == start:
+            # edge case with computed start and stop
+            stop = np.nextafter(start, np.inf * direction)
         return cls(axis, start, stop, step)
 
 
