@@ -32,6 +32,17 @@ def ints(s: str) -> Any:
     return approx([int(t) for t in s])
 
 
+def test_default_num_linspace() -> None:
+    inst = Linspace(x, 0, 1)
+    (dim,) = inst.calculate(bounds=True)
+    assert dim.midpoints == {x: approx([0])}
+    assert dim.lower == {x: approx([-0.5])}
+    assert dim.upper == {x: approx([0.5])}
+    assert not isinstance(dim, SnakedDimension)
+    assert dim.gap == ints("1")
+    assert dim.duration is None
+
+
 def test_one_point_linspace() -> None:
     inst = Linspace(x, 0, 1, 1)
     (dim,) = inst.calculate(bounds=True)
@@ -95,6 +106,17 @@ def test_many_point_linspace() -> None:
 def test_zero_step_range() -> None:
     with pytest.raises(ValueError):
         Range(x, 0, 1, 0)
+
+
+def test_default_step_range() -> None:
+    inst = Range(x, 0, 1)
+    (dim,) = inst.calculate(bounds=True)
+    assert dim.midpoints == {x: approx([0, 1])}
+    assert dim.lower == {x: approx([-0.5, 0.5])}
+    assert dim.upper == {x: approx([0.5, 1.5])}
+    assert not isinstance(dim, SnakedDimension)
+    assert dim.gap == ints("10")
+    assert dim.duration is None
 
 
 def test_one_point_range() -> None:

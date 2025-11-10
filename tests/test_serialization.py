@@ -141,7 +141,6 @@ def test_complex_nested_serializes() -> None:
         {
             "axis": "x",
             "start": 0.0,
-            "stop": 1.0,
             "type": "Linspace",
         },
         {

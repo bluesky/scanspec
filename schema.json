@@ -21,15 +21,15 @@
                                             "axis": "y",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "step": 3.0,
-                                            "type": "Range"
+                                            "num": 3,
+                                            "type": "Linspace"
                                         },
                                         "inner": {
                                             "axis": "x",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "step": 4.0,
-                                            "type": "Range"
+                                            "num": 4,
+                                            "type": "Linspace"
                                         },
                                         "gap": true,
                                         "type": "Product"
@@ -81,15 +81,15 @@
                                                 "axis": "y",
                                                 "start": 0.0,
                                                 "stop": 10.0,
-                                                "step": 3.0,
-                                                "type": "Range"
+                                                "num": 3,
+                                                "type": "Linspace"
                                             },
                                             "inner": {
                                                 "axis": "x",
                                                 "start": 0.0,
                                                 "stop": 10.0,
-                                                "step": 4.0,
-                                                "type": "Range"
+                                                "num": 4,
+                                                "type": "Linspace"
                                             },
                                             "gap": true,
                                             "type": "Product"
@@ -144,15 +144,15 @@
                                                 "axis": "y",
                                                 "start": 0.0,
                                                 "stop": 10.0,
-                                                "step": 3.0,
-                                                "type": "Range"
+                                                "num": 3,
+                                                "type": "Linspace"
                                             },
                                             "inner": {
                                                 "axis": "x",
                                                 "start": 0.0,
                                                 "stop": 10.0,
-                                                "step": 4.0,
-                                                "type": "Range"
+                                                "num": 4,
+                                                "type": "Linspace"
                                             },
                                             "gap": true,
                                             "type": "Product"
@@ -206,15 +206,15 @@
                                             "axis": "y",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "step": 3.0,
-                                            "type": "Range"
+                                            "num": 3,
+                                            "type": "Linspace"
                                         },
                                         "inner": {
                                             "axis": "x",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "step": 4.0,
-                                            "type": "Range"
+                                            "num": 4,
+                                            "type": "Linspace"
                                         },
                                         "gap": true,
                                         "type": "Product"
@@ -265,15 +265,15 @@
                                             "axis": "y",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "step": 3.0,
-                                            "type": "Range"
+                                            "num": 3,
+                                            "type": "Linspace"
                                         },
                                         "inner": {
                                             "axis": "x",
                                             "start": 0.0,
                                             "stop": 10.0,
-                                            "step": 4.0,
-                                            "type": "Range"
+                                            "num": 4,
+                                            "type": "Linspace"
                                         },
                                         "gap": true,
                                         "type": "Product"
@@ -874,7 +874,8 @@
                         "type": "integer",
                         "minimum": 1.0,
                         "title": "Num",
-                        "description": "Number of frames to produce"
+                        "description": "Number of frames to produce (defaults to 1)",
+                        "default": 1
                     },
                     "type": {
                         "type": "string",
@@ -888,8 +889,7 @@
                 "required": [
                     "axis",
                     "start",
-                    "stop",
-                    "num"
+                    "stop"
                 ],
                 "title": "Linspace",
                 "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\nThis class is intended to handle linearly spaced frames defined with a\nspecific number of frames.\n\n.. seealso::\n    `Range`: For linearly spaced frames defined with a step size.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"x\", 1, 2, 5))"
@@ -1938,9 +1938,16 @@
                         "description": "Midpoint of the last point of the line"
                     },
                     "step": {
-                        "type": "number",
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Step",
-                        "description": "Step size"
+                        "description": "Step size (defaults to stop - start)"
                     },
                     "type": {
                         "type": "string",
@@ -1954,8 +1961,7 @@
                 "required": [
                     "axis",
                     "start",
-                    "stop",
-                    "step"
+                    "stop"
                 ],
                 "title": "Range",
                 "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\nThis class is intended to handle linearly spaced frames defined with a\nspecific step size.\n\n.. seealso::\n    `Linspace`: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Range\n\n    spec = Fly(Range(\"x\", 1, 2, 0.25))"

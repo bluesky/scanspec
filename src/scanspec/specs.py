@@ -554,7 +554,9 @@ class Linspace(Spec[Axis]):
     axis: Axis = Field(description="An identifier for what to move")
     start: float = Field(description="Midpoint of the first point of the line")
     stop: float = Field(description="Midpoint of the last point of the line")
-    num: int = Field(ge=1, description="Number of frames to produce")
+    num: int = Field(
+        ge=1, description="Number of frames to produce (defaults to 1)", default=1
+    )
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
@@ -586,7 +588,9 @@ class Linspace(Spec[Axis]):
         axis: OtherAxis = Field(description="An identifier for what to move"),
         lower: float = Field(description="Lower bound of the first point of the line"),
         upper: float = Field(description="Upper bound of the last point of the line"),
-        num: int = Field(ge=1, description="Number of frames to produce"),
+        num: int = Field(
+            ge=1, description="Number of frames to produce (defaults to 1)", default=1
+        ),
     ) -> Linspace[OtherAxis]:
         """Specify a Linspace by extreme bounds instead of midpoints.
 
@@ -633,11 +637,15 @@ class Range(Spec[Axis]):
     axis: Axis = Field(description="An identifier for what to move")
     start: float = Field(description="Midpoint of the first point of the line")
     stop: float = Field(description="Midpoint of the last point of the line")
-    step: float = Field(description="Step size")
+    step: float | None = Field(
+        description="Step size (defaults to stop - start)", default=None
+    )
 
     def __post_init__(self):
         if self.step == 0:
             raise ValueError("step must be nonzero")
+        if self.step is None:
+            self.step = self.stop - self.start
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
@@ -645,14 +653,14 @@ class Range(Spec[Axis]):
     def _line_from_indexes(
         self, indexes: npt.NDArray[np.float64]
     ) -> dict[Axis, npt.NDArray[np.float64]]:
-        step = abs(self.step) * np.sign(self.stop - self.start)
+        step = abs(self.step) * np.sign(self.stop - self.start)  # type: ignore
         first = self.start - step / 2
         return {self.axis: indexes * step + first}
 
     def calculate(  # noqa: D102
         self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
-        step = abs(self.step)
+        step = abs(self.step)  # type: ignore
         distance = abs(self.stop - self.start)
         # +1 to include start
         num = int(distance // step) + 1
@@ -697,7 +705,7 @@ Defers wrapping function with validate_call until class is fully instantiated
 Range.bounded = validate_call(Range.bounded)  # type:ignore
 
 # Define alias for Range
-Line = Range
+Line = Linspace
 
 
 @dataclass(config=StrictConfig)
