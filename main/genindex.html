@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; scanspec 1.0a3.dev7+g3f08bf996 documentation</title>
+    <title>Index &#8212; scanspec 0.9.1.dev15+gf2fb1e2e7 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=20464788"></script>
+    <script src="_static/documentation_options.js?v=0ceaa67d"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -493,11 +493,13 @@
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Fly.axes">(scanspec.specs.Fly method)</a>
 </li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.axes">(scanspec.specs.Line method)</a>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.axes">(scanspec.specs.Linspace method)</a>
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Mask.axes">(scanspec.specs.Mask method)</a>
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.axes">(scanspec.specs.Product method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.axes">(scanspec.specs.Range method)</a>
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Snake.axes">(scanspec.specs.Snake method)</a>
 </li>
@@ -521,7 +523,9 @@
       <li><a href="_api/scanspec.regions.html#scanspec.regions.Range.axis">axis (scanspec.regions.Range attribute)</a>
 
       <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.axis">(scanspec.specs.Line attribute)</a>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.axis">(scanspec.specs.Linspace attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.axis">(scanspec.specs.Range attribute)</a>
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.axis">(scanspec.specs.Static attribute)</a>
 </li>
@@ -548,8 +552,12 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.bounded">bounded() (scanspec.specs.Line method)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.bounded">bounded() (scanspec.specs.Linspace method)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.bounded">(scanspec.specs.Range method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -563,11 +571,13 @@
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Fly.calculate">(scanspec.specs.Fly method)</a>
 </li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.calculate">(scanspec.specs.Line method)</a>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.calculate">(scanspec.specs.Linspace method)</a>
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Mask.calculate">(scanspec.specs.Mask method)</a>
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.calculate">(scanspec.specs.Product method)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.calculate">(scanspec.specs.Range method)</a>
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Snake.calculate">(scanspec.specs.Snake method)</a>
 </li>
@@ -730,6 +740,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.core.html#scanspec.core.Path.lengths">lengths (scanspec.core.Path attribute)</a>
 </li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Line">Line (in module scanspec.specs)</a>
+</li>
       <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.lower">lower (scanspec.core.Dimension attribute)</a>
 </li>
   </ul></td>
@@ -793,11 +805,9 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.num">num (scanspec.specs.Line attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.num">num (scanspec.specs.Linspace attribute)</a>
 
       <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.num">(scanspec.specs.Spiral attribute)</a>
-</li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.num">(scanspec.specs.Static attribute)</a>
 </li>
       </ul></li>
@@ -854,10 +864,6 @@
 </li>
       </ul></li>
   </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.rotate">rotate (scanspec.specs.Spiral attribute)</a>
-</li>
-  </ul></td>
 </tr></table>
 
 <h2 id="S">S</h2>
@@ -908,12 +914,10 @@
 </li>
       <li><a href="_api/scanspec.core.html#scanspec.core.Slice">Slice (class in scanspec.core)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.core.html#scanspec.core.SnakedDimension">SnakedDimension (class in scanspec.core)</a>
 </li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.spaced">spaced() (scanspec.specs.Spiral method)</a>
-</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec">Spec (class in scanspec.specs)</a>
 </li>
       <li><a href="_api/scanspec.specs.html#scanspec.specs.ConstantDuration.spec">spec (scanspec.specs.ConstantDuration attribute)</a>
@@ -936,12 +940,22 @@
         <li><a href="_api/scanspec.core.html#scanspec.core.Path.stack">(scanspec.core.Path attribute)</a>
 </li>
       </ul></li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.start">start (scanspec.specs.Line attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.start">start (scanspec.specs.Linspace attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.start">(scanspec.specs.Range attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.step">step (scanspec.specs.Range attribute)</a>
 </li>
       <li><a href="_api/scanspec.specs.html#scanspec.specs.step">step() (in module scanspec.specs)</a>
 </li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.stop">stop (scanspec.specs.Line attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.stop">stop (scanspec.specs.Linspace attribute)</a>
+
+      <ul>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.stop">(scanspec.specs.Range attribute)</a>
 </li>
+      </ul></li>
       <li><a href="_api/scanspec.core.html#scanspec.core.StrictConfig">StrictConfig (in module scanspec.core)</a>
 </li>
   </ul></td>
@@ -977,11 +991,13 @@
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Fly.type">(scanspec.specs.Fly attribute)</a>
 </li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Line.type">(scanspec.specs.Line attribute)</a>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.type">(scanspec.specs.Linspace attribute)</a>
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Mask.type">(scanspec.specs.Mask attribute)</a>
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.type">(scanspec.specs.Product attribute)</a>
+</li>
+        <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.type">(scanspec.specs.Range attribute)</a>
 </li>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Snake.type">(scanspec.specs.Snake attribute)</a>
 </li>
@@ -1032,10 +1048,14 @@
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_axis">(scanspec.specs.Spiral attribute)</a>
 </li>
       </ul></li>
-      <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.x_max">x_max (scanspec.regions.Rectangle attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_centre">x_centre (scanspec.specs.Spiral attribute)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_diameter">x_diameter (scanspec.specs.Spiral attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.x_max">x_max (scanspec.regions.Rectangle attribute)</a>
+</li>
       <li><a href="_api/scanspec.regions.html#scanspec.regions.Circle.x_middle">x_middle (scanspec.regions.Circle attribute)</a>
 
       <ul>
@@ -1046,9 +1066,7 @@
 </li>
       <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.x_radius">x_radius (scanspec.regions.Ellipse attribute)</a>
 </li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_range">x_range (scanspec.specs.Spiral attribute)</a>
-</li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_start">x_start (scanspec.specs.Spiral attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_step">x_step (scanspec.specs.Spiral attribute)</a>
 </li>
       <li><a href="_api/scanspec.regions.html#scanspec.regions.Polygon.x_verts">x_verts (scanspec.regions.Polygon attribute)</a>
 </li>
@@ -1070,10 +1088,14 @@
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.y_axis">(scanspec.specs.Spiral attribute)</a>
 </li>
       </ul></li>
-      <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.y_max">y_max (scanspec.regions.Rectangle attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.y_centre">y_centre (scanspec.specs.Spiral attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.y_diameter">y_diameter (scanspec.specs.Spiral attribute)</a>
+</li>
+      <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.y_max">y_max (scanspec.regions.Rectangle attribute)</a>
+</li>
       <li><a href="_api/scanspec.regions.html#scanspec.regions.Circle.y_middle">y_middle (scanspec.regions.Circle attribute)</a>
 
       <ul>
@@ -1083,10 +1105,6 @@
       <li><a href="_api/scanspec.regions.html#scanspec.regions.Rectangle.y_min">y_min (scanspec.regions.Rectangle attribute)</a>
 </li>
       <li><a href="_api/scanspec.regions.html#scanspec.regions.Ellipse.y_radius">y_radius (scanspec.regions.Ellipse attribute)</a>
-</li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.y_range">y_range (scanspec.specs.Spiral attribute)</a>
-</li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.y_start">y_start (scanspec.specs.Spiral attribute)</a>
 </li>
       <li><a href="_api/scanspec.regions.html#scanspec.regions.Polygon.y_verts">y_verts (scanspec.regions.Polygon attribute)</a>
 </li>

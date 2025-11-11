@@ -44,13 +44,13 @@ You can ensure a spec is valid by passing it to the ``/valid`` endpoint.
       "start": 0,
       "stop": 10,
       "num": 3,
-      "type": "Line"
+      "type": "Linspace"
     },
     "inner": {
       "axis": "x",
       "start": 0,
       "stop": 10,
-      "type": "Line"
+      "type": "Linspace"
     },
     "type": "Product"
   }'
@@ -77,14 +77,14 @@ which gives the middle coordinate of each scan point, organised by axis name.
         "start": 0,
         "stop": 10,
         "num": 3,
-        "type": "Line"
+        "type": "Linspace"
       },
       "inner": {
         "axis": "x",
         "start": 0,
         "stop": 10,
         "num": 4,
-        "type": "Line"
+        "type": "Linspace"
       },
       "type": "Product"
     },

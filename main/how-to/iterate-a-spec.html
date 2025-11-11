@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>How to Iterate a Spec &#8212; scanspec 1.0a3.dev7+g3f08bf996 documentation</title>
+    <title>How to Iterate a Spec &#8212; scanspec 0.9.1.dev15+gf2fb1e2e7 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=20464788"></script>
+    <script src="../_static/documentation_options.js?v=0ceaa67d"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -472,8 +472,8 @@
 <p>If you are conducting a step scan, you only need the midpoints of each scan
 frame. You can get these by using the <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.midpoints" title="scanspec.specs.Spec.midpoints"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.midpoints()</span></code></a> method to produce a
 <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Midpoints" title="scanspec.core.Midpoints"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Midpoints</span></code></a> iterator of scan <a class="reference internal" href="../explanations/technical-terms.html#point"><span class="std std-ref">Points</span></a>:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">midpoints</span><span class="p">():</span>
 <span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 <span class="gp">...</span>
@@ -549,8 +549,8 @@ as you need. You can also give a maximum size to <a class="reference internal" h
 <p>You may need to know where there is a gap between points, so that you can do
 something in the turnaround. For example, if we take the x axis of a grid scan,
 you can see it snakes back and forth:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Fly</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">@</span> <span class="p">(</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span><span class="p">,</span> <span class="n">Fly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">@</span> <span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">frames</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
 <span class="go">array([1. , 1.5, 2. , 2. , 1.5, 1. ])</span>

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>How to Serialize and Deserialize a Spec &#8212; scanspec 1.0a3.dev7+g3f08bf996 documentation</title>
+    <title>How to Serialize and Deserialize a Spec &#8212; scanspec 0.9.1.dev15+gf2fb1e2e7 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=20464788"></script>
+    <script src="../_static/documentation_options.js?v=0ceaa67d"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -466,28 +466,28 @@
   <section id="how-to-serialize-and-deserialize-a-spec">
 <span id="serialize-a-spec"></span><h1>How to Serialize and Deserialize a Spec<a class="headerlink" href="#how-to-serialize-and-deserialize-a-spec" title="Link to this heading">#</a></h1>
 <p>Lets start with an example <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec" title="scanspec.specs.Spec"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Spec</span></code></a>.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Spec</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span><span class="p">,</span> <span class="n">Spec</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">*</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This Spec has a <a class="reference external" href="https://docs.python.org/3/library/functions.html#repr" title="(in Python v3.13)"><code class="xref any docutils literal notranslate"><span class="pre">repr</span></code></a> that shows its parameters it was instantiated with:</p>
+<p>This Spec has a <a class="reference external" href="https://docs.python.org/3/library/functions.html#repr" title="(in Python v3.14)"><code class="xref any docutils literal notranslate"><span class="pre">repr</span></code></a> that shows its parameters it was instantiated with:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span>
-<span class="go">Product(outer=Line(axis=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(axis=&#39;x&#39;, start=1.0, stop=2.0, num=3), gap=True)</span>
+<span class="go">Product(outer=Linspace(axis=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Linspace(axis=&#39;x&#39;, start=1.0, stop=2.0, num=3), gap=True)</span>
 </pre></div>
 </div>
 <section id="how-to-serialize">
 <h2>How to Serialize<a class="headerlink" href="#how-to-serialize" title="Link to this heading">#</a></h2>
 <p>We can recursively serialize it to a dictionary:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
-<span class="go">{&#39;outer&#39;: {&#39;axis&#39;: &#39;y&#39;, &#39;start&#39;: 4.0, &#39;stop&#39;: 5.0, &#39;num&#39;: 6, &#39;type&#39;: &#39;Line&#39;}, &#39;inner&#39;: {&#39;axis&#39;: &#39;x&#39;, &#39;start&#39;: 1.0, &#39;stop&#39;: 2.0, &#39;num&#39;: 3, &#39;type&#39;: &#39;Line&#39;}, &#39;gap&#39;: True, &#39;type&#39;: &#39;Product&#39;}</span>
+<span class="go">{&#39;outer&#39;: {&#39;axis&#39;: &#39;y&#39;, &#39;start&#39;: 4.0, &#39;stop&#39;: 5.0, &#39;num&#39;: 6, &#39;type&#39;: &#39;Linspace&#39;}, &#39;inner&#39;: {&#39;axis&#39;: &#39;x&#39;, &#39;start&#39;: 1.0, &#39;stop&#39;: 2.0, &#39;num&#39;: 3, &#39;type&#39;: &#39;Linspace&#39;}, &#39;gap&#39;: True, &#39;type&#39;: &#39;Product&#39;}</span>
 </pre></div>
 </div>
 </section>
 <section id="how-to-deserialize">
 <h2>How to Deserialize<a class="headerlink" href="#how-to-deserialize" title="Link to this heading">#</a></h2>
 <p>We can turn this back into a spec using <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.deserialize" title="scanspec.specs.Spec.deserialize"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.deserialize</span></code></a>:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Spec</span><span class="o">.</span><span class="n">deserialize</span><span class="p">({</span><span class="s1">&#39;outer&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mf">4.0</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Line&#39;</span><span class="p">},</span> <span class="s1">&#39;inner&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Line&#39;</span><span class="p">},</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Product&#39;</span><span class="p">})</span>
-<span class="go">Product(outer=Line(axis=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Line(axis=&#39;x&#39;, start=1.0, stop=2.0, num=3), gap=True)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Spec</span><span class="o">.</span><span class="n">deserialize</span><span class="p">({</span><span class="s1">&#39;outer&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mf">4.0</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Linspace&#39;</span><span class="p">},</span> <span class="s1">&#39;inner&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s1">&#39;num&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Linspace&#39;</span><span class="p">},</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;Product&#39;</span><span class="p">})</span>
+<span class="go">Product(outer=Linspace(axis=&#39;y&#39;, start=4.0, stop=5.0, num=6), inner=Linspace(axis=&#39;x&#39;, start=1.0, stop=2.0, num=3), gap=True)</span>
 </pre></div>
 </div>
 </section>

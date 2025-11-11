@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Creating a Scan Spec &#8212; scanspec 1.0a3.dev7+g3f08bf996 documentation</title>
+    <title>Creating a Scan Spec &#8212; scanspec 0.9.1.dev15+gf2fb1e2e7 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=20464788"></script>
+    <script src="../_static/documentation_options.js?v=0ceaa67d"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -466,16 +466,16 @@
 <h1>Creating a Scan Spec<a class="headerlink" href="#creating-a-scan-spec" title="Link to this heading">#</a></h1>
 <p>This tutorial shows how to create Scan Specs of increasing complexity, plotting
 the results.</p>
-<section id="line">
-<h2>Line<a class="headerlink" href="#line" title="Link to this heading">#</a></h2>
-<p>We’ll start with a simple one, a <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Line" title="scanspec.specs.Line"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Line</span></code></a>. If you enter the following code into an
+<section id="linspace">
+<h2>Linspace<a class="headerlink" href="#linspace" title="Link to this heading">#</a></h2>
+<p>We’ll start with a simple one, a <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Linspace" title="scanspec.specs.Linspace"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Linspace</span></code></a>. If you enter the following code into an
 interactive Python terminal, it should plot a graph of a 1D line:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -492,20 +492,20 @@ arrowhead marks the start of the scan, and the cross marks the end.</p>
 <h2>Plotting from the commandline<a class="headerlink" href="#plotting-from-the-commandline" title="Link to this heading">#</a></h2>
 <p>To quickly plot Scan Specs you can use the commandline client. The input is
 evaluated with variables <code class="docutils literal notranslate"><span class="pre">a</span></code> to <code class="docutils literal notranslate"><span class="pre">z</span></code> defined and the output plotted.</p>
-<p>For example, for the Line example above you would type:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ scanspec plot &#39;Line(x, 1, 2, 5)&#39;
+<p>For example, for the Linspace example above you would type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ scanspec plot &#39;Linspace(x, 1, 2, 5)&#39;
 </pre></div>
 </div>
 </section>
-<section id="line-with-2-axes">
-<h2>Line with 2 axes<a class="headerlink" href="#line-with-2-axes" title="Link to this heading">#</a></h2>
-<p>If we want to plot a Line in two axes, we can do this with <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Zip" title="scanspec.specs.Zip"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Zip</span></code></a>, or <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.zip" title="scanspec.specs.Spec.zip"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.zip</span></code></a>:</p>
+<section id="linspace-with-2-axes">
+<h2>Linspace with 2 axes<a class="headerlink" href="#linspace-with-2-axes" title="Link to this heading">#</a></h2>
+<p>If we want to plot a Linspace in two axes, we can do this with <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Zip" title="scanspec.specs.Zip"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Zip</span></code></a>, or <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.zip" title="scanspec.specs.Spec.zip"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.zip</span></code></a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -516,13 +516,13 @@ evaluated with variables <code class="docutils literal notranslate"><span class=
 </section>
 <section id="grid">
 <h2>Grid<a class="headerlink" href="#grid" title="Link to this heading">#</a></h2>
-<p>We can make a grid by creating the <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Product" title="scanspec.specs.Product"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Product</span></code></a> of 2 Lines with the <code class="docutils literal notranslate"><span class="pre">*</span></code> operator:</p>
+<p>We can make a grid by creating the <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Product" title="scanspec.specs.Product"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Product</span></code></a> of 2 Linspaces with the <code class="docutils literal notranslate"><span class="pre">*</span></code> operator:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -542,9 +542,9 @@ Spec of our grid we get:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -560,10 +560,10 @@ given <a class="reference internal" href="../_api/scanspec.regions.html#scanspec
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.regions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Circle</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -585,10 +585,10 @@ given <a class="reference internal" href="../_api/scanspec.regions.html#scanspec
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.regions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Circle</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span> <span class="o">-</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span> <span class="o">-</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -653,9 +653,9 @@ scanning system.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#line">Line</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linspace">Linspace</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting-from-the-commandline">Plotting from the commandline</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#line-with-2-axes">Line with 2 axes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linspace-with-2-axes">Linspace with 2 axes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#grid">Grid</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#snaked-grid">Snaked Grid</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#masking-with-regions">Masking with Regions</a></li>

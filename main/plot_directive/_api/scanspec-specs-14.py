@@ -1,7 +1,7 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Fly, Spiral
+from scanspec.specs import Fly, Range
 
-spec = Fly(Spiral("x", "y", 1, 5, 10, 50, 30))
+spec = Fly(Range.bounded("x", 1, 5, 2))
 plot_spec(spec)

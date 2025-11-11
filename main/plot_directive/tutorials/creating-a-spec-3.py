@@ -1,7 +1,7 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Line
+from scanspec.specs import Linspace
 
-spec = Line("y", 3, 4, 3) * Line("x", 1, 2, 5)
+spec = Linspace("y", 3, 4, 3) * Linspace("x", 1, 2, 5)
 plot_spec(spec)

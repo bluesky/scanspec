@@ -1,7 +1,7 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Fly, Spiral
+from scanspec.specs import Fly, Linspace, Static
 
-spec = Fly(Spiral.spaced("x", "y", 0, 0, 10, 3))
+spec = Fly(Linspace("y", 1, 2, 3).zip(Static("x", 3)))
 plot_spec(spec)

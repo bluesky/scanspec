@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Why Squash (and Mask) can change the Path &#8212; scanspec 1.0a3.dev7+g3f08bf996 documentation</title>
+    <title>Why Squash (and Mask) can change the Path &#8212; scanspec 0.9.1.dev15+gf2fb1e2e7 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=20464788"></script>
+    <script src="../_static/documentation_options.js?v=0ceaa67d"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -479,7 +479,7 @@ is the case.</p>
 <p class="admonition-title">Note</p>
 <p>The cases illustrated below will only be produced if
 <code class="docutils literal notranslate"><span class="pre">check_path_changes=False</span></code> is passed to <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Squash" title="scanspec.specs.Squash"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Squash</span></code></a> or <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Mask</span></code></a>, otherwise they
-will fail with <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><code class="xref any docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+will fail with <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref any docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 </div>
 <section id="squash-unsnaked-axis-into-a-snaked-dimensions">
 <h2>Squash unsnaked axis into a snaked Dimensions<a class="headerlink" href="#squash-unsnaked-axis-into-a-snaked-dimensions" title="Link to this heading">#</a></h2>
@@ -489,10 +489,10 @@ within another, on the second run the originally unsnaked axis will run in
 reverse. This would make a motor that the user had demanded to always run in one
 direction run in reverse, which could make the scan invalid.</p>
 <p>For example, consider a non-snaking x within a snaking y within z:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -502,11 +502,11 @@ direction run in reverse, which could make the scan invalid.</p>
 </figure>
 <p>If we squash the x and y Dimension objects together then x will run in reverse on
 the second run:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Squash</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span><span class="p">,</span> <span class="n">Squash</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Squash</span><span class="p">(</span>
-    <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">check_path_changes</span><span class="o">=</span><span class="kc">False</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Squash</span><span class="p">(</span>
+    <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">check_path_changes</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
@@ -523,10 +523,10 @@ object in order to be able to nest this Dimension object within another and keep
 the Path of the snaked axis. If this is not the case, the snaked axis will
 “jump” after each iteration of the squashed Dimension object.</p>
 <p>For example, consider a snaking x within an odd non-snaking y within z:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -536,11 +536,11 @@ the Path of the snaked axis. If this is not the case, the snaked axis will
 </figure>
 <p>If we squash the x and y Dimension objects then x will jump between the first and
 second runs:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Squash</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span><span class="p">,</span> <span class="n">Squash</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Squash</span><span class="p">(</span>
-    <span class="n">Line</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">check_path_changes</span><span class="o">=</span><span class="kc">False</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Squash</span><span class="p">(</span>
+    <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">check_path_changes</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>

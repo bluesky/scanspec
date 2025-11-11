@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Technical Terms &#8212; scanspec 1.0a3.dev7+g3f08bf996 documentation</title>
+    <title>Technical Terms &#8212; scanspec 0.9.1.dev15+gf2fb1e2e7 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=20464788"></script>
+    <script src="../_static/documentation_options.js?v=0ceaa67d"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -494,7 +494,7 @@ section.</p>
 </section>
 <section id="stack-of-dimensions">
 <span id="stack"></span><h2>Stack of Dimensions<a class="headerlink" href="#stack-of-dimensions" title="Link to this heading">#</a></h2>
-<p>A repeatable, possibly snaking, series of <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a> along a number of <a class="reference internal" href="#axis"><span class="std std-ref">Axes</span></a>. In the diagram above, the whole Line produces a single <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a>
+<p>A repeatable, possibly snaking, series of <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a> along a number of <a class="reference internal" href="#axis"><span class="std std-ref">Axes</span></a>. In the diagram above, the whole Linspace produces a single <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a>
 object, while a grid scan would be a stack of two <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a> objects. A stack of
 <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a> objects are produced by <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.calculate" title="scanspec.specs.Spec.calculate"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.calculate</span></code></a>.</p>
 <div class="admonition seealso">
@@ -504,8 +504,8 @@ object, while a grid scan would be a stack of two <a class="reference internal" 
 </section>
 <section id="path">
 <span id="id4"></span><h2>Path<a class="headerlink" href="#path" title="Link to this heading">#</a></h2>
-<p>A consumable route through a _stack_. If the Line in the above diagram was
-stacked within another line of length 5, then the Path would contain 15 <a class="reference internal" href="#frame"><span class="std std-ref">Dimensions</span></a>. A <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> is created from a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref any docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a> objects.</p>
+<p>A consumable route through a _stack_. If the Linspace in the above diagram was
+stacked within another line of length 5, then the Path would contain 15 <a class="reference internal" href="#frame"><span class="std std-ref">Dimensions</span></a>. A <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Path" title="scanspec.core.Path"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> is created from a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref any docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Dimension" title="scanspec.core.Dimension"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Dimension</span></code></a> objects.</p>
 </section>
 </section>
 
