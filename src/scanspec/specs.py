@@ -40,7 +40,9 @@ __all__ = [
     "Snake",
     "Concat",
     "Squash",
+    "Linspace",
     "Line",
+    "Range",
     "Static",
     "Spiral",
     "Fly",
@@ -152,33 +154,33 @@ class Product(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("y", 1, 2, 3) * Line("x", 3, 4, 12))
+        spec = Fly(Linspace("y", 1, 2, 3) * Linspace("x", 3, 4, 12))
 
     An inner integer can be used to repeat the same point many times.
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("y", 1, 2, 3) * 2)
+        spec = Fly(Linspace("y", 1, 2, 3) * 2)
 
     An outer integer can be used to repeat the same scan many times.
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(2 * ~Line.bounded("x", 3, 4, 1))
+        spec = Fly(2 * ~Linspace.bounded("x", 3, 4, 1))
 
     If you want snaked axes to have no gap between iterations you can do:
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line, Product
+        from scanspec.specs import Fly, Linspace, Product
 
-        spec = Fly(Product(2, ~Line.bounded("x", 3, 4, 1), gap=False))
+        spec = Fly(Product(2, ~Linspace.bounded("x", 3, 4, 1), gap=False))
 
     .. note:: There is no turnaround arrow at x=4
     """
@@ -239,9 +241,11 @@ class Zip(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("z", 1, 2, 3) * Line("y", 3, 4, 5).zip(Line("x", 4, 5, 5)))
+        spec = Fly(
+            Linspace("z", 1, 2, 3) * Linspace("y", 3, 4, 5).zip(Linspace("x", 4, 5, 5))
+        )
     """
 
     left: Spec[Axis] = Field(
@@ -314,10 +318,10 @@ class Mask(Spec[Axis]):
     .. example_spec::
 
         from scanspec.regions import Circle
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
         region = Circle("x", "y", 4, 2, 1.2)
-        spec = Fly(Line("y", 1, 3, 3) * Line("x", 3, 5, 5) & region)
+        spec = Fly(Linspace("y", 1, 3, 3) * Linspace("x", 3, 5, 5) & region)
 
     See Also: `why-squash-can-change-path`
     """
@@ -383,9 +387,9 @@ class Snake(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("y", 1, 3, 3) * ~Line("x", 3, 5, 5))
+        spec = Fly(Linspace("y", 1, 3, 3) * ~Linspace("x", 3, 5, 5))
     """
 
     spec: Spec[Axis] = Field(
@@ -416,9 +420,9 @@ class Concat(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("x", 1, 3, 3).concat(Line("x", 4, 5, 5)))
+        spec = Fly(Linspace("x", 1, 3, 3).concat(Linspace("x", 4, 5, 5)))
     """
 
     left: Spec[Axis] = Field(
@@ -477,9 +481,9 @@ class Squash(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line, Squash
+        from scanspec.specs import Fly, Linspace, Squash
 
-        spec = Fly(Squash(Line("y", 1, 2, 3) * Line("x", 0, 1, 4)))
+        spec = Fly(Squash(Linspace("y", 1, 2, 3) * Linspace("x", 0, 1, 4)))
 
     """
 
@@ -531,20 +535,28 @@ def _dimensions_from_indexes(
 
 
 @dataclass(config=StrictConfig)
-class Line(Spec[Axis]):
+class Linspace(Spec[Axis]):
     """Linearly spaced frames with start and stop as first and last midpoints.
+
+    This class is intended to handle linearly spaced frames defined with a
+    specific number of frames.
+
+    .. seealso::
+        `Range`: For linearly spaced frames defined with a step size.
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("x", 1, 2, 5))
+        spec = Fly(Linspace("x", 1, 2, 5))
     """
 
     axis: Axis = Field(description="An identifier for what to move")
     start: float = Field(description="Midpoint of the first point of the line")
     stop: float = Field(description="Midpoint of the last point of the line")
-    num: int = Field(ge=1, description="Number of frames to produce")
+    num: int = Field(
+        ge=1, description="Number of frames to produce (defaults to 1)", default=1
+    )
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
@@ -572,19 +584,21 @@ class Line(Spec[Axis]):
 
     @classmethod
     def bounded(
-        cls: type[Line[Any]],
+        cls: type[Linspace[Any]],
         axis: OtherAxis = Field(description="An identifier for what to move"),
         lower: float = Field(description="Lower bound of the first point of the line"),
         upper: float = Field(description="Upper bound of the last point of the line"),
-        num: int = Field(ge=1, description="Number of frames to produce"),
-    ) -> Line[OtherAxis]:
-        """Specify a Line by extreme bounds instead of midpoints.
+        num: int = Field(
+            ge=1, description="Number of frames to produce (defaults to 1)", default=1
+        ),
+    ) -> Linspace[OtherAxis]:
+        """Specify a Linspace by extreme bounds instead of midpoints.
 
         .. example_spec::
 
-            from scanspec.specs import Fly, Line
+            from scanspec.specs import Fly, Linspace
 
-            spec = Fly(Line.bounded("x", 1, 2, 5))
+            spec = Fly(Linspace.bounded("x", 1, 2, 5))
         """
         half_step = (upper - lower) / num / 2
         start = lower + half_step
@@ -600,7 +614,94 @@ class Line(Spec[Axis]):
 """
 Defers wrapping function with validate_call until class is fully instantiated
 """
-Line.bounded = validate_call(Line.bounded)  # type:ignore
+Linspace.bounded = validate_call(Linspace.bounded)
+
+
+@dataclass(config=StrictConfig)
+class Range(Spec[Axis]):
+    """Linearly spaced frames with start and stop as first and last midpoints.
+
+    This class is intended to handle linearly spaced frames defined with a
+    specific step size.
+
+    .. seealso::
+        `Linspace`: For linearly spaced frames defined with a number of frames.
+
+    .. example_spec::
+
+        from scanspec.specs import Fly, Range
+
+        spec = Fly(Range("x", 1, 2, 0.25))
+    """
+
+    axis: Axis = Field(description="An identifier for what to move")
+    start: float = Field(description="Midpoint of the first point of the line")
+    stop: float = Field(description="Midpoint of the last point of the line")
+    step: float = Field(
+        description="Step size (defaults to stop - start)",
+        gt=0,
+        default_factory=lambda data: abs(data["stop"] - data["start"]),
+    )
+
+    def axes(self) -> list[Axis]:  # noqa: D102
+        return [self.axis]
+
+    def _line_from_indexes(
+        self, indexes: npt.NDArray[np.float64]
+    ) -> dict[Axis, npt.NDArray[np.float64]]:
+        step = abs(self.step) * np.sign(self.stop - self.start)
+        first = self.start - step / 2
+        return {self.axis: indexes * step + first}
+
+    def calculate(  # noqa: D102
+        self, bounds: bool = False, nested: bool = False
+    ) -> list[Dimension[Axis]]:
+        step = abs(self.step)
+        distance = abs(self.stop - self.start)
+        # +1 to include start
+        num = int(distance // step) + 1
+        if np.isclose(step * num, distance):
+            # +1 to include stop
+            num = num + 1
+        return _dimensions_from_indexes(
+            self._line_from_indexes, self.axes(), num, bounds
+        )
+
+    @classmethod
+    def bounded(
+        cls: type[Range[Any]],
+        axis: OtherAxis = Field(description="An identifier for what to move"),
+        lower: float = Field(description="Lower bound of the first point of the line"),
+        upper: float = Field(description="Upper bound of the last point of the line"),
+        step: float = Field(description="Step size"),
+    ) -> Range[OtherAxis]:
+        """Specify a Range by extreme bounds instead of midpoints.
+
+        .. example_spec::
+
+            from scanspec.specs import Fly, Range
+
+            spec = Fly(Range.bounded("x", 1, 5, 2))
+        """
+        distance = abs(upper - lower)
+        direction = np.sign(upper - lower)
+        step = min(distance, abs(step))  # produce at least one frame
+        half_step = step / 2 * direction
+        start = lower + half_step
+        stop = upper - half_step
+        if stop == start:
+            # edge case with computed start and stop
+            stop = np.nextafter(start, np.inf * direction)
+        return cls(axis, start, stop, step)
+
+
+"""
+Defers wrapping function with validate_call until class is fully instantiated
+"""
+Range.bounded = validate_call(Range.bounded)
+
+# Define alias for Range
+Line = Linspace
 
 
 @dataclass(config=StrictConfig)
@@ -611,9 +712,9 @@ class Fly(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line
+        from scanspec.specs import Fly, Linspace
 
-        spec = Fly(Line("x", 1, 2, 3))
+        spec = Fly(Linspace("x", 1, 2, 3))
     """
 
     spec: Spec[Axis] = Field(description="Spec contaning the path to be followed")
@@ -638,9 +739,9 @@ class ConstantDuration(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Line
+        from scanspec.specs import Linspace
 
-        spec = 0.1 @ Line("x", 1, 2, 3)
+        spec = 0.1 @ Linspace("x", 1, 2, 3)
     """
 
     constant_duration: float = Field(description="The value at each point")
@@ -689,9 +790,9 @@ class Static(Spec[Axis]):
 
     .. example_spec::
 
-        from scanspec.specs import Fly, Line, Static
+        from scanspec.specs import Fly, Linspace, Static
 
-        spec = Fly(Line("y", 1, 2, 3).zip(Static("x", 3)))
+        spec = Fly(Linspace("y", 1, 2, 3).zip(Static("x", 3)))
     """
 
     axis: Axis = Field(description="An identifier for what to move")
@@ -725,21 +826,23 @@ class Spiral(Spec[Axis]):
 
         from scanspec.specs import Fly, Spiral
 
-        spec = Fly(Spiral("x", "y", 1, 5, 10, 50, 30))
+        spec = Fly(Spiral("x", 1, 10, 2.5, "y", 5, 50))
     """
 
-    # TODO: Make use of typing.Annotated upon fix of
-    # https://github.com/pydantic/pydantic/issues/3496
     x_axis: Axis = Field(description="An identifier for what to move for x")
+    x_centre: float = Field(description="x centre of the spiral")
+    x_diameter: float = Field(description="x width of the spiral")
+    x_step: float = Field(description="Radial spacing along x")  # TODO: rethink name
     y_axis: Axis = Field(description="An identifier for what to move for y")
-    x_start: float = Field(description="x centre of the spiral")
-    y_start: float = Field(description="y centre of the spiral")
-    x_range: float = Field(description="x width of the spiral")
-    y_range: float = Field(description="y width of the spiral")
-    num: int = Field(ge=1, description="Number of frames to produce")
-    rotate: float = Field(
-        description="How much to rotate the angle of the spiral", default=0.0
+    y_centre: float = Field(description="y centre of the spiral")
+    y_diameter: float | None = Field(
+        description="y width of the spiral (defaults to x_diameter)", default=None
     )
+
+    def __post_init__(self):
+        # populate defaults
+        if self.y_diameter is None:
+            self.y_diameter = self.x_diameter
 
     def axes(self) -> list[Axis]:  # noqa: D102
         # TODO: reversed from __init__ args, a good idea?
@@ -755,62 +858,31 @@ class Spiral(Spec[Axis]):
         # so: phi = sqrt(4 * pi * num)
         phi = np.sqrt(4 * np.pi * indexes)
         # indexes are 0..num inclusive, and diameter is 2x biggest phi
-        diameter = 2 * np.sqrt(4 * np.pi * self.num)
+        diameter = 2 * np.sqrt(4 * np.pi * self._num)
         # scale so that the spiral is strictly smaller than the range
-        x_scale = self.x_range / diameter
-        y_scale = self.y_range / diameter
+        x_scale = self.x_diameter / diameter
+        y_scale = self.y_diameter / diameter
         return {
-            self.y_axis: self.y_start + y_scale * phi * np.cos(phi + self.rotate),
-            self.x_axis: self.x_start + x_scale * phi * np.sin(phi + self.rotate),
+            self.y_axis: self.y_centre + y_scale * phi * np.cos(phi),
+            self.x_axis: self.x_centre + x_scale * phi * np.sin(phi),
         }
+
+    def _estimate_num(self):
+        # we want each frame to roughly be separated by step size
+        # occupy roughly the same frame_area = step**2
+        # num frames = ellipse_area / frame_area
+        assert self.y_diameter is not None  # ensured in __post_init__
+        ellipse_area = np.pi * self.x_diameter * self.y_diameter / 4
+        num = ellipse_area / self.x_step**2
+        return int(num) + 1
 
     def calculate(  # noqa: D102
         self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
+        self._num = self._estimate_num()
         return _dimensions_from_indexes(
-            self._spiral_from_indexes, self.axes(), self.num, bounds
+            self._spiral_from_indexes, self.axes(), self._num, bounds
         )
-
-    @classmethod
-    def spaced(
-        cls: type[Spiral[Any]],
-        x_axis: OtherAxis = Field(description="An identifier for what to move for x"),
-        y_axis: OtherAxis = Field(description="An identifier for what to move for y"),
-        x_start: float = Field(description="x centre of the spiral"),
-        y_start: float = Field(description="y centre of the spiral"),
-        radius: float = Field(description="radius of the spiral"),
-        dr: float = Field(description="difference between each ring"),
-        rotate: float = Field(
-            description="How much to rotate the angle of the spiral", default=0.0
-        ),
-    ) -> Spiral[OtherAxis]:
-        """Specify a Spiral equally spaced in "x_axis" and "y_axis".
-
-        .. example_spec::
-
-            from scanspec.specs import Fly, Spiral
-
-            spec = Fly(Spiral.spaced("x", "y", 0, 0, 10, 3))
-        """
-        # phi = sqrt(4 * pi * num)
-        # and: n_rings = phi / (2 * pi)
-        # so: n_rings * 2 * pi = sqrt(4 * pi * num)
-        # so: num = n_rings^2 * pi
-        n_rings = radius / dr
-        num = int(n_rings**2 * np.pi)
-        return cls(
-            x_axis,
-            y_axis,
-            x_start,
-            y_start,
-            radius * 2,
-            radius * 2,
-            num,
-            rotate,
-        )
-
-
-Spiral.spaced = validate_call(Spiral.spaced)  # type:ignore
 
 
 def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:

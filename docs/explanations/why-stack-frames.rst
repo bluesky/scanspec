@@ -11,8 +11,8 @@ object for each point in the scan.
 An Example
 ----------
 
->>> from scanspec.specs import Line
->>> spec = Line("y", 4, 5, 6) * Line("x", 1, 2, 3)
+>>> from scanspec.specs import Linspace
+>>> spec = Linspace("y", 4, 5, 6) * Linspace("x", 1, 2, 3)
 >>> stack = spec.calculate()
 >>> len(stack)
 2
@@ -25,8 +25,8 @@ An Example
 >>> stack[1].midpoints
 {'x': array([1. , 1.5, 2. ])}
 
-So the `Product` of two `Lines <Line>` creates a stack of 2 Frames objects, the first
-having the same size as the outer line, and the second having the same size as
+So the `Product` of two `Linspaces <Linspace>` creates a stack of 2 Frames objects, the first
+having the same size as the outer linspace, and the second having the same size as
 the inner. Executing the scan will iterate the inner Frames object 6 times, once for
 each point in the outer Frames object, 18 points in all.
 
@@ -46,7 +46,7 @@ What about Regions?
 
 Regions will stop the regularity of the nested Frames objects, so will cause
 them to be squashed into a single Frames object. Taking our example above, if we
-`Mask` the grid with a `Circle`, then the `Line` in ``x`` won't have 3 points in
+`Mask` the grid with a `Circle`, then the `Linspace` in ``x`` won't have 3 points in
 each iteration, the number of points is dependent on ``y``. This means that a
 `Mask` will squash any Specs together referred to by its Regions.
 

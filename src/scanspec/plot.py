@@ -121,10 +121,12 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
 
     .. example_spec::
 
-        from scanspec.specs import Line
+        from scanspec.specs import Linspace
         from scanspec.regions import Circle
 
-        cube = Line("z", 1, 3, 3) * Line("y", 1, 3, 10) * ~Line("x", 0, 2, 10)
+        cube = (
+            Linspace("z", 1, 3, 3) * Linspace("y", 1, 3, 10) * ~Linspace("x", 0, 2, 10)
+        )
         spec = cube & Circle("x", "y", 1, 2, 0.9)
     """
     dims = spec.calculate()

@@ -22,14 +22,14 @@
                                             "start": 0.0,
                                             "stop": 10.0,
                                             "num": 3,
-                                            "type": "Line"
+                                            "type": "Linspace"
                                         },
                                         "inner": {
                                             "axis": "x",
                                             "start": 0.0,
                                             "stop": 10.0,
                                             "num": 4,
-                                            "type": "Line"
+                                            "type": "Linspace"
                                         },
                                         "gap": true,
                                         "type": "Product"
@@ -82,14 +82,14 @@
                                                 "start": 0.0,
                                                 "stop": 10.0,
                                                 "num": 3,
-                                                "type": "Line"
+                                                "type": "Linspace"
                                             },
                                             "inner": {
                                                 "axis": "x",
                                                 "start": 0.0,
                                                 "stop": 10.0,
                                                 "num": 4,
-                                                "type": "Line"
+                                                "type": "Linspace"
                                             },
                                             "gap": true,
                                             "type": "Product"
@@ -145,14 +145,14 @@
                                                 "start": 0.0,
                                                 "stop": 10.0,
                                                 "num": 3,
-                                                "type": "Line"
+                                                "type": "Linspace"
                                             },
                                             "inner": {
                                                 "axis": "x",
                                                 "start": 0.0,
                                                 "stop": 10.0,
                                                 "num": 4,
-                                                "type": "Line"
+                                                "type": "Linspace"
                                             },
                                             "gap": true,
                                             "type": "Product"
@@ -207,14 +207,14 @@
                                             "start": 0.0,
                                             "stop": 10.0,
                                             "num": 3,
-                                            "type": "Line"
+                                            "type": "Linspace"
                                         },
                                         "inner": {
                                             "axis": "x",
                                             "start": 0.0,
                                             "stop": 10.0,
                                             "num": 4,
-                                            "type": "Line"
+                                            "type": "Linspace"
                                         },
                                         "gap": true,
                                         "type": "Product"
@@ -266,14 +266,14 @@
                                             "start": 0.0,
                                             "stop": 10.0,
                                             "num": 3,
-                                            "type": "Line"
+                                            "type": "Linspace"
                                         },
                                         "inner": {
                                             "axis": "x",
                                             "start": 0.0,
                                             "stop": 10.0,
                                             "num": 4,
-                                            "type": "Line"
+                                            "type": "Linspace"
                                         },
                                         "gap": true,
                                         "type": "Product"
@@ -420,7 +420,7 @@
                     "radius"
                 ],
                 "title": "Circle",
-                "description": "Mask contains points of axis within an xy circle of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Line\n\n    grid = Line(\"y\", 1, 3, 10) * ~Line(\"x\", 0, 2, 10)\n    spec = grid & Circle(\"x\", \"y\", 1, 2, 0.9)"
+                "description": "Mask contains points of axis within an xy circle of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 1, 3, 10) * ~Linspace(\"x\", 0, 2, 10)\n    spec = grid & Circle(\"x\", \"y\", 1, 2, 0.9)"
             },
             "CombinationOf_str_-Input": {
                 "properties": {
@@ -510,7 +510,7 @@
                     "right"
                 ],
                 "title": "Concat",
-                "description": "Concatenate two Specs together, running one after the other.\n\nEach Dimension of left and right must contain the same axes. Typically\nformed using `Spec.concat`.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"x\", 1, 3, 3).concat(Line(\"x\", 4, 5, 5)))"
+                "description": "Concatenate two Specs together, running one after the other.\n\nEach Dimension of left and right must contain the same axes. Typically\nformed using `Spec.concat`.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"x\", 1, 3, 3).concat(Linspace(\"x\", 4, 5, 5)))"
             },
             "Concat_str_-Output": {
                 "properties": {
@@ -548,7 +548,7 @@
                     "right"
                 ],
                 "title": "Concat",
-                "description": "Concatenate two Specs together, running one after the other.\n\nEach Dimension of left and right must contain the same axes. Typically\nformed using `Spec.concat`.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"x\", 1, 3, 3).concat(Line(\"x\", 4, 5, 5)))"
+                "description": "Concatenate two Specs together, running one after the other.\n\nEach Dimension of left and right must contain the same axes. Typically\nformed using `Spec.concat`.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"x\", 1, 3, 3).concat(Linspace(\"x\", 4, 5, 5)))"
             },
             "ConstantDuration_str_-Input": {
                 "properties": {
@@ -581,7 +581,7 @@
                     "constant_duration"
                 ],
                 "title": "ConstantDuration",
-                "description": "Apply a constant duration to every point in a Spec.\n\nTypically applied with the ``@`` modifier.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = 0.1 @ Line(\"x\", 1, 2, 3)"
+                "description": "Apply a constant duration to every point in a Spec.\n\nTypically applied with the ``@`` modifier.\n\n.. example_spec::\n\n    from scanspec.specs import Linspace\n\n    spec = 0.1 @ Linspace(\"x\", 1, 2, 3)"
             },
             "ConstantDuration_str_-Output": {
                 "properties": {
@@ -614,7 +614,7 @@
                     "constant_duration"
                 ],
                 "title": "ConstantDuration",
-                "description": "Apply a constant duration to every point in a Spec.\n\nTypically applied with the ``@`` modifier.\n\n.. example_spec::\n\n    from scanspec.specs import Line\n\n    spec = 0.1 @ Line(\"x\", 1, 2, 3)"
+                "description": "Apply a constant duration to every point in a Spec.\n\nTypically applied with the ``@`` modifier.\n\n.. example_spec::\n\n    from scanspec.specs import Linspace\n\n    spec = 0.1 @ Linspace(\"x\", 1, 2, 3)"
             },
             "DifferenceOf_str_-Input": {
                 "properties": {
@@ -726,7 +726,7 @@
                     "y_radius"
                 ],
                 "title": "Ellipse",
-                "description": "Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Line\n\n    grid = Line(\"y\", 3, 8, 10) * ~Line(\"x\", 1 ,8, 10)\n    spec = grid & Ellipse(\"x\", \"y\", 5, 5, 2, 3, 75)"
+                "description": "Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 3, 8, 10) * ~Linspace(\"x\", 1 ,8, 10)\n    spec = grid & Ellipse(\"x\", \"y\", 5, 5, 2, 3, 75)"
             },
             "Fly_str_-Input": {
                 "properties": {
@@ -747,7 +747,7 @@
                     "spec"
                 ],
                 "title": "Fly",
-                "description": "Move through lower to upper bounds of the Spec rather than stopping.\n\nThis is commonly termed a \"fly scan\" rather than a \"step scan\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"x\", 1, 2, 3))"
+                "description": "Move through lower to upper bounds of the Spec rather than stopping.\n\nThis is commonly termed a \"fly scan\" rather than a \"step scan\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"x\", 1, 2, 3))"
             },
             "Fly_str_-Output": {
                 "properties": {
@@ -768,7 +768,7 @@
                     "spec"
                 ],
                 "title": "Fly",
-                "description": "Move through lower to upper bounds of the Spec rather than stopping.\n\nThis is commonly termed a \"fly scan\" rather than a \"step scan\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"x\", 1, 2, 3))"
+                "description": "Move through lower to upper bounds of the Spec rather than stopping.\n\nThis is commonly termed a \"fly scan\" rather than a \"step scan\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"x\", 1, 2, 3))"
             },
             "GapResponse": {
                 "properties": {
@@ -853,7 +853,7 @@
                 "title": "IntersectionOf",
                 "description": "A point is in IntersectionOf(a, b) if in both a and b.\n\nTypically created with the ``&`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) & Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False, False,  True, False, False])"
             },
-            "Line_str_": {
+            "Linspace_str_": {
                 "properties": {
                     "axis": {
                         "type": "string",
@@ -874,13 +874,14 @@
                         "type": "integer",
                         "minimum": 1.0,
                         "title": "Num",
-                        "description": "Number of frames to produce"
+                        "description": "Number of frames to produce (defaults to 1)",
+                        "default": 1
                     },
                     "type": {
                         "type": "string",
-                        "const": "Line",
+                        "const": "Linspace",
                         "title": "Type",
-                        "default": "Line"
+                        "default": "Linspace"
                     }
                 },
                 "additionalProperties": false,
@@ -888,11 +889,10 @@
                 "required": [
                     "axis",
                     "start",
-                    "stop",
-                    "num"
+                    "stop"
                 ],
-                "title": "Line",
-                "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"x\", 1, 2, 5))"
+                "title": "Linspace",
+                "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\nThis class is intended to handle linearly spaced frames defined with a\nspecific number of frames.\n\n.. seealso::\n    `Range`: For linearly spaced frames defined with a step size.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"x\", 1, 2, 5))"
             },
             "Mask_str_-Input": {
                 "properties": {
@@ -924,7 +924,7 @@
                     "region"
                 ],
                 "title": "Mask",
-                "description": "Restrict Spec to only midpoints that fall inside the given Region.\n\nTypically created with the ``&`` operator. It also pushes down the\n``& | ^ -`` operators to its `Region` to avoid the need for brackets on\ncombinations of Regions.\n\nIf a Region spans multiple Dimension objects, they will be squashed together.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Fly, Line\n\n    region = Circle(\"x\", \"y\", 4, 2, 1.2)\n    spec = Fly(Line(\"y\", 1, 3, 3) * Line(\"x\", 3, 5, 5) & region)\n\nSee Also: `why-squash-can-change-path`"
+                "description": "Restrict Spec to only midpoints that fall inside the given Region.\n\nTypically created with the ``&`` operator. It also pushes down the\n``& | ^ -`` operators to its `Region` to avoid the need for brackets on\ncombinations of Regions.\n\nIf a Region spans multiple Dimension objects, they will be squashed together.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Fly, Linspace\n\n    region = Circle(\"x\", \"y\", 4, 2, 1.2)\n    spec = Fly(Linspace(\"y\", 1, 3, 3) * Linspace(\"x\", 3, 5, 5) & region)\n\nSee Also: `why-squash-can-change-path`"
             },
             "Mask_str_-Output": {
                 "properties": {
@@ -956,7 +956,7 @@
                     "region"
                 ],
                 "title": "Mask",
-                "description": "Restrict Spec to only midpoints that fall inside the given Region.\n\nTypically created with the ``&`` operator. It also pushes down the\n``& | ^ -`` operators to its `Region` to avoid the need for brackets on\ncombinations of Regions.\n\nIf a Region spans multiple Dimension objects, they will be squashed together.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Fly, Line\n\n    region = Circle(\"x\", \"y\", 4, 2, 1.2)\n    spec = Fly(Line(\"y\", 1, 3, 3) * Line(\"x\", 3, 5, 5) & region)\n\nSee Also: `why-squash-can-change-path`"
+                "description": "Restrict Spec to only midpoints that fall inside the given Region.\n\nTypically created with the ``&`` operator. It also pushes down the\n``& | ^ -`` operators to its `Region` to avoid the need for brackets on\ncombinations of Regions.\n\nIf a Region spans multiple Dimension objects, they will be squashed together.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Fly, Linspace\n\n    region = Circle(\"x\", \"y\", 4, 2, 1.2)\n    spec = Fly(Linspace(\"y\", 1, 3, 3) * Linspace(\"x\", 3, 5, 5) & region)\n\nSee Also: `why-squash-can-change-path`"
             },
             "MidpointsResponse": {
                 "properties": {
@@ -1091,7 +1091,7 @@
                     "y_verts"
                 ],
                 "title": "Polygon",
-                "description": "Mask contains points of axis within a rotated xy polygon.\n\n.. example_spec::\n\n    from scanspec.regions import Polygon\n    from scanspec.specs import Line\n\n    grid = Line(\"y\", 3, 8, 10) * ~Line(\"x\", 1 ,8, 10)\n    spec = grid & Polygon(\"x\", \"y\", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])"
+                "description": "Mask contains points of axis within a rotated xy polygon.\n\n.. example_spec::\n\n    from scanspec.regions import Polygon\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 3, 8, 10) * ~Linspace(\"x\", 1 ,8, 10)\n    spec = grid & Polygon(\"x\", \"y\", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])"
             },
             "Product_str_-Input": {
                 "properties": {
@@ -1139,7 +1139,7 @@
                     "inner"
                 ],
                 "title": "Product",
-                "description": "Outer product of two Specs, nesting inner within outer.\n\nThis means that inner will run in its entirety at each point in outer.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 2, 3) * Line(\"x\", 3, 4, 12))\n\nAn inner integer can be used to repeat the same point many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 2, 3) * 2)\n\nAn outer integer can be used to repeat the same scan many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(2 * ~Line.bounded(\"x\", 3, 4, 1))\n\nIf you want snaked axes to have no gap between iterations you can do:\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line, Product\n\n    spec = Fly(Product(2, ~Line.bounded(\"x\", 3, 4, 1), gap=False))\n\n.. note:: There is no turnaround arrow at x=4"
+                "description": "Outer product of two Specs, nesting inner within outer.\n\nThis means that inner will run in its entirety at each point in outer.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"y\", 1, 2, 3) * Linspace(\"x\", 3, 4, 12))\n\nAn inner integer can be used to repeat the same point many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"y\", 1, 2, 3) * 2)\n\nAn outer integer can be used to repeat the same scan many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(2 * ~Linspace.bounded(\"x\", 3, 4, 1))\n\nIf you want snaked axes to have no gap between iterations you can do:\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace, Product\n\n    spec = Fly(Product(2, ~Linspace.bounded(\"x\", 3, 4, 1), gap=False))\n\n.. note:: There is no turnaround arrow at x=4"
             },
             "Product_str_-Output": {
                 "properties": {
@@ -1187,41 +1187,7 @@
                     "inner"
                 ],
                 "title": "Product",
-                "description": "Outer product of two Specs, nesting inner within outer.\n\nThis means that inner will run in its entirety at each point in outer.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 2, 3) * Line(\"x\", 3, 4, 12))\n\nAn inner integer can be used to repeat the same point many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 2, 3) * 2)\n\nAn outer integer can be used to repeat the same scan many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(2 * ~Line.bounded(\"x\", 3, 4, 1))\n\nIf you want snaked axes to have no gap between iterations you can do:\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line, Product\n\n    spec = Fly(Product(2, ~Line.bounded(\"x\", 3, 4, 1), gap=False))\n\n.. note:: There is no turnaround arrow at x=4"
-            },
-            "Range_str_": {
-                "properties": {
-                    "axis": {
-                        "type": "string",
-                        "title": "Axis",
-                        "description": "The name matching the axis to mask in spec"
-                    },
-                    "min": {
-                        "type": "number",
-                        "title": "Min",
-                        "description": "The minimum inclusive value in the region"
-                    },
-                    "max": {
-                        "type": "number",
-                        "title": "Max",
-                        "description": "The minimum inclusive value in the region"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Range",
-                        "title": "Type",
-                        "default": "Range"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "axis",
-                    "min",
-                    "max"
-                ],
-                "title": "Range",
-                "description": "Mask contains points of axis >= min and <= max.\n\n>>> r = Range(\"x\", 1, 2)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True, False, False])"
+                "description": "Outer product of two Specs, nesting inner within outer.\n\nThis means that inner will run in its entirety at each point in outer.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"y\", 1, 2, 3) * Linspace(\"x\", 3, 4, 12))\n\nAn inner integer can be used to repeat the same point many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"y\", 1, 2, 3) * 2)\n\nAn outer integer can be used to repeat the same scan many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(2 * ~Linspace.bounded(\"x\", 3, 4, 1))\n\nIf you want snaked axes to have no gap between iterations you can do:\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace, Product\n\n    spec = Fly(Product(2, ~Linspace.bounded(\"x\", 3, 4, 1), gap=False))\n\n.. note:: There is no turnaround arrow at x=4"
             },
             "Rectangle_str_": {
                 "properties": {
@@ -1279,7 +1245,7 @@
                     "y_max"
                 ],
                 "title": "Rectangle",
-                "description": "Mask contains points of axis within a rotated xy rectangle.\n\n.. example_spec::\n\n    from scanspec.regions import Rectangle\n    from scanspec.specs import Line\n\n    grid = Line(\"y\", 1, 3, 10) * ~Line(\"x\", 0, 2, 10)\n    spec = grid & Rectangle(\"x\", \"y\", 0, 1.1, 1.5, 2.1, 30)"
+                "description": "Mask contains points of axis within a rotated xy rectangle.\n\n.. example_spec::\n\n    from scanspec.regions import Rectangle\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 1, 3, 10) * ~Linspace(\"x\", 0, 2, 10)\n    spec = grid & Rectangle(\"x\", \"y\", 0, 1.1, 1.5, 2.1, 30)"
             },
             "Region-Input": {
                 "oneOf": [
@@ -1299,7 +1265,7 @@
                         "$ref": "#/components/schemas/SymmetricDifferenceOf_str_-Input"
                     },
                     {
-                        "$ref": "#/components/schemas/Range_str_"
+                        "$ref": "#/components/schemas/scanspec__regions__Range_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Rectangle_str_"
@@ -1323,7 +1289,7 @@
                         "Ellipse": "#/components/schemas/Ellipse_str_",
                         "IntersectionOf": "#/components/schemas/IntersectionOf_str_-Input",
                         "Polygon": "#/components/schemas/Polygon_str_",
-                        "Range": "#/components/schemas/Range_str_",
+                        "Range": "#/components/schemas/scanspec__regions__Range_str_",
                         "Rectangle": "#/components/schemas/Rectangle_str_",
                         "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf_str_-Input",
                         "UnionOf": "#/components/schemas/UnionOf_str_-Input"
@@ -1348,7 +1314,7 @@
                         "$ref": "#/components/schemas/SymmetricDifferenceOf_str_-Output"
                     },
                     {
-                        "$ref": "#/components/schemas/Range_str_"
+                        "$ref": "#/components/schemas/scanspec__regions__Range_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Rectangle_str_"
@@ -1372,7 +1338,7 @@
                         "Ellipse": "#/components/schemas/Ellipse_str_",
                         "IntersectionOf": "#/components/schemas/IntersectionOf_str_-Output",
                         "Polygon": "#/components/schemas/Polygon_str_",
-                        "Range": "#/components/schemas/Range_str_",
+                        "Range": "#/components/schemas/scanspec__regions__Range_str_",
                         "Rectangle": "#/components/schemas/Rectangle_str_",
                         "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf_str_-Output",
                         "UnionOf": "#/components/schemas/UnionOf_str_-Output"
@@ -1422,7 +1388,7 @@
                     "spec"
                 ],
                 "title": "Snake",
-                "description": "Run the Spec in reverse on every other iteration when nested.\n\nTypically created with the ``~`` operator.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 3, 3) * ~Line(\"x\", 3, 5, 5))"
+                "description": "Run the Spec in reverse on every other iteration when nested.\n\nTypically created with the ``~`` operator.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"y\", 1, 3, 3) * ~Linspace(\"x\", 3, 5, 5))"
             },
             "Snake_str_-Output": {
                 "properties": {
@@ -1443,7 +1409,7 @@
                     "spec"
                 ],
                 "title": "Snake",
-                "description": "Run the Spec in reverse on every other iteration when nested.\n\nTypically created with the ``~`` operator.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"y\", 1, 3, 3) * ~Line(\"x\", 3, 5, 5))"
+                "description": "Run the Spec in reverse on every other iteration when nested.\n\nTypically created with the ``~`` operator.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"y\", 1, 3, 3) * ~Linspace(\"x\", 3, 5, 5))"
             },
             "Spec-Input": {
                 "oneOf": [
@@ -1466,7 +1432,10 @@
                         "$ref": "#/components/schemas/Squash_str_-Input"
                     },
                     {
-                        "$ref": "#/components/schemas/Line_str_"
+                        "$ref": "#/components/schemas/Linspace_str_"
+                    },
+                    {
+                        "$ref": "#/components/schemas/scanspec__specs__Range_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Fly_str_-Input"
@@ -1487,9 +1456,10 @@
                         "Concat": "#/components/schemas/Concat_str_-Input",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Input",
                         "Fly": "#/components/schemas/Fly_str_-Input",
-                        "Line": "#/components/schemas/Line_str_",
+                        "Linspace": "#/components/schemas/Linspace_str_",
                         "Mask": "#/components/schemas/Mask_str_-Input",
                         "Product": "#/components/schemas/Product_str_-Input",
+                        "Range": "#/components/schemas/scanspec__specs__Range_str_",
                         "Snake": "#/components/schemas/Snake_str_-Input",
                         "Spiral": "#/components/schemas/Spiral_str_",
                         "Squash": "#/components/schemas/Squash_str_-Input",
@@ -1519,7 +1489,10 @@
                         "$ref": "#/components/schemas/Squash_str_-Output"
                     },
                     {
-                        "$ref": "#/components/schemas/Line_str_"
+                        "$ref": "#/components/schemas/Linspace_str_"
+                    },
+                    {
+                        "$ref": "#/components/schemas/scanspec__specs__Range_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Fly_str_-Output"
@@ -1540,9 +1513,10 @@
                         "Concat": "#/components/schemas/Concat_str_-Output",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Output",
                         "Fly": "#/components/schemas/Fly_str_-Output",
-                        "Line": "#/components/schemas/Line_str_",
+                        "Linspace": "#/components/schemas/Linspace_str_",
                         "Mask": "#/components/schemas/Mask_str_-Output",
                         "Product": "#/components/schemas/Product_str_-Output",
+                        "Range": "#/components/schemas/scanspec__specs__Range_str_",
                         "Snake": "#/components/schemas/Snake_str_-Output",
                         "Spiral": "#/components/schemas/Spiral_str_",
                         "Squash": "#/components/schemas/Squash_str_-Output",
@@ -1558,42 +1532,42 @@
                         "title": "X Axis",
                         "description": "An identifier for what to move for x"
                     },
+                    "x_centre": {
+                        "type": "number",
+                        "title": "X Centre",
+                        "description": "x centre of the spiral"
+                    },
+                    "x_diameter": {
+                        "type": "number",
+                        "title": "X Diameter",
+                        "description": "x width of the spiral"
+                    },
+                    "x_step": {
+                        "type": "number",
+                        "title": "X Step",
+                        "description": "Radial spacing along x"
+                    },
                     "y_axis": {
                         "type": "string",
                         "title": "Y Axis",
                         "description": "An identifier for what to move for y"
                     },
-                    "x_start": {
+                    "y_centre": {
                         "type": "number",
-                        "title": "X Start",
-                        "description": "x centre of the spiral"
-                    },
-                    "y_start": {
-                        "type": "number",
-                        "title": "Y Start",
+                        "title": "Y Centre",
                         "description": "y centre of the spiral"
                     },
-                    "x_range": {
-                        "type": "number",
-                        "title": "X Range",
-                        "description": "x width of the spiral"
-                    },
-                    "y_range": {
-                        "type": "number",
-                        "title": "Y Range",
-                        "description": "y width of the spiral"
-                    },
-                    "num": {
-                        "type": "integer",
-                        "minimum": 1.0,
-                        "title": "Num",
-                        "description": "Number of frames to produce"
-                    },
-                    "rotate": {
-                        "type": "number",
-                        "title": "Rotate",
-                        "description": "How much to rotate the angle of the spiral",
-                        "default": 0.0
+                    "y_diameter": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Y Diameter",
+                        "description": "y width of the spiral (defaults to x_diameter)"
                     },
                     "type": {
                         "type": "string",
@@ -1606,15 +1580,14 @@
                 "type": "object",
                 "required": [
                     "x_axis",
+                    "x_centre",
+                    "x_diameter",
+                    "x_step",
                     "y_axis",
-                    "x_start",
-                    "y_start",
-                    "x_range",
-                    "y_range",
-                    "num"
+                    "y_centre"
                 ],
                 "title": "Spiral",
-                "description": "Archimedean spiral of \"x_axis\" and \"y_axis\".\n\nStarts at centre point (\"x_start\", \"y_start\") with angle \"rotate\". Produces\n\"num\" points in a spiral spanning width of \"x_range\" and height of \"y_range\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Spiral\n\n    spec = Fly(Spiral(\"x\", \"y\", 1, 5, 10, 50, 30))"
+                "description": "Archimedean spiral of \"x_axis\" and \"y_axis\".\n\nStarts at centre point (\"x_start\", \"y_start\") with angle \"rotate\". Produces\n\"num\" points in a spiral spanning width of \"x_range\" and height of \"y_range\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Spiral\n\n    spec = Fly(Spiral(\"x\", 1, 10, 2.5, \"y\", 5, 50))"
             },
             "Squash_str_-Input": {
                 "properties": {
@@ -1641,7 +1614,7 @@
                     "spec"
                 ],
                 "title": "Squash",
-                "description": "Squash a stack of Dimension together into a single expanded Dimension object.\n\nSee Also:\n    `why-squash-can-change-path`\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line, Squash\n\n    spec = Fly(Squash(Line(\"y\", 1, 2, 3) * Line(\"x\", 0, 1, 4)))"
+                "description": "Squash a stack of Dimension together into a single expanded Dimension object.\n\nSee Also:\n    `why-squash-can-change-path`\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace, Squash\n\n    spec = Fly(Squash(Linspace(\"y\", 1, 2, 3) * Linspace(\"x\", 0, 1, 4)))"
             },
             "Squash_str_-Output": {
                 "properties": {
@@ -1668,7 +1641,7 @@
                     "spec"
                 ],
                 "title": "Squash",
-                "description": "Squash a stack of Dimension together into a single expanded Dimension object.\n\nSee Also:\n    `why-squash-can-change-path`\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line, Squash\n\n    spec = Fly(Squash(Line(\"y\", 1, 2, 3) * Line(\"x\", 0, 1, 4)))"
+                "description": "Squash a stack of Dimension together into a single expanded Dimension object.\n\nSee Also:\n    `why-squash-can-change-path`\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace, Squash\n\n    spec = Fly(Squash(Linspace(\"y\", 1, 2, 3) * Linspace(\"x\", 0, 1, 4)))"
             },
             "Static_str_": {
                 "properties": {
@@ -1703,7 +1676,7 @@
                     "value"
                 ],
                 "title": "Static",
-                "description": "A static frame, repeated num times, with axis at value.\n\nCan be used to set axis=value at every point in a scan.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line, Static\n\n    spec = Fly(Line(\"y\", 1, 2, 3).zip(Static(\"x\", 3)))"
+                "description": "A static frame, repeated num times, with axis at value.\n\nCan be used to set axis=value at every point in a scan.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace, Static\n\n    spec = Fly(Linspace(\"y\", 1, 2, 3).zip(Static(\"x\", 3)))"
             },
             "SymmetricDifferenceOf_str_-Input": {
                 "properties": {
@@ -1885,7 +1858,7 @@
                     "right"
                 ],
                 "title": "Zip",
-                "description": "Run two Specs in parallel, merging their midpoints together.\n\nTypically formed using `Spec.zip`.\n\nStacks of Dimension are merged by:\n\n- If right creates a stack of a single Dimension object of size 1, expand it to\n  the size of the fastest Dimension object created by left\n- Merge individual Dimension objects together from fastest to slowest\n\nThis means that Zipping a Spec producing stack [l2, l1] with a Spec\nproducing stack [r1] will assert len(l1)==len(r1), and produce\nstack [l2, l1.zip(r1)].\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"z\", 1, 2, 3) * Line(\"y\", 3, 4, 5).zip(Line(\"x\", 4, 5, 5)))"
+                "description": "Run two Specs in parallel, merging their midpoints together.\n\nTypically formed using `Spec.zip`.\n\nStacks of Dimension are merged by:\n\n- If right creates a stack of a single Dimension object of size 1, expand it to\n  the size of the fastest Dimension object created by left\n- Merge individual Dimension objects together from fastest to slowest\n\nThis means that Zipping a Spec producing stack [l2, l1] with a Spec\nproducing stack [r1] will assert len(l1)==len(r1), and produce\nstack [l2, l1.zip(r1)].\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(\n        Linspace(\"z\", 1, 2, 3) * Linspace(\"y\", 3, 4, 5).zip(Linspace(\"x\", 4, 5, 5))\n    )"
             },
             "Zip_str_-Output": {
                 "properties": {
@@ -1911,7 +1884,81 @@
                     "right"
                 ],
                 "title": "Zip",
-                "description": "Run two Specs in parallel, merging their midpoints together.\n\nTypically formed using `Spec.zip`.\n\nStacks of Dimension are merged by:\n\n- If right creates a stack of a single Dimension object of size 1, expand it to\n  the size of the fastest Dimension object created by left\n- Merge individual Dimension objects together from fastest to slowest\n\nThis means that Zipping a Spec producing stack [l2, l1] with a Spec\nproducing stack [r1] will assert len(l1)==len(r1), and produce\nstack [l2, l1.zip(r1)].\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Line\n\n    spec = Fly(Line(\"z\", 1, 2, 3) * Line(\"y\", 3, 4, 5).zip(Line(\"x\", 4, 5, 5)))"
+                "description": "Run two Specs in parallel, merging their midpoints together.\n\nTypically formed using `Spec.zip`.\n\nStacks of Dimension are merged by:\n\n- If right creates a stack of a single Dimension object of size 1, expand it to\n  the size of the fastest Dimension object created by left\n- Merge individual Dimension objects together from fastest to slowest\n\nThis means that Zipping a Spec producing stack [l2, l1] with a Spec\nproducing stack [r1] will assert len(l1)==len(r1), and produce\nstack [l2, l1.zip(r1)].\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(\n        Linspace(\"z\", 1, 2, 3) * Linspace(\"y\", 3, 4, 5).zip(Linspace(\"x\", 4, 5, 5))\n    )"
+            },
+            "scanspec__regions__Range_str_": {
+                "properties": {
+                    "axis": {
+                        "type": "string",
+                        "title": "Axis",
+                        "description": "The name matching the axis to mask in spec"
+                    },
+                    "min": {
+                        "type": "number",
+                        "title": "Min",
+                        "description": "The minimum inclusive value in the region"
+                    },
+                    "max": {
+                        "type": "number",
+                        "title": "Max",
+                        "description": "The minimum inclusive value in the region"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Range",
+                        "title": "Type",
+                        "default": "Range"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "axis",
+                    "min",
+                    "max"
+                ],
+                "title": "Range",
+                "description": "Mask contains points of axis >= min and <= max.\n\n>>> r = Range(\"x\", 1, 2)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True, False, False])"
+            },
+            "scanspec__specs__Range_str_": {
+                "properties": {
+                    "axis": {
+                        "type": "string",
+                        "title": "Axis",
+                        "description": "An identifier for what to move"
+                    },
+                    "start": {
+                        "type": "number",
+                        "title": "Start",
+                        "description": "Midpoint of the first point of the line"
+                    },
+                    "stop": {
+                        "type": "number",
+                        "title": "Stop",
+                        "description": "Midpoint of the last point of the line"
+                    },
+                    "step": {
+                        "type": "number",
+                        "exclusiveMinimum": 0.0,
+                        "title": "Step",
+                        "description": "Step size (defaults to stop - start)"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Range",
+                        "title": "Type",
+                        "default": "Range"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "axis",
+                    "start",
+                    "stop"
+                ],
+                "title": "Range",
+                "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\nThis class is intended to handle linearly spaced frames defined with a\nspecific step size.\n\n.. seealso::\n    `Linspace`: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Range\n\n    spec = Fly(Range(\"x\", 1, 2, 0.25))"
             }
         }
     }

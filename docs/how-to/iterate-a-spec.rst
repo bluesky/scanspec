@@ -13,8 +13,8 @@ If you are conducting a step scan, you only need the midpoints of each scan
 frame. You can get these by using the `Spec.midpoints()` method to produce a
 `Midpoints` iterator of scan `Points <point_>`:
 
->>> from scanspec.specs import Line
->>> spec = Line("x", 1, 2, 3)
+>>> from scanspec.specs import Linspace
+>>> spec = Linspace("x", 1, 2, 3)
 >>> for d in spec.midpoints():
 ...     print(d)
 ...
@@ -90,8 +90,8 @@ You may need to know where there is a gap between points, so that you can do
 something in the turnaround. For example, if we take the x axis of a grid scan,
 you can see it snakes back and forth:
 
->>> from scanspec.specs import Line, Fly
->>> grid = Fly(0.1 @ (Line("y", 0, 1, 2) * ~Line("x", 1, 2, 3)))
+>>> from scanspec.specs import Linspace, Fly
+>>> grid = Fly(0.1 @ (Linspace("y", 0, 1, 2) * ~Linspace("x", 1, 2, 3)))
 >>> chunk = grid.frames()
 >>> chunk.midpoints["x"]
 array([1. , 1.5, 2. , 2. , 1.5, 1. ])
