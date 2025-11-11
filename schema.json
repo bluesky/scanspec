@@ -1938,14 +1938,8 @@
                         "description": "Midpoint of the last point of the line"
                     },
                     "step": {
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
+                        "type": "number",
+                        "exclusiveMinimum": 0.0,
                         "title": "Step",
                         "description": "Step size (defaults to stop - start)"
                     },
