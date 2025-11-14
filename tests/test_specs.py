@@ -670,22 +670,36 @@ def test_array_spec_fly():
 
 
 def test_array_spec_variable_duration():
-    points_1 = [
-        0.0,
-        1.0,
-        2.0,
-    ]
-    points_2 = [
-        2.5,
-        3.0,
-        4.0,
-        4.5,
-    ]
-
-    spec = Concat(
-        Fly(1 @ Array("x", np.asarray(points_1))),
-        Fly(2 @ Array("x", np.asarray(points_2))),
+    points = np.asarray(
+        [
+            0.0,
+            1.0,
+            2.0,
+            2.5,
+        ]
     )
+    times = np.asarray(
+        [
+            0.1,
+            0.1,
+            0.1,
+            0.1,
+        ]
+    )
+
+    spec = Array("x", points, None, None, None, times)
+    assert spec.duration() == 0.1
+
+    times = np.asarray(
+        [
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+        ]
+    )
+
+    spec = Array("x", points, None, None, None, times)
     assert spec.duration() == VARIABLE_DURATION
 
 
