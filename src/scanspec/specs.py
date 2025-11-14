@@ -925,9 +925,9 @@ class Array(Spec[Axis]):
         return [self.axis]
 
     def duration(self) -> None | float | Literal["VARIABLE_DURATION"]:  # noqa: D102
-        if not self._duration:
+        if self._duration is None:
             return None
-        elif len(set(self._duration)) == 1:
+        elif self._duration[0] == self._duration[-1]:
             return self._duration[0]
         else:
             return VARIABLE_DURATION
