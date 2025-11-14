@@ -788,6 +788,25 @@ def test_array_spec_upper_lower_only():
     assert dim.gap == ints("10000")
 
 
+def test_array_spec_all():
+    mid = [0.0, 1.0, 2.0, 3.0, 4.0]
+    low = [-0.5, 0.5, 1.5, 2.5, 3.5]
+    up = [0.5, 1.5, 2.5, 3.5, 4.5]
+    spec = Array(
+        axis="x",
+        _midpoints=np.asarray(mid),
+        _lower=np.asarray(low),
+        _upper=np.asarray(up),
+        _gap=None,
+        _duration=None,
+    )
+    (dim,) = spec.calculate()
+    assert dim.midpoints == {"x": approx(mid)}
+    assert dim.lower == {"x": approx(low)}
+    assert dim.upper == {"x": approx(up)}
+    assert dim.gap == ints("10000")
+
+
 def test_array_spec_raises():
     points = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     low = np.array([-0.5, 0.5, 1.5])
@@ -834,6 +853,27 @@ def test_array_spec_fly():
             1,
         ]
     )
+    assert spec.duration() == 1
+
+
+def test_array_spec_variable_duration():
+    points_1 = [
+        0.0,
+        1.0,
+        2.0,
+    ]
+    points_2 = [
+        2.5,
+        3.0,
+        4.0,
+        4.5,
+    ]
+
+    spec = Concat(
+        Fly(1 @ Array("x", np.asarray(points_1))),
+        Fly(2 @ Array("x", np.asarray(points_2))),
+    )
+    assert spec.duration() == VARIABLE_DURATION
 
 
 @pytest.mark.filterwarnings("ignore:fly")
