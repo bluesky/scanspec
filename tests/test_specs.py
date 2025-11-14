@@ -793,10 +793,10 @@ def test_array_spec_raises():
     low = np.array([-0.5, 0.5, 1.5])
     up = np.array([0.5, 1.5, 2.5, 3.5])
 
-    with pytest.raises(ValueError, match="Must pass a valid combination of arrays"):
+    with pytest.raises(ValueError, match="Must provide a valid combination of arrays"):
         Array("x").calculate()
 
-    with pytest.raises(ValueError, match="Must pass a valid combination of arrays"):
+    with pytest.raises(ValueError, match="Must provide a valid combination of arrays"):
         Array("x", _midpoints=points, _lower=low).calculate()
 
     with pytest.raises(ValueError, match="Arrays must have the same size"):
