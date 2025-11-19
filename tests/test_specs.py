@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 import numpy as np
@@ -21,7 +22,7 @@ from scanspec.specs import (
     Static,
     Zip,
     fly,
-    get_constant_duration,
+    get_constantarray_duration,
     step,
 )
 
@@ -56,7 +57,7 @@ def test_one_point_linspace() -> None:
     assert dim.duration is None
 
 
-def test_one_point_duration() -> None:
+def test_one_pointarray_duration() -> None:
     duration = ConstantDuration[Any](1.0)
     (dim,) = duration.calculate()
     assert dim.duration == approx([1.0])
@@ -378,7 +379,7 @@ def test_product_snaking_linspaces() -> None:
     assert dim.gap == ints("101010")
 
 
-def test_product_duration() -> None:
+def test_productarray_duration() -> None:
     with pytest.raises(ValueError) as msg:
         _ = Fly(1.0 @ Linspace(y, 1, 2, 3)) * Fly(1.0 @ ~Linspace(x, 0, 1, 2))
     assert "Both inner and outer specs defined a duration" in str(msg.value)
@@ -731,7 +732,7 @@ def test_shape(spec: Spec[Any], expected_shape: tuple[int, ...]):
     assert expected_shape == spec.shape()
 
 
-def test_constant_duration():
+def test_constantarray_duration():
     spec1 = Fly(1.0 @ Linspace("x", 0, 1, 2))
     spec2 = 2.0 @ Linspace("x", 0, 1, 2)
 
@@ -748,7 +749,7 @@ def test_constant_duration():
     assert "Only one of left and right defines a duration" in str(msg.value)
 
 
-def test_int_duration():
+def test_intarray_duration():
     spec1 = 1 @ Linspace("x", 0, 1, 2)
     assert spec1.duration() == 1.0
 
@@ -764,24 +765,23 @@ def test_array_spec():
         4.5,
     ]
     bounds = [-0.5, 0.5, 1.5, 2.25, 2.75, 3.5, 4.25, 4.75]
-    spec = Array(axis="x", _midpoints=np.asarray(points))
+    spec = Array(axis="x", array_midpoints=np.asarray(points))
     (dim,) = spec.calculate()
     assert dim.midpoints == {"x": approx(points)}
     assert dim.lower == {"x": approx(bounds[0:-1])}
     assert dim.upper == {"x": approx(bounds[1:])}
 
 
-def test_array_spec_upper_lower_only():
+def test_array_specarray_upperarray_lower_only():
     points = [0.0, 1.0, 2.0, 3.0, 4.0]
     low = [-0.5, 0.5, 1.5, 2.5, 3.5]
     up = [0.5, 1.5, 2.5, 3.5, 4.5]
     spec = Array(
         axis="x",
-        _midpoints=None,
-        _lower=np.asarray(low),
-        _upper=np.asarray(up),
-        _gap=None,
-        _duration=None,
+        array_midpoints=None,
+        array_lower=np.asarray(low),
+        array_upper=np.asarray(up),
+        array_duration=None,
     )
     (dim,) = spec.calculate()
     assert dim.midpoints == {"x": approx(points)}
@@ -794,11 +794,10 @@ def test_array_spec_all():
     up = [0.5, 1.5, 2.5, 3.5, 4.5]
     spec = Array(
         axis="x",
-        _midpoints=np.asarray(mid),
-        _lower=np.asarray(low),
-        _upper=np.asarray(up),
-        _gap=None,
-        _duration=None,
+        array_midpoints=np.asarray(mid),
+        array_lower=np.asarray(low),
+        array_upper=np.asarray(up),
+        array_duration=None,
     )
     (dim,) = spec.calculate()
     assert dim.midpoints == {"x": approx(mid)}
@@ -809,20 +808,25 @@ def test_array_spec_all():
 
 def test_array_spec_raises():
     points = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
-    low = np.array([-0.5, 0.5, 1.5])
+    low = np.array([-0.5, 0.5, 1.5, 2.0, 2.5])
     up = np.array([0.5, 1.5, 2.5, 3.5])
 
     with pytest.raises(ValueError, match="Must provide a valid combination of arrays"):
         Array("x").calculate()
 
     with pytest.raises(ValueError, match="Must provide a valid combination of arrays"):
-        Array("x", _midpoints=points, _lower=low).calculate()
+        Array("x", array_midpoints=points, array_lower=low).calculate()
 
     with pytest.raises(ValueError, match="Arrays must have the same size"):
-        Array("x", _midpoints=points, _lower=low, _upper=up).calculate()
+        Array("x", array_lower=low, array_upper=up).calculate()
 
-    with pytest.raises(ValueError, match="Arrays must have the same size"):
-        Array("x", _lower=low, _upper=up).calculate()
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "operands could not be broadcast together with shapes (4,) (5,)"
+        ),
+    ):
+        Array("x", array_midpoints=points, array_lower=low, array_upper=up).calculate()
 
 
 def test_array_spec_fly():
@@ -856,7 +860,7 @@ def test_array_spec_fly():
     assert spec.duration() == 1
 
 
-def test_array_spec_variable_duration():
+def test_array_spec_variablearray_duration():
     points = np.asarray(
         [
             0.0,
@@ -865,7 +869,7 @@ def test_array_spec_variable_duration():
             2.5,
         ]
     )
-    times = np.asarray(
+    time = np.asarray(
         [
             0.1,
             0.1,
@@ -874,10 +878,10 @@ def test_array_spec_variable_duration():
         ]
     )
 
-    spec = Array("x", points, None, None, None, times)
+    spec = Array("x", points, None, None, time)
     assert spec.duration() == 0.1
 
-    times = np.asarray(
+    time = np.asarray(
         [
             0.1,
             0.2,
@@ -886,7 +890,7 @@ def test_array_spec_variable_duration():
         ]
     )
 
-    spec = Array("x", points, None, None, None, times)
+    spec = Array("x", points, None, None, time)
     assert spec.duration() == VARIABLE_DURATION
 
 
@@ -925,11 +929,11 @@ def test_step():
     )
 
 
-@pytest.mark.filterwarnings("ignore:get_constant_duration")
-def test_get_constant_duration():
+@pytest.mark.filterwarnings("ignore:get_constantarray_duration")
+def test_get_constantarray_duration():
     spec = Fly(1.0 @ Linspace("x", 0, 1, 4)).calculate()
-    assert get_constant_duration(spec) == 1
+    assert get_constantarray_duration(spec) == 1
 
     spec = Concat(1.0 @ Linspace(x, 0, 1, 2), 2.0 @ Linspace(x, 1, 2, 3)).calculate()
 
-    assert get_constant_duration(spec) is None
+    assert get_constantarray_duration(spec) is None
