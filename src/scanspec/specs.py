@@ -824,19 +824,16 @@ class Array(Spec[Axis]):
     """
 
     axis: Axis = Field(description="An identifier for what to move")
-    _midpoints: npt.NDArray[np.float64] | None = Field(
+    array_midpoints: npt.NDArray[np.float64] | None = Field(
         description="Array describing the midpoint of each frame", default=None
     )
-    _upper: npt.NDArray[np.float64] | None = Field(
+    array_upper: npt.NDArray[np.float64] | None = Field(
         description="Array describing the upper bounds of the array", default=None
     )
-    _lower: npt.NDArray[np.float64] | None = Field(
+    array_lower: npt.NDArray[np.float64] | None = Field(
         description="Array describing the lower bounds of the array", default=None
     )
-    _gap: npt.NDArray[np.bool] | None = Field(
-        description="Array describing gap regions in the trajectory", default=None
-    )
-    _duration: npt.NDArray[np.float64] | None = Field(
+    array_duration: npt.NDArray[np.float64] | None = Field(
         description="Array describing the duration of each point in the array",
         default=None,
     )
@@ -845,68 +842,65 @@ class Array(Spec[Axis]):
         return [self.axis]
 
     def duration(self) -> None | float | Literal["VARIABLE_DURATION"]:  # noqa: D102
-        if self._duration is None:
+        if self.array_duration is None:
             return None
-        elif self._duration[0] == self._duration[-1]:
-            return self._duration[0]
+        elif len(set(self.array_duration)) == 1:
+            return self.array_duration[0]
         else:
             return VARIABLE_DURATION
 
     def calculate(  # noqa: D102
         self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
-        gap = self._gap if self._gap is not None else None
-        dur = self._duration if self._duration is not None else None
-
         # Case where only the midpoints array is provided.
         # Assume no gaps between the points
-        if self._midpoints is not None and self._upper is None and self._lower is None:
-            l_bound = self._midpoints[0] - (
-                (self._midpoints[1] - self._midpoints[0]) / 2
+        if (
+            self.array_midpoints is not None
+            and self.array_upper is None
+            and self.array_lower is None
+        ):
+            l_bound = self.array_midpoints[0] - (
+                (self.array_midpoints[1] - self.array_midpoints[0]) / 2
             )
-            u_bound = self._midpoints[-1] + (
-                (self._midpoints[-1] - self._midpoints[-2]) / 2
+            u_bound = self.array_midpoints[-1] + (
+                (self.array_midpoints[-1] - self.array_midpoints[-2]) / 2
             )
 
-            diff = np.diff(self._midpoints) / 2
+            diff = np.diff(self.array_midpoints) / 2
 
-            lower = np.empty(len(self._midpoints), dtype=float)
-            upper = np.empty(len(self._midpoints), dtype=float)
-            l_diff = self._midpoints[1:] - diff
+            lower = np.empty(len(self.array_midpoints), dtype=float)
+            upper = np.empty(len(self.array_midpoints), dtype=float)
+            l_diff = self.array_midpoints[1:] - diff
             lower = np.append([l_bound], l_diff)
-            u_diff = self._midpoints[0:-1] + diff
+            u_diff = self.array_midpoints[0:-1] + diff
             upper = np.append(u_diff, u_bound)
-            mid = self._midpoints
+            mid = self.array_midpoints
 
         # Case where the users provided the upper and lower bound arrays.
         # Need to calculate the midpoints array by averaging the
         # value between lower and upper
         elif (
-            self._midpoints is None
-            and self._upper is not None
-            and self._lower is not None
+            self.array_midpoints is None
+            and self.array_upper is not None
+            and self.array_lower is not None
         ):
-            if len(self._lower) != len(self._upper):
+            if len(self.array_lower) != len(self.array_upper):
                 raise ValueError("Arrays must have the same size")
-            mid = np.empty(len(self._lower), dtype=np.float64)
-            upper = self._upper
-            lower = self._lower
+            mid = np.empty(len(self.array_lower), dtype=np.float64)
+            upper = self.array_upper
+            lower = self.array_lower
             mid = lower + ((upper - lower) / 2)
 
         # Case where all three arrays were provided by the users.
         # Need to check that they have all the same size
         elif (
-            self._midpoints is not None
-            and self._upper is not None
-            and self._lower is not None
+            self.array_midpoints is not None
+            and self.array_upper is not None
+            and self.array_lower is not None
         ):
-            if len(self._midpoints) != len(self._lower) or len(self._midpoints) != len(
-                self._upper
-            ):
-                raise ValueError("Arrays must have the same size")
-            mid = self._midpoints
-            lower = self._lower
-            upper = self._upper
+            mid = self.array_midpoints
+            lower = self.array_lower
+            upper = self.array_upper
             pass
 
         else:
@@ -916,8 +910,8 @@ class Array(Spec[Axis]):
             {self.axis: np.asarray(mid)},
             {self.axis: np.asarray(lower)},
             {self.axis: np.asarray(upper)},
-            gap,
-            dur,
+            None,
+            self.array_duration,
         )
 
         return [new_dim]
@@ -966,7 +960,7 @@ def step(spec: Spec[Axis], duration: float, num: int = 1) -> Spec[Axis]:
     return duration @ spec
 
 
-def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
+def get_constantarray_duration(frames: list[Dimension[Any]]) -> float | None:
     """Returns the duration of a number of ScanSpec frames, if known and consistent.
 
     Args:
@@ -978,7 +972,7 @@ def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
 
     """
     warnings.warn(
-        "get_constant_duration method is deprecated! Use spec.duration() instead",
+        "get_constantarray_duration method is deprecated! Use spec.duration() instead",
         DeprecationWarning,
         stacklevel=2,
     )
