@@ -22,7 +22,7 @@ from scanspec.specs import (
     Static,
     Zip,
     fly,
-    get_constantarray_duration,
+    get_constant_duration,
     step,
 )
 
@@ -578,68 +578,63 @@ def test_array_spec():
         4.5,
     ]
     bounds = [-0.5, 0.5, 1.5, 2.25, 2.75, 3.5, 4.25, 4.75]
-    spec = Array(axis="x", array_midpoints=np.asarray(points))
-    (dim,) = spec.calculate()
+    spec = Array(axis="x", array=np.asarray(points))
+    (dim,) = spec.calculate(bounds=True)
     assert dim.midpoints == {"x": approx(points)}
     assert dim.lower == {"x": approx(bounds[0:-1])}
     assert dim.upper == {"x": approx(bounds[1:])}
 
+    # No bounds to be calculated
+    (dim,) = spec.calculate(bounds=False)
+    assert dim.midpoints == {"x": approx(points)}
+    assert dim.lower == {"x": approx(points)}
+    assert dim.upper == {"x": approx(points)}
 
-def test_array_specarray_upperarray_lower_only():
+
+def test_array_spec_bounds_only():
     points = [0.0, 1.0, 2.0, 3.0, 4.0]
-    low = [-0.5, 0.5, 1.5, 2.5, 3.5]
-    up = [0.5, 1.5, 2.5, 3.5, 4.5]
+    bounds = np.asarray([-0.5, 0.5, 1.5, 2.5, 3.5, 4.5])
     spec = Array(
         axis="x",
-        array_midpoints=None,
-        array_lower=np.asarray(low),
-        array_upper=np.asarray(up),
-        array_duration=None,
+        array=None,
+        bounds=bounds,
+        durations=None,
     )
-    (dim,) = spec.calculate()
+    (dim,) = spec.calculate(bounds=True)
     assert dim.midpoints == {"x": approx(points)}
+    assert dim.lower == {"x": approx(bounds[0:-1])}
+    assert dim.upper == {"x": approx(bounds[1:])}
     assert dim.gap == ints("10000")
 
 
 def test_array_spec_all():
-    mid = [0.0, 1.0, 2.0, 3.0, 4.0]
-    low = [-0.5, 0.5, 1.5, 2.5, 3.5]
-    up = [0.5, 1.5, 2.5, 3.5, 4.5]
+    mid = np.asarray([0.0, 1.0, 2.0, 3.0, 4.0])
+    bounds = np.asarray([-0.5, 0.5, 1.5, 2.5, 3.5, 4.5])
     spec = Array(
         axis="x",
-        array_midpoints=np.asarray(mid),
-        array_lower=np.asarray(low),
-        array_upper=np.asarray(up),
-        array_duration=None,
+        array=mid,
+        bounds=bounds,
+        durations=None,
     )
-    (dim,) = spec.calculate()
+    (dim,) = spec.calculate(bounds=True)
     assert dim.midpoints == {"x": approx(mid)}
-    assert dim.lower == {"x": approx(low)}
-    assert dim.upper == {"x": approx(up)}
+    assert dim.lower == {"x": approx(bounds[:-1])}
+    assert dim.upper == {"x": approx(bounds[1:])}
     assert dim.gap == ints("10000")
 
 
 def test_array_spec_raises():
     points = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
-    low = np.array([-0.5, 0.5, 1.5, 2.0, 2.5])
-    up = np.array([0.5, 1.5, 2.5, 3.5])
+    bounds = np.array([-0.5, 0.5, 1.5, 2.5])
 
     with pytest.raises(ValueError, match="Must provide a valid combination of arrays"):
         Array("x").calculate()
 
     with pytest.raises(ValueError, match="Must provide a valid combination of arrays"):
-        Array("x", array_midpoints=points, array_lower=low).calculate()
+        Array("x", array=None, bounds=None).calculate()
 
-    with pytest.raises(ValueError, match="Arrays must have the same size"):
-        Array("x", array_lower=low, array_upper=up).calculate()
-
-    with pytest.raises(
-        ValueError,
-        match=re.escape(
-            "operands could not be broadcast together with shapes (4,) (5,)"
-        ),
-    ):
-        Array("x", array_midpoints=points, array_lower=low, array_upper=up).calculate()
+    with pytest.raises(AssertionError, match=re.escape("Mismatching lengths [3, 5]")):
+        Array("x", array=points, bounds=bounds).calculate(bounds=True)
 
 
 def test_array_spec_fly():
@@ -655,9 +650,9 @@ def test_array_spec_fly():
     bounds = [-0.5, 0.5, 1.5, 2.25, 2.75, 3.5, 4.25, 4.75]
 
     spec = Fly(1 @ Array("x", np.asarray(points)))
-    (dim,) = spec.calculate()
+    (dim,) = spec.calculate(bounds=True)
     assert dim.midpoints == {"x": approx(points)}
-    assert dim.lower == {"x": approx(bounds[0:-1])}
+    assert dim.lower == {"x": approx(bounds[:-1])}
     assert dim.upper == {"x": approx(bounds[1:])}
     assert dim.duration == approx(
         [
@@ -691,7 +686,7 @@ def test_array_spec_variablearray_duration():
         ]
     )
 
-    spec = Array("x", points, None, None, time)
+    spec = Array("x", points, None, time)
     assert spec.duration() == 0.1
 
     time = np.asarray(
@@ -703,7 +698,7 @@ def test_array_spec_variablearray_duration():
         ]
     )
 
-    spec = Array("x", points, None, None, time)
+    spec = Array("x", points, None, time)
     assert spec.duration() == VARIABLE_DURATION
 
 
@@ -742,10 +737,10 @@ def test_step():
     )
 
 
-@pytest.mark.filterwarnings("ignore:get_constantarray_duration")
-def test_get_constantarray_duration():
+@pytest.mark.filterwarnings("ignore:get_constant_duration")
+def test_get_constant_duration():
     spec = Fly(1.0 @ Linspace("x", 0, 1, 4)).calculate()
-    assert get_constantarray_duration(spec) == 1
+    assert get_constant_duration(spec) == 1
 
     spec = Concat(1.0 @ Linspace(x, 0, 1, 2), 2.0 @ Linspace(x, 1, 2, 3)).calculate()
 
