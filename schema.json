@@ -985,54 +985,6 @@
                 "title": "PointsRequest",
                 "description": "A request for generated scan points."
             },
-            "Polygon_str_": {
-                "properties": {
-                    "x_axis": {
-                        "type": "string",
-                        "title": "X Axis",
-                        "description": "The name matching the x axis of the spec"
-                    },
-                    "y_axis": {
-                        "type": "string",
-                        "title": "Y Axis",
-                        "description": "The name matching the y axis of the spec"
-                    },
-                    "x_verts": {
-                        "items": {
-                            "type": "number"
-                        },
-                        "type": "array",
-                        "minItems": 3,
-                        "title": "X Verts",
-                        "description": "The Nx1 x coordinates of the polygons vertices"
-                    },
-                    "y_verts": {
-                        "items": {
-                            "type": "number"
-                        },
-                        "type": "array",
-                        "minItems": 3,
-                        "title": "Y Verts",
-                        "description": "The Nx1 y coordinates of the polygons vertices"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Polygon",
-                        "title": "Type",
-                        "default": "Polygon"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "x_axis",
-                    "y_axis",
-                    "x_verts",
-                    "y_verts"
-                ],
-                "title": "Polygon",
-                "description": "Mask contains points of axis within a rotated xy polygon.\n\n.. example_spec::\n\n    from scanspec.regions import Polygon\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 3, 8, 10) * ~Linspace(\"x\", 1 ,8, 10)\n    spec = grid & Polygon(\"x\", \"y\", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])"
-            },
             "Product_str_-Input": {
                 "properties": {
                     "outer": {
@@ -1211,7 +1163,7 @@
                         "$ref": "#/components/schemas/Rectangle_str_"
                     },
                     {
-                        "$ref": "#/components/schemas/Polygon_str_"
+                        "$ref": "#/components/schemas/scanspec__regions__Polygon_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Circle_str_"
@@ -1228,7 +1180,7 @@
                         "DifferenceOf": "#/components/schemas/DifferenceOf_str_-Input",
                         "Ellipse": "#/components/schemas/scanspec__regions__Ellipse_str_",
                         "IntersectionOf": "#/components/schemas/IntersectionOf_str_-Input",
-                        "Polygon": "#/components/schemas/Polygon_str_",
+                        "Polygon": "#/components/schemas/scanspec__regions__Polygon_str_",
                         "Range": "#/components/schemas/scanspec__regions__Range_str_",
                         "Rectangle": "#/components/schemas/Rectangle_str_",
                         "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf_str_-Input",
@@ -1260,7 +1212,7 @@
                         "$ref": "#/components/schemas/Rectangle_str_"
                     },
                     {
-                        "$ref": "#/components/schemas/Polygon_str_"
+                        "$ref": "#/components/schemas/scanspec__regions__Polygon_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Circle_str_"
@@ -1277,7 +1229,7 @@
                         "DifferenceOf": "#/components/schemas/DifferenceOf_str_-Output",
                         "Ellipse": "#/components/schemas/scanspec__regions__Ellipse_str_",
                         "IntersectionOf": "#/components/schemas/IntersectionOf_str_-Output",
-                        "Polygon": "#/components/schemas/Polygon_str_",
+                        "Polygon": "#/components/schemas/scanspec__regions__Polygon_str_",
                         "Range": "#/components/schemas/scanspec__regions__Range_str_",
                         "Rectangle": "#/components/schemas/Rectangle_str_",
                         "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf_str_-Output",
@@ -1391,6 +1343,9 @@
                     },
                     {
                         "$ref": "#/components/schemas/scanspec__specs__Ellipse_str_"
+                    },
+                    {
+                        "$ref": "#/components/schemas/scanspec__specs__Polygon_str_"
                     }
                 ],
                 "discriminator": {
@@ -1402,6 +1357,7 @@
                         "Fly": "#/components/schemas/Fly_str_-Input",
                         "Linspace": "#/components/schemas/Linspace_str_",
                         "Mask": "#/components/schemas/Mask_str_-Input",
+                        "Polygon": "#/components/schemas/scanspec__specs__Polygon_str_",
                         "Product": "#/components/schemas/Product_str_-Input",
                         "Range": "#/components/schemas/scanspec__specs__Range_str_",
                         "Snake": "#/components/schemas/Snake_str_-Input",
@@ -1452,6 +1408,9 @@
                     },
                     {
                         "$ref": "#/components/schemas/scanspec__specs__Ellipse_str_"
+                    },
+                    {
+                        "$ref": "#/components/schemas/scanspec__specs__Polygon_str_"
                     }
                 ],
                 "discriminator": {
@@ -1463,6 +1422,7 @@
                         "Fly": "#/components/schemas/Fly_str_-Output",
                         "Linspace": "#/components/schemas/Linspace_str_",
                         "Mask": "#/components/schemas/Mask_str_-Output",
+                        "Polygon": "#/components/schemas/scanspec__specs__Polygon_str_",
                         "Product": "#/components/schemas/Product_str_-Output",
                         "Range": "#/components/schemas/scanspec__specs__Range_str_",
                         "Snake": "#/components/schemas/Snake_str_-Output",
@@ -1887,6 +1847,54 @@
                 "title": "Ellipse",
                 "description": "Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 3, 8, 10) * ~Linspace(\"x\", 1 ,8, 10)\n    spec = grid & Ellipse(\"x\", \"y\", 5, 5, 2, 3, 75)"
             },
+            "scanspec__regions__Polygon_str_": {
+                "properties": {
+                    "x_axis": {
+                        "type": "string",
+                        "title": "X Axis",
+                        "description": "The name matching the x axis of the spec"
+                    },
+                    "y_axis": {
+                        "type": "string",
+                        "title": "Y Axis",
+                        "description": "The name matching the y axis of the spec"
+                    },
+                    "x_verts": {
+                        "items": {
+                            "type": "number"
+                        },
+                        "type": "array",
+                        "minItems": 3,
+                        "title": "X Verts",
+                        "description": "The Nx1 x coordinates of the polygons vertices"
+                    },
+                    "y_verts": {
+                        "items": {
+                            "type": "number"
+                        },
+                        "type": "array",
+                        "minItems": 3,
+                        "title": "Y Verts",
+                        "description": "The Nx1 y coordinates of the polygons vertices"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Polygon",
+                        "title": "Type",
+                        "default": "Polygon"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "x_axis",
+                    "y_axis",
+                    "x_verts",
+                    "y_verts"
+                ],
+                "title": "Polygon",
+                "description": "Mask contains points of axis within a rotated xy polygon.\n\n.. example_spec::\n\n    from scanspec.regions import Polygon\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 3, 8, 10) * ~Linspace(\"x\", 1 ,8, 10)\n    spec = grid & Polygon(\"x\", \"y\", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])"
+            },
             "scanspec__regions__Range_str_": {
                 "properties": {
                     "axis": {
@@ -1941,7 +1949,7 @@
                     "x_step": {
                         "type": "number",
                         "title": "X Step",
-                        "description": "Radial spacing along x"
+                        "description": "Spacing and direction along x"
                     },
                     "y_axis": {
                         "type": "string",
@@ -1961,7 +1969,7 @@
                     "y_step": {
                         "type": "number",
                         "title": "Y Step",
-                        "description": "Radial spacing along y (defaults to x_step)"
+                        "description": "Spacing and direction along y (defaults to x_step)"
                     },
                     "snake": {
                         "type": "boolean",
@@ -1995,6 +2003,76 @@
                 "title": "Ellipse",
                 "description": "Grid of points masked to an elliptical footprint.\n\nConstructs a 2-D scan over an axis-aligned ellipse defined by\n``(x_axis, y_axis)``, centred at (``x_centre``, ``y_centre``), with\ndiameters ``x_diameter`` and ``y_diameter``. Grid spacing along each axis is\ncontrolled by ``x_step`` and ``y_step``, and the direction of the scan is\ndetermined by the signs of these parameters. If ``snake`` is True, the fast\naxis will zigzag like a snake. If ``vertical`` is True, the y axis will be\nthe fast axis.\n\nStarts from one of the four extremes of the ellipse identified by the signs of\n``x_step`` and ``y_step``.\n\n.. example_spec::\n\n    from scanspec.specs import Ellipse, Fly\n\n    # An elliptical region centred at (0, 0) on axes \"x\" and \"y\",\n    # with 10x6 diameters and steps of 0.5 in both directions.\n    spec = Fly(\n        Ellipse(\n            \"x\", 0, 10, 0.5,\n            \"y\", 0, 6,\n            snake=True,\n            vertical=False,\n        )\n    )"
             },
+            "scanspec__specs__Polygon_str_": {
+                "properties": {
+                    "x_axis": {
+                        "type": "string",
+                        "title": "X Axis",
+                        "description": "An identifier for what to move for x"
+                    },
+                    "y_axis": {
+                        "type": "string",
+                        "title": "Y Axis",
+                        "description": "An identifier for what to move for y"
+                    },
+                    "vertices": {
+                        "items": {
+                            "prefixItems": [
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
+                            "type": "array",
+                            "maxItems": 2,
+                            "minItems": 2
+                        },
+                        "type": "array",
+                        "title": "Vertices",
+                        "description": "List of (x, y) vertices defining the polygon"
+                    },
+                    "x_step": {
+                        "type": "number",
+                        "title": "X Step",
+                        "description": "Spacing and direction along x"
+                    },
+                    "y_step": {
+                        "type": "number",
+                        "title": "Y Step",
+                        "description": "Spacing and direction along y (defaults to x_step)"
+                    },
+                    "snake": {
+                        "type": "boolean",
+                        "title": "Snake",
+                        "description": "If True, path zigzag like a snake (defaults to False)",
+                        "default": false
+                    },
+                    "vertical": {
+                        "type": "boolean",
+                        "title": "Vertical",
+                        "description": "If True, y axis is the fast axis (defaults to False)",
+                        "default": false
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Polygon",
+                        "title": "Type",
+                        "default": "Polygon"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "x_axis",
+                    "y_axis",
+                    "vertices",
+                    "x_step"
+                ],
+                "title": "Polygon",
+                "description": "Grid of points masked to a polygonal footprint.\n\nConstructs a 2-D scan over an axis-aligned polygon defined by an ordered\nlist of vertices `(x, y)` given in ``vertices``. The polygon may be convex\nor concave, and the interior is determined using an even-odd ray-casting\nrule. Grid spacing along each axis is controlled by ``x_step`` and ``y_step``,\nand the direction of the scan is determined by the signs of these parameters. If\n``snake`` is True, the fast axis will zigzag like a snake. If ``vertical`` is True,\nthe y axis will be the fast axis.\n\n.. example_spec::\n\n    from scanspec.specs import Polygon, Fly\n\n    # A triangular region on axes \"x\" and \"y\", stepped by 0.2 units\n    # in both directions.\n    spec = Fly(\n        Polygon(\n            x_axis=\"x\",\n            y_axis=\"y\",\n            vertices=[(0, 0), (5, 0), (2.5, 4)],\n            x_step=0.2,\n            y_step=0.2,\n            snake=True,\n            vertical=False,\n        )\n    )"
+            },
             "scanspec__specs__Range_str_": {
                 "properties": {
                     "axis": {
@@ -2014,7 +2092,6 @@
                     },
                     "step": {
                         "type": "number",
-                        "exclusiveMinimum": 0.0,
                         "title": "Step",
                         "description": "Step size (defaults to stop - start)"
                     },
@@ -2033,7 +2110,7 @@
                     "stop"
                 ],
                 "title": "Range",
-                "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\nThis class is intended to handle linearly spaced frames defined with a\nspecific step size.\n\n.. seealso::\n    `Linspace`: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Range\n\n    spec = Fly(Range(\"x\", 1, 2, 0.25))"
+                "description": "Linearly spaced frames with start and stop as the bounding midpoints.\n\n``step`` defines the distance between midpoints, and the direction of travel.\n\n.. seealso::\n    `Linspace`: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Range\n\n    spec = Fly(Range(\"x\", 1, 2, 0.25))"
             }
         }
     }

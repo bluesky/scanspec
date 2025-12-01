@@ -13,7 +13,7 @@ from typing import Any, Generic, Literal, SupportsFloat
 
 import numpy as np
 import numpy.typing as npt
-from pydantic import Field, TypeAdapter, validate_call
+from pydantic import Field, TypeAdapter, field_validator, validate_call
 from pydantic.dataclasses import dataclass
 
 from .core import (
@@ -45,6 +45,7 @@ __all__ = [
     "Line",
     "Range",
     "Ellipse",
+    "Polygon",
     "Static",
     "Spiral",
     "Fly",
@@ -624,10 +625,9 @@ Linspace.bounded = validate_call(Linspace.bounded)
 
 @dataclass(config=StrictConfig)
 class Range(Spec[Axis]):
-    """Linearly spaced frames with start and stop as first and last midpoints.
+    """Linearly spaced frames with start and stop as the bounding midpoints.
 
-    This class is intended to handle linearly spaced frames defined with a
-    specific step size.
+    ``step`` defines the distance between midpoints, and the direction of travel.
 
     .. seealso::
         `Linspace`: For linearly spaced frames defined with a number of frames.
@@ -644,9 +644,15 @@ class Range(Spec[Axis]):
     stop: float = Field(description="Midpoint of the last point of the line")
     step: float = Field(
         description="Step size (defaults to stop - start)",
-        gt=0,
         default_factory=lambda data: abs(data["stop"] - data["start"]),
     )
+
+    @field_validator("step", mode="before")
+    @classmethod
+    def _validate_step(cls, v: Any) -> float:
+        if v == 0:
+            raise ValueError("step cannot be zero")
+        return float(v)
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
@@ -654,9 +660,11 @@ class Range(Spec[Axis]):
     def _line_from_indexes(
         self, indexes: npt.NDArray[np.float64]
     ) -> dict[Axis, npt.NDArray[np.float64]]:
-        step = abs(self.step) * np.sign(self.stop - self.start)
-        first = self.start - step / 2
-        return {self.axis: indexes * step + first}
+        first = (
+            min(self.start, self.stop) if self.step > 0 else max(self.start, self.stop)
+        )
+        start = first - self.step / 2
+        return {self.axis: indexes * self.step + start}
 
     def calculate(  # noqa: D102
         self, bounds: bool = False, nested: bool = False
@@ -958,6 +966,33 @@ def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
     return first_duration
 
 
+def _build_2d_grid(
+    x_dim: Range[Axis], y_dim: Range[Axis], snake: bool, vertical: bool
+) -> Product[Axis]:
+    """Apply fast/slow selection, optional snake, and build grid."""
+    fast_dim, slow_dim = (y_dim, x_dim) if vertical else (x_dim, y_dim)
+    if snake:
+        fast_dim = Snake(fast_dim)
+    return slow_dim * fast_dim
+
+
+def _compute_masked_frames(
+    grid: Product[Axis],
+    bounds: bool,
+    nested: bool,
+    mask_fn: Callable[[AxesPoints[Axis]], _NpMask],
+) -> list[Dimension[Axis]]:
+    """Execute calculate → squash → mask → extract."""
+    frames = grid.calculate(bounds, nested)
+    squashed = squash_frames(frames, nested)
+
+    points = squashed.midpoints
+    mask = mask_fn(points)
+    idx = mask.nonzero()[0]
+
+    return [squashed.extract(idx)]
+
+
 @dataclass(config=StrictConfig)
 class Ellipse(Spec[Axis]):
     """Grid of points masked to an elliptical footprint.
@@ -992,7 +1027,7 @@ class Ellipse(Spec[Axis]):
     x_axis: Axis = Field(description="An identifier for what to move for x")
     x_centre: float = Field(description="x centre of the spiral")
     x_diameter: float = Field(description="x width of the spiral")
-    x_step: float = Field(description="Radial spacing along x")  # TODO: rethink name
+    x_step: float = Field(description="Spacing and direction along x")
     y_axis: Axis = Field(description="An identifier for what to move for y")
     y_centre: float = Field(description="y centre of the spiral")
     y_diameter: float = Field(
@@ -1000,7 +1035,7 @@ class Ellipse(Spec[Axis]):
         default_factory=lambda data: abs(data["x_diameter"]),
     )
     y_step: float = Field(
-        description="Radial spacing along y (defaults to x_step)",
+        description="Spacing and direction along y (defaults to x_step)",
         default_factory=lambda data: data["x_step"],
     )
     snake: bool = Field(
@@ -1025,11 +1060,9 @@ class Ellipse(Spec[Axis]):
         self, bounds: bool = False, nested: bool = False
     ) -> list[Dimension[Axis]]:
         # construct signed radius along each axis
-        x_direction = np.sign(self.x_step)
-        y_direction = np.sign(self.y_step)
         x_radius, y_radius = (
-            x_direction * self.x_diameter / 2,
-            y_direction * self.y_diameter / 2,
+            abs(self.x_diameter) / 2,
+            abs(self.y_diameter) / 2,
         )
 
         # Construct directed Range objects
@@ -1037,30 +1070,117 @@ class Ellipse(Spec[Axis]):
             self.x_axis,
             self.x_centre - x_radius,
             self.x_centre + x_radius,
-            abs(self.x_step),
+            self.x_step,
         )
         y_dim = Range(
             self.y_axis,
             self.y_centre - y_radius,
             self.y_centre + y_radius,
-            abs(self.y_step),
+            self.y_step,
         )
 
-        # Determine fast and slow dimensions
-        self._fast_dim, self._slow_dim = (
-            (y_dim, x_dim) if self.vertical else (x_dim, y_dim)
+        # Construct grid
+        grid = _build_2d_grid(x_dim, y_dim, self.snake, self.vertical)
+
+        return _compute_masked_frames(grid, bounds, nested, self._mask)
+
+
+@dataclass(config=StrictConfig)
+class Polygon(Spec[Axis]):
+    """Grid of points masked to a polygonal footprint.
+
+    Constructs a 2-D scan over an axis-aligned polygon defined by an ordered
+    list of vertices `(x, y)` given in ``vertices``. The polygon may be convex
+    or concave, and the interior is determined using an even-odd ray-casting
+    rule. Grid spacing along each axis is controlled by ``x_step`` and ``y_step``,
+    and the direction of the scan is determined by the signs of these parameters. If
+    ``snake`` is True, the fast axis will zigzag like a snake. If ``vertical`` is True,
+    the y axis will be the fast axis.
+
+    .. example_spec::
+
+        from scanspec.specs import Polygon, Fly
+
+        # A triangular region on axes "x" and "y", stepped by 0.2 units
+        # in both directions.
+        spec = Fly(
+            Polygon(
+                x_axis="x",
+                y_axis="y",
+                vertices=[(0, 0), (5, 0), (2.5, 4)],
+                x_step=0.2,
+                y_step=0.2,
+                snake=True,
+                vertical=False,
+            )
+        )
+    """
+
+    x_axis: Axis = Field(description="An identifier for what to move for x")
+    y_axis: Axis = Field(description="An identifier for what to move for y")
+    vertices: list[tuple[float, float]] = Field(
+        description="List of (x, y) vertices defining the polygon"
+    )
+    x_step: float = Field(description="Spacing and direction along x")
+    y_step: float = Field(
+        description="Spacing and direction along y (defaults to x_step)",
+        default_factory=lambda data: data["x_step"],
+    )
+    snake: bool = Field(
+        description="If True, path zigzag like a snake (defaults to False)",
+        default=False,
+    )
+    vertical: bool = Field(
+        description="If True, y axis is the fast axis (defaults to False)",
+        default=False,
+    )
+
+    def axes(self) -> list[Axis]:  # noqa: D102
+        return [self.y_axis, self.x_axis]
+
+    def _mask(self, points: AxesPoints[Axis]) -> _NpMask:
+        x = points[self.x_axis]
+        y = points[self.y_axis]
+        v1x, v1y = self.vertices[-1]
+        mask = np.full(len(x), False, dtype=np.bool_)
+        for v2x, v2y in self.vertices:
+            # skip horizontal edges
+            if v2y != v1y:
+                vmask = np.full(len(x), False, dtype=np.bool_)
+                vmask |= (y < v2y) & (y >= v1y)
+                vmask |= (y < v1y) & (y >= v2y)
+                t = (y - v1y) / (v2y - v1y)
+                vmask &= x < v1x + t * (v2x - v1x)
+                mask ^= vmask
+            v1x, v1y = v2x, v2y
+        return mask
+
+    def _bounds(self, index: int) -> tuple[float, float]:
+        values = [v[index] for v in self.vertices]
+        return (min(values), max(values))
+
+    def calculate(  # noqa: D102
+        self, bounds: bool = False, nested: bool = False
+    ) -> list[Dimension[Axis]]:
+        # construct signed radius along each axis
+        x_start, x_stop = self._bounds(0)
+        y_start, y_stop = self._bounds(1)
+
+        # Construct directed Range objects
+        x_dim = Range(
+            self.x_axis,
+            x_start,
+            x_stop,
+            self.x_step,
+        )
+        y_dim = Range(
+            self.y_axis,
+            y_start,
+            y_stop,
+            self.y_step,
         )
 
-        if self.snake:
-            self._fast_dim = Snake(self._fast_dim)
+        # Construct grid
+        grid = _build_2d_grid(x_dim, y_dim, self.snake, self.vertical)
 
-        self._grid = self._slow_dim * self._fast_dim
-
-        frames = self._grid.calculate(bounds, nested)
-        squashed_frames = squash_frames(frames, nested)
-
-        # Now mask out points outside the ellipse
-        points = squashed_frames.midpoints
-        indices = self._mask(points).nonzero()[0]
-
-        return [squashed_frames.extract(indices)]
+        return _compute_masked_frames(grid, bounds, nested, self._mask)
