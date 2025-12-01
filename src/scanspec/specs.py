@@ -17,6 +17,7 @@ from pydantic import Field, TypeAdapter, validate_call
 from pydantic.dataclasses import dataclass
 
 from .core import (
+    AxesPoints,
     Axis,
     Dimension,
     Midpoints,
@@ -43,6 +44,7 @@ __all__ = [
     "Linspace",
     "Line",
     "Range",
+    "Ellipse",
     "Static",
     "Spiral",
     "Fly",
@@ -50,6 +52,8 @@ __all__ = [
     "fly",
     "VARIABLE_DURATION",
 ]
+
+_NpMask = npt.NDArray[np.bool_]
 
 #: A string returned from `Spec.duration` to signify it produces
 #: a different duration for each point
@@ -358,6 +362,7 @@ class Mask(Spec[Axis]):
         # Generate masks from the midpoints showing what's inside
         masked_frames: list[Dimension[Axis]] = []
         for f in frames:
+            print(f)
             indices = get_mask(self.region, f.midpoints).nonzero()[0]
             masked_frames.append(f.extract(indices))
         return masked_frames
@@ -819,8 +824,8 @@ class Static(Spec[Axis]):
 class Spiral(Spec[Axis]):
     """Archimedean spiral of "x_axis" and "y_axis".
 
-    Starts at centre point ("x_start", "y_start") with angle "rotate". Produces
-    "num" points in a spiral spanning width of "x_range" and height of "y_range"
+    Starts at centre point ("x_start", "y_start")". Produces "num" points in a
+    spiral spanning width of "x_range" and height of "y_range"
 
     .. example_spec::
 
@@ -835,14 +840,10 @@ class Spiral(Spec[Axis]):
     x_step: float = Field(description="Radial spacing along x")  # TODO: rethink name
     y_axis: Axis = Field(description="An identifier for what to move for y")
     y_centre: float = Field(description="y centre of the spiral")
-    y_diameter: float | None = Field(
-        description="y width of the spiral (defaults to x_diameter)", default=None
+    y_diameter: float = Field(
+        description="y width of the spiral (defaults to x_diameter)",
+        default_factory=lambda data: abs(data["x_diameter"]),
     )
-
-    def __post_init__(self):
-        # populate defaults
-        if self.y_diameter is None:
-            self.y_diameter = self.x_diameter
 
     def axes(self) -> list[Axis]:  # noqa: D102
         # TODO: reversed from __init__ args, a good idea?
@@ -955,3 +956,111 @@ def get_constant_duration(frames: list[Dimension[Any]]) -> float | None:
             # Not all durations are the same
             return None
     return first_duration
+
+
+@dataclass(config=StrictConfig)
+class Ellipse(Spec[Axis]):
+    """Grid of points masked to an elliptical footprint.
+
+    Constructs a 2-D scan over an axis-aligned ellipse defined by
+    ``(x_axis, y_axis)``, centred at (``x_centre``, ``y_centre``), with
+    diameters ``x_diameter`` and ``y_diameter``. Grid spacing along each axis is
+    controlled by ``x_step`` and ``y_step``, and the direction of the scan is
+    determined by the signs of these parameters. If ``snake`` is True, the fast
+    axis will zigzag like a snake. If ``vertical`` is True, the y axis will be
+    the fast axis.
+
+    Starts from one of the four extremes of the ellipse identified by the signs of
+    ``x_step`` and ``y_step``.
+
+    .. example_spec::
+
+        from scanspec.specs import Ellipse, Fly
+
+        # An elliptical region centred at (0, 0) on axes "x" and "y",
+        # with 10x6 diameters and steps of 0.5 in both directions.
+        spec = Fly(
+            Ellipse(
+                "x", 0, 10, 0.5,
+                "y", 0, 6,
+                snake=True,
+                vertical=False,
+            )
+        )
+    """
+
+    x_axis: Axis = Field(description="An identifier for what to move for x")
+    x_centre: float = Field(description="x centre of the spiral")
+    x_diameter: float = Field(description="x width of the spiral")
+    x_step: float = Field(description="Radial spacing along x")  # TODO: rethink name
+    y_axis: Axis = Field(description="An identifier for what to move for y")
+    y_centre: float = Field(description="y centre of the spiral")
+    y_diameter: float = Field(
+        description="y width of the spiral (defaults to x_diameter)",
+        default_factory=lambda data: abs(data["x_diameter"]),
+    )
+    y_step: float = Field(
+        description="Radial spacing along y (defaults to x_step)",
+        default_factory=lambda data: data["x_step"],
+    )
+    snake: bool = Field(
+        description="If True, path zigzag like a snake (defaults to False)",
+        default=False,
+    )
+    vertical: bool = Field(
+        description="If True, y axis is the fast axis (defaults to False)",
+        default=False,
+    )
+
+    def axes(self) -> list[Axis]:  # noqa: D102
+        return [self.y_axis, self.x_axis]
+
+    def _mask(self, points: AxesPoints[Axis]) -> _NpMask:
+        x = points[self.x_axis] - self.x_centre
+        y = points[self.y_axis] - self.y_centre
+        mask = (2 * x / self.x_diameter) ** 2 + (2 * y / self.y_diameter) ** 2 <= 1
+        return mask
+
+    def calculate(  # noqa: D102
+        self, bounds: bool = False, nested: bool = False
+    ) -> list[Dimension[Axis]]:
+        # construct signed radius along each axis
+        x_direction = np.sign(self.x_step)
+        y_direction = np.sign(self.y_step)
+        x_radius, y_radius = (
+            x_direction * self.x_diameter / 2,
+            y_direction * self.y_diameter / 2,
+        )
+
+        # Construct directed Range objects
+        x_dim = Range(
+            self.x_axis,
+            self.x_centre - x_radius,
+            self.x_centre + x_radius,
+            abs(self.x_step),
+        )
+        y_dim = Range(
+            self.y_axis,
+            self.y_centre - y_radius,
+            self.y_centre + y_radius,
+            abs(self.y_step),
+        )
+
+        # Determine fast and slow dimensions
+        self._fast_dim, self._slow_dim = (
+            (y_dim, x_dim) if self.vertical else (x_dim, y_dim)
+        )
+
+        if self.snake:
+            self._fast_dim = Snake(self._fast_dim)
+
+        self._grid = self._slow_dim * self._fast_dim
+
+        frames = self._grid.calculate(bounds, nested)
+        squashed_frames = squash_frames(frames, nested)
+
+        # Now mask out points outside the ellipse
+        points = squashed_frames.midpoints
+        indices = self._mask(points).nonzero()[0]
+
+        return [squashed_frames.extract(indices)]

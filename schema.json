@@ -668,66 +668,6 @@
                 "title": "DifferenceOf",
                 "description": "A point is in DifferenceOf(a, b) if in a and not in b.\n\nTypically created with the ``-`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) - Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True, False, False, False])"
             },
-            "Ellipse_str_": {
-                "properties": {
-                    "x_axis": {
-                        "type": "string",
-                        "title": "X Axis",
-                        "description": "The name matching the x axis of the spec"
-                    },
-                    "y_axis": {
-                        "type": "string",
-                        "title": "Y Axis",
-                        "description": "The name matching the y axis of the spec"
-                    },
-                    "x_middle": {
-                        "type": "number",
-                        "title": "X Middle",
-                        "description": "The central x point of the ellipse"
-                    },
-                    "y_middle": {
-                        "type": "number",
-                        "title": "Y Middle",
-                        "description": "The central y point of the ellipse"
-                    },
-                    "x_radius": {
-                        "type": "number",
-                        "exclusiveMinimum": 0.0,
-                        "title": "X Radius",
-                        "description": "The radius along the x axis of the ellipse"
-                    },
-                    "y_radius": {
-                        "type": "number",
-                        "exclusiveMinimum": 0.0,
-                        "title": "Y Radius",
-                        "description": "The radius along the y axis of the ellipse"
-                    },
-                    "angle": {
-                        "type": "number",
-                        "title": "Angle",
-                        "description": "The angle of the ellipse (degrees)",
-                        "default": 0.0
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Ellipse",
-                        "title": "Type",
-                        "default": "Ellipse"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "x_axis",
-                    "y_axis",
-                    "x_middle",
-                    "y_middle",
-                    "x_radius",
-                    "y_radius"
-                ],
-                "title": "Ellipse",
-                "description": "Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 3, 8, 10) * ~Linspace(\"x\", 1 ,8, 10)\n    spec = grid & Ellipse(\"x\", \"y\", 5, 5, 2, 3, 75)"
-            },
             "Fly_str_-Input": {
                 "properties": {
                     "spec": {
@@ -1277,7 +1217,7 @@
                         "$ref": "#/components/schemas/Circle_str_"
                     },
                     {
-                        "$ref": "#/components/schemas/Ellipse_str_"
+                        "$ref": "#/components/schemas/scanspec__regions__Ellipse_str_"
                     }
                 ],
                 "discriminator": {
@@ -1286,7 +1226,7 @@
                         "Circle": "#/components/schemas/Circle_str_",
                         "CombinationOf": "#/components/schemas/CombinationOf_str_-Input",
                         "DifferenceOf": "#/components/schemas/DifferenceOf_str_-Input",
-                        "Ellipse": "#/components/schemas/Ellipse_str_",
+                        "Ellipse": "#/components/schemas/scanspec__regions__Ellipse_str_",
                         "IntersectionOf": "#/components/schemas/IntersectionOf_str_-Input",
                         "Polygon": "#/components/schemas/Polygon_str_",
                         "Range": "#/components/schemas/scanspec__regions__Range_str_",
@@ -1326,7 +1266,7 @@
                         "$ref": "#/components/schemas/Circle_str_"
                     },
                     {
-                        "$ref": "#/components/schemas/Ellipse_str_"
+                        "$ref": "#/components/schemas/scanspec__regions__Ellipse_str_"
                     }
                 ],
                 "discriminator": {
@@ -1335,7 +1275,7 @@
                         "Circle": "#/components/schemas/Circle_str_",
                         "CombinationOf": "#/components/schemas/CombinationOf_str_-Output",
                         "DifferenceOf": "#/components/schemas/DifferenceOf_str_-Output",
-                        "Ellipse": "#/components/schemas/Ellipse_str_",
+                        "Ellipse": "#/components/schemas/scanspec__regions__Ellipse_str_",
                         "IntersectionOf": "#/components/schemas/IntersectionOf_str_-Output",
                         "Polygon": "#/components/schemas/Polygon_str_",
                         "Range": "#/components/schemas/scanspec__regions__Range_str_",
@@ -1448,6 +1388,9 @@
                     },
                     {
                         "$ref": "#/components/schemas/Spiral_str_"
+                    },
+                    {
+                        "$ref": "#/components/schemas/scanspec__specs__Ellipse_str_"
                     }
                 ],
                 "discriminator": {
@@ -1455,6 +1398,7 @@
                     "mapping": {
                         "Concat": "#/components/schemas/Concat_str_-Input",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Input",
+                        "Ellipse": "#/components/schemas/scanspec__specs__Ellipse_str_",
                         "Fly": "#/components/schemas/Fly_str_-Input",
                         "Linspace": "#/components/schemas/Linspace_str_",
                         "Mask": "#/components/schemas/Mask_str_-Input",
@@ -1505,6 +1449,9 @@
                     },
                     {
                         "$ref": "#/components/schemas/Spiral_str_"
+                    },
+                    {
+                        "$ref": "#/components/schemas/scanspec__specs__Ellipse_str_"
                     }
                 ],
                 "discriminator": {
@@ -1512,6 +1459,7 @@
                     "mapping": {
                         "Concat": "#/components/schemas/Concat_str_-Output",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Output",
+                        "Ellipse": "#/components/schemas/scanspec__specs__Ellipse_str_",
                         "Fly": "#/components/schemas/Fly_str_-Output",
                         "Linspace": "#/components/schemas/Linspace_str_",
                         "Mask": "#/components/schemas/Mask_str_-Output",
@@ -1558,14 +1506,7 @@
                         "description": "y centre of the spiral"
                     },
                     "y_diameter": {
-                        "anyOf": [
-                            {
-                                "type": "number"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
+                        "type": "number",
                         "title": "Y Diameter",
                         "description": "y width of the spiral (defaults to x_diameter)"
                     },
@@ -1587,7 +1528,7 @@
                     "y_centre"
                 ],
                 "title": "Spiral",
-                "description": "Archimedean spiral of \"x_axis\" and \"y_axis\".\n\nStarts at centre point (\"x_start\", \"y_start\") with angle \"rotate\". Produces\n\"num\" points in a spiral spanning width of \"x_range\" and height of \"y_range\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Spiral\n\n    spec = Fly(Spiral(\"x\", 1, 10, 2.5, \"y\", 5, 50))"
+                "description": "Archimedean spiral of \"x_axis\" and \"y_axis\".\n\nStarts at centre point (\"x_start\", \"y_start\")\". Produces \"num\" points in a\nspiral spanning width of \"x_range\" and height of \"y_range\"\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Spiral\n\n    spec = Fly(Spiral(\"x\", 1, 10, 2.5, \"y\", 5, 50))"
             },
             "Squash_str_-Input": {
                 "properties": {
@@ -1886,6 +1827,66 @@
                 "title": "Zip",
                 "description": "Run two Specs in parallel, merging their midpoints together.\n\nTypically formed using `Spec.zip`.\n\nStacks of Dimension are merged by:\n\n- If right creates a stack of a single Dimension object of size 1, expand it to\n  the size of the fastest Dimension object created by left\n- Merge individual Dimension objects together from fastest to slowest\n\nThis means that Zipping a Spec producing stack [l2, l1] with a Spec\nproducing stack [r1] will assert len(l1)==len(r1), and produce\nstack [l2, l1.zip(r1)].\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(\n        Linspace(\"z\", 1, 2, 3) * Linspace(\"y\", 3, 4, 5).zip(Linspace(\"x\", 4, 5, 5))\n    )"
             },
+            "scanspec__regions__Ellipse_str_": {
+                "properties": {
+                    "x_axis": {
+                        "type": "string",
+                        "title": "X Axis",
+                        "description": "The name matching the x axis of the spec"
+                    },
+                    "y_axis": {
+                        "type": "string",
+                        "title": "Y Axis",
+                        "description": "The name matching the y axis of the spec"
+                    },
+                    "x_middle": {
+                        "type": "number",
+                        "title": "X Middle",
+                        "description": "The central x point of the ellipse"
+                    },
+                    "y_middle": {
+                        "type": "number",
+                        "title": "Y Middle",
+                        "description": "The central y point of the ellipse"
+                    },
+                    "x_radius": {
+                        "type": "number",
+                        "exclusiveMinimum": 0.0,
+                        "title": "X Radius",
+                        "description": "The radius along the x axis of the ellipse"
+                    },
+                    "y_radius": {
+                        "type": "number",
+                        "exclusiveMinimum": 0.0,
+                        "title": "Y Radius",
+                        "description": "The radius along the y axis of the ellipse"
+                    },
+                    "angle": {
+                        "type": "number",
+                        "title": "Angle",
+                        "description": "The angle of the ellipse (degrees)",
+                        "default": 0.0
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Ellipse",
+                        "title": "Type",
+                        "default": "Ellipse"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "x_axis",
+                    "y_axis",
+                    "x_middle",
+                    "y_middle",
+                    "x_radius",
+                    "y_radius"
+                ],
+                "title": "Ellipse",
+                "description": "Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 3, 8, 10) * ~Linspace(\"x\", 1 ,8, 10)\n    spec = grid & Ellipse(\"x\", \"y\", 5, 5, 2, 3, 75)"
+            },
             "scanspec__regions__Range_str_": {
                 "properties": {
                     "axis": {
@@ -1919,6 +1920,80 @@
                 ],
                 "title": "Range",
                 "description": "Mask contains points of axis >= min and <= max.\n\n>>> r = Range(\"x\", 1, 2)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True, False, False])"
+            },
+            "scanspec__specs__Ellipse_str_": {
+                "properties": {
+                    "x_axis": {
+                        "type": "string",
+                        "title": "X Axis",
+                        "description": "An identifier for what to move for x"
+                    },
+                    "x_centre": {
+                        "type": "number",
+                        "title": "X Centre",
+                        "description": "x centre of the spiral"
+                    },
+                    "x_diameter": {
+                        "type": "number",
+                        "title": "X Diameter",
+                        "description": "x width of the spiral"
+                    },
+                    "x_step": {
+                        "type": "number",
+                        "title": "X Step",
+                        "description": "Radial spacing along x"
+                    },
+                    "y_axis": {
+                        "type": "string",
+                        "title": "Y Axis",
+                        "description": "An identifier for what to move for y"
+                    },
+                    "y_centre": {
+                        "type": "number",
+                        "title": "Y Centre",
+                        "description": "y centre of the spiral"
+                    },
+                    "y_diameter": {
+                        "type": "number",
+                        "title": "Y Diameter",
+                        "description": "y width of the spiral (defaults to x_diameter)"
+                    },
+                    "y_step": {
+                        "type": "number",
+                        "title": "Y Step",
+                        "description": "Radial spacing along y (defaults to x_step)"
+                    },
+                    "snake": {
+                        "type": "boolean",
+                        "title": "Snake",
+                        "description": "If True, path zigzag like a snake (defaults to False)",
+                        "default": false
+                    },
+                    "vertical": {
+                        "type": "boolean",
+                        "title": "Vertical",
+                        "description": "If True, y axis is the fast axis (defaults to False)",
+                        "default": false
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Ellipse",
+                        "title": "Type",
+                        "default": "Ellipse"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "x_axis",
+                    "x_centre",
+                    "x_diameter",
+                    "x_step",
+                    "y_axis",
+                    "y_centre"
+                ],
+                "title": "Ellipse",
+                "description": "Grid of points masked to an elliptical footprint.\n\nConstructs a 2-D scan over an axis-aligned ellipse defined by\n``(x_axis, y_axis)``, centred at (``x_centre``, ``y_centre``), with\ndiameters ``x_diameter`` and ``y_diameter``. Grid spacing along each axis is\ncontrolled by ``x_step`` and ``y_step``, and the direction of the scan is\ndetermined by the signs of these parameters. If ``snake`` is True, the fast\naxis will zigzag like a snake. If ``vertical`` is True, the y axis will be\nthe fast axis.\n\nStarts from one of the four extremes of the ellipse identified by the signs of\n``x_step`` and ``y_step``.\n\n.. example_spec::\n\n    from scanspec.specs import Ellipse, Fly\n\n    # An elliptical region centred at (0, 0) on axes \"x\" and \"y\",\n    # with 10x6 diameters and steps of 0.5 in both directions.\n    spec = Fly(\n        Ellipse(\n            \"x\", 0, 10, 0.5,\n            \"y\", 0, 6,\n            snake=True,\n            vertical=False,\n        )\n    )"
             },
             "scanspec__specs__Range_str_": {
                 "properties": {
