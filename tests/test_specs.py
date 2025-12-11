@@ -3,14 +3,16 @@ from typing import Any
 import pytest
 
 from scanspec.core import Dimension, Path, SnakedDimension
-from scanspec.regions import Circle, Ellipse, Polygon, Rectangle
+from scanspec.regions import Circle, Rectangle
 from scanspec.specs import (
     VARIABLE_DURATION,
     Concat,
     ConstantDuration,
+    Ellipse,
     Fly,
     Linspace,
     Mask,
+    Polygon,
     Product,
     Range,
     Spec,
@@ -544,50 +546,6 @@ def test_circle_snaked_region() -> None:
     assert dim.gap == ints("11001")
 
 
-def test_ellipse_region() -> None:
-    inst = Linspace("y", 1, 3, 3) * Linspace("x", 0, 2, 3) & Ellipse(
-        x, y, 1, 2, 2, 1, 45
-    )
-    assert inst.axes() == [y, x]
-    (dim,) = inst.calculate(bounds=True)
-    assert dim.midpoints == {
-        x: approx([0, 1, 0, 1, 2, 1, 2]),
-        y: approx([1, 1, 2, 2, 2, 3, 3]),
-    }
-    assert dim.lower == {
-        x: approx([-0.5, 0.5, -0.5, 0.5, 1.5, 0.5, 1.5]),
-        y: approx([1, 1, 2, 2, 2, 3, 3]),
-    }
-    assert dim.upper == {
-        x: approx([0.5, 1.5, 0.5, 1.5, 2.5, 1.5, 2.5]),
-        y: approx([1, 1, 2, 2, 2, 3, 3]),
-    }
-    assert dim.gap == ints("1010010")
-
-
-def test_polygon_region() -> None:
-    x_verts = [0, 0.5, 4.0, 2.5]
-    y_verts = [0, 3.5, 3.5, 0.5]
-    inst = Linspace("y", 1, 3, 3) * Linspace("x", 0, 4, 5) & Polygon(
-        x, y, x_verts, y_verts
-    )
-    assert inst.axes() == [y, x]
-    (dim,) = inst.calculate(bounds=True)
-    assert dim.midpoints == {
-        x: approx([1, 2, 1, 2, 3, 1, 2, 3]),
-        y: approx([1, 1, 2, 2, 2, 3, 3, 3]),
-    }
-    assert dim.lower == {
-        x: approx([0.5, 1.5, 0.5, 1.5, 2.5, 0.5, 1.5, 2.5]),
-        y: approx([1, 1, 2, 2, 2, 3, 3, 3]),
-    }
-    assert dim.upper == {
-        x: approx([1.5, 2.5, 1.5, 2.5, 3.5, 1.5, 2.5, 3.5]),
-        y: approx([1, 1, 2, 2, 2, 3, 3, 3]),
-    }
-    assert dim.gap == ints("10100100")
-
-
 def test_xyz_stack() -> None:
     # Beam selector scan moves bounded between midpoints and lower and upper bounds at
     # maximum speed. Turnaround sections are where it sends the triggers
@@ -794,3 +752,279 @@ def test_get_constant_duration():
     spec = Concat(1.0 @ Linspace(x, 0, 1, 2), 2.0 @ Linspace(x, 1, 2, 3)).calculate()
 
     assert get_constant_duration(spec) is None
+
+
+@pytest.mark.parametrize(
+    "inst,exp_mid,exp_lower,exp_upper,exp_gap",
+    [
+        (
+            Ellipse(x, 5, 1, 0.5, y, 0, snake=False, vertical=False),
+            {
+                y: approx([-0.5, 0.0, 0.0, 0.0, 0.5]),
+                x: approx([5.0, 4.5, 5.0, 5.5, 5.0]),
+            },
+            {
+                y: approx([-0.5, 0.0, 0.0, 0.0, 0.5]),
+                "x": approx([4.75, 4.25, 4.75, 5.25, 4.75]),
+            },
+            {
+                y: approx([-0.5, 0.0, 0.0, 0.0, 0.5]),
+                x: approx([5.25, 4.75, 5.25, 5.75, 5.25]),
+            },
+            "11001",
+        ),
+        (
+            Ellipse(x, 5, 1, 0.5, y, 0, snake=False, vertical=True),
+            {
+                x: approx([4.5, 5.0, 5.0, 5.0, 5.5]),
+                y: approx([0.0, -0.5, 0.0, 0.5, 0.0]),
+            },
+            {
+                x: approx([4.5, 5.0, 5.0, 5.0, 5.5]),
+                y: approx([-0.25, -0.75, -0.25, 0.25, -0.25]),
+            },
+            {
+                x: approx([4.5, 5.0, 5.0, 5.0, 5.5]),
+                y: approx([0.25, -0.25, 0.25, 0.75, 0.25]),
+            },
+            "11001",
+        ),
+        (
+            Ellipse(x, 5, 1, 0.5, y, 0, snake=True, vertical=False),
+            {
+                y: approx([-0.5, 0.0, 0.0, 0.0, 0.5]),
+                x: approx([5.0, 5.5, 5.0, 4.5, 5.0]),
+            },
+            {
+                y: approx([-0.5, 0.0, 0.0, 0.0, 0.5]),
+                x: approx([4.75, 5.75, 5.25, 4.75, 4.75]),
+            },
+            {
+                y: approx([-0.5, 0.0, 0.0, 0.0, 0.5]),
+                x: approx([5.25, 5.25, 4.75, 4.25, 5.25]),
+            },
+            "11001",
+        ),
+        (
+            Ellipse(x, 5, 1, 0.5, y, 0, snake=True, vertical=True),
+            {
+                x: approx([4.5, 5.0, 5.0, 5.0, 5.5]),
+                y: approx([0.0, 0.5, 0.0, -0.5, 0.0]),
+            },
+            {
+                x: approx([4.5, 5.0, 5.0, 5.0, 5.5]),
+                y: approx([-0.25, 0.75, 0.25, -0.25, -0.25]),
+            },
+            {
+                x: approx([4.5, 5.0, 5.0, 5.0, 5.5]),
+                y: approx([0.25, 0.25, -0.25, -0.75, 0.25]),
+            },
+            "11001",
+        ),
+    ],
+)
+def test_ellipse(inst: Ellipse, exp_mid, exp_lower, exp_upper, exp_gap):
+    (dim,) = inst.calculate(bounds=True)
+    assert inst.axes() == [y, x]
+    assert dim.midpoints == exp_mid
+    assert dim.lower == exp_lower
+    assert dim.upper == exp_upper
+    assert dim.gap == ints(exp_gap)
+
+
+@pytest.mark.parametrize(
+    "inst,exp_mid,exp_lower,exp_upper,exp_gap",
+    [
+        (
+            Polygon(
+                x, y, [(0, 0), (5, 0), (2.5, 4)], 1, 2, snake=False, vertical=False
+            ),
+            {
+                y: approx([0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0]),
+                x: approx([0.0, 1.0, 2.0, 3.0, 4.0, 2.0, 3.0]),
+            },
+            {
+                y: approx([0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0]),
+                x: approx([-0.5, 0.5, 1.5, 2.5, 3.5, 1.5, 2.5]),
+            },
+            {
+                y: approx([0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0]),
+                x: approx([0.5, 1.5, 2.5, 3.5, 4.5, 2.5, 3.5]),
+            },
+            "1000010",
+        ),
+        (
+            Polygon(
+                x,
+                y,
+                [(0, 0), (1, 0), (1, 1), (0, 2)],
+                0.5,
+                0.5,
+                snake=False,
+                vertical=True,
+            ),
+            {
+                x: approx([0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5]),
+                y: approx([0.0, 0.5, 1.0, 1.5, 0.0, 0.5, 1.0]),
+            },
+            {
+                x: approx([0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5]),
+                y: approx([-0.25, 0.25, 0.75, 1.25, -0.25, 0.25, 0.75]),
+            },
+            {
+                x: approx([0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5]),
+                y: approx([0.25, 0.75, 1.25, 1.75, 0.25, 0.75, 1.25]),
+            },
+            "1000100",
+        ),
+        (
+            Polygon(
+                x,
+                y,
+                [(-1, 0), (1, 0), (1, 1), (0, 2), (-1, 1)],
+                0.5,
+                0.5,
+                snake=True,
+                vertical=True,
+            ),
+            {
+                x: approx(
+                    [
+                        -1.0,
+                        -1.0,
+                        -1.0,
+                        -0.5,
+                        -0.5,
+                        -0.5,
+                        -0.5,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.5,
+                        0.5,
+                        0.5,
+                    ]
+                ),
+                y: approx(
+                    [
+                        0.0,
+                        0.5,
+                        1.0,
+                        1.5,
+                        1.0,
+                        0.5,
+                        0.0,
+                        0.0,
+                        0.5,
+                        1.0,
+                        1.5,
+                        1.0,
+                        0.5,
+                        0.0,
+                    ]
+                ),
+            },
+            {
+                x: approx(
+                    [
+                        -1.0,
+                        -1.0,
+                        -1.0,
+                        -0.5,
+                        -0.5,
+                        -0.5,
+                        -0.5,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.5,
+                        0.5,
+                        0.5,
+                    ]
+                ),
+                y: approx(
+                    [
+                        -0.25,
+                        0.25,
+                        0.75,
+                        1.75,
+                        1.25,
+                        0.75,
+                        0.25,
+                        -0.25,
+                        0.25,
+                        0.75,
+                        1.25,
+                        1.25,
+                        0.75,
+                        0.25,
+                    ]
+                ),
+            },
+            {
+                x: approx(
+                    [
+                        -1.0,
+                        -1.0,
+                        -1.0,
+                        -0.5,
+                        -0.5,
+                        -0.5,
+                        -0.5,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.5,
+                        0.5,
+                        0.5,
+                    ]
+                ),
+                y: approx(
+                    [
+                        0.25,
+                        0.75,
+                        1.25,
+                        1.25,
+                        0.75,
+                        0.25,
+                        -0.25,
+                        0.25,
+                        0.75,
+                        1.25,
+                        1.75,
+                        0.75,
+                        0.25,
+                        -0.25,
+                    ]
+                ),
+            },
+            "10010001000100",
+        ),
+        (
+            Polygon(x, y, [(0, 0), (5, 0), (2.5, 4)], 1, 2, snake=True, vertical=True),
+            {
+                x: approx([0.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0]),
+                y: approx([0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0]),
+            },
+            {
+                x: approx([0.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0]),
+                y: approx([-1.0, 1.0, -1.0, 1.0, 3.0, 1.0, -1.0]),
+            },
+            {
+                x: approx([0.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0]),
+                y: approx([1.0, -1.0, 1.0, 3.0, 1.0, -1.0, 1.0]),
+            },
+            "1110101",
+        ),
+    ],
+)
+def test_polygon(inst: Polygon, exp_mid, exp_lower, exp_upper, exp_gap):
+    (dim,) = inst.calculate(bounds=True)
+    assert inst.axes() == [y, x]
+    assert dim.midpoints == exp_mid
+    assert dim.lower == exp_lower
+    assert dim.upper == exp_upper
+    assert dim.gap == ints(exp_gap)

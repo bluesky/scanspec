@@ -627,7 +627,7 @@ Linspace.bounded = validate_call(Linspace.bounded)
 class Range(Spec[Axis]):
     """Linearly spaced frames with start and stop as the bounding midpoints.
 
-    ``step`` defines the distance between midpoints, and the direction of travel.
+    ``step`` defines the distance between midpoints.
 
     .. seealso::
         ``Linspace``: For linearly spaced frames defined with a number of frames.
