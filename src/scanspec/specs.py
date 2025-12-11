@@ -13,7 +13,7 @@ from typing import Any, Generic, Literal, SupportsFloat
 
 import numpy as np
 import numpy.typing as npt
-from pydantic import Field, TypeAdapter, field_validator, validate_call
+from pydantic import Field, TypeAdapter, validate_call
 from pydantic.dataclasses import dataclass
 
 from .core import (
@@ -630,7 +630,7 @@ class Range(Spec[Axis]):
     ``step`` defines the distance between midpoints, and the direction of travel.
 
     .. seealso::
-        `Linspace`: For linearly spaced frames defined with a number of frames.
+        ``Linspace``: For linearly spaced frames defined with a number of frames.
 
     .. example_spec::
 
@@ -643,16 +643,10 @@ class Range(Spec[Axis]):
     start: float = Field(description="Midpoint of the first point of the line")
     stop: float = Field(description="Midpoint of the last point of the line")
     step: float = Field(
+        gt=0,
         description="Step size (defaults to stop - start)",
         default_factory=lambda data: abs(data["stop"] - data["start"]),
     )
-
-    @field_validator("step", mode="before")
-    @classmethod
-    def _validate_step(cls, v: Any) -> float:
-        if v == 0:
-            raise ValueError("step cannot be zero")
-        return float(v)
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
@@ -660,11 +654,9 @@ class Range(Spec[Axis]):
     def _line_from_indexes(
         self, indexes: npt.NDArray[np.float64]
     ) -> dict[Axis, npt.NDArray[np.float64]]:
-        first = (
-            min(self.start, self.stop) if self.step > 0 else max(self.start, self.stop)
-        )
-        start = first - self.step / 2
-        return {self.axis: indexes * self.step + start}
+        step = abs(self.step) * np.sign(self.stop - self.start)
+        first = self.start - step / 2
+        return {self.axis: indexes * step + first}
 
     def calculate(  # noqa: D102
         self, bounds: bool = False, nested: bool = False
@@ -1000,8 +992,7 @@ class Ellipse(Spec[Axis]):
     Constructs a 2-D scan over an axis-aligned ellipse defined by
     ``(x_axis, y_axis)``, centred at (``x_centre``, ``y_centre``), with
     diameters ``x_diameter`` and ``y_diameter``. Grid spacing along each axis is
-    controlled by ``x_step`` and ``y_step``, and the direction of the scan is
-    determined by the signs of these parameters. If ``snake`` is True, the fast
+    controlled by ``x_step`` and ``y_step``. If ``snake`` is True, the fast
     axis will zigzag like a snake. If ``vertical`` is True, the y axis will be
     the fast axis.
 
@@ -1027,7 +1018,7 @@ class Ellipse(Spec[Axis]):
     x_axis: Axis = Field(description="An identifier for what to move for x")
     x_centre: float = Field(description="x centre of the spiral")
     x_diameter: float = Field(description="x width of the spiral")
-    x_step: float = Field(description="Spacing and direction along x")
+    x_step: float = Field(gt=0, description="Spacing along x")
     y_axis: Axis = Field(description="An identifier for what to move for y")
     y_centre: float = Field(description="y centre of the spiral")
     y_diameter: float = Field(
@@ -1035,7 +1026,8 @@ class Ellipse(Spec[Axis]):
         default_factory=lambda data: abs(data["x_diameter"]),
     )
     y_step: float = Field(
-        description="Spacing and direction along y (defaults to x_step)",
+        gt=0,
+        description="Spacing along y (defaults to x_step)",
         default_factory=lambda data: data["x_step"],
     )
     snake: bool = Field(
@@ -1090,12 +1082,11 @@ class Polygon(Spec[Axis]):
     """Grid of points masked to a polygonal footprint.
 
     Constructs a 2-D scan over an axis-aligned polygon defined by an ordered
-    list of vertices `(x, y)` given in ``vertices``. The polygon may be convex
+    list of vertices "(x, y)" given in ``vertices``. The polygon may be convex
     or concave, and the interior is determined using an even-odd ray-casting
     rule. Grid spacing along each axis is controlled by ``x_step`` and ``y_step``,
-    and the direction of the scan is determined by the signs of these parameters. If
-    ``snake`` is True, the fast axis will zigzag like a snake. If ``vertical`` is True,
-    the y axis will be the fast axis.
+    If ``snake`` is True, the fast axis will zigzag like a snake. If ``vertical`` is
+    True, the y axis will be the fast axis.
 
     .. example_spec::
 
@@ -1121,9 +1112,10 @@ class Polygon(Spec[Axis]):
     vertices: list[tuple[float, float]] = Field(
         description="List of (x, y) vertices defining the polygon"
     )
-    x_step: float = Field(description="Spacing and direction along x")
+    x_step: float = Field(gt=0, description="Spacing along x")
     y_step: float = Field(
-        description="Spacing and direction along y (defaults to x_step)",
+        gt=0,
+        description="Spacing along y (defaults to x_step)",
         default_factory=lambda data: data["x_step"],
     )
     snake: bool = Field(

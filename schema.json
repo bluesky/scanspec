@@ -1948,8 +1948,9 @@
                     },
                     "x_step": {
                         "type": "number",
+                        "exclusiveMinimum": 0.0,
                         "title": "X Step",
-                        "description": "Spacing and direction along x"
+                        "description": "Spacing along x"
                     },
                     "y_axis": {
                         "type": "string",
@@ -1968,8 +1969,9 @@
                     },
                     "y_step": {
                         "type": "number",
+                        "exclusiveMinimum": 0.0,
                         "title": "Y Step",
-                        "description": "Spacing and direction along y (defaults to x_step)"
+                        "description": "Spacing along y (defaults to x_step)"
                     },
                     "snake": {
                         "type": "boolean",
@@ -2001,7 +2003,7 @@
                     "y_centre"
                 ],
                 "title": "Ellipse",
-                "description": "Grid of points masked to an elliptical footprint.\n\nConstructs a 2-D scan over an axis-aligned ellipse defined by\n``(x_axis, y_axis)``, centred at (``x_centre``, ``y_centre``), with\ndiameters ``x_diameter`` and ``y_diameter``. Grid spacing along each axis is\ncontrolled by ``x_step`` and ``y_step``, and the direction of the scan is\ndetermined by the signs of these parameters. If ``snake`` is True, the fast\naxis will zigzag like a snake. If ``vertical`` is True, the y axis will be\nthe fast axis.\n\nStarts from one of the four extremes of the ellipse identified by the signs of\n``x_step`` and ``y_step``.\n\n.. example_spec::\n\n    from scanspec.specs import Ellipse, Fly\n\n    # An elliptical region centred at (0, 0) on axes \"x\" and \"y\",\n    # with 10x6 diameters and steps of 0.5 in both directions.\n    spec = Fly(\n        Ellipse(\n            \"x\", 0, 10, 0.5,\n            \"y\", 0, 6,\n            snake=True,\n            vertical=False,\n        )\n    )"
+                "description": "Grid of points masked to an elliptical footprint.\n\nConstructs a 2-D scan over an axis-aligned ellipse defined by\n``(x_axis, y_axis)``, centred at (``x_centre``, ``y_centre``), with\ndiameters ``x_diameter`` and ``y_diameter``. Grid spacing along each axis is\ncontrolled by ``x_step`` and ``y_step``. If ``snake`` is True, the fast\naxis will zigzag like a snake. If ``vertical`` is True, the y axis will be\nthe fast axis.\n\nStarts from one of the four extremes of the ellipse identified by the signs of\n``x_step`` and ``y_step``.\n\n.. example_spec::\n\n    from scanspec.specs import Ellipse, Fly\n\n    # An elliptical region centred at (0, 0) on axes \"x\" and \"y\",\n    # with 10x6 diameters and steps of 0.5 in both directions.\n    spec = Fly(\n        Ellipse(\n            \"x\", 0, 10, 0.5,\n            \"y\", 0, 6,\n            snake=True,\n            vertical=False,\n        )\n    )"
             },
             "scanspec__specs__Polygon_str_": {
                 "properties": {
@@ -2035,13 +2037,15 @@
                     },
                     "x_step": {
                         "type": "number",
+                        "exclusiveMinimum": 0.0,
                         "title": "X Step",
-                        "description": "Spacing and direction along x"
+                        "description": "Spacing along x"
                     },
                     "y_step": {
                         "type": "number",
+                        "exclusiveMinimum": 0.0,
                         "title": "Y Step",
-                        "description": "Spacing and direction along y (defaults to x_step)"
+                        "description": "Spacing along y (defaults to x_step)"
                     },
                     "snake": {
                         "type": "boolean",
@@ -2071,7 +2075,7 @@
                     "x_step"
                 ],
                 "title": "Polygon",
-                "description": "Grid of points masked to a polygonal footprint.\n\nConstructs a 2-D scan over an axis-aligned polygon defined by an ordered\nlist of vertices `(x, y)` given in ``vertices``. The polygon may be convex\nor concave, and the interior is determined using an even-odd ray-casting\nrule. Grid spacing along each axis is controlled by ``x_step`` and ``y_step``,\nand the direction of the scan is determined by the signs of these parameters. If\n``snake`` is True, the fast axis will zigzag like a snake. If ``vertical`` is True,\nthe y axis will be the fast axis.\n\n.. example_spec::\n\n    from scanspec.specs import Polygon, Fly\n\n    # A triangular region on axes \"x\" and \"y\", stepped by 0.2 units\n    # in both directions.\n    spec = Fly(\n        Polygon(\n            x_axis=\"x\",\n            y_axis=\"y\",\n            vertices=[(0, 0), (5, 0), (2.5, 4)],\n            x_step=0.2,\n            y_step=0.2,\n            snake=True,\n            vertical=False,\n        )\n    )"
+                "description": "Grid of points masked to a polygonal footprint.\n\nConstructs a 2-D scan over an axis-aligned polygon defined by an ordered\nlist of vertices \"(x, y)\" given in ``vertices``. The polygon may be convex\nor concave, and the interior is determined using an even-odd ray-casting\nrule. Grid spacing along each axis is controlled by ``x_step`` and ``y_step``,\nIf ``snake`` is True, the fast axis will zigzag like a snake. If ``vertical`` is\nTrue, the y axis will be the fast axis.\n\n.. example_spec::\n\n    from scanspec.specs import Polygon, Fly\n\n    # A triangular region on axes \"x\" and \"y\", stepped by 0.2 units\n    # in both directions.\n    spec = Fly(\n        Polygon(\n            x_axis=\"x\",\n            y_axis=\"y\",\n            vertices=[(0, 0), (5, 0), (2.5, 4)],\n            x_step=0.2,\n            y_step=0.2,\n            snake=True,\n            vertical=False,\n        )\n    )"
             },
             "scanspec__specs__Range_str_": {
                 "properties": {
@@ -2092,6 +2096,7 @@
                     },
                     "step": {
                         "type": "number",
+                        "exclusiveMinimum": 0.0,
                         "title": "Step",
                         "description": "Step size (defaults to stop - start)"
                     },
@@ -2110,7 +2115,7 @@
                     "stop"
                 ],
                 "title": "Range",
-                "description": "Linearly spaced frames with start and stop as the bounding midpoints.\n\n``step`` defines the distance between midpoints, and the direction of travel.\n\n.. seealso::\n    `Linspace`: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Range\n\n    spec = Fly(Range(\"x\", 1, 2, 0.25))"
+                "description": "Linearly spaced frames with start and stop as the bounding midpoints.\n\n``step`` defines the distance between midpoints, and the direction of travel.\n\n.. seealso::\n    ``Linspace``: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Range\n\n    spec = Fly(Range(\"x\", 1, 2, 0.25))"
             }
         }
     }
