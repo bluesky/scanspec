@@ -375,105 +375,6 @@
                 "title": "BoundsResponse",
                 "description": "Bounds of a generated scan."
             },
-            "Circle_str_": {
-                "properties": {
-                    "x_axis": {
-                        "type": "string",
-                        "title": "X Axis",
-                        "description": "The name matching the x axis of the spec"
-                    },
-                    "y_axis": {
-                        "type": "string",
-                        "title": "Y Axis",
-                        "description": "The name matching the y axis of the spec"
-                    },
-                    "x_middle": {
-                        "type": "number",
-                        "title": "X Middle",
-                        "description": "The central x point of the circle"
-                    },
-                    "y_middle": {
-                        "type": "number",
-                        "title": "Y Middle",
-                        "description": "The central y point of the circle"
-                    },
-                    "radius": {
-                        "type": "number",
-                        "exclusiveMinimum": 0.0,
-                        "title": "Radius",
-                        "description": "Radius of the circle"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Circle",
-                        "title": "Type",
-                        "default": "Circle"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "x_axis",
-                    "y_axis",
-                    "x_middle",
-                    "y_middle",
-                    "radius"
-                ],
-                "title": "Circle",
-                "description": "Mask contains points of axis within an xy circle of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 1, 3, 10) * ~Linspace(\"x\", 0, 2, 10)\n    spec = grid & Circle(\"x\", \"y\", 1, 2, 0.9)"
-            },
-            "CombinationOf_str_-Input": {
-                "properties": {
-                    "left": {
-                        "$ref": "#/components/schemas/Region-Input",
-                        "description": "The left-hand Region to combine"
-                    },
-                    "right": {
-                        "$ref": "#/components/schemas/Region-Input",
-                        "description": "The right-hand Region to combine"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "CombinationOf",
-                        "title": "Type",
-                        "default": "CombinationOf"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "left",
-                    "right"
-                ],
-                "title": "CombinationOf",
-                "description": "Abstract baseclass for a combination of two regions, left and right."
-            },
-            "CombinationOf_str_-Output": {
-                "properties": {
-                    "left": {
-                        "$ref": "#/components/schemas/Region-Output",
-                        "description": "The left-hand Region to combine"
-                    },
-                    "right": {
-                        "$ref": "#/components/schemas/Region-Output",
-                        "description": "The right-hand Region to combine"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "CombinationOf",
-                        "title": "Type",
-                        "default": "CombinationOf"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "left",
-                    "right"
-                ],
-                "title": "CombinationOf",
-                "description": "Abstract baseclass for a combination of two regions, left and right."
-            },
             "Concat_str_-Input": {
                 "properties": {
                     "left": {
@@ -616,57 +517,81 @@
                 "title": "ConstantDuration",
                 "description": "Apply a constant duration to every point in a Spec.\n\nTypically applied with the ``@`` modifier.\n\n.. example_spec::\n\n    from scanspec.specs import Linspace\n\n    spec = 0.1 @ Linspace(\"x\", 1, 2, 3)"
             },
-            "DifferenceOf_str_-Input": {
+            "Ellipse_str_": {
                 "properties": {
-                    "left": {
-                        "$ref": "#/components/schemas/Region-Input",
-                        "description": "The left-hand Region to combine"
+                    "x_axis": {
+                        "type": "string",
+                        "title": "X Axis",
+                        "description": "An identifier for what to move for x"
                     },
-                    "right": {
-                        "$ref": "#/components/schemas/Region-Input",
-                        "description": "The right-hand Region to combine"
+                    "x_centre": {
+                        "type": "number",
+                        "title": "X Centre",
+                        "description": "x centre of the spiral"
+                    },
+                    "x_diameter": {
+                        "type": "number",
+                        "title": "X Diameter",
+                        "description": "x width of the spiral"
+                    },
+                    "x_step": {
+                        "type": "number",
+                        "exclusiveMinimum": 0.0,
+                        "title": "X Step",
+                        "description": "Spacing along x"
+                    },
+                    "y_axis": {
+                        "type": "string",
+                        "title": "Y Axis",
+                        "description": "An identifier for what to move for y"
+                    },
+                    "y_centre": {
+                        "type": "number",
+                        "title": "Y Centre",
+                        "description": "y centre of the spiral"
+                    },
+                    "y_diameter": {
+                        "type": "number",
+                        "title": "Y Diameter",
+                        "description": "y width of the spiral (defaults to x_diameter)"
+                    },
+                    "y_step": {
+                        "type": "number",
+                        "exclusiveMinimum": 0.0,
+                        "title": "Y Step",
+                        "description": "Spacing along y (defaults to x_step)"
+                    },
+                    "snake": {
+                        "type": "boolean",
+                        "title": "Snake",
+                        "description": "If True, path zigzag like a snake (defaults to False)",
+                        "default": false
+                    },
+                    "vertical": {
+                        "type": "boolean",
+                        "title": "Vertical",
+                        "description": "If True, y axis is the fast axis (defaults to False)",
+                        "default": false
                     },
                     "type": {
                         "type": "string",
-                        "const": "DifferenceOf",
+                        "const": "Ellipse",
                         "title": "Type",
-                        "default": "DifferenceOf"
+                        "default": "Ellipse"
                     }
                 },
                 "additionalProperties": false,
                 "type": "object",
                 "required": [
-                    "left",
-                    "right"
+                    "x_axis",
+                    "x_centre",
+                    "x_diameter",
+                    "x_step",
+                    "y_axis",
+                    "y_centre"
                 ],
-                "title": "DifferenceOf",
-                "description": "A point is in DifferenceOf(a, b) if in a and not in b.\n\nTypically created with the ``-`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) - Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True, False, False, False])"
-            },
-            "DifferenceOf_str_-Output": {
-                "properties": {
-                    "left": {
-                        "$ref": "#/components/schemas/Region-Output",
-                        "description": "The left-hand Region to combine"
-                    },
-                    "right": {
-                        "$ref": "#/components/schemas/Region-Output",
-                        "description": "The right-hand Region to combine"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "DifferenceOf",
-                        "title": "Type",
-                        "default": "DifferenceOf"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "left",
-                    "right"
-                ],
-                "title": "DifferenceOf",
-                "description": "A point is in DifferenceOf(a, b) if in a and not in b.\n\nTypically created with the ``-`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) - Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True, False, False, False])"
+                "title": "Ellipse",
+                "description": "Grid of points masked to an elliptical footprint.\n\nConstructs a 2-D scan over an axis-aligned ellipse defined by\n``(x_axis, y_axis)``, centred at (``x_centre``, ``y_centre``), with\ndiameters ``x_diameter`` and ``y_diameter``. Grid spacing along each axis is\ncontrolled by ``x_step`` and ``y_step``. If ``snake`` is True, the fast\naxis will zigzag like a snake. If ``vertical`` is True, the y axis will be\nthe fast axis.\n\nStarts from one of the four extremes of the ellipse identified by the signs of\n``x_step`` and ``y_step``.\n\n.. example_spec::\n\n    from scanspec.specs import Ellipse, Fly\n\n    # An elliptical region centred at (0, 0) on axes \"x\" and \"y\",\n    # with 10x6 diameters and steps of 0.5 in both directions.\n    spec = Fly(\n        Ellipse(\n            \"x\", 0, 10, 0.5,\n            \"y\", 0, 6,\n            snake=True,\n            vertical=False,\n        )\n    )"
             },
             "Fly_str_-Input": {
                 "properties": {
@@ -741,58 +666,6 @@
                 "type": "object",
                 "title": "HTTPValidationError"
             },
-            "IntersectionOf_str_-Input": {
-                "properties": {
-                    "left": {
-                        "$ref": "#/components/schemas/Region-Input",
-                        "description": "The left-hand Region to combine"
-                    },
-                    "right": {
-                        "$ref": "#/components/schemas/Region-Input",
-                        "description": "The right-hand Region to combine"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "IntersectionOf",
-                        "title": "Type",
-                        "default": "IntersectionOf"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "left",
-                    "right"
-                ],
-                "title": "IntersectionOf",
-                "description": "A point is in IntersectionOf(a, b) if in both a and b.\n\nTypically created with the ``&`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) & Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False, False,  True, False, False])"
-            },
-            "IntersectionOf_str_-Output": {
-                "properties": {
-                    "left": {
-                        "$ref": "#/components/schemas/Region-Output",
-                        "description": "The left-hand Region to combine"
-                    },
-                    "right": {
-                        "$ref": "#/components/schemas/Region-Output",
-                        "description": "The right-hand Region to combine"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "IntersectionOf",
-                        "title": "Type",
-                        "default": "IntersectionOf"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "left",
-                    "right"
-                ],
-                "title": "IntersectionOf",
-                "description": "A point is in IntersectionOf(a, b) if in both a and b.\n\nTypically created with the ``&`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) & Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False, False,  True, False, False])"
-            },
             "Linspace_str_": {
                 "properties": {
                     "axis": {
@@ -833,70 +706,6 @@
                 ],
                 "title": "Linspace",
                 "description": "Linearly spaced frames with start and stop as first and last midpoints.\n\nThis class is intended to handle linearly spaced frames defined with a\nspecific number of frames.\n\n.. seealso::\n    `Range`: For linearly spaced frames defined with a step size.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"x\", 1, 2, 5))"
-            },
-            "Mask_str_-Input": {
-                "properties": {
-                    "spec": {
-                        "$ref": "#/components/schemas/Spec-Input",
-                        "description": "The Spec containing the source midpoints"
-                    },
-                    "region": {
-                        "$ref": "#/components/schemas/Region-Input",
-                        "description": "The Region that midpoints will be inside"
-                    },
-                    "check_path_changes": {
-                        "type": "boolean",
-                        "title": "Check Path Changes",
-                        "description": "If True path through scan will not be modified by squash",
-                        "default": true
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Mask",
-                        "title": "Type",
-                        "default": "Mask"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "spec",
-                    "region"
-                ],
-                "title": "Mask",
-                "description": "Restrict Spec to only midpoints that fall inside the given Region.\n\nTypically created with the ``&`` operator. It also pushes down the\n``& | ^ -`` operators to its `Region` to avoid the need for brackets on\ncombinations of Regions.\n\nIf a Region spans multiple Dimension objects, they will be squashed together.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Fly, Linspace\n\n    region = Circle(\"x\", \"y\", 4, 2, 1.2)\n    spec = Fly(Linspace(\"y\", 1, 3, 3) * Linspace(\"x\", 3, 5, 5) & region)\n\nSee Also: `why-squash-can-change-path`"
-            },
-            "Mask_str_-Output": {
-                "properties": {
-                    "spec": {
-                        "$ref": "#/components/schemas/Spec-Output",
-                        "description": "The Spec containing the source midpoints"
-                    },
-                    "region": {
-                        "$ref": "#/components/schemas/Region-Output",
-                        "description": "The Region that midpoints will be inside"
-                    },
-                    "check_path_changes": {
-                        "type": "boolean",
-                        "title": "Check Path Changes",
-                        "description": "If True path through scan will not be modified by squash",
-                        "default": true
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Mask",
-                        "title": "Type",
-                        "default": "Mask"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "spec",
-                    "region"
-                ],
-                "title": "Mask",
-                "description": "Restrict Spec to only midpoints that fall inside the given Region.\n\nTypically created with the ``&`` operator. It also pushes down the\n``& | ^ -`` operators to its `Region` to avoid the need for brackets on\ncombinations of Regions.\n\nIf a Region spans multiple Dimension objects, they will be squashed together.\n\n.. example_spec::\n\n    from scanspec.regions import Circle\n    from scanspec.specs import Fly, Linspace\n\n    region = Circle(\"x\", \"y\", 4, 2, 1.2)\n    spec = Fly(Linspace(\"y\", 1, 3, 3) * Linspace(\"x\", 3, 5, 5) & region)\n\nSee Also: `why-squash-can-change-path`"
             },
             "MidpointsResponse": {
                 "properties": {
@@ -984,6 +793,78 @@
                 ],
                 "title": "PointsRequest",
                 "description": "A request for generated scan points."
+            },
+            "Polygon_str_": {
+                "properties": {
+                    "x_axis": {
+                        "type": "string",
+                        "title": "X Axis",
+                        "description": "An identifier for what to move for x"
+                    },
+                    "y_axis": {
+                        "type": "string",
+                        "title": "Y Axis",
+                        "description": "An identifier for what to move for y"
+                    },
+                    "vertices": {
+                        "items": {
+                            "prefixItems": [
+                                {
+                                    "type": "number"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ],
+                            "type": "array",
+                            "maxItems": 2,
+                            "minItems": 2
+                        },
+                        "type": "array",
+                        "title": "Vertices",
+                        "description": "List of (x, y) vertices defining the polygon"
+                    },
+                    "x_step": {
+                        "type": "number",
+                        "exclusiveMinimum": 0.0,
+                        "title": "X Step",
+                        "description": "Spacing along x"
+                    },
+                    "y_step": {
+                        "type": "number",
+                        "exclusiveMinimum": 0.0,
+                        "title": "Y Step",
+                        "description": "Spacing along y (defaults to x_step)"
+                    },
+                    "snake": {
+                        "type": "boolean",
+                        "title": "Snake",
+                        "description": "If True, path zigzag like a snake (defaults to False)",
+                        "default": false
+                    },
+                    "vertical": {
+                        "type": "boolean",
+                        "title": "Vertical",
+                        "description": "If True, y axis is the fast axis (defaults to False)",
+                        "default": false
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Polygon",
+                        "title": "Type",
+                        "default": "Polygon"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "x_axis",
+                    "y_axis",
+                    "vertices",
+                    "x_step"
+                ],
+                "title": "Polygon",
+                "description": "Grid of points masked to a polygonal footprint.\n\nConstructs a 2-D scan over an axis-aligned polygon defined by an ordered\nlist of vertices \"(x, y)\" given in ``vertices``. The polygon may be convex\nor concave, and the interior is determined using an even-odd ray-casting\nrule. Grid spacing along each axis is controlled by ``x_step`` and ``y_step``,\nIf ``snake`` is True, the fast axis will zigzag like a snake. If ``vertical`` is\nTrue, the y axis will be the fast axis.\n\n.. example_spec::\n\n    from scanspec.specs import Polygon, Fly\n\n    # A triangular region on axes \"x\" and \"y\", stepped by 0.2 units\n    # in both directions.\n    spec = Fly(\n        Polygon(\n            x_axis=\"x\",\n            y_axis=\"y\",\n            vertices=[(0, 0), (5, 0), (2.5, 4)],\n            x_step=0.2,\n            y_step=0.2,\n            snake=True,\n            vertical=False,\n        )\n    )"
             },
             "Product_str_-Input": {
                 "properties": {
@@ -1081,161 +962,45 @@
                 "title": "Product",
                 "description": "Outer product of two Specs, nesting inner within outer.\n\nThis means that inner will run in its entirety at each point in outer.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"y\", 1, 2, 3) * Linspace(\"x\", 3, 4, 12))\n\nAn inner integer can be used to repeat the same point many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(Linspace(\"y\", 1, 2, 3) * 2)\n\nAn outer integer can be used to repeat the same scan many times.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(2 * ~Linspace.bounded(\"x\", 3, 4, 1))\n\nIf you want snaked axes to have no gap between iterations you can do:\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace, Product\n\n    spec = Fly(Product(2, ~Linspace.bounded(\"x\", 3, 4, 1), gap=False))\n\n.. note:: There is no turnaround arrow at x=4"
             },
-            "Rectangle_str_": {
+            "Range_str_": {
                 "properties": {
-                    "x_axis": {
+                    "axis": {
                         "type": "string",
-                        "title": "X Axis",
-                        "description": "The name matching the x axis of the spec"
+                        "title": "Axis",
+                        "description": "An identifier for what to move"
                     },
-                    "y_axis": {
-                        "type": "string",
-                        "title": "Y Axis",
-                        "description": "The name matching the y axis of the spec"
-                    },
-                    "x_min": {
+                    "start": {
                         "type": "number",
-                        "title": "X Min",
-                        "description": "Minimum inclusive x value in the region"
+                        "title": "Start",
+                        "description": "Midpoint of the first point of the line"
                     },
-                    "y_min": {
+                    "stop": {
                         "type": "number",
-                        "title": "Y Min",
-                        "description": "Minimum inclusive y value in the region"
+                        "title": "Stop",
+                        "description": "Midpoint of the last point of the line"
                     },
-                    "x_max": {
+                    "step": {
                         "type": "number",
-                        "title": "X Max",
-                        "description": "Maximum inclusive x value in the region"
-                    },
-                    "y_max": {
-                        "type": "number",
-                        "title": "Y Max",
-                        "description": "Maximum inclusive y value in the region"
-                    },
-                    "angle": {
-                        "type": "number",
-                        "title": "Angle",
-                        "description": "Clockwise rotation angle of the rectangle",
-                        "default": 0.0
+                        "exclusiveMinimum": 0.0,
+                        "title": "Step",
+                        "description": "Step size (defaults to stop - start)"
                     },
                     "type": {
                         "type": "string",
-                        "const": "Rectangle",
+                        "const": "Range",
                         "title": "Type",
-                        "default": "Rectangle"
+                        "default": "Range"
                     }
                 },
                 "additionalProperties": false,
                 "type": "object",
                 "required": [
-                    "x_axis",
-                    "y_axis",
-                    "x_min",
-                    "y_min",
-                    "x_max",
-                    "y_max"
+                    "axis",
+                    "start",
+                    "stop"
                 ],
-                "title": "Rectangle",
-                "description": "Mask contains points of axis within a rotated xy rectangle.\n\n.. example_spec::\n\n    from scanspec.regions import Rectangle\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 1, 3, 10) * ~Linspace(\"x\", 0, 2, 10)\n    spec = grid & Rectangle(\"x\", \"y\", 0, 1.1, 1.5, 2.1, 30)"
-            },
-            "Region-Input": {
-                "oneOf": [
-                    {
-                        "$ref": "#/components/schemas/CombinationOf_str_-Input"
-                    },
-                    {
-                        "$ref": "#/components/schemas/UnionOf_str_-Input"
-                    },
-                    {
-                        "$ref": "#/components/schemas/IntersectionOf_str_-Input"
-                    },
-                    {
-                        "$ref": "#/components/schemas/DifferenceOf_str_-Input"
-                    },
-                    {
-                        "$ref": "#/components/schemas/SymmetricDifferenceOf_str_-Input"
-                    },
-                    {
-                        "$ref": "#/components/schemas/scanspec__regions__Range_str_"
-                    },
-                    {
-                        "$ref": "#/components/schemas/Rectangle_str_"
-                    },
-                    {
-                        "$ref": "#/components/schemas/scanspec__regions__Polygon_str_"
-                    },
-                    {
-                        "$ref": "#/components/schemas/Circle_str_"
-                    },
-                    {
-                        "$ref": "#/components/schemas/scanspec__regions__Ellipse_str_"
-                    }
-                ],
-                "discriminator": {
-                    "propertyName": "type",
-                    "mapping": {
-                        "Circle": "#/components/schemas/Circle_str_",
-                        "CombinationOf": "#/components/schemas/CombinationOf_str_-Input",
-                        "DifferenceOf": "#/components/schemas/DifferenceOf_str_-Input",
-                        "Ellipse": "#/components/schemas/scanspec__regions__Ellipse_str_",
-                        "IntersectionOf": "#/components/schemas/IntersectionOf_str_-Input",
-                        "Polygon": "#/components/schemas/scanspec__regions__Polygon_str_",
-                        "Range": "#/components/schemas/scanspec__regions__Range_str_",
-                        "Rectangle": "#/components/schemas/Rectangle_str_",
-                        "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf_str_-Input",
-                        "UnionOf": "#/components/schemas/UnionOf_str_-Input"
-                    }
-                }
-            },
-            "Region-Output": {
-                "oneOf": [
-                    {
-                        "$ref": "#/components/schemas/CombinationOf_str_-Output"
-                    },
-                    {
-                        "$ref": "#/components/schemas/UnionOf_str_-Output"
-                    },
-                    {
-                        "$ref": "#/components/schemas/IntersectionOf_str_-Output"
-                    },
-                    {
-                        "$ref": "#/components/schemas/DifferenceOf_str_-Output"
-                    },
-                    {
-                        "$ref": "#/components/schemas/SymmetricDifferenceOf_str_-Output"
-                    },
-                    {
-                        "$ref": "#/components/schemas/scanspec__regions__Range_str_"
-                    },
-                    {
-                        "$ref": "#/components/schemas/Rectangle_str_"
-                    },
-                    {
-                        "$ref": "#/components/schemas/scanspec__regions__Polygon_str_"
-                    },
-                    {
-                        "$ref": "#/components/schemas/Circle_str_"
-                    },
-                    {
-                        "$ref": "#/components/schemas/scanspec__regions__Ellipse_str_"
-                    }
-                ],
-                "discriminator": {
-                    "propertyName": "type",
-                    "mapping": {
-                        "Circle": "#/components/schemas/Circle_str_",
-                        "CombinationOf": "#/components/schemas/CombinationOf_str_-Output",
-                        "DifferenceOf": "#/components/schemas/DifferenceOf_str_-Output",
-                        "Ellipse": "#/components/schemas/scanspec__regions__Ellipse_str_",
-                        "IntersectionOf": "#/components/schemas/IntersectionOf_str_-Output",
-                        "Polygon": "#/components/schemas/scanspec__regions__Polygon_str_",
-                        "Range": "#/components/schemas/scanspec__regions__Range_str_",
-                        "Rectangle": "#/components/schemas/Rectangle_str_",
-                        "SymmetricDifferenceOf": "#/components/schemas/SymmetricDifferenceOf_str_-Output",
-                        "UnionOf": "#/components/schemas/UnionOf_str_-Output"
-                    }
-                }
+                "title": "Range",
+                "description": "Linearly spaced frames with start and stop as the bounding midpoints.\n\n``step`` defines the distance between midpoints.\n\n.. seealso::\n    ``Linspace``: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Range\n\n    spec = Fly(Range(\"x\", 1, 2, 0.25))"
             },
             "SmallestStepResponse": {
                 "properties": {
@@ -1312,9 +1077,6 @@
                         "$ref": "#/components/schemas/Zip_str_-Input"
                     },
                     {
-                        "$ref": "#/components/schemas/Mask_str_-Input"
-                    },
-                    {
                         "$ref": "#/components/schemas/Snake_str_-Input"
                     },
                     {
@@ -1327,7 +1089,7 @@
                         "$ref": "#/components/schemas/Linspace_str_"
                     },
                     {
-                        "$ref": "#/components/schemas/scanspec__specs__Range_str_"
+                        "$ref": "#/components/schemas/Range_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Fly_str_-Input"
@@ -1342,10 +1104,10 @@
                         "$ref": "#/components/schemas/Spiral_str_"
                     },
                     {
-                        "$ref": "#/components/schemas/scanspec__specs__Ellipse_str_"
+                        "$ref": "#/components/schemas/Ellipse_str_"
                     },
                     {
-                        "$ref": "#/components/schemas/scanspec__specs__Polygon_str_"
+                        "$ref": "#/components/schemas/Polygon_str_"
                     }
                 ],
                 "discriminator": {
@@ -1353,13 +1115,12 @@
                     "mapping": {
                         "Concat": "#/components/schemas/Concat_str_-Input",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Input",
-                        "Ellipse": "#/components/schemas/scanspec__specs__Ellipse_str_",
+                        "Ellipse": "#/components/schemas/Ellipse_str_",
                         "Fly": "#/components/schemas/Fly_str_-Input",
                         "Linspace": "#/components/schemas/Linspace_str_",
-                        "Mask": "#/components/schemas/Mask_str_-Input",
-                        "Polygon": "#/components/schemas/scanspec__specs__Polygon_str_",
+                        "Polygon": "#/components/schemas/Polygon_str_",
                         "Product": "#/components/schemas/Product_str_-Input",
-                        "Range": "#/components/schemas/scanspec__specs__Range_str_",
+                        "Range": "#/components/schemas/Range_str_",
                         "Snake": "#/components/schemas/Snake_str_-Input",
                         "Spiral": "#/components/schemas/Spiral_str_",
                         "Squash": "#/components/schemas/Squash_str_-Input",
@@ -1377,9 +1138,6 @@
                         "$ref": "#/components/schemas/Zip_str_-Output"
                     },
                     {
-                        "$ref": "#/components/schemas/Mask_str_-Output"
-                    },
-                    {
                         "$ref": "#/components/schemas/Snake_str_-Output"
                     },
                     {
@@ -1392,7 +1150,7 @@
                         "$ref": "#/components/schemas/Linspace_str_"
                     },
                     {
-                        "$ref": "#/components/schemas/scanspec__specs__Range_str_"
+                        "$ref": "#/components/schemas/Range_str_"
                     },
                     {
                         "$ref": "#/components/schemas/Fly_str_-Output"
@@ -1407,10 +1165,10 @@
                         "$ref": "#/components/schemas/Spiral_str_"
                     },
                     {
-                        "$ref": "#/components/schemas/scanspec__specs__Ellipse_str_"
+                        "$ref": "#/components/schemas/Ellipse_str_"
                     },
                     {
-                        "$ref": "#/components/schemas/scanspec__specs__Polygon_str_"
+                        "$ref": "#/components/schemas/Polygon_str_"
                     }
                 ],
                 "discriminator": {
@@ -1418,13 +1176,12 @@
                     "mapping": {
                         "Concat": "#/components/schemas/Concat_str_-Output",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Output",
-                        "Ellipse": "#/components/schemas/scanspec__specs__Ellipse_str_",
+                        "Ellipse": "#/components/schemas/Ellipse_str_",
                         "Fly": "#/components/schemas/Fly_str_-Output",
                         "Linspace": "#/components/schemas/Linspace_str_",
-                        "Mask": "#/components/schemas/Mask_str_-Output",
-                        "Polygon": "#/components/schemas/scanspec__specs__Polygon_str_",
+                        "Polygon": "#/components/schemas/Polygon_str_",
                         "Product": "#/components/schemas/Product_str_-Output",
-                        "Range": "#/components/schemas/scanspec__specs__Range_str_",
+                        "Range": "#/components/schemas/Range_str_",
                         "Snake": "#/components/schemas/Snake_str_-Output",
                         "Spiral": "#/components/schemas/Spiral_str_",
                         "Squash": "#/components/schemas/Squash_str_-Output",
@@ -1579,110 +1336,6 @@
                 "title": "Static",
                 "description": "A static frame, repeated num times, with axis at value.\n\nCan be used to set axis=value at every point in a scan.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace, Static\n\n    spec = Fly(Linspace(\"y\", 1, 2, 3).zip(Static(\"x\", 3)))"
             },
-            "SymmetricDifferenceOf_str_-Input": {
-                "properties": {
-                    "left": {
-                        "$ref": "#/components/schemas/Region-Input",
-                        "description": "The left-hand Region to combine"
-                    },
-                    "right": {
-                        "$ref": "#/components/schemas/Region-Input",
-                        "description": "The right-hand Region to combine"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "SymmetricDifferenceOf",
-                        "title": "Type",
-                        "default": "SymmetricDifferenceOf"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "left",
-                    "right"
-                ],
-                "title": "SymmetricDifferenceOf",
-                "description": "A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.\n\nTypically created with the ``^`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) ^ Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True, False,  True, False])"
-            },
-            "SymmetricDifferenceOf_str_-Output": {
-                "properties": {
-                    "left": {
-                        "$ref": "#/components/schemas/Region-Output",
-                        "description": "The left-hand Region to combine"
-                    },
-                    "right": {
-                        "$ref": "#/components/schemas/Region-Output",
-                        "description": "The right-hand Region to combine"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "SymmetricDifferenceOf",
-                        "title": "Type",
-                        "default": "SymmetricDifferenceOf"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "left",
-                    "right"
-                ],
-                "title": "SymmetricDifferenceOf",
-                "description": "A point is in SymmetricDifferenceOf(a, b) if in either a or b, but not both.\n\nTypically created with the ``^`` operator.\n\n>>> r = Range(\"x\", 0.5, 2.5) ^ Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True, False,  True, False])"
-            },
-            "UnionOf_str_-Input": {
-                "properties": {
-                    "left": {
-                        "$ref": "#/components/schemas/Region-Input",
-                        "description": "The left-hand Region to combine"
-                    },
-                    "right": {
-                        "$ref": "#/components/schemas/Region-Input",
-                        "description": "The right-hand Region to combine"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "UnionOf",
-                        "title": "Type",
-                        "default": "UnionOf"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "left",
-                    "right"
-                ],
-                "title": "UnionOf",
-                "description": "A point is in UnionOf(a, b) if in either a or b.\n\nTypically created with the ``|`` operator\n\n>>> r = Range(\"x\", 0.5, 2.5) | Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True,  True, False])"
-            },
-            "UnionOf_str_-Output": {
-                "properties": {
-                    "left": {
-                        "$ref": "#/components/schemas/Region-Output",
-                        "description": "The left-hand Region to combine"
-                    },
-                    "right": {
-                        "$ref": "#/components/schemas/Region-Output",
-                        "description": "The right-hand Region to combine"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "UnionOf",
-                        "title": "Type",
-                        "default": "UnionOf"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "left",
-                    "right"
-                ],
-                "title": "UnionOf",
-                "description": "A point is in UnionOf(a, b) if in either a or b.\n\nTypically created with the ``|`` operator\n\n>>> r = Range(\"x\", 0.5, 2.5) | Range(\"x\", 1.5, 3.5)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True,  True, False])"
-            },
             "ValidResponse": {
                 "properties": {
                     "input_spec": {
@@ -1786,336 +1439,6 @@
                 ],
                 "title": "Zip",
                 "description": "Run two Specs in parallel, merging their midpoints together.\n\nTypically formed using `Spec.zip`.\n\nStacks of Dimension are merged by:\n\n- If right creates a stack of a single Dimension object of size 1, expand it to\n  the size of the fastest Dimension object created by left\n- Merge individual Dimension objects together from fastest to slowest\n\nThis means that Zipping a Spec producing stack [l2, l1] with a Spec\nproducing stack [r1] will assert len(l1)==len(r1), and produce\nstack [l2, l1.zip(r1)].\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Linspace\n\n    spec = Fly(\n        Linspace(\"z\", 1, 2, 3) * Linspace(\"y\", 3, 4, 5).zip(Linspace(\"x\", 4, 5, 5))\n    )"
-            },
-            "scanspec__regions__Ellipse_str_": {
-                "properties": {
-                    "x_axis": {
-                        "type": "string",
-                        "title": "X Axis",
-                        "description": "The name matching the x axis of the spec"
-                    },
-                    "y_axis": {
-                        "type": "string",
-                        "title": "Y Axis",
-                        "description": "The name matching the y axis of the spec"
-                    },
-                    "x_middle": {
-                        "type": "number",
-                        "title": "X Middle",
-                        "description": "The central x point of the ellipse"
-                    },
-                    "y_middle": {
-                        "type": "number",
-                        "title": "Y Middle",
-                        "description": "The central y point of the ellipse"
-                    },
-                    "x_radius": {
-                        "type": "number",
-                        "exclusiveMinimum": 0.0,
-                        "title": "X Radius",
-                        "description": "The radius along the x axis of the ellipse"
-                    },
-                    "y_radius": {
-                        "type": "number",
-                        "exclusiveMinimum": 0.0,
-                        "title": "Y Radius",
-                        "description": "The radius along the y axis of the ellipse"
-                    },
-                    "angle": {
-                        "type": "number",
-                        "title": "Angle",
-                        "description": "The angle of the ellipse (degrees)",
-                        "default": 0.0
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Ellipse",
-                        "title": "Type",
-                        "default": "Ellipse"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "x_axis",
-                    "y_axis",
-                    "x_middle",
-                    "y_middle",
-                    "x_radius",
-                    "y_radius"
-                ],
-                "title": "Ellipse",
-                "description": "Mask contains points of axis within an xy ellipse of given radius.\n\n.. example_spec::\n\n    from scanspec.regions import Ellipse\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 3, 8, 10) * ~Linspace(\"x\", 1 ,8, 10)\n    spec = grid & Ellipse(\"x\", \"y\", 5, 5, 2, 3, 75)"
-            },
-            "scanspec__regions__Polygon_str_": {
-                "properties": {
-                    "x_axis": {
-                        "type": "string",
-                        "title": "X Axis",
-                        "description": "The name matching the x axis of the spec"
-                    },
-                    "y_axis": {
-                        "type": "string",
-                        "title": "Y Axis",
-                        "description": "The name matching the y axis of the spec"
-                    },
-                    "x_verts": {
-                        "items": {
-                            "type": "number"
-                        },
-                        "type": "array",
-                        "minItems": 3,
-                        "title": "X Verts",
-                        "description": "The Nx1 x coordinates of the polygons vertices"
-                    },
-                    "y_verts": {
-                        "items": {
-                            "type": "number"
-                        },
-                        "type": "array",
-                        "minItems": 3,
-                        "title": "Y Verts",
-                        "description": "The Nx1 y coordinates of the polygons vertices"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Polygon",
-                        "title": "Type",
-                        "default": "Polygon"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "x_axis",
-                    "y_axis",
-                    "x_verts",
-                    "y_verts"
-                ],
-                "title": "Polygon",
-                "description": "Mask contains points of axis within a rotated xy polygon.\n\n.. example_spec::\n\n    from scanspec.regions import Polygon\n    from scanspec.specs import Linspace\n\n    grid = Linspace(\"y\", 3, 8, 10) * ~Linspace(\"x\", 1 ,8, 10)\n    spec = grid & Polygon(\"x\", \"y\", [1.0, 6.0, 8.0, 2.0], [4.0, 10.0, 6.0, 1.0])"
-            },
-            "scanspec__regions__Range_str_": {
-                "properties": {
-                    "axis": {
-                        "type": "string",
-                        "title": "Axis",
-                        "description": "The name matching the axis to mask in spec"
-                    },
-                    "min": {
-                        "type": "number",
-                        "title": "Min",
-                        "description": "The minimum inclusive value in the region"
-                    },
-                    "max": {
-                        "type": "number",
-                        "title": "Max",
-                        "description": "The minimum inclusive value in the region"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Range",
-                        "title": "Type",
-                        "default": "Range"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "axis",
-                    "min",
-                    "max"
-                ],
-                "title": "Range",
-                "description": "Mask contains points of axis >= min and <= max.\n\n>>> r = Range(\"x\", 1, 2)\n>>> r.mask({\"x\": np.array([0, 1, 2, 3, 4])})\narray([False,  True,  True, False, False])"
-            },
-            "scanspec__specs__Ellipse_str_": {
-                "properties": {
-                    "x_axis": {
-                        "type": "string",
-                        "title": "X Axis",
-                        "description": "An identifier for what to move for x"
-                    },
-                    "x_centre": {
-                        "type": "number",
-                        "title": "X Centre",
-                        "description": "x centre of the spiral"
-                    },
-                    "x_diameter": {
-                        "type": "number",
-                        "title": "X Diameter",
-                        "description": "x width of the spiral"
-                    },
-                    "x_step": {
-                        "type": "number",
-                        "exclusiveMinimum": 0.0,
-                        "title": "X Step",
-                        "description": "Spacing along x"
-                    },
-                    "y_axis": {
-                        "type": "string",
-                        "title": "Y Axis",
-                        "description": "An identifier for what to move for y"
-                    },
-                    "y_centre": {
-                        "type": "number",
-                        "title": "Y Centre",
-                        "description": "y centre of the spiral"
-                    },
-                    "y_diameter": {
-                        "type": "number",
-                        "title": "Y Diameter",
-                        "description": "y width of the spiral (defaults to x_diameter)"
-                    },
-                    "y_step": {
-                        "type": "number",
-                        "exclusiveMinimum": 0.0,
-                        "title": "Y Step",
-                        "description": "Spacing along y (defaults to x_step)"
-                    },
-                    "snake": {
-                        "type": "boolean",
-                        "title": "Snake",
-                        "description": "If True, path zigzag like a snake (defaults to False)",
-                        "default": false
-                    },
-                    "vertical": {
-                        "type": "boolean",
-                        "title": "Vertical",
-                        "description": "If True, y axis is the fast axis (defaults to False)",
-                        "default": false
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Ellipse",
-                        "title": "Type",
-                        "default": "Ellipse"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "x_axis",
-                    "x_centre",
-                    "x_diameter",
-                    "x_step",
-                    "y_axis",
-                    "y_centre"
-                ],
-                "title": "Ellipse",
-                "description": "Grid of points masked to an elliptical footprint.\n\nConstructs a 2-D scan over an axis-aligned ellipse defined by\n``(x_axis, y_axis)``, centred at (``x_centre``, ``y_centre``), with\ndiameters ``x_diameter`` and ``y_diameter``. Grid spacing along each axis is\ncontrolled by ``x_step`` and ``y_step``. If ``snake`` is True, the fast\naxis will zigzag like a snake. If ``vertical`` is True, the y axis will be\nthe fast axis.\n\nStarts from one of the four extremes of the ellipse identified by the signs of\n``x_step`` and ``y_step``.\n\n.. example_spec::\n\n    from scanspec.specs import Ellipse, Fly\n\n    # An elliptical region centred at (0, 0) on axes \"x\" and \"y\",\n    # with 10x6 diameters and steps of 0.5 in both directions.\n    spec = Fly(\n        Ellipse(\n            \"x\", 0, 10, 0.5,\n            \"y\", 0, 6,\n            snake=True,\n            vertical=False,\n        )\n    )"
-            },
-            "scanspec__specs__Polygon_str_": {
-                "properties": {
-                    "x_axis": {
-                        "type": "string",
-                        "title": "X Axis",
-                        "description": "An identifier for what to move for x"
-                    },
-                    "y_axis": {
-                        "type": "string",
-                        "title": "Y Axis",
-                        "description": "An identifier for what to move for y"
-                    },
-                    "vertices": {
-                        "items": {
-                            "prefixItems": [
-                                {
-                                    "type": "number"
-                                },
-                                {
-                                    "type": "number"
-                                }
-                            ],
-                            "type": "array",
-                            "maxItems": 2,
-                            "minItems": 2
-                        },
-                        "type": "array",
-                        "title": "Vertices",
-                        "description": "List of (x, y) vertices defining the polygon"
-                    },
-                    "x_step": {
-                        "type": "number",
-                        "exclusiveMinimum": 0.0,
-                        "title": "X Step",
-                        "description": "Spacing along x"
-                    },
-                    "y_step": {
-                        "type": "number",
-                        "exclusiveMinimum": 0.0,
-                        "title": "Y Step",
-                        "description": "Spacing along y (defaults to x_step)"
-                    },
-                    "snake": {
-                        "type": "boolean",
-                        "title": "Snake",
-                        "description": "If True, path zigzag like a snake (defaults to False)",
-                        "default": false
-                    },
-                    "vertical": {
-                        "type": "boolean",
-                        "title": "Vertical",
-                        "description": "If True, y axis is the fast axis (defaults to False)",
-                        "default": false
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Polygon",
-                        "title": "Type",
-                        "default": "Polygon"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "x_axis",
-                    "y_axis",
-                    "vertices",
-                    "x_step"
-                ],
-                "title": "Polygon",
-                "description": "Grid of points masked to a polygonal footprint.\n\nConstructs a 2-D scan over an axis-aligned polygon defined by an ordered\nlist of vertices \"(x, y)\" given in ``vertices``. The polygon may be convex\nor concave, and the interior is determined using an even-odd ray-casting\nrule. Grid spacing along each axis is controlled by ``x_step`` and ``y_step``,\nIf ``snake`` is True, the fast axis will zigzag like a snake. If ``vertical`` is\nTrue, the y axis will be the fast axis.\n\n.. example_spec::\n\n    from scanspec.specs import Polygon, Fly\n\n    # A triangular region on axes \"x\" and \"y\", stepped by 0.2 units\n    # in both directions.\n    spec = Fly(\n        Polygon(\n            x_axis=\"x\",\n            y_axis=\"y\",\n            vertices=[(0, 0), (5, 0), (2.5, 4)],\n            x_step=0.2,\n            y_step=0.2,\n            snake=True,\n            vertical=False,\n        )\n    )"
-            },
-            "scanspec__specs__Range_str_": {
-                "properties": {
-                    "axis": {
-                        "type": "string",
-                        "title": "Axis",
-                        "description": "An identifier for what to move"
-                    },
-                    "start": {
-                        "type": "number",
-                        "title": "Start",
-                        "description": "Midpoint of the first point of the line"
-                    },
-                    "stop": {
-                        "type": "number",
-                        "title": "Stop",
-                        "description": "Midpoint of the last point of the line"
-                    },
-                    "step": {
-                        "type": "number",
-                        "exclusiveMinimum": 0.0,
-                        "title": "Step",
-                        "description": "Step size (defaults to stop - start)"
-                    },
-                    "type": {
-                        "type": "string",
-                        "const": "Range",
-                        "title": "Type",
-                        "default": "Range"
-                    }
-                },
-                "additionalProperties": false,
-                "type": "object",
-                "required": [
-                    "axis",
-                    "start",
-                    "stop"
-                ],
-                "title": "Range",
-                "description": "Linearly spaced frames with start and stop as the bounding midpoints.\n\n``step`` defines the distance between midpoints.\n\n.. seealso::\n    ``Linspace``: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Range\n\n    spec = Fly(Range(\"x\", 1, 2, 0.25))"
             }
         }
     }

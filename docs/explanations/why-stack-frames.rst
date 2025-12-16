@@ -41,14 +41,6 @@ Frames object it would take 100 * 2000 * 2000 float64 = 3.2GB of RAM. The scan
 itself is likely to be executed over a long period of time, so it makes sense to
 save on the memory and calculate the squashed points as they are needed.
 
-What about Regions?
--------------------
-
-Regions will stop the regularity of the nested Frames objects, so will cause
-them to be squashed into a single Frames object. Taking our example above, if we
-`Mask` the grid with a `Circle`, then the `Linspace` in ``x`` won't have 3 points in
-each iteration, the number of points is dependent on ``y``. This means that a
-`Mask` will squash any Specs together referred to by its Regions.
 
 How does this stack relate to HDF5 Dimensions?
 ----------------------------------------------

@@ -10,7 +10,6 @@ import numpy as np
 import numpy.typing as npt
 from click.testing import CliRunner
 from matplotlib.lines import Line2D
-from matplotlib.patches import Rectangle
 from matplotlib.text import Annotation
 from mpl_toolkits.mplot3d.art3d import Line3D  # type: ignore
 
@@ -170,43 +169,6 @@ def test_plot_2d_line() -> None:
     assert len(texts) == 2
     assert tuple(texts[0].xy) == (0.5, 2)
     assert tuple(texts[1].xy) == approx([2.5, 3])
-
-
-def test_plot_2d_line_rect_region() -> None:
-    runner = CliRunner()
-    spec = "Fly(Linspace(y, 1, 3, 5) * Linspace(x, 0, 2, 3)\
-          & Rectangle(x, y, 0, 1.1, 1.5, 2.1, 30))"
-    with patch("scanspec.plot.plt.show"):
-        result = runner.invoke(cli.cli, ["plot", spec])
-    assert result.exit_code == 0
-    axes = plt.gcf().axes[0]
-    lines = axes.lines
-    assert len(lines) == 6
-    # First row
-    assert_min_max_2d(lines[0], -0.5, 0.5, 1.5, 1.5)
-    # Turnaround
-    assert_min_max_2d(lines[1], -0.6071045, 0.60710456, 1.4999969, 2.000003)
-    # Second row
-    assert_min_max_2d(lines[2], -0.5, 0.5, 2, 2)
-    assert_min_max_2d(lines[3], 0.5, 1.5, 2, 2)
-    # Capture points
-    assert_min_max_2d(lines[4], 0, 1, 1.5, 2, length=3)
-    # End
-    assert_min_max_2d(lines[5], 1.5, 1.5, 2, 2)
-    # Arrows
-    texts = cast(list[Annotation], axes.texts)
-    assert len(texts) == 2
-    assert tuple(texts[0].xy) == (-0.5, 1.5)
-    assert tuple(texts[1].xy) == (-0.5, 2)
-    # Regions
-    patches = axes.patches
-    assert len(patches) == 1
-    p = patches[0]
-    assert isinstance(p, Rectangle)
-    assert p.get_xy() == (0, 1.1)
-    assert p.get_height() == 1.0
-    assert p.get_width() == 1.5
-    assert p.angle == 30
 
 
 def test_plot_3d_line() -> None:

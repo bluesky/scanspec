@@ -4,8 +4,7 @@ from typing import Any
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from scanspec.regions import Circle, Rectangle, Region, UnionOf
-from scanspec.specs import Linspace, Mask, Spec, Spiral
+from scanspec.specs import Ellipse, Linspace, Spec, Spiral
 
 
 def test_line_serializes() -> None:
@@ -15,36 +14,47 @@ def test_line_serializes() -> None:
     assert Spec.deserialize(serialized) == ob
 
 
-def test_circle_serializes() -> None:
-    ob = Circle("x", "y", x_middle=0, y_middle=1, radius=4)
-    serialized = {
-        "x_axis": "x",
-        "y_axis": "y",
-        "x_middle": 0.0,
-        "y_middle": 1.0,
-        "radius": 4.0,
-        "type": "Circle",
-    }
-    assert ob.serialize() == serialized
-    assert Region.deserialize(serialized) == ob
-
-
-def test_masked_circle_serializes() -> None:
-    ob = Mask(
-        Linspace("x", 0, 1, 4), Circle("x", "y", x_middle=0, y_middle=1, radius=4)
+def test_ellipse_serializes() -> None:
+    ob = Ellipse(
+        x_axis="x",
+        x_centre=0,
+        x_diameter=1,
+        x_step=0.1,
+        y_axis="y",
+        y_centre=2,
+        y_diameter=3,
+        y_step=0.5,
+        snake=True,
     )
     serialized = {
-        "type": "Mask",
-        "spec": {"type": "Linspace", "axis": "x", "start": 0, "stop": 1, "num": 4},
-        "region": {
-            "x_axis": "x",
-            "y_axis": "y",
-            "x_middle": 0,
-            "y_middle": 1,
-            "radius": 4,
-            "type": "Circle",
-        },
-        "check_path_changes": True,
+        "type": "Ellipse",
+        "x_axis": "x",
+        "x_centre": 0.0,
+        "x_diameter": 1.0,
+        "x_step": 0.1,
+        "y_axis": "y",
+        "y_centre": 2.0,
+        "y_diameter": 3.0,
+        "y_step": 0.5,
+        "snake": True,
+        "vertical": False,
+    }
+    assert ob.serialize() == serialized
+    assert Ellipse.deserialize(serialized) == ob
+
+
+def test_spiral_serializes():
+    ob = Spiral("x", 0, 1, 0.1, "y", 2, 3)
+
+    serialized = {
+        "x_axis": "x",
+        "x_centre": 0.0,
+        "x_diameter": 1.0,
+        "x_step": 0.1,
+        "y_axis": "y",
+        "y_centre": 2.0,
+        "y_diameter": 3.0,
+        "type": "Spiral",
     }
     assert ob.serialize() == serialized
     assert Spec.deserialize(serialized) == ob
@@ -76,53 +86,6 @@ def test_product_lines_serializes() -> None:
         "inner": {"type": "Linspace", "axis": "x", "start": 0.0, "stop": 1.0, "num": 4},
     }
 
-    assert ob.serialize() == serialized
-    assert Spec.deserialize(serialized) == ob
-
-
-def test_complex_nested_serializes() -> None:
-    ob = Mask(
-        Spiral("x", 0, 20, 0.5, "y", 0),
-        UnionOf(
-            Circle("x", "y", x_middle=0, y_middle=1, radius=4),
-            Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30),
-        ),
-    )
-    serialized = {
-        "spec": {
-            "x_axis": "x",
-            "x_centre": 0.0,
-            "x_diameter": 20.0,
-            "x_step": 0.5,
-            "y_axis": "y",
-            "y_centre": 0.0,
-            "y_diameter": 20.0,
-            "type": "Spiral",
-        },
-        "region": {
-            "left": {
-                "x_axis": "x",
-                "y_axis": "y",
-                "x_middle": 0.0,
-                "y_middle": 1.0,
-                "radius": 4.0,
-                "type": "Circle",
-            },
-            "right": {
-                "x_axis": "x",
-                "y_axis": "y",
-                "x_min": 0.0,
-                "y_min": 1.1,
-                "x_max": 1.5,
-                "y_max": 2.1,
-                "angle": 30.0,
-                "type": "Rectangle",
-            },
-            "type": "UnionOf",
-        },
-        "check_path_changes": True,
-        "type": "Mask",
-    }
     assert ob.serialize() == serialized
     assert Spec.deserialize(serialized) == ob
 
@@ -177,13 +140,7 @@ def test_detects_invalid_serialized(serialized: Mapping[str, Any]) -> None:
 
 
 def test_vanilla_serialization():
-    ob = Mask(
-        Spiral("x", 0, 10, 3, "y", 0),
-        UnionOf(
-            Circle("x", "y", x_middle=0, y_middle=1, radius=4),
-            Rectangle("x", "y", 0, 1.1, 1.5, 2.1, 30),
-        ),
-    )
+    ob = Spiral("x", 0, 1, 0.1, "y", 2, 3)
 
     adapter = TypeAdapter(Spec[str])
     serialized = adapter.dump_json(ob)

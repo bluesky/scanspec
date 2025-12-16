@@ -30,14 +30,12 @@ from .core import (
     squash_frames,
     stack2dimension,
 )
-from .regions import Region, get_mask
 
 __all__ = [
     "ConstantDuration",
     "Spec",
     "Product",
     "Zip",
-    "Mask",
     "Snake",
     "Concat",
     "Squash",
@@ -69,7 +67,6 @@ class Spec(Generic[Axis]):
 
     - ``*``: Outer `Product` of two Specs or ints, nesting the second within the first.
     - ``@``: `ConstantDuration` of the Spec, setting a constant duration for each point.
-    - ``&``: `Mask` the Spec with a `Region`, excluding midpoints outside of it
     - ``~``: `Snake` the Spec, reversing every other iteration of it
     """
 
@@ -126,9 +123,6 @@ class Spec(Generic[Axis]):
 
     def __mul__(self, other: Spec[Axis] | int) -> Product[Axis]:
         return if_instance_do(other, (Spec, int), lambda o: Product(self, o))
-
-    def __and__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self, o))
 
     def __invert__(self) -> Snake[Axis]:
         return Snake(self)
@@ -308,81 +302,6 @@ class Zip(Spec[Axis]):
             )
             frames.append(combined)
         return frames
-
-
-@dataclass(config=StrictConfig)
-class Mask(Spec[Axis]):
-    """Restrict Spec to only midpoints that fall inside the given Region.
-
-    Typically created with the ``&`` operator. It also pushes down the
-    ``& | ^ -`` operators to its `Region` to avoid the need for brackets on
-    combinations of Regions.
-
-    If a Region spans multiple Dimension objects, they will be squashed together.
-
-    .. example_spec::
-
-        from scanspec.regions import Circle
-        from scanspec.specs import Fly, Linspace
-
-        region = Circle("x", "y", 4, 2, 1.2)
-        spec = Fly(Linspace("y", 1, 3, 3) * Linspace("x", 3, 5, 5) & region)
-
-    See Also: `why-squash-can-change-path`
-    """
-
-    spec: Spec[Axis] = Field(description="The Spec containing the source midpoints")
-    region: Region[Axis] = Field(description="The Region that midpoints will be inside")
-    check_path_changes: bool = Field(
-        description="If True path through scan will not be modified by squash",
-        default=True,
-    )
-
-    def axes(self) -> list[Axis]:  # noqa: D102
-        return self.spec.axes()
-
-    def duration(self) -> float | None | Literal["VARIABLE_DURATION"]:  # noqa: D102
-        return self.spec.duration()
-
-    def calculate(  # noqa: D102
-        self, bounds: bool = False, nested: bool = False
-    ) -> list[Dimension[Axis]]:
-        frames = self.spec.calculate(bounds, nested)
-        for axis_set in self.region.axis_sets():
-            # Find the start and end index of any dimensions containing these axes
-            matches = [i for i, d in enumerate(frames) if set(d.axes()) & axis_set]
-            assert matches, f"No Specs match axes {list(axis_set)}"
-            si, ei = matches[0], matches[-1]
-            if si != ei:
-                # The axis_set spans multiple Dimensions, squash them together
-                # If the spec to be squashed is nested (inside the Mask or outside)
-                # then check the path changes if requested
-                check_path_changes = bool(nested or si) and self.check_path_changes
-                squashed = squash_frames(frames[si : ei + 1], check_path_changes)
-                frames = frames[:si] + [squashed] + frames[ei + 1 :]
-        # Generate masks from the midpoints showing what's inside
-        masked_frames: list[Dimension[Axis]] = []
-        for f in frames:
-            print(f)
-            indices = get_mask(self.region, f.midpoints).nonzero()[0]
-            masked_frames.append(f.extract(indices))
-        return masked_frames
-
-    # *+ bind more tightly than &|^ so without these overrides we
-    # would need to add brackets to all combinations of Regions
-    def __or__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region | o))
-
-    def __and__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region & o))
-
-    def __xor__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region ^ o))
-
-    # This is here for completeness, tends not to be called as - binds
-    # tighter than &
-    def __sub__(self, other: Region[Axis]) -> Mask[Axis]:
-        return if_instance_do(other, Region, lambda o: Mask(self.spec, self.region - o))
 
 
 @dataclass(config=StrictConfig)

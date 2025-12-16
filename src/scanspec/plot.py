@@ -1,6 +1,6 @@
 """`plot_spec` to visualize a scan."""
 
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable
 from itertools import cycle
 from typing import Any
 
@@ -13,7 +13,6 @@ from mpl_toolkits.mplot3d import Axes3D, proj3d  # type: ignore
 from scipy import interpolate  # type: ignore
 
 from .core import stack2dimension
-from .regions import Circle, Ellipse, Polygon, Rectangle, Region, find_regions
 from .specs import Spec
 
 __all__ = ["plot_spec"]
@@ -115,19 +114,15 @@ def _plot_spline(
 def plot_spec(spec: Spec[Any], title: str | None = None):
     """Plot a spec, drawing the path taken through the scan.
 
-    Uses a different colour for each frame, grey for the turnarounds, and
-    marks the midpoints with a filled circle if there are less than 200 of
-    them. If the scan is 2D then 2D regions are shown in black.
+    Uses a different colour for each frame, grey for the turnarounds.
 
     .. example_spec::
 
         from scanspec.specs import Linspace
-        from scanspec.regions import Circle
 
-        cube = (
+        spec = (
             Linspace("z", 1, 3, 3) * Linspace("y", 1, 3, 10) * ~Linspace("x", 0, 2, 10)
         )
-        spec = cube & Circle("x", "y", 1, 2, 0.9)
     """
     dims = spec.calculate()
     dim = stack2dimension(dims)
@@ -161,33 +156,6 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
     # Title with dimension sizes
     title = title or ", ".join(f"Dim[{' '.join(d.axes())} len={len(d)}]" for d in dims)
     plt.title(title)  # type: ignore
-
-    # Plot any Regions
-    if ndims <= 2:
-        regions: Iterator[Region[Any]] = find_regions(spec)
-        for region in regions:
-            if isinstance(region, Rectangle):
-                xy = (region.x_min, region.y_min)
-                width = region.x_max - region.x_min
-                height = region.y_max - region.y_min
-                plt_axes.add_patch(
-                    patches.Rectangle(xy, width, height, angle=region.angle, fill=False)
-                )
-            elif isinstance(region, Circle):
-                xy = (region.x_middle, region.y_middle)
-                plt_axes.add_patch(patches.Circle(xy, region.radius, fill=False))
-            elif isinstance(region, Ellipse):
-                xy = (region.x_middle, region.y_middle)
-                width = region.x_radius * 2
-                height = region.y_radius * 2
-                angle = region.angle
-                plt_axes.add_patch(
-                    patches.Ellipse(xy, width, height, angle=angle, fill=False)
-                )
-            elif isinstance(region, Polygon):
-                # *xy_verts* is a numpy array with shape Nx2.
-                xy_verts = np.column_stack((region.x_verts, region.y_verts))
-                plt_axes.add_patch(patches.Polygon(xy_verts, fill=False))
 
     # Plot the splines
     tail: dict[str, npt.NDArray[np.float64] | None] = dict.fromkeys(axes)
