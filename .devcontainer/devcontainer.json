@@ -29,7 +29,7 @@
                 "ryanluker.vscode-coverage-gutters",
                 "charliermarsh.ruff",
                 "ms-azuretools.vscode-docker",
-                "ms-python.vscode-pylance@2025.10.2"
+                "ms-python.vscode-pylance@2025.10.2" // TODO: Unpin once https://github.com/microsoft/pyright/issues/11060 is resolved. See also: Issue 194
             ]
         }
     },
