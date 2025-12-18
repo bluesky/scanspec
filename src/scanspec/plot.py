@@ -135,9 +135,7 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
 
         from scanspec.specs import Linspace
 
-        spec = (
-            Linspace("z", 1, 3, 3) * Linspace("y", 1, 3, 10) * ~Linspace("x", 0, 2, 10)
-        )
+        spec = Linspace("z", 1, 3, 3) * Ellipse("x", 1, 01.8, 0.2, "y", 2, snake=True)
     """
     dims = spec.calculate()
     dim = stack2dimension(dims)
