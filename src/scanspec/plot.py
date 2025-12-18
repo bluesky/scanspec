@@ -111,7 +111,7 @@ def _plot_spline(
             yield unscaled_splines  # type: ignore
 
 
-def _get_boundaries(spec: Spec[Any]) -> Generator[patches.Patch | Any, None, None]:
+def _get_boundaries(spec: Spec[Any]) -> Generator[patches.Patch, None, None]:
     if isinstance(spec, Ellipse):
         xy = spec.x_centre, spec.y_centre
         width = spec.x_diameter
