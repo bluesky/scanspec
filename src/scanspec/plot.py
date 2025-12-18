@@ -1,6 +1,6 @@
 """`plot_spec` to visualize a scan."""
 
-from collections.abc import Iterable
+from collections.abc import Generator, Iterable
 from itertools import cycle
 from typing import Any
 
@@ -13,7 +13,7 @@ from mpl_toolkits.mplot3d import Axes3D, proj3d  # type: ignore
 from scipy import interpolate  # type: ignore
 
 from .core import stack2dimension
-from .specs import Spec
+from .specs import Ellipse, Polygon, Spec
 
 __all__ = ["plot_spec"]
 
@@ -111,6 +111,21 @@ def _plot_spline(
             yield unscaled_splines  # type: ignore
 
 
+def _get_boundaries(spec: Spec[Any]) -> Generator[patches.Patch | Any, None, None]:
+    if isinstance(spec, Ellipse):
+        xy = spec.x_centre, spec.y_centre
+        width = spec.x_diameter
+        height = spec.y_diameter
+        yield patches.Ellipse(xy, width, height, fill=False)
+    elif isinstance(spec, Polygon):
+        xy_verts = spec.vertices
+        yield patches.Polygon(xy_verts, fill=False)
+    else:
+        for name in spec.__dict__.keys():
+            if isinstance(s := getattr(spec, name), Spec):
+                yield from _get_boundaries(s)  # type: ignore
+
+
 def plot_spec(spec: Spec[Any], title: str | None = None):
     """Plot a spec, drawing the path taken through the scan.
 
@@ -156,6 +171,11 @@ def plot_spec(spec: Spec[Any], title: str | None = None):
     # Title with dimension sizes
     title = title or ", ".join(f"Dim[{' '.join(d.axes())} len={len(d)}]" for d in dims)
     plt.title(title)  # type: ignore
+
+    # Plot regions
+    if ndims <= 2:
+        for patch in _get_boundaries(spec):
+            plt_axes.add_patch(patch)
 
     # Plot the splines
     tail: dict[str, npt.NDArray[np.float64] | None] = dict.fromkeys(axes)

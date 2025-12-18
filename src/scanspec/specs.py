@@ -549,7 +549,7 @@ class Range(Spec[Axis]):
     ``step`` defines the distance between midpoints.
 
     .. seealso::
-        ``Linspace``: For linearly spaced frames defined with a number of frames.
+        `Linspace`: For linearly spaced frames defined with a number of frames.
 
     .. example_spec::
 

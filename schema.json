@@ -1000,7 +1000,7 @@
                     "stop"
                 ],
                 "title": "Range",
-                "description": "Linearly spaced frames with start and stop as the bounding midpoints.\n\n``step`` defines the distance between midpoints.\n\n.. seealso::\n    ``Linspace``: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Range\n\n    spec = Fly(Range(\"x\", 1, 2, 0.25))"
+                "description": "Linearly spaced frames with start and stop as the bounding midpoints.\n\n``step`` defines the distance between midpoints.\n\n.. seealso::\n    `Linspace`: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    from scanspec.specs import Fly, Range\n\n    spec = Fly(Range(\"x\", 1, 2, 0.25))"
             },
             "SmallestStepResponse": {
                 "properties": {
