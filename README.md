@@ -32,7 +32,7 @@ each point:
 ```python
 from scanspec.specs import Ellipse, Fly
 
-spec = Fly(Ellipse(x, 1, 3, 0.3, y, 2.8, snake=True))
+spec = Fly(0.4 @ Ellipse(x, 1, 1, 1/9, y, 2.8, y_step=1.7/11, snake=True))
 ```
 
 Which when plotted looks like:
