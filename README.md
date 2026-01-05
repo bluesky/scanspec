@@ -12,10 +12,9 @@ Specify step and flyscan paths in a serializable, efficient and Pythonic way usi
 - Specs like Line or Spiral
 - Optionally Snaking
 - Zip, Product and Concat to compose
-- Masks with multiple Regions to restrict
 
 Serialize the Spec rather than the expanded Path and reconstruct it on the
-server. It can them be iterated over like a [cycler][], or a stack of scan Frames
+server. It can then be iterated over like a [cycler][], or a stack of scan Frames
 can be produced and expanded Paths created to consume chunk by chunk.
 
 [cycler]: https://matplotlib.org/cycler/
@@ -31,11 +30,9 @@ An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
 each point:
 
 ```python
-from scanspec.specs import Line, Fly
-from scanspec.regions import Circle
+from scanspec.specs import Ellipse, Fly
 
-grid = Line(y, 2.1, 3.8, 12) * ~Line(x, 0.5, 1.5, 10)
-spec = Fly(0.4 @ grid) & Circle(x, y, 1.0, 2.8, radius=0.5)
+spec = Fly(0.4 @ Ellipse(x, 1, 1, 1/9, y, 2.8, y_step=1.7/11, snake=True))
 ```
 
 Which when plotted looks like:

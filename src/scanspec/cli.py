@@ -6,7 +6,6 @@ import string
 import click
 
 # Need this so we can eval() below
-from .regions import *  # noqa
 from .specs import *  # noqa
 
 
