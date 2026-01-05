@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Creating a Scan Spec &#8212; scanspec 0.9.1.dev18+g4ce50225b documentation</title>
+    <title>Creating a Scan Spec &#8212; scanspec 0.9.1.dev19+g159f25fc8 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=3bc66766"></script>
+    <script src="../_static/documentation_options.js?v=aef70b3d"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -553,48 +553,23 @@ Spec of our grid we get:</p>
 <img alt="../_images/creating-a-spec-4.png" class="plot-directive" src="../_images/creating-a-spec-4.png" />
 </figure>
 </section>
-<section id="masking-with-regions">
-<h2>Masking with Regions<a class="headerlink" href="#masking-with-regions" title="Link to this heading">#</a></h2>
-<p>We can apply a <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Mask" title="scanspec.specs.Mask"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Mask</span></code></a> to only include frames where the midpoints are within a
-given <a class="reference internal" href="../_api/scanspec.regions.html#scanspec.regions.Region" title="scanspec.regions.Region"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> using the <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> operator:</p>
+<section id="snaked-regions">
+<h2>Snaked Regions<a class="headerlink" href="#snaked-regions" title="Link to this heading">#</a></h2>
+<p>We can construct an <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Ellipse" title="scanspec.specs.Ellipse"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Ellipse</span></code></a> or a <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Polygon" title="scanspec.specs.Polygon"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">Polygon</span></code></a> with a grid or a snaked grid
+by passing the optional parameter <code class="docutils literal notranslate"><span class="pre">snake</span></code>.</p>
+<p>For example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.regions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Circle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ellipse</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Ellipse</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">snake</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>(<a class="reference download internal" download="" href="../_downloads/d31ee89c9fe4d6d0e70214e6a0e8a4df/creating-a-spec-5.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/6d4a97d0302014228a54f3420775b31e/creating-a-spec-5.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/f25ee9ccc9cf43c3c3addcdab46ff433/creating-a-spec-5.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/ec8d232d0953cdaac6529cb67293b0e8/creating-a-spec-5.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
 <figure class="align-default">
 <img alt="../_images/creating-a-spec-5.png" class="plot-directive" src="../_images/creating-a-spec-5.png" />
-</figure>
-</section>
-<section id="masking-with-multiple-regions">
-<h2>Masking with Multiple Regions<a class="headerlink" href="#masking-with-multiple-regions" title="Link to this heading">#</a></h2>
-<p>We can apply set-like operators to Masked Specs:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">|</span></code>: <a class="reference internal" href="../_api/scanspec.regions.html#scanspec.regions.UnionOf" title="scanspec.regions.UnionOf"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">UnionOf</span></code></a> two Regions</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&amp;</span></code>: <a class="reference internal" href="../_api/scanspec.regions.html#scanspec.regions.IntersectionOf" title="scanspec.regions.IntersectionOf"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">IntersectionOf</span></code></a> two Regions</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">-</span></code>: <a class="reference internal" href="../_api/scanspec.regions.html#scanspec.regions.DifferenceOf" title="scanspec.regions.DifferenceOf"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">DifferenceOf</span></code></a> two Regions</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">^</span></code>: <a class="reference internal" href="../_api/scanspec.regions.html#scanspec.regions.SymmetricDifferenceOf" title="scanspec.regions.SymmetricDifferenceOf"><code class="xref any py py-obj docutils literal notranslate"><span class="pre">SymmetricDifferenceOf</span></code></a> two Regions</p></li>
-</ul>
-<p>For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example Spec</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.regions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Circle</span>
-
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span> <span class="o">-</span> <span class="n">Circle</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
-<span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>(<a class="reference download internal" download="" href="../_downloads/cf755cae62efcddb79d35f345aaba8ba/creating-a-spec-6.py"><code class="xref download docutils literal notranslate"><span class="pre">Source</span> <span class="pre">code</span></code></a>, <a class="reference download internal" download="" href="../_downloads/d5d933689d67f07042600b892a1fa576/creating-a-spec-6.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/2cfa1a7efa170f3f496b6daff9bb2c49/creating-a-spec-6.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="../_downloads/5c0624426b92b4d678699185e497f06b/creating-a-spec-6.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</p>
-<figure class="align-default">
-<img alt="../_images/creating-a-spec-6.png" class="plot-directive" src="../_images/creating-a-spec-6.png" />
 </figure>
 </section>
 <section id="conclusion">
@@ -658,8 +633,7 @@ scanning system.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#linspace-with-2-axes">Linspace with 2 axes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#grid">Grid</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#snaked-grid">Snaked Grid</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#masking-with-regions">Masking with Regions</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#masking-with-multiple-regions">Masking with Multiple Regions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#snaked-regions">Snaked Regions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conclusion">Conclusion</a></li>
 </ul>
   </nav></div>

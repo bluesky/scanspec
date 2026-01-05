@@ -76,38 +76,20 @@ Spec of our grid we get:
     spec = Linspace("y", 3, 4, 3) * ~Linspace("x", 1, 2, 5)
 
 
-Masking with Regions
---------------------
+Snaked Regions
+--------------
 
-We can apply a `Mask` to only include frames where the midpoints are within a
-given `Region` using the ``&`` operator:
-
-.. example_spec::
-
-    from scanspec.specs import Linspace
-    from scanspec.regions import Circle
-
-    spec = Linspace("y", 3, 4, 3) * ~Linspace("x", 1, 2, 5) & Circle("x", "y", 1.5, 3.5, 0.6)
-
-
-Masking with Multiple Regions
------------------------------
-
-We can apply set-like operators to Masked Specs:
-
-- ``|``: `UnionOf` two Regions
-- ``&``: `IntersectionOf` two Regions
-- ``-``: `DifferenceOf` two Regions
-- ``^``: `SymmetricDifferenceOf` two Regions
+We can construct an `Ellipse` or a `Polygon` with a grid or a snaked grid
+by passing the optional parameter ``snake``.
 
 For example:
 
 .. example_spec::
 
-    from scanspec.specs import Linspace
-    from scanspec.regions import Circle
+    from scanspec.specs import Ellipse
 
-    spec = Linspace("y", 3, 4, 3) * ~Linspace("x", 1, 2, 5) & Circle("x", "y", 1.5, 3.5, 0.6) - Circle("x", "y", 1.4, 3.5, 0.2)
+    spec = Ellipse("x", 0, 1, 0.1, "y", 5, 10, 0.5, snake=True)
+
 
 
 Conclusion

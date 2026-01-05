@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>scanspec &#8212; scanspec 0.9.1.dev18+g4ce50225b documentation</title>
+    <title>scanspec &#8212; scanspec 0.9.1.dev19+g159f25fc8 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=3bc66766"></script>
+    <script src="_static/documentation_options.js?v=aef70b3d"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -431,10 +431,9 @@
 <li><p>Specs like Line or Spiral</p></li>
 <li><p>Optionally Snaking</p></li>
 <li><p>Zip, Product and Concat to compose</p></li>
-<li><p>Masks with multiple Regions to restrict</p></li>
 </ul>
 <p>Serialize the Spec rather than the expanded Path and reconstruct it on the
-server. It can them be iterated over like a <a class="reference external" href="https://matplotlib.org/cycler/">cycler</a>, or a stack of scan Frames
+server. It can then be iterated over like a <a class="reference external" href="https://matplotlib.org/cycler/">cycler</a>, or a stack of scan Frames
 can be produced and expanded Paths created to consume chunk by chunk.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -460,11 +459,9 @@ can be produced and expanded Paths created to consume chunk by chunk.</p>
 </div>
 <p>An example ScanSpec of a 2D snaked grid flyscan inside a circle spending 0.4s at
 each point:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line</span><span class="p">,</span> <span class="n">Fly</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.regions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Circle</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ellipse</span><span class="p">,</span> <span class="n">Fly</span>
 
-<span class="n">grid</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mf">3.8</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Line</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="mf">0.4</span> <span class="o">@</span> <span class="n">grid</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Circle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="mf">0.4</span> <span class="o">@</span> <span class="n">Ellipse</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">9</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="n">y_step</span><span class="o">=</span><span class="mf">1.7</span><span class="o">/</span><span class="mi">11</span><span class="p">,</span> <span class="n">snake</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Which when plotted looks like:</p>

@@ -1,7 +1,7 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Fly, Linspace, Squash
+from scanspec.specs import Fly, Linspace
 
-spec = Fly(Squash(Linspace("y", 1, 2, 3) * Linspace("x", 0, 1, 4)))
+spec = Fly(Linspace("x", 1, 2, 5))
 plot_spec(spec)

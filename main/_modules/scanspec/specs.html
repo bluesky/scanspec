@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.specs &#8212; scanspec 0.9.1.dev18+g4ce50225b documentation</title>
+    <title>scanspec.specs &#8212; scanspec 0.9.1.dev19+g159f25fc8 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=3bc66766"></script>
+    <script src="../../_static/documentation_options.js?v=aef70b3d"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -463,6 +463,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic.dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AxesPoints</span><span class="p">,</span>
     <span class="n">Axis</span><span class="p">,</span>
     <span class="n">Dimension</span><span class="p">,</span>
     <span class="n">Midpoints</span><span class="p">,</span>
@@ -475,20 +476,20 @@
     <span class="n">squash_frames</span><span class="p">,</span>
     <span class="n">stack2dimension</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.regions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Region</span><span class="p">,</span> <span class="n">get_mask</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;ConstantDuration&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Spec&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Product&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Zip&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Mask&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Snake&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Concat&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Squash&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Linspace&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Line&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Range&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Ellipse&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Polygon&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Static&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Spiral&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Fly&quot;</span><span class="p">,</span>
@@ -496,6 +497,8 @@
     <span class="s2">&quot;fly&quot;</span><span class="p">,</span>
     <span class="s2">&quot;VARIABLE_DURATION&quot;</span><span class="p">,</span>
 <span class="p">]</span>
+
+<span class="n">_NpMask</span> <span class="o">=</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">]</span>
 
 <span class="c1">#: A string returned from `Spec.duration` to signify it produces</span>
 <span class="c1">#: a different duration for each point</span>
@@ -512,7 +515,6 @@
 
 <span class="sd">    - ``*``: Outer `Product` of two Specs or ints, nesting the second within the first.</span>
 <span class="sd">    - ``@``: `ConstantDuration` of the Spec, setting a constant duration for each point.</span>
-<span class="sd">    - ``&amp;``: `Mask` the Spec with a `Region`, excluding midpoints outside of it</span>
 <span class="sd">    - ``~``: `Snake` the Spec, reversing every other iteration of it</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -587,9 +589,6 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">Spec</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mask</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">))</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__invert__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Snake</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">Snake</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -805,92 +804,6 @@
             <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">frames</span></div>
 </div>
-
-
-
-<div class="viewcode-block" id="Mask">
-<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Mask">[docs]</a>
-<span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">Mask</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Restrict Spec to only midpoints that fall inside the given Region.</span>
-
-<span class="sd">    Typically created with the ``&amp;`` operator. It also pushes down the</span>
-<span class="sd">    ``&amp; | ^ -`` operators to its `Region` to avoid the need for brackets on</span>
-<span class="sd">    combinations of Regions.</span>
-
-<span class="sd">    If a Region spans multiple Dimension objects, they will be squashed together.</span>
-
-<span class="sd">    .. example_spec::</span>
-
-<span class="sd">        from scanspec.regions import Circle</span>
-<span class="sd">        from scanspec.specs import Fly, Linspace</span>
-
-<span class="sd">        region = Circle(&quot;x&quot;, &quot;y&quot;, 4, 2, 1.2)</span>
-<span class="sd">        spec = Fly(Linspace(&quot;y&quot;, 1, 3, 3) * Linspace(&quot;x&quot;, 3, 5, 5) &amp; region)</span>
-
-<span class="sd">    See Also: `why-squash-can-change-path`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Spec containing the source midpoints&quot;</span><span class="p">)</span>
-    <span class="n">region</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The Region that midpoints will be inside&quot;</span><span class="p">)</span>
-    <span class="n">check_path_changes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If True path through scan will not be modified by squash&quot;</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span>
-
-<div class="viewcode-block" id="Mask.axes">
-<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Mask.axes">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>  <span class="c1"># noqa: D102</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="Mask.duration">
-<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Mask.duration">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">duration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;VARIABLE_DURATION&quot;</span><span class="p">]:</span>  <span class="c1"># noqa: D102</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">duration</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="Mask.calculate">
-<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Mask.calculate">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
-        <span class="n">frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">axis_set</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="o">.</span><span class="n">axis_sets</span><span class="p">():</span>
-            <span class="c1"># Find the start and end index of any dimensions containing these axes</span>
-            <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span> <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">axes</span><span class="p">())</span> <span class="o">&amp;</span> <span class="n">axis_set</span><span class="p">]</span>
-            <span class="k">assert</span> <span class="n">matches</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;No Specs match axes </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">axis_set</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">si</span><span class="p">,</span> <span class="n">ei</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">matches</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">si</span> <span class="o">!=</span> <span class="n">ei</span><span class="p">:</span>
-                <span class="c1"># The axis_set spans multiple Dimensions, squash them together</span>
-                <span class="c1"># If the spec to be squashed is nested (inside the Mask or outside)</span>
-                <span class="c1"># then check the path changes if requested</span>
-                <span class="n">check_path_changes</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">nested</span> <span class="ow">or</span> <span class="n">si</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_path_changes</span>
-                <span class="n">squashed</span> <span class="o">=</span> <span class="n">squash_frames</span><span class="p">(</span><span class="n">frames</span><span class="p">[</span><span class="n">si</span> <span class="p">:</span> <span class="n">ei</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">check_path_changes</span><span class="p">)</span>
-                <span class="n">frames</span> <span class="o">=</span> <span class="n">frames</span><span class="p">[:</span><span class="n">si</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">squashed</span><span class="p">]</span> <span class="o">+</span> <span class="n">frames</span><span class="p">[</span><span class="n">ei</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
-        <span class="c1"># Generate masks from the midpoints showing what&#39;s inside</span>
-        <span class="n">masked_frames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">:</span>
-            <span class="n">indices</span> <span class="o">=</span> <span class="n">get_mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">midpoints</span><span class="p">)</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">masked_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">indices</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">masked_frames</span></div>
-
-
-    <span class="c1"># *+ bind more tightly than &amp;|^ so without these overrides we</span>
-    <span class="c1"># would need to add brackets to all combinations of Regions</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__or__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mask</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">|</span> <span class="n">o</span><span class="p">))</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__and__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mask</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">&amp;</span> <span class="n">o</span><span class="p">))</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__xor__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mask</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">^</span> <span class="n">o</span><span class="p">))</span>
-
-    <span class="c1"># This is here for completeness, tends not to be called as - binds</span>
-    <span class="c1"># tighter than &amp;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Region</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Mask</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">if_instance_do</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Region</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">region</span> <span class="o">-</span> <span class="n">o</span><span class="p">))</span></div>
 
 
 
@@ -1184,10 +1097,9 @@
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Range">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Range</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Linearly spaced frames with start and stop as first and last midpoints.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Linearly spaced frames with start and stop as the bounding midpoints.</span>
 
-<span class="sd">    This class is intended to handle linearly spaced frames defined with a</span>
-<span class="sd">    specific step size.</span>
+<span class="sd">    ``step`` defines the distance between midpoints.</span>
 
 <span class="sd">    .. seealso::</span>
 <span class="sd">        `Linspace`: For linearly spaced frames defined with a number of frames.</span>
@@ -1203,8 +1115,8 @@
     <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Midpoint of the first point of the line&quot;</span><span class="p">)</span>
     <span class="n">stop</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Midpoint of the last point of the line&quot;</span><span class="p">)</span>
     <span class="n">step</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Step size (defaults to stop - start)&quot;</span><span class="p">,</span>
         <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Step size (defaults to stop - start)&quot;</span><span class="p">,</span>
         <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">data</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;stop&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">]),</span>
     <span class="p">)</span>
 
@@ -1429,8 +1341,8 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">Spiral</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Archimedean spiral of &quot;x_axis&quot; and &quot;y_axis&quot;.</span>
 
-<span class="sd">    Starts at centre point (&quot;x_start&quot;, &quot;y_start&quot;) with angle &quot;rotate&quot;. Produces</span>
-<span class="sd">    &quot;num&quot; points in a spiral spanning width of &quot;x_range&quot; and height of &quot;y_range&quot;</span>
+<span class="sd">    Starts at centre point (&quot;x_start&quot;, &quot;y_start&quot;)&quot;. Produces &quot;num&quot; points in a</span>
+<span class="sd">    spiral spanning width of &quot;x_range&quot; and height of &quot;y_range&quot;</span>
 
 <span class="sd">    .. example_spec::</span>
 
@@ -1445,14 +1357,10 @@
     <span class="n">x_step</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Radial spacing along x&quot;</span><span class="p">)</span>  <span class="c1"># TODO: rethink name</span>
     <span class="n">y_axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for y&quot;</span><span class="p">)</span>
     <span class="n">y_centre</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;y centre of the spiral&quot;</span><span class="p">)</span>
-    <span class="n">y_diameter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;y width of the spiral (defaults to x_diameter)&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span>
+    <span class="n">y_diameter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;y width of the spiral (defaults to x_diameter)&quot;</span><span class="p">,</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">data</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;x_diameter&quot;</span><span class="p">]),</span>
     <span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># populate defaults</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_diameter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">y_diameter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_diameter</span>
 
 <div class="viewcode-block" id="Spiral.axes">
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Spiral.axes">[docs]</a>
@@ -1578,6 +1486,244 @@
             <span class="c1"># Not all durations are the same</span>
             <span class="k">return</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">first_duration</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_build_2d_grid</span><span class="p">(</span>
+    <span class="n">x_dim</span><span class="p">:</span> <span class="n">Range</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span> <span class="n">y_dim</span><span class="p">:</span> <span class="n">Range</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span> <span class="n">snake</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">vertical</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply fast/slow selection, optional snake, and build grid.&quot;&quot;&quot;</span>
+    <span class="n">fast_dim</span><span class="p">,</span> <span class="n">slow_dim</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_dim</span><span class="p">,</span> <span class="n">x_dim</span><span class="p">)</span> <span class="k">if</span> <span class="n">vertical</span> <span class="k">else</span> <span class="p">(</span><span class="n">x_dim</span><span class="p">,</span> <span class="n">y_dim</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">snake</span><span class="p">:</span>
+        <span class="n">fast_dim</span> <span class="o">=</span> <span class="n">Snake</span><span class="p">(</span><span class="n">fast_dim</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">slow_dim</span> <span class="o">*</span> <span class="n">fast_dim</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_masked_frames</span><span class="p">(</span>
+    <span class="n">grid</span><span class="p">:</span> <span class="n">Product</span><span class="p">[</span><span class="n">Axis</span><span class="p">],</span>
+    <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">mask_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">]],</span> <span class="n">_NpMask</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute calculate → squash → mask → extract.&quot;&quot;&quot;</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
+    <span class="n">squashed</span> <span class="o">=</span> <span class="n">squash_frames</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">nested</span><span class="p">)</span>
+
+    <span class="n">points</span> <span class="o">=</span> <span class="n">squashed</span><span class="o">.</span><span class="n">midpoints</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask_fn</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">squashed</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">idx</span><span class="p">)]</span>
+
+
+<div class="viewcode-block" id="Ellipse">
+<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Ellipse">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Ellipse</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Grid of points masked to an elliptical footprint.</span>
+
+<span class="sd">    Constructs a 2-D scan over an axis-aligned ellipse defined by</span>
+<span class="sd">    ``(x_axis, y_axis)``, centred at (``x_centre``, ``y_centre``), with</span>
+<span class="sd">    diameters ``x_diameter`` and ``y_diameter``. Grid spacing along each axis is</span>
+<span class="sd">    controlled by ``x_step`` and ``y_step``. If ``snake`` is True, the fast</span>
+<span class="sd">    axis will zigzag like a snake. If ``vertical`` is True, the y axis will be</span>
+<span class="sd">    the fast axis.</span>
+
+<span class="sd">    Starts from one of the four extremes of the ellipse identified by the signs of</span>
+<span class="sd">    ``x_step`` and ``y_step``.</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Ellipse, Fly</span>
+
+<span class="sd">        # An elliptical region centred at (0, 0) on axes &quot;x&quot; and &quot;y&quot;,</span>
+<span class="sd">        # with 10x6 diameters and steps of 0.5 in both directions.</span>
+<span class="sd">        spec = Fly(</span>
+<span class="sd">            Ellipse(</span>
+<span class="sd">                &quot;x&quot;, 0, 10, 0.5,</span>
+<span class="sd">                &quot;y&quot;, 0, 6,</span>
+<span class="sd">                snake=True,</span>
+<span class="sd">                vertical=False,</span>
+<span class="sd">            )</span>
+<span class="sd">        )</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">x_axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for x&quot;</span><span class="p">)</span>
+    <span class="n">x_centre</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;x centre of the spiral&quot;</span><span class="p">)</span>
+    <span class="n">x_diameter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;x width of the spiral&quot;</span><span class="p">)</span>
+    <span class="n">x_step</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Spacing along x&quot;</span><span class="p">)</span>
+    <span class="n">y_axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for y&quot;</span><span class="p">)</span>
+    <span class="n">y_centre</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;y centre of the spiral&quot;</span><span class="p">)</span>
+    <span class="n">y_diameter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;y width of the spiral (defaults to x_diameter)&quot;</span><span class="p">,</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">data</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;x_diameter&quot;</span><span class="p">]),</span>
+    <span class="p">)</span>
+    <span class="n">y_step</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Spacing along y (defaults to x_step)&quot;</span><span class="p">,</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">data</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;x_step&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">snake</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If True, path zigzag like a snake (defaults to False)&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">vertical</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If True, y axis is the fast axis (defaults to False)&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="Ellipse.axes">
+<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Ellipse.axes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>  <span class="c1"># noqa: D102</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">_NpMask</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_centre</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_centre</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_diameter</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">y</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_diameter</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">mask</span>
+
+<div class="viewcode-block" id="Ellipse.calculate">
+<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Ellipse.calculate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+        <span class="c1"># construct signed radius along each axis</span>
+        <span class="n">x_radius</span><span class="p">,</span> <span class="n">y_radius</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_diameter</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_diameter</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Construct directed Range objects</span>
+        <span class="n">x_dim</span> <span class="o">=</span> <span class="n">Range</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_centre</span> <span class="o">-</span> <span class="n">x_radius</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_centre</span> <span class="o">+</span> <span class="n">x_radius</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_step</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">y_dim</span> <span class="o">=</span> <span class="n">Range</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_centre</span> <span class="o">-</span> <span class="n">y_radius</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_centre</span> <span class="o">+</span> <span class="n">y_radius</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_step</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Construct grid</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">_build_2d_grid</span><span class="p">(</span><span class="n">x_dim</span><span class="p">,</span> <span class="n">y_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snake</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertical</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_compute_masked_frames</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Polygon">
+<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Polygon">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Polygon</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Grid of points masked to a polygonal footprint.</span>
+
+<span class="sd">    Constructs a 2-D scan over an axis-aligned polygon defined by an ordered</span>
+<span class="sd">    list of vertices &quot;(x, y)&quot; given in ``vertices``. The polygon may be convex</span>
+<span class="sd">    or concave, and the interior is determined using an even-odd ray-casting</span>
+<span class="sd">    rule. Grid spacing along each axis is controlled by ``x_step`` and ``y_step``,</span>
+<span class="sd">    If ``snake`` is True, the fast axis will zigzag like a snake. If ``vertical`` is</span>
+<span class="sd">    True, the y axis will be the fast axis.</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        from scanspec.specs import Polygon, Fly</span>
+
+<span class="sd">        # A triangular region on axes &quot;x&quot; and &quot;y&quot;, stepped by 0.2 units</span>
+<span class="sd">        # in both directions.</span>
+<span class="sd">        spec = Fly(</span>
+<span class="sd">            Polygon(</span>
+<span class="sd">                x_axis=&quot;x&quot;,</span>
+<span class="sd">                y_axis=&quot;y&quot;,</span>
+<span class="sd">                vertices=[(0, 0), (5, 0), (2.5, 4)],</span>
+<span class="sd">                x_step=0.2,</span>
+<span class="sd">                y_step=0.2,</span>
+<span class="sd">                snake=True,</span>
+<span class="sd">                vertical=False,</span>
+<span class="sd">            )</span>
+<span class="sd">        )</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">x_axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for x&quot;</span><span class="p">)</span>
+    <span class="n">y_axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;An identifier for what to move for y&quot;</span><span class="p">)</span>
+    <span class="n">vertices</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;List of (x, y) vertices defining the polygon&quot;</span>
+    <span class="p">)</span>
+    <span class="n">x_step</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Spacing along x&quot;</span><span class="p">)</span>
+    <span class="n">y_step</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Spacing along y (defaults to x_step)&quot;</span><span class="p">,</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">data</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;x_step&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">snake</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If True, path zigzag like a snake (defaults to False)&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">vertical</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;If True, y axis is the fast axis (defaults to False)&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="Polygon.axes">
+<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Polygon.axes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>  <span class="c1"># noqa: D102</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">AxesPoints</span><span class="p">[</span><span class="n">Axis</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">_NpMask</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">]</span>
+        <span class="n">v1x</span><span class="p">,</span> <span class="n">v1y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v2x</span><span class="p">,</span> <span class="n">v2y</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">:</span>
+            <span class="c1"># skip horizontal edges</span>
+            <span class="k">if</span> <span class="n">v2y</span> <span class="o">!=</span> <span class="n">v1y</span><span class="p">:</span>
+                <span class="n">vmask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
+                <span class="n">vmask</span> <span class="o">|=</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="n">v2y</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y</span> <span class="o">&gt;=</span> <span class="n">v1y</span><span class="p">)</span>
+                <span class="n">vmask</span> <span class="o">|=</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="n">v1y</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y</span> <span class="o">&gt;=</span> <span class="n">v2y</span><span class="p">)</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">v1y</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">v2y</span> <span class="o">-</span> <span class="n">v1y</span><span class="p">)</span>
+                <span class="n">vmask</span> <span class="o">&amp;=</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">v1x</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="n">v2x</span> <span class="o">-</span> <span class="n">v1x</span><span class="p">)</span>
+                <span class="n">mask</span> <span class="o">^=</span> <span class="n">vmask</span>
+            <span class="n">v1x</span><span class="p">,</span> <span class="n">v1y</span> <span class="o">=</span> <span class="n">v2x</span><span class="p">,</span> <span class="n">v2y</span>
+        <span class="k">return</span> <span class="n">mask</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">values</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Polygon.calculate">
+<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Polygon.calculate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+        <span class="c1"># construct signed radius along each axis</span>
+        <span class="n">x_start</span><span class="p">,</span> <span class="n">x_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">y_start</span><span class="p">,</span> <span class="n">y_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Construct directed Range objects</span>
+        <span class="n">x_dim</span> <span class="o">=</span> <span class="n">Range</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_axis</span><span class="p">,</span>
+            <span class="n">x_start</span><span class="p">,</span>
+            <span class="n">x_stop</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x_step</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">y_dim</span> <span class="o">=</span> <span class="n">Range</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_axis</span><span class="p">,</span>
+            <span class="n">y_start</span><span class="p">,</span>
+            <span class="n">y_stop</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_step</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Construct grid</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">_build_2d_grid</span><span class="p">(</span><span class="n">x_dim</span><span class="p">,</span> <span class="n">y_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snake</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertical</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_compute_masked_frames</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">nested</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">)</span></div>
+</div>
+
 </pre></div>
 
                 </article>

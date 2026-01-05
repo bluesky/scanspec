@@ -1,8 +1,7 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Linspace
-from scanspec.regions import Circle
+from scanspec.specs import Ellipse
 
-spec = Linspace("y", 3, 4, 3) * ~Linspace("x", 1, 2, 5) & Circle("x", "y", 1.5, 3.5, 0.6)
+spec = Ellipse("x", 0, 1, 0.1, "y", 5, 10, 0.5, snake=True)
 plot_spec(spec)

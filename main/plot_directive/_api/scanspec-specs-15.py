@@ -1,7 +1,19 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Fly, Linspace, Static
+from scanspec.specs import Polygon, Fly
 
-spec = Fly(Linspace("y", 1, 2, 3).zip(Static("x", 3)))
+# A triangular region on axes "x" and "y", stepped by 0.2 units
+# in both directions.
+spec = Fly(
+    Polygon(
+        x_axis="x",
+        y_axis="y",
+        vertices=[(0, 0), (5, 0), (2.5, 4)],
+        x_step=0.2,
+        y_step=0.2,
+        snake=True,
+        vertical=False,
+    )
+)
 plot_spec(spec)
