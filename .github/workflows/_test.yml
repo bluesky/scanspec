@@ -9,9 +9,6 @@ on:
         type: string
         description: The runner to run this job on
         required: true
-    secrets:
-      CODECOV_TOKEN:
-        required: true
 
 env:
   # https://github.com/pytest-dev/pytest/issues/2042
@@ -24,13 +21,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Need this to get version number from last tag
           fetch-depth: 0
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
 
       - name: Run tests
         run: uv run --locked tox -e tests
@@ -40,5 +37,3 @@ jobs:
         with:
           name: ${{ inputs.python-version }}/${{ inputs.runs-on }}
           files: cov.xml
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

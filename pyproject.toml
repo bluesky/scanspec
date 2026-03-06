@@ -112,7 +112,7 @@ commands = [
     [
         "pyright",
         "--pythonpath",
-        ".venv/bin/python",
+        "{env:VIRTUAL_ENV}/bin/python",
         "src",
         "tests",
         { replace = "posargs", default = [
