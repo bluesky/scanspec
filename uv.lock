@@ -1683,7 +1683,7 @@ dev = [
     { name = "copier" },
     { name = "httpx" },
     { name = "myst-parser" },
-    { name = "pillow", specifier = "==11.0.0" },
+    { name = "pillow" },
     { name = "pre-commit" },
     { name = "pydata-sphinx-theme", specifier = ">=0.12" },
     { name = "pyright", specifier = "!=1.1.407" },
