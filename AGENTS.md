@@ -19,3 +19,26 @@ When `scanspec2` is feature-complete (all PRD requirements met and tests passing
 All new tests go in `tests/scanspec2/`. Do not modify tests in `tests/` (those cover the 1.x package).
 
 The PRD is in `prd.md`. The design notes and user stories are in `thoughts.md`.
+
+## Testing conventions
+
+- Write pytest-style **functions**, not `unittest`-style classes.
+- Keep tests simple: prefer a few direct instantiation / field-access assertions over elaborate setups.
+- Test **public interfaces**; avoid mocks unless there is no other way.
+- No serialisation tests for plain dataclasses — they carry no serialisation logic.
+
+## Scratch / prototype files
+
+- **Always write scratch or prototype files inside the workspace** (e.g. `/workspaces/scanspec/scratch/`) — never to `/tmp`.
+- After verifying a prototype, delete the scratch file or incorporate it into the codebase.
+
+## Type-checking
+
+- Always run `python -m pyright src/scanspec2/ tests/scanspec2/` after running tests.
+- Both must pass (0 errors) before marking a phase complete.
+
+## Linting
+
+- Always run `ruff check src/scanspec2/ tests/scanspec2/` after running tests.
+- Must report 0 errors before marking a phase complete.
+- Use `# noqa: <code>` only when the violation is genuinely unfixable (e.g. `UP007` on a dynamic `Union[tuple(...)]`); never suppress fixable errors.
