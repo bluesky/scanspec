@@ -138,8 +138,9 @@ class Spec(Generic[Axis]):
     def serialize(self) -> Mapping[str, Any]:
         """Serialize the Spec to a dictionary.
 
-        Axes that are not natively JSON-serializable (e.g. ophyd Device objects)
-        are converted to their ``repr()`` string.
+        Any value that pydantic cannot natively convert to a JSON-serializable
+        type (e.g. an ``ophyd_async`` device used as an axis) is replaced by
+        its ``repr()`` string.
         """
         return TypeAdapter(Spec[Any]).dump_python(self, mode="json", fallback=repr)
 
