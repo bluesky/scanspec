@@ -47,6 +47,7 @@ dev = [
     "tox-uv",
     "types-mock",
     "Pillow",
+    "ophyd_async",
 ]
 
 [project.scripts]

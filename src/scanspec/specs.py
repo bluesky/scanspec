@@ -136,8 +136,12 @@ class Spec(Generic[Axis]):
         return Concat(self, other)
 
     def serialize(self) -> Mapping[str, Any]:
-        """Serialize the Spec to a dictionary."""
-        return TypeAdapter(Spec[Any]).dump_python(self)
+        """Serialize the Spec to a dictionary.
+
+        Axes that are not natively JSON-serializable (e.g. ophyd Device objects)
+        are converted to their ``repr()`` string.
+        """
+        return TypeAdapter(Spec[Any]).dump_python(self, mode="json", fallback=repr)
 
     @staticmethod
     def deserialize(obj: Any) -> Spec[Any]:
