@@ -502,3 +502,88 @@ output.
 - If a phase exceeds ~300 lines of new code, split: write implementation first,
   then tests in a follow-up conversation.
 - After Phase 4, run the full test suite with `tox -p` to verify integration.
+
+
+### Clarifications
+
+1. Position function signature. We need a `Scan` object to have a position generation function that can produce flyscans within step scans. Think flying `y * ~x`. We could make a single function, but that would preclude the `Acquire` object from choosing between step and flyscan for the inner dimension. Let's say that it produces a `Sequence[Callable[np.ndarray], dict[AxisT, np.ndarray]]` to allow Produce to simply stack these.
+
+2. `Path.positions()` was always in the wrong place. It should be `Window.positions` and we keep track of time within `Window`.
+
+3. Local state within the iterator produced from `__iter__`. We should support `scan.with_start` only for the case where we have to rewind and start from a given point.
+
+4. Answered in 3
+
+5. For a step scan there will be 5000 collection windows. For a fly scan there will be 50.
+
+6. dataclass
+
+7. These are motion setpoints, what lives on ScanDimension are detector setpoints. In many cases they are the same, but sometimes detector setpoints are a subset. This means the functions should be passed to `Scan.__init__` and in many cases the same function will be passed to `ScanDimension.__init__`. It should be stored as a private var on both.
+
+8. Axis motion is in this step, but we can consider a simplification: `dt` is an index for now rather than a time.
+
+9. Defer this until you have done the motion part of this, ignore detectors for your initial implementation
+
+10. Missed requirement: `static_axes` should only contain the axes that are different from the previous collection window.
+
+### Phase 3 modifications
+
+- PositionFn should be parameterized on AxisT
+- Window and should be a regular class that takes positions_fn and keeps it private
+- ScanDimension should
+  - be named Dimension
+  - be a regular class taking positions_fn and keeping it private
+  - setpoints should only ever create a chunk of chunk_size, never a larger one
+- Scan should
+  - be a regular class that takes motion_fns and keeps it private
+  - take default empty tuples for all the Sequence fields
+- _iter_windows should be
+  - not refer to windowed_streams to make positions, but the stack of motion functions instead, this means Scan will need to take the number of indices for each motion function
+  - be put into `Scan.__iter__` calling smaller functions
+- For spec subclasses
+  - Turn local position_fn into self._position_fn
+  - _make_scan should go as there is no need to make a WindowedStream if DetectorT==Never and its defaults should be those of Scan
+
+- There is duplication in Scan, the dims should be motion_dims, and there should be no motion functions
+- I have rewritten Linspace. Follow this example for other Spec subclasses
+- test_use_cases.py is for *my* use cases. Only put tests I explicitly ask for in there. Put your tests in the other files. This should contain precisely one use case at present, iterating a Linspace(x, 0, 1, 5) and seeing windows at [0, 0.25, 0.5, 0.75, 1]. We will build up this file in subsequent prompts.
+
+- Don't need back compat here, remove ScanDimension alias, remember in AGENTS
+- Scan._start_window and _start_time should be specified in Scan.__init__
+- Check usage of #noqa: SLF001, shouldn't be needed anywhere
+- Scan.motion_dims are required, put it first in __init__
+- The single use case in test_use_cases should test static_axes, moving_axes, non_linear_move, duration, and trigger_groups for all collection windows
+- Write a second use case in test_use_cases that is Acquire(fly=True, linspace) where linspace is the Spec from the first use cases
+
+
+### Open questions
+- Is duration of 1 if there are no detectors a reasonable default?
+- Is the logic in Dimension and SnakedDimension fully reflected in Scan.__iter__?
+- Are the indices 0..N the correct inputs?
+
+
+### Response to opus updates
+
+1. Scan is the final design. Update API_SPEC to use it instead of Path.
+2. Confirm Dimension is correct.
+3. API_SPEC should use the most compact form with the correct names, so dataclass is fine as long as the public consumer interface matches implementation.
+4. Scan is the iterator
+5. When Acquire work is complete it will turn into time.
+6. trigger_groups is the next implenetation task
+7. dt will be time-based when Acquire work is complete, so leave it like this in API_SPEC
+8. static_axes should contain every axis that is different to the previous window. If there is no previous window it should contain all axis positions for that initial window
+9. Spiral not required in API_SPEC
+10. Mask was deleted a couple of releases back. Look at the checked out code for reality. Squash will not be migrated. All others will be implemented.
+11. Need a design placeholder. Something like `200 * Acquire(Linspace("x", x_start, x_stop), det1, fly=True).concat(Acquire(Static("x", x_stop + a_bit), det2)).concat(Acquire(Linspace("x", x_stop, x_start), det1, fly=True))`
+12. Regions were deleted along with Mask. Ellipse and Polygon moved to being Specs. These will need implementing, but no need to put them in API_SPEC.
+
+
+### Response to opus review
+
+1. The offset is chosen to avoid the phi discontinuity, so a solution that avoids this discontinuity is required. However I think the 1.x convention of 0..N for fly (posts) and 0.5..N-0.5 (midpoints of fences) is more understandable. Update the code to use these indexes.
+2. Answered in 1.
+3. Think about whether Acquire which does windowed, continuous, monitored detectors as well as fly is the correct decision, or if it should be broken up further.
+4. Acquire with detectors gives us the duration. Detector-less step scans should have duration = 0. Detector-less fly scans need the duration supplied. Possibly this is an additional arg to Acquire, or maybe this is a different Spec. Consider this also when thinking about whether to break up Acquire.
+5. First note that we no longer need to squash dimensions together. This removes a lot of complexity. Then find the tests in the existing scanspec code that deal with nesting snaked and non-snaked axes together and port them to scanspec2. These tests should guide your fix.
+6. Allowed.
+7. See 3 and 4.

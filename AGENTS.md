@@ -32,6 +32,10 @@ The PRD is in `prd.md`. The design notes and user stories are in `thoughts.md`.
 - **Always write scratch or prototype files inside the workspace** (e.g. `/workspaces/scanspec/scratch/`) — never to `/tmp`.
 - After verifying a prototype, delete the scratch file or incorporate it into the codebase.
 
+## Type annotations
+
+- Do not add `# type: ignore` comments. If a type error cannot be fixed with code structure, leave it without a suppression comment and summarise the remaining pyright errors to the user at the end of the task.
+
 ## Type-checking
 
 - Always run `python -m pyright src/scanspec2/ tests/scanspec2/` after running tests.

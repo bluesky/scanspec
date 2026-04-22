@@ -8,9 +8,10 @@ from scanspec2.core import (
     AxisMotion,
     ContinuousStream,
     DetectorGroup,
+    Dimension,
+    LinearPositions,
     MonitorStream,
     Scan,
-    ScanDimension,
     TriggerGroup,
     TriggerPattern,
     Window,
@@ -81,16 +82,56 @@ def test_window_previous():
 
 
 def test_scan_dimension():
-    sd = ScanDimension(axes=["x"], length=100, snake=False)
+    sd = Dimension(
+        axes=["x"],
+        length=100,
+        snake=False,
+        position_fn=LinearPositions({"x": (0.0, 99.0)}, length=100),
+    )
     assert sd.axes == ["x"]
     assert sd.length == 100
     assert sd.snake is False
 
 
-def test_scan_dimension_setpoints_raises():
-    sd = ScanDimension(axes=["x"], length=100, snake=False)
-    with pytest.raises(NotImplementedError):
-        next(sd.setpoints("x"))
+def test_scan_dimension_setpoints_with_fn():
+    import numpy as np
+
+    def pos_fn(indexes: np.ndarray) -> dict[str, np.ndarray]:
+        return {"x": indexes * 2.0}
+
+    sd = Dimension(axes=["x"], length=5, snake=False, position_fn=pos_fn)
+    result = next(sd.setpoints("x"))
+    np.testing.assert_allclose(result, [0.0, 2.0, 4.0, 6.0, 8.0])
+    assert sd.non_linear is True
+
+
+def test_scan_dimension_setpoints_linear():
+    import numpy as np
+
+    sd = Dimension(
+        axes=["x"],
+        length=5,
+        snake=False,
+        position_fn=LinearPositions({"x": (0.0, 4.0)}, length=5),
+    )
+    result = next(sd.setpoints("x"))
+    np.testing.assert_allclose(result, [0.0, 1.0, 2.0, 3.0, 4.0])
+    assert sd.non_linear is False
+
+
+def test_scan_dimension_setpoints_chunks():
+    import numpy as np
+
+    sd = Dimension(
+        axes=["x"],
+        length=5,
+        snake=False,
+        position_fn=LinearPositions({"x": (0.0, 4.0)}, length=5),
+    )
+    chunks = list(sd.setpoints("x", chunk_size=2))
+    np.testing.assert_allclose(chunks[0], [0.0, 1.0])
+    np.testing.assert_allclose(chunks[1], [2.0, 3.0])
+    np.testing.assert_allclose(chunks[2], [4.0])
 
 
 def test_detector_group():
@@ -118,7 +159,12 @@ def test_detector_group_none_timing():
 
 
 def test_windowed_stream():
-    dim = ScanDimension(axes=["x"], length=50, snake=True)
+    dim = Dimension(
+        axes=["x"],
+        length=50,
+        snake=True,
+        position_fn=LinearPositions({"x": (0.0, 49.0)}, length=50),
+    )
     dg = DetectorGroup(
         exposures_per_collection=1,
         collections_per_event=1,
@@ -151,7 +197,12 @@ def test_monitor_stream():
 
 
 def test_scan_step():
-    dim = ScanDimension(axes=["x", "y"], length=200, snake=True)
+    dim = Dimension(
+        axes=["x", "y"],
+        length=200,
+        snake=True,
+        position_fn=LinearPositions({"x": (0.0, 1.0), "y": (0.0, 1.0)}, length=200),
+    )
     dg = DetectorGroup(
         exposures_per_collection=1,
         collections_per_event=1,
@@ -163,7 +214,11 @@ def test_scan_step():
     cs: ContinuousStream[str] = ContinuousStream(name="cameras", detector_groups=[])
     mon = MonitorStream(name="temperature", detector="TEMP:PV")
     scan = Scan(
-        windowed_streams=[ws], continuous_streams=[cs], monitors=[mon], fly=False
+        motion_dims=[],
+        windowed_streams=[ws],
+        continuous_streams=[cs],
+        monitors=[mon],
+        fly=False,
     )
 
     assert scan.fly is False
@@ -178,6 +233,10 @@ def test_scan_fly():
         name="diff", dimensions=[], detector_groups=[]
     )
     scan: Scan[Never, Never, Never] = Scan(
-        windowed_streams=[ws], continuous_streams=[], monitors=[], fly=True
+        motion_dims=[],
+        windowed_streams=[ws],
+        continuous_streams=[],
+        monitors=[],
+        fly=True,
     )
     assert scan.fly is True
