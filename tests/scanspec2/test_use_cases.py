@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Never, cast
 
+import numpy as np
 import pytest
 
 from scanspec2.core import (
@@ -338,3 +339,223 @@ def test_maximal_fly_step(fly: bool):
     assert windows[0].previous is None
     for i in range(1, len(windows)):
         assert windows[i].previous is windows[i - 1]
+
+
+# ---------- Consumption use cases from API_SPEC ----------
+
+
+def test_panda_sequence_table():
+    """Use case 2: PandA flyscan — build a sequence table from trigger_groups.
+
+    The consumer receives a Scan, finds its trigger group by detector name,
+    and reads trigger_patterns + moving_axes to populate a PandA sequence table.
+    """
+    spec: Acquire[str, str, Never] = Acquire(
+        Product(Linspace("y", 0, 5, 3), ~Linspace("x", 0, 10, 50)),
+        fly=True,
+        detectors=[
+            DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
+        ],
+    )
+    scan = spec.compile()
+    det_key = frozenset(["saxs", "waxs"])
+
+    for window in scan:
+        # Consumer locates its group by matching detector names
+        group = next(
+            g for g in window.trigger_groups if frozenset(g.detectors) == det_key
+        )
+
+        # Trigger patterns are baked — consumer reads them directly for SeqTable
+        assert len(group.trigger_patterns) == 1
+        pattern = group.trigger_patterns[0]
+        assert pattern.repeats == 50
+        assert pattern.livetime == approx(0.003)
+        assert pattern.deadtime == approx(0.001)
+
+        # PandA needs start_velocity to pick compare axis
+        assert len(window.moving_axes) == 1
+        assert "x" in window.moving_axes
+        am = window.moving_axes["x"]
+        assert am.start_velocity != 0.0
+
+        # Consumer-side: time1 = int(livetime * 1e6), time2 = int(deadtime * 1e6)
+        time1 = int(pattern.livetime * 1e6)
+        time2 = int(pattern.deadtime * 1e6)
+        assert time1 == 3000
+        assert time2 == 1000
+
+
+def test_motor_record_fly():
+    """Use case 3: Motor record — single-axis constant-velocity flyscan.
+
+    Consumer reads moving_axes for one axis, computes acceleration ramp
+    from boundary kinematics, then drives the motor.
+    """
+    spec: Acquire[str, str, Never] = Acquire(
+        Linspace("x", 0, 10, 100),
+        fly=True,
+        detectors=[DetectorGroup(1, 1, 0.003, 0.001, ["det1"])],
+    )
+    scan = spec.compile()
+    windows = list(scan)
+    assert len(windows) == 1
+
+    w = windows[0]
+    # Must be linear for motor record
+    assert w.non_linear_move is False
+    # Exactly one moving axis
+    assert len(w.moving_axes) == 1
+    axis, motion = next(iter(w.moving_axes.items()))
+    assert axis == "x"
+
+    # Constant velocity: start_velocity == end_velocity
+    assert motion.start_velocity == approx(motion.end_velocity)
+    velocity = motion.start_velocity
+
+    # Consumer computes acceleration ramp endpoints
+    acceleration_time = 0.5  # hypothetical motor parameter
+    ramp_up_start = motion.start_position - acceleration_time * velocity / 2
+    ramp_down_end = motion.end_position + acceleration_time * velocity / 2
+    # Ramp extends beyond the collection region
+    assert ramp_up_start < motion.start_position
+    assert ramp_down_end > motion.end_position
+
+    # Duration is available for timeout calculation
+    assert w.duration > 0
+
+
+def test_pmac_trajectory_positions():
+    """Use case 4: PMAC — consume window.positions() in servo-rate chunks.
+
+    Consumer calls window.positions(dt, max_duration) to get chunked
+    position arrays for the trajectory scan.
+    """
+    spec: Acquire[str, str, Never] = Acquire(
+        Product(Linspace("y", 0, 1, 2), ~Linspace("x", 0, 10, 100)),
+        fly=True,
+        detectors=[DetectorGroup(1, 1, 0.003, 0.001, ["det1"])],
+    )
+    scan = spec.compile()
+    windows = list(scan)
+    assert len(windows) == 2
+
+    for i, window in enumerate(windows):
+        assert "x" in window.moving_axes
+
+        # Consume positions in chunks — emulates PMAC servo-rate loading
+        all_x: list[np.ndarray] = []
+        for arrays in window.positions(dt=0.01, max_duration=0.05):
+            assert "x" in arrays
+            all_x.append(arrays["x"])
+
+        # Concatenate all chunks — should cover the full sweep
+        full_x = np.concatenate(all_x)
+        assert len(full_x) > 0
+
+        # X direction alternates due to snake
+        if i == 0:
+            assert full_x[0] < full_x[-1]  # forward
+        else:
+            assert full_x[0] > full_x[-1]  # reverse
+
+    # Turnaround: consumer uses boundary kinematics between windows
+    prev_end = windows[0].moving_axes["x"].end_position
+    curr_start = windows[1].moving_axes["x"].start_position
+    # The second window starts near where the first ended
+    assert prev_end == approx(curr_start, abs=0.5)
+
+
+def test_pause_resume():
+    """Use case 5: Pause/resume via scan.with_start().
+
+    On pause the consumer records window_index. Resume constructs a new
+    Scan that starts iteration from that point.
+    """
+    spec = Linspace("x", 0, 1, 10)
+    scan = spec.compile()
+
+    all_windows = list(scan)
+    assert len(all_windows) == 10
+
+    # Simulate pause at window 5
+    pause_at = 5
+    resumed_scan = scan.with_start(window=pause_at)
+    resumed_windows = list(resumed_scan)
+
+    # Should yield windows from index 5 onwards
+    assert len(resumed_windows) == 10 - pause_at
+
+    # The resumed windows should have the same static_axes positions as
+    # the corresponding windows in the full scan (positions are deterministic)
+    for rw, aw in zip(resumed_windows, all_windows[pause_at:], strict=True):
+        # static_axes may differ in keys (delta vs full) but the values present
+        # should match the same positions
+        for axis in rw.static_axes:
+            assert rw.static_axes[axis] == approx(aw.static_axes[axis])
+
+    # Resume at the last window
+    last_scan = scan.with_start(window=9)
+    last_windows = list(last_scan)
+    assert len(last_windows) == 1
+
+    # Resume past the end yields nothing
+    empty_scan = scan.with_start(window=10)
+    assert list(empty_scan) == []
+
+
+def test_analysis_reshaping():
+    """Analysis use case: reshape detector data using stream dimensions.
+
+    Consumer uses scan.windowed_streams[].dimensions to determine scan
+    shape, then calls dim.setpoints() to get axis coordinates.
+    """
+    spec: Acquire[str, str, Never] = Acquire(
+        Product(Linspace("y", 0, 5, 3), ~Linspace("x", 0, 10, 5)),
+        fly=True,
+        detectors=[
+            DetectorGroup(1, 1, 0.003, 0.001, ["det1"]),
+            DetectorGroup(10, 1, 0.0003, 8e-9, ["enc"]),
+        ],
+    )
+    scan = spec.compile()
+
+    stream = scan.windowed_streams[0]
+    assert stream.name == "primary"
+
+    # Base scan shape
+    base_shape = [dim.length for dim in stream.dimensions]
+    assert base_shape == [3, 5]
+
+    # Per-group reshaping: collections_per_event adds an extra inner dimension
+    for group in stream.detector_groups:
+        if group.collections_per_event > 1:
+            shape = base_shape + [group.collections_per_event]
+        else:
+            shape = list(base_shape)
+
+        if group.detectors == ["det1"]:
+            # exposures_per_collection=1, collections_per_event=1
+            assert shape == [3, 5]
+        elif group.detectors == ["enc"]:
+            # exposures_per_collection=10, collections_per_event=1
+            # collections_per_event is 1, so no extra dim
+            assert shape == [3, 5]
+
+    # Axis coordinates via setpoints
+    y_dim = stream.dimensions[0]
+    x_dim = stream.dimensions[1]
+    assert y_dim.axes == ["y"]
+    assert x_dim.axes == ["x"]
+
+    y_coords = next(y_dim.setpoints("y"))
+    assert len(y_coords) == 3
+    assert y_coords == approx([0.0, 2.5, 5.0])
+
+    x_coords = next(x_dim.setpoints("x"))
+    assert len(x_coords) == 5
+    assert x_coords == approx([0.0, 2.5, 5.0, 7.5, 10.0])
+
+    # De-snake info is available
+    assert x_dim.snake is True
+    assert y_dim.snake is False

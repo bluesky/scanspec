@@ -712,3 +712,18 @@ spec = Acquire(
 - I don't understand why Snake.compile has an if branch based on children? Write a test that shows why it is different
 
 ### Use case creation
+
+We are implementing API_SPEC. Most of this is done, and I want to handoff to another engineer. I would like to:
+- Make sure all the consumption use cases from API_SPEC are covered in test_use_cases
+- Turn API_SPEC into a shorter issue.md that I will paste into a GitHub issue explaining the rationale for scanspec2 and the expected consumption API
+- Create an ADR in docs/explanations/descisions following the examples of documents already in there that says what decisions were made and why. Summarize API_SPEC and thoughts.md to create this.
+- Review the code that is in scanspec2 against the API_SPEC and the original src/scanspec to work out what the gaps are and put them in pr.md
+
+
+Task 1: call the scanspec2 API surface in the same way that the consumption patterns would, but instead of calling things like `pick_compare_axis` then just validate the output of the scanspec2 API to be correct
+
+Task 2: Target audience is someone who already knows what scanspec is and does, and knows a little about the consumers, but no details. It should include the consumption examples code verbatim, then about a page of explanation surrounding it.
+
+Task 3: One ADR for the high level design and the need for 2.0. A few more for any specific design decisions that you think need more than a paragraph of detail. Number 0003 and onwards.
+
+Task 4: Compare with 1.x. I think this is best done in a fresh context as I will also ask for a review of the existing structure and if there are any simplifications. If you agree then write me a prompt for the next context to do this task into prompt.md
