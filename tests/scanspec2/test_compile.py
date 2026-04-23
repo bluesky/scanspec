@@ -7,7 +7,14 @@ from typing import Any, Never
 import numpy as np
 import pytest
 
-from scanspec2.core import AxisMotion, Dimension, Scan, Window
+from scanspec2.core import (
+    AxisMotion,
+    DetectorGroup,
+    Scan,
+    TriggerPattern,
+    Window,
+    WindowGenerator,
+)
 from scanspec2.specs import (
     Acquire,
     Linspace,
@@ -22,8 +29,8 @@ from scanspec2.specs import (
 # ---------------------------------------------------------------------------
 
 
-def dims(scan: Scan[Any, Any, Any]) -> list[Dimension[Any]]:
-    return scan.dimensions
+def gens(scan: Scan[Any, Any, Any]) -> list[WindowGenerator[Any]]:
+    return scan.generators
 
 
 def windows(scan: Scan[Any, Any, Any]) -> list[Window[Any, Any]]:
@@ -38,32 +45,34 @@ def windows(scan: Scan[Any, Any, Any]) -> list[Window[Any, Any]]:
 def test_linspace_compile_dimensions():
     sc = Linspace("x", 0.0, 10.0, 100).compile()
     assert len(sc.windowed_streams) == 0  # pure motion: no streams
-    d = dims(sc)
-    assert len(d) == 1
-    assert d[0].axes == ["x"]
-    assert d[0].length == 100
-    assert d[0].snake is False
-    assert sc.fly is False
+    g = gens(sc)
+    assert len(g) == 1
+    assert g[0].axes == ["x"]
+    assert g[0].length == 100
+    assert g[0].snake is False
+    assert g[0].fly is False
 
 
 def test_linspace_setpoints():
     sc = Linspace("x", 0.0, 10.0, 5).compile()
-    pts = next(dims(sc)[0].setpoints("x"))
+    pts = gens(sc)[0].setpoints(np.array([0.5, 1.5, 2.5, 3.5, 4.5]))["x"]
     np.testing.assert_allclose(pts, [0.0, 2.5, 5.0, 7.5, 10.0])
 
 
 def test_linspace_setpoints_single_point():
     sc = Linspace("x", 3.0, 3.0, 1).compile()
-    pts = next(dims(sc)[0].setpoints("x"))
+    pts = gens(sc)[0].setpoints(np.array([0.5]))["x"]
     np.testing.assert_allclose(pts, [3.0])
 
 
 def test_linspace_setpoints_chunked():
     sc = Linspace("x", 0.0, 9.0, 10).compile()
-    chunks = list(dims(sc)[0].setpoints("x", chunk_size=3))
-    assert len(chunks) == 4  # 3+3+3+1
-    assert len(chunks[0]) == 3
-    assert len(chunks[-1]) == 1
+    g = gens(sc)[0]
+    # Test generator produces correct positions for 3-point chunks
+    pts0 = g.setpoints(np.array([0.5, 1.5, 2.5]))["x"]
+    pts3 = g.setpoints(np.array([9.5]))["x"]
+    np.testing.assert_allclose(pts0, [0.0, 1.0, 2.0])
+    np.testing.assert_allclose(pts3, [9.0])
 
 
 # ---------------------------------------------------------------------------
@@ -73,20 +82,20 @@ def test_linspace_setpoints_chunked():
 
 def test_static_compile_dimensions():
     sc = Static("y", 5.0).compile()
-    d = dims(sc)
-    assert len(d) == 1
-    assert d[0].axes == ["y"]
-    assert d[0].length == 1
+    g = gens(sc)
+    assert len(g) == 1
+    assert g[0].axes == ["y"]
+    assert g[0].length == 1
 
 
 def test_static_compile_num():
     sc = Static("y", 5.0, 3).compile()
-    assert dims(sc)[0].length == 3
+    assert gens(sc)[0].length == 3
 
 
 def test_static_setpoints():
     sc = Static("y", 7.0, 4).compile()
-    pts = next(dims(sc)[0].setpoints("y"))
+    pts = gens(sc)[0].setpoints(np.array([0.5, 1.5, 2.5, 3.5]))["y"]
     np.testing.assert_allclose(pts, [7.0, 7.0, 7.0, 7.0])
 
 
@@ -97,24 +106,58 @@ def test_static_setpoints():
 
 def test_snake_sets_inner_snake_flag():
     sc = Snake(Linspace("x", 0.0, 10.0, 10)).compile()
-    assert dims(sc)[-1].snake is True
+    assert gens(sc)[-1].snake is True
 
 
 def test_snake_preserves_length():
     sc = Snake(Linspace("x", 0.0, 10.0, 10)).compile()
-    assert dims(sc)[0].length == 10
+    assert gens(sc)[0].length == 10
 
 
 def test_snake_setpoints_unchanged():
     # setpoints always return forward direction; snaking is caller's concern
     sc = Snake(Linspace("x", 0.0, 9.0, 10)).compile()
-    pts = next(dims(sc)[0].setpoints("x"))
+    pts = gens(sc)[0].setpoints(np.arange(10) + 0.5)["x"]
     np.testing.assert_allclose(pts, np.linspace(0, 9, 10))
 
 
 def test_invert_operator_snakes():
     sc = (~Linspace("x", 0.0, 10.0, 5)).compile()
-    assert dims(sc)[0].snake is True
+    assert gens(sc)[0].snake is True
+
+
+def test_snake_empty_generators_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Snake on a Scan with no generators is an error."""
+    spec = ~Linspace("x", 0, 1, 1)
+
+    def _empty_compile(self: Any) -> Scan[str, Never, Never]:
+        return Scan(generators=[])
+
+    monkeypatch.setattr(Linspace, "compile", _empty_compile)
+    with pytest.raises(ValueError, match="at least one generator"):
+        spec.compile()
+
+
+def test_snake_with_concat_children():
+    """Snake on a Concat'd Acquire sets snake on the concat generator (children).
+
+    The old Snake.compile had an if/else branch because reconstructing a
+    WindowGenerator required different args for children vs non-children
+    generators.  With mutation (just set .snake = True), no branch is needed.
+    """
+    dg: DetectorGroup[str] = DetectorGroup(1, 1, 0.001, 0.001, ["det"])
+    acq1: Acquire[str, str, Never] = Acquire(Linspace("x", 0, 5, 3), detectors=[dg])
+    acq2: Acquire[str, str, Never] = Acquire(Linspace("x", 10, 15, 2), detectors=[dg])
+    spec = ~acq1.concat(acq2)
+    sc = spec.compile()
+    g = gens(sc)
+    assert len(g) == 1
+    assert g[0].snake is True
+    assert g[0].children is not None
+    assert len(g[0].children) == 2
+    # Verify iteration still works — snake reverses on odd outer iterations
+    ws = windows(sc)
+    assert len(ws) == 5  # 3 + 2 points
 
 
 # ---------------------------------------------------------------------------
@@ -124,26 +167,27 @@ def test_invert_operator_snakes():
 
 def test_product_dimensions_order():
     sc = (Linspace("y", 0.0, 4.0, 5) * Linspace("x", 0.0, 10.0, 10)).compile()
-    d = dims(sc)
-    assert len(d) == 2
-    assert d[0].axes == ["y"]
-    assert d[0].length == 5
-    assert d[1].axes == ["x"]
-    assert d[1].length == 10
+    g = gens(sc)
+    assert len(g) == 2
+    assert g[0].axes == ["y"]
+    assert g[0].length == 5
+    assert g[1].axes == ["x"]
+    assert g[1].length == 10
 
 
 def test_product_mul_operator():
     outer = Linspace("y", 0.0, 4.0, 5)
     inner = Linspace("x", 0.0, 10.0, 10)
     sc = (outer * inner).compile()
-    assert dims(sc)[0].axes == ["y"]
-    assert dims(sc)[1].axes == ["x"]
+    assert gens(sc)[0].axes == ["y"]
+    assert gens(sc)[1].axes == ["x"]
 
 
 def test_product_setpoints():
     sc = (Linspace("y", 0.0, 4.0, 3) * Linspace("x", 0.0, 10.0, 5)).compile()
-    y_pts = next(dims(sc)[0].setpoints("y"))
-    x_pts = next(dims(sc)[1].setpoints("x"))
+    g = gens(sc)
+    y_pts = g[0].setpoints(np.array([0.5, 1.5, 2.5]))["y"]
+    x_pts = g[1].setpoints(np.array([0.5, 1.5, 2.5, 3.5, 4.5]))["x"]
     np.testing.assert_allclose(y_pts, [0.0, 2.0, 4.0])
     np.testing.assert_allclose(x_pts, [0.0, 2.5, 5.0, 7.5, 10.0])
 
@@ -155,18 +199,19 @@ def test_product_setpoints():
 
 def test_zip_merges_innermost_dimension():
     sc = Linspace("x", 0.0, 10.0, 5).zip(Linspace("y", 0.0, 4.0, 5)).compile()
-    d = dims(sc)
-    assert len(d) == 1
-    assert set(d[0].axes) == {"x", "y"}
-    assert d[0].length == 5
+    g = gens(sc)
+    assert len(g) == 1
+    assert set(g[0].axes) == {"x", "y"}
+    assert g[0].length == 5
 
 
 def test_zip_setpoints_both_axes():
     sc = Linspace("x", 0.0, 10.0, 5).zip(Linspace("y", 0.0, 4.0, 5)).compile()
-    x_pts = next(dims(sc)[0].setpoints("x"))
-    y_pts = next(dims(sc)[0].setpoints("y"))
-    np.testing.assert_allclose(x_pts, [0.0, 2.5, 5.0, 7.5, 10.0])
-    np.testing.assert_allclose(y_pts, [0.0, 1.0, 2.0, 3.0, 4.0])
+    g = gens(sc)[0]
+    idx = np.array([0.5, 1.5, 2.5, 3.5, 4.5])
+    positions = g.setpoints(idx)
+    np.testing.assert_allclose(positions["x"], [0.0, 2.5, 5.0, 7.5, 10.0])
+    np.testing.assert_allclose(positions["y"], [0.0, 1.0, 2.0, 3.0, 4.0])
 
 
 def test_zip_length_mismatch_raises():
@@ -181,14 +226,15 @@ def test_zip_length_mismatch_raises():
 
 def test_concat_sums_inner_length():
     sc = Linspace("x", 0.0, 4.0, 5).concat(Linspace("x", 5.0, 9.0, 5)).compile()
-    d = dims(sc)
-    assert len(d) == 1
-    assert d[0].length == 10
+    g = gens(sc)
+    assert len(g) == 1
+    assert g[0].length == 10
 
 
 def test_concat_setpoints_combined():
     sc = Linspace("x", 0.0, 4.0, 5).concat(Linspace("x", 5.0, 9.0, 5)).compile()
-    pts = next(dims(sc)[0].setpoints("x"))
+    g = gens(sc)[0]
+    pts = g.setpoints(np.arange(10) + 0.5)["x"]
     assert len(pts) == 10
     np.testing.assert_allclose(pts[:5], [0.0, 1.0, 2.0, 3.0, 4.0])
     np.testing.assert_allclose(pts[5:], [5.0, 6.0, 7.0, 8.0, 9.0])
@@ -206,11 +252,11 @@ def test_concat_axes_mismatch_raises():
 
 def test_repeat_prepends_outer_dimension():
     sc = Repeat(Linspace("x", 0.0, 10.0, 5), 3).compile()
-    d = dims(sc)
-    assert len(d) == 2
-    assert d[0].length == 3  # repeat outer
-    assert d[1].axes == ["x"]
-    assert d[1].length == 5
+    g = gens(sc)
+    assert len(g) == 2
+    assert g[0].length == 3  # repeat outer
+    assert g[1].axes == ["x"]
+    assert g[1].length == 5
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +275,7 @@ def test_acquire_compile_stream_name():
 def test_acquire_compile_fly_flag():
     spec: Acquire[str, Never, Never] = Acquire(Linspace("x", 0.0, 10.0, 5), fly=True)
     sc = spec.compile()
-    assert sc.fly is True
+    assert sc.generators[-1].fly is True
 
 
 def test_acquire_compile_continuous_streams_and_monitors():
@@ -256,11 +302,11 @@ def test_acquire_compile_continuous_streams_and_monitors():
 
 def test_product_then_snake():
     sc = (Linspace("y", 0.0, 4.0, 5) * ~Linspace("x", 0.0, 10.0, 10)).compile()
-    d = dims(sc)
-    assert d[0].axes == ["y"]
-    assert d[0].snake is False
-    assert d[1].axes == ["x"]
-    assert d[1].snake is True
+    g = gens(sc)
+    assert g[0].axes == ["y"]
+    assert g[0].snake is False
+    assert g[1].axes == ["x"]
+    assert g[1].snake is True
 
 
 def test_three_level_product():
@@ -269,10 +315,10 @@ def test_three_level_product():
         * Linspace("y", 0.0, 4.0, 5)
         * Linspace("x", 0.0, 10.0, 10)
     ).compile()
-    d = dims(sc)
-    assert len(d) == 3
-    assert [dim.axes for dim in d] == [["z"], ["y"], ["x"]]
-    assert [dim.length for dim in d] == [3, 5, 10]
+    g = gens(sc)
+    assert len(g) == 3
+    assert [gen.axes for gen in g] == [["z"], ["y"], ["x"]]
+    assert [gen.length for gen in g] == [3, 5, 10]
 
 
 # ---------------------------------------------------------------------------
@@ -305,7 +351,7 @@ def test_maximal_example_dimensions():
     )
     sc = spec.compile()
 
-    assert sc.fly is True
+    assert sc.generators[-1].fly is True
     assert len(sc.windowed_streams) == 1
     stream = sc.windowed_streams[0]
     assert stream.name == "primary"
@@ -489,3 +535,318 @@ def test_with_start_does_not_mutate_original():
     sc2 = sc.with_start(window=3)
     assert len(windows(sc)) == 5
     assert len(windows(sc2)) == 2
+
+
+# ---------------------------------------------------------------------------
+# Snake nesting — ported from 1.x test_specs.test_product_snaking_linspaces
+# and test_specs.test_xyz_stack
+# ---------------------------------------------------------------------------
+
+
+def _all_positions(
+    scan: Scan[str, Any, Any],
+) -> list[dict[str, float]]:
+    """Accumulate setpoint positions across windows (step scan)."""
+    pos: dict[str, float] = {}
+    result: list[dict[str, float]] = []
+    for w in scan:
+        pos = dict(pos)
+        pos.update(w.static_axes)
+        result.append(pos)
+    return result
+
+
+def test_snake_step_y_snakex():
+    """Port of 1.x test_product_snaking_linspaces: y(3) * ~x(2)."""
+    sc = (Linspace("y", 1.0, 2.0, 3) * ~Linspace("x", 0.0, 1.0, 2)).compile()
+    pts = _all_positions(sc)
+    assert len(pts) == 6
+    assert [p["x"] for p in pts] == pytest.approx([0, 1, 1, 0, 0, 1])  # type: ignore[reportUnknownMemberType]
+    assert [p["y"] for p in pts] == pytest.approx([1, 1, 1.5, 1.5, 2, 2])  # type: ignore[reportUnknownMemberType]
+
+
+def test_snake_step_xyz():
+    """Port of 1.x test_xyz_stack: z(2) * ~y(3) * ~x(4)."""
+    sc = (
+        Linspace("z", 0.0, 1.0, 2)
+        * ~Linspace("y", 0.0, 2.0, 3)
+        * ~Linspace("x", 0.0, 3.0, 4)
+    ).compile()
+    pts = _all_positions(sc)
+    assert len(pts) == 24
+    assert [p["x"] for p in pts] == pytest.approx(  # type: ignore[reportUnknownMemberType]
+        [0, 1, 2, 3, 3, 2, 1, 0, 0, 1, 2, 3, 3, 2, 1, 0, 0, 1, 2, 3, 3, 2, 1, 0]
+    )
+    assert [p["y"] for p in pts] == pytest.approx(  # type: ignore[reportUnknownMemberType]
+        [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0]
+    )
+    assert [p["z"] for p in pts] == pytest.approx([0] * 12 + [1] * 12)  # type: ignore[reportUnknownMemberType]
+
+
+def test_snake_fly_y_snakex():
+    """Fly scan: y(3) * ~x(4) — 3 windows, x alternates direction."""
+    spec: Acquire[str, Never, Never] = Acquire(
+        Linspace("y", 0.0, 2.0, 3) * ~Linspace("x", 0.0, 3.0, 4),
+        fly=True,
+    )
+    sc = spec.compile()
+    ws = windows(sc)
+    assert len(ws) == 3
+    # x forward in window 0, reversed in window 1, forward in window 2
+    assert ws[0].moving_axes["x"].start_position < ws[0].moving_axes["x"].end_position
+    assert ws[1].moving_axes["x"].start_position > ws[1].moving_axes["x"].end_position
+    assert ws[2].moving_axes["x"].start_position < ws[2].moving_axes["x"].end_position
+
+
+def test_snake_fly_xyz():
+    """Fly scan: z(2) * ~y(3) * ~x(4) — 6 windows, both y and x snake."""
+    spec: Acquire[str, Never, Never] = Acquire(
+        Linspace("z", 0.0, 1.0, 2)
+        * ~Linspace("y", 0.0, 2.0, 3)
+        * ~Linspace("x", 0.0, 3.0, 4),
+        fly=True,
+    )
+    sc = spec.compile()
+    ws = windows(sc)
+    assert len(ws) == 6
+
+    # Collect y positions (from static_axes) and x directions.
+    y_vals: list[float] = []
+    x_fwd: list[bool] = []
+    prev: dict[str, float] = {}
+    for w in ws:
+        prev.update(w.static_axes)
+        y_vals.append(prev["y"])
+        x_fwd.append(
+            w.moving_axes["x"].start_position < w.moving_axes["x"].end_position
+        )
+
+    # y snakes: 0,1,2 then 2,1,0
+    assert y_vals == pytest.approx([0, 1, 2, 2, 1, 0])  # type: ignore[reportUnknownMemberType]
+    # x alternates direction each window
+    assert x_fwd == [True, False, True, False, True, False]
+
+
+# ---------------------------------------------------------------------------
+# Phase B — trigger_groups
+# ---------------------------------------------------------------------------
+
+
+def test_step_scan_trigger_groups():
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 5), detectors=[det]
+    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
+    ws = windows(sc)
+    assert len(ws) == 5
+    for w in ws:
+        assert len(w.trigger_groups) == 1
+        tg = w.trigger_groups[0]
+        assert tg.detectors == ["det1"]
+        assert tg.trigger_patterns == [TriggerPattern(1, 0.01, 0.001)]
+
+
+def test_fly_scan_trigger_groups():
+    det = DetectorGroup(1, 1, 0.003, 0.001, ["det1"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 5), fly=True, detectors=[det]
+    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
+    ws = windows(sc)
+    assert len(ws) == 1
+    tg = ws[0].trigger_groups[0]
+    assert tg.detectors == ["det1"]
+    # fly: repeats = length * exposures_per_collection = 5 * 1
+    assert tg.trigger_patterns == [TriggerPattern(5, 0.003, 0.001)]
+
+
+def test_multirate_trigger_groups():
+    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
+    det2 = DetectorGroup(10, 1, 0.0003, 8e-9, ["encoder"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 100),
+        fly=True,
+        detectors=[det1, det2],
+    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
+    ws = windows(sc)
+    tgs = ws[0].trigger_groups
+    assert len(tgs) == 2
+    assert tgs[0].trigger_patterns == [TriggerPattern(100, 0.003, 0.001)]
+    assert tgs[1].trigger_patterns == [TriggerPattern(1000, 0.0003, 8e-9)]
+
+
+def test_duration_derived_from_detectors():
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 5), detectors=[det]
+    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
+    ws = windows(sc)
+    # step: 1 × (0.01 + 0.001) = 0.011
+    for w in ws:
+        assert w.duration == pytest.approx(0.011)  # type: ignore[reportUnknownMemberType]
+
+
+def test_duration_derived_from_fly_detectors():
+    det = DetectorGroup(1, 1, 0.003, 0.001, ["det1"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 5), fly=True, detectors=[det]
+    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
+    ws = windows(sc)
+    # fly: 5 × (0.003 + 0.001) = 0.02
+    assert ws[0].duration == pytest.approx(0.02)  # type: ignore[reportUnknownMemberType]
+
+
+def test_explicit_duration_must_be_ge_derived():
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    with pytest.raises(ValueError, match="less than"):
+        Acquire(
+            Linspace("x", 0.0, 10.0, 5),
+            detectors=[det],
+            duration=0.005,  # too small
+        ).compile()
+
+
+def test_explicit_duration_overrides_when_larger():
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 5),
+        detectors=[det],
+        duration=0.05,  # larger than derived 0.011
+    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
+    ws = windows(sc)
+    for w in ws:
+        assert w.duration == pytest.approx(0.05)  # type: ignore[reportUnknownMemberType]
+
+
+def test_none_livetime_raises():
+    det = DetectorGroup(1, 1, None, 0.001, ["det1"])
+    with pytest.raises(ValueError, match="livetime"):
+        Acquire(Linspace("x", 0.0, 10.0, 5), detectors=[det]).compile()
+
+
+def test_none_deadtime_raises():
+    det = DetectorGroup(1, 1, 0.01, None, ["det1"])
+    with pytest.raises(ValueError, match="deadtime"):
+        Acquire(Linspace("x", 0.0, 10.0, 5), detectors=[det]).compile()
+
+
+# ---------------------------------------------------------------------------
+# Phase B — multi-stream Concat
+# ---------------------------------------------------------------------------
+
+
+def test_concat_fly_step_windows():
+    """Concat of step + fly Acquires: 2 windows (1 step + 1 fly)."""
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    step_acq: Acquire[str, str, Never] = Acquire(
+        Static("x", 5.0), detectors=[det], stream_name="s1"
+    )
+    fly_acq: Acquire[str, str, Never] = Acquire(
+        Linspace("x", 0.0, 10.0, 5),
+        fly=True,
+        detectors=[det],
+        stream_name="s2",
+    )
+    sc = step_acq.concat(fly_acq).compile()
+    ws = windows(sc)
+    assert len(ws) == 2
+    # First: step window
+    assert ws[0].moving_axes == {}
+    assert ws[0].static_axes["x"] == pytest.approx(5.0)  # type: ignore[reportUnknownMemberType]
+    # Second: fly window
+    assert "x" in ws[1].moving_axes
+
+
+def test_concat_different_streams():
+    """Two Acquires with different stream names."""
+    det1 = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    det2 = DetectorGroup(1, 1, 0.003, 0.001, ["det2"])
+    a1: Acquire[str, str, Never] = Acquire(
+        Static("x", 5.0), detectors=[det1], stream_name="diff"
+    )
+    a2: Acquire[str, str, Never] = Acquire(
+        Linspace("x", 0.0, 10.0, 100),
+        fly=True,
+        detectors=[det2],
+        stream_name="spec",
+    )
+    sc = a1.concat(a2).compile()
+    names = {s.name for s in sc.windowed_streams}
+    assert names == {"diff", "spec"}
+
+
+def test_concat_same_stream_sums_inner():
+    """Two Acquires with same stream name → inner length summed."""
+    det = DetectorGroup(1, 1, 0.003, 0.001, ["det1"])
+    a1: Acquire[str, str, Never] = Acquire(
+        Linspace("x", 0.0, 5.0, 500),
+        fly=True,
+        detectors=[det],
+        stream_name="primary",
+    )
+    a2: Acquire[str, str, Never] = Acquire(
+        Linspace("x", 5.0, 0.0, 500),
+        fly=True,
+        detectors=[det],
+        stream_name="primary",
+    )
+    sc = a1.concat(a2).compile()
+    assert len(sc.windowed_streams) == 1
+    stream = sc.windowed_streams[0]
+    assert stream.name == "primary"
+    assert stream.dimensions[-1].length == 1000
+
+
+def test_repeat_concat_windows():
+    """Repeat wrapping a concat: n_repeat x groups_per_concat."""
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    a1: Acquire[str, str, Never] = Acquire(
+        Static("x", 5.0), detectors=[det], stream_name="s1"
+    )
+    a2: Acquire[str, str, Never] = Acquire(
+        Linspace("x", 0.0, 10.0, 5),
+        fly=True,
+        detectors=[det],
+        stream_name="s2",
+    )
+    sc = Repeat(a1.concat(a2), num=3).compile()
+    ws = windows(sc)
+    # 3 repeats × 2 groups = 6 windows
+    assert len(ws) == 6
+    # Pattern: step, fly, step, fly, step, fly
+    for i in range(3):
+        assert ws[i * 2].moving_axes == {}
+        assert "x" in ws[i * 2 + 1].moving_axes
+
+
+def test_repeat_concat_streams_have_outer_dim():
+    """Repeat wrapping concat: windowed_streams get outer repeat dim."""
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    a1: Acquire[str, str, Never] = Acquire(
+        Static("x", 5.0), detectors=[det], stream_name="s1"
+    )
+    a2: Acquire[str, str, Never] = Acquire(
+        Linspace("x", 0.0, 10.0, 5),
+        fly=True,
+        detectors=[det],
+        stream_name="s2",
+    )
+    sc = Repeat(a1.concat(a2), num=10).compile()
+    for stream in sc.windowed_streams:
+        # outermost dim is the repeat
+        assert stream.dimensions[0].length == 10
+
+
+def test_concat_previous_chain():
+    """Previous chain across all windows from grouped concat."""
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    a1: Acquire[str, str, Never] = Acquire(
+        Static("x", 5.0), detectors=[det], stream_name="s1"
+    )
+    a2: Acquire[str, str, Never] = Acquire(
+        Static("x", 10.0), detectors=[det], stream_name="s2"
+    )
+    sc = Repeat(a1.concat(a2), num=3).compile()
+    ws = windows(sc)
+    assert ws[0].previous is None
+    for i in range(1, len(ws)):
+        assert ws[i].previous is ws[i - 1]

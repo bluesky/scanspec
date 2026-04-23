@@ -12,10 +12,6 @@ AxisT = TypeVar("AxisT")
 DetectorT = TypeVar("DetectorT")
 MonitorT = TypeVar("MonitorT")
 
-# Type alias for position functions.  Within generic classes the concrete AxisT
-# replaces Any; at module level Any is used for list[PositionFn] etc.
-PositionFn = Callable[[np.ndarray], dict[Any, np.ndarray]]
-
 
 @dataclass
 class TriggerPattern:
@@ -70,26 +66,168 @@ class AxisMotion:
     end_velocity: float
 
 
-@dataclass
-class LinearPositions(Generic[AxisT]):
-    """Linear position function: interpolates each axis from start to stop.
+class WindowGenerator(Generic[AxisT]):
+    """One dimension of window generation.
 
-    ``axis_ranges[ax] = (start, stop)`` where *start* is the midpoint at
-    index 0 and *stop* is the midpoint at index *length* - 1.
+    Two flavours distinguished by which argument is provided:
+
+    - *Linear*: ``axis_ranges`` maps each axis to ``(start, stop)`` using the
+      1.x fence/post convention (midpoints at half-integer indexes).
+    - *Non-linear*: ``position_fn`` is an arbitrary callable.
+
+    Exactly one of ``axis_ranges`` and ``position_fn`` must be supplied,
+    unless ``children`` is provided (for concat generators).
+
+    A generator with ``children`` represents a sequential concatenation of
+    sub-generators.  Iteration runs each child in order.  Each child must be
+    a single generator (not multi-gen); supporting multi-gen children would
+    require squashing generators and stream dimensions together (the
+    ``squash_dimensions`` algorithm from scanspec 1.x), which adds significant
+    complexity and has never been needed in practice.
     """
 
-    axis_ranges: dict[AxisT, tuple[float, float]]
-    length: int
+    def __init__(
+        self,
+        axes: list[AxisT],
+        length: int,
+        snake: bool = False,
+        fly: bool = False,
+        axis_ranges: dict[AxisT, tuple[float, float]] | None = None,
+        position_fn: Callable[[np.ndarray], dict[AxisT, np.ndarray]] | None = None,
+        trigger_groups: list[TriggerGroup[Any]] | None = None,
+        duration: float | None = None,
+        children: list[WindowGenerator[AxisT]] | None = None,
+    ) -> None:
+        if children is not None:
+            # Concat generator — axes/length/position not used directly
+            pass
+        elif (axis_ranges is None) == (position_fn is None):
+            raise ValueError(
+                "Exactly one of axis_ranges and position_fn must be supplied"
+            )
+        self.axes = axes
+        self.length = length
+        self.snake = snake
+        self.fly = fly
+        self.axis_ranges = axis_ranges
+        self.position_fn = position_fn
+        self.trigger_groups: list[TriggerGroup[Any]] = (
+            trigger_groups if trigger_groups is not None else []
+        )
+        self.duration = duration
+        self.children = children
 
-    def __call__(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+    @property
+    def is_linear(self) -> bool:
+        """True when positions are linearly interpolated from axis_ranges."""
+        return self.axis_ranges is not None
+
+    def setpoints(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
         """Evaluate positions at *indexes*."""
-        result: dict[AxisT, np.ndarray] = {}
-        for ax, (start, stop) in self.axis_ranges.items():
-            if self.length <= 1 or start == stop:
-                result[ax] = np.full_like(indexes, start, dtype=float)
-            else:
-                result[ax] = start + indexes * (stop - start) / (self.length - 1)
-        return result
+        if self.axis_ranges is not None:
+            result: dict[AxisT, np.ndarray] = {}
+            for ax, (start, stop) in self.axis_ranges.items():
+                if self.length <= 1:
+                    step = stop - start
+                else:
+                    step = (stop - start) / (self.length - 1)
+                first = start - step / 2
+                result[ax] = first + indexes * step
+            return result
+        elif self.position_fn is not None:
+            return self.position_fn(indexes)
+        else:
+            return {}
+
+    def windows(self, reverse: bool = False) -> Iterator[Window[AxisT, Any]]:
+        """Yield collection windows for this generator.
+
+        Does not set ``previous`` — the caller (``Scan.__iter__``) chains
+        windows together and computes delta ``static_axes``.
+
+        For step scans: one Window per setpoint.
+        For fly scans: one Window covering the whole sweep.
+        For concat generators (children): iterates each child sequentially.
+        """
+        if self.children is not None:
+            kids = list(reversed(self.children)) if reverse else self.children
+            for child in kids:
+                yield from child.windows(reverse)
+            return
+
+        if self.fly:
+            yield from self._fly_window(reverse)
+        else:
+            yield from self._step_windows(reverse)
+
+    def _step_windows(self, reverse: bool) -> Iterator[Window[AxisT, Any]]:
+        """Yield one Window per setpoint."""
+        for raw_idx in range(self.length):
+            step_idx = (self.length - 1 - raw_idx) if reverse else raw_idx
+            result = self.setpoints(np.array([step_idx + 0.5]))
+            step_pos = {axis: float(arr[0]) for axis, arr in result.items()}
+            yield Window(
+                static_axes=step_pos,
+                moving_axes={},
+                non_linear_move=False,
+                duration=self.duration if self.duration is not None else 0.0,
+                trigger_groups=list(self.trigger_groups),
+                previous=None,
+            )
+
+    def _fly_window(self, reverse: bool) -> Iterator[Window[AxisT, Any]]:
+        """Yield a single fly-scan Window."""
+        length = self.length
+        if reverse:
+            start_i, end_i = float(length), 0.0
+        else:
+            start_i, end_i = 0.0, float(length)
+
+        eps = 1e-6
+        moving_axes: dict[AxisT, AxisMotion] = {}
+
+        def _eval(i: float, ax: AxisT) -> float:
+            return float(self.setpoints(np.array([i]))[ax][0])
+
+        for axis in self.setpoints(np.array([0.5])):
+            s_vel = (_eval(start_i + eps, axis) - _eval(start_i - eps, axis)) / (
+                2 * eps
+            )
+            e_vel = (_eval(end_i + eps, axis) - _eval(end_i - eps, axis)) / (2 * eps)
+            moving_axes[axis] = AxisMotion(
+                start_position=_eval(start_i, axis),
+                start_velocity=s_vel,
+                end_position=_eval(end_i, axis),
+                end_velocity=e_vel,
+            )
+
+        span = end_i - start_i
+        # Capture for closure
+        setpoints_fn = self.setpoints
+
+        def positions_fn(indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+            dur = abs(span)
+            mapped = (
+                start_i + indexes * span / dur
+                if dur != 0
+                else np.full_like(indexes, start_i)
+            )
+            return setpoints_fn(mapped)
+
+        duration = (
+            length * self.duration
+            if self.duration is not None
+            else abs(end_i - start_i)
+        )
+        yield Window(
+            static_axes={},
+            moving_axes=moving_axes,
+            non_linear_move=not self.is_linear,
+            duration=duration,
+            trigger_groups=list(self.trigger_groups),
+            previous=None,
+            positions_fn=positions_fn,
+        )
 
 
 class Dimension(Generic[AxisT]):
@@ -103,10 +241,6 @@ class Dimension(Generic[AxisT]):
     Scan.fly — not here, since only the innermost dimension can
     ever be a flyscan axis.
 
-    Construct with either *start_positions* + *end_positions* (linear motion,
-    ``non_linear=False``) or *position_fn* (arbitrary trajectory,
-    ``non_linear=True``).  ``Window.non_linear_move`` is derived from
-    ``non_linear`` of the fly dimension.
     """
 
     def __init__(
@@ -114,15 +248,12 @@ class Dimension(Generic[AxisT]):
         axes: list[AxisT],
         length: int,
         snake: bool,
-        position_fn: (
-            Callable[[np.ndarray], dict[AxisT, np.ndarray]] | LinearPositions[AxisT]
-        ),
+        position_fn: Callable[[np.ndarray], dict[AxisT, np.ndarray]],
     ) -> None:
         self.axes = axes
         self.length = length
         self.snake = snake
-        self.position_fn = position_fn
-        self.non_linear = not isinstance(position_fn, LinearPositions)
+        self._position_fn = position_fn
 
     def setpoints(
         self,
@@ -130,6 +261,9 @@ class Dimension(Generic[AxisT]):
         chunk_size: int | None = None,
     ) -> Iterator[np.ndarray]:
         """Yield nominal collection positions in the forward direction.
+
+        Midpoints are at half-integer indexes 0.5, 1.5, ..., length - 0.5
+        (the 1.x fence/post convention).
 
         Only computes the indexes for the current chunk — never allocates
         the full position array and slices it.
@@ -142,12 +276,9 @@ class Dimension(Generic[AxisT]):
         step = chunk_size if chunk_size is not None else self.length
         for start in range(0, self.length, step):
             end = min(start + step, self.length)
-            indexes = np.arange(start, end, dtype=float)
-            yield self.position_fn(indexes)[axis]
-
-    def __call__(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
-        """Evaluate the position function at the given indexes."""
-        return self.position_fn(indexes)
+            # Half-integer indexes: 0.5, 1.5, ...
+            indexes = np.arange(start, end, dtype=float) + 0.5
+            yield self._position_fn(indexes)[axis]
 
 
 class Window(Generic[AxisT, DetectorT]):
@@ -160,9 +291,6 @@ class Window(Generic[AxisT, DetectorT]):
     trigger_groups may contain groups for multiple streams. In a multi-stream
     scan a window may contain groups for only a subset of streams (e.g. some
     motion phases trigger only diffraction detectors, others only spectroscopy).
-
-    Window is a pure data object — all fields are set at creation and never
-    mutated.
     """
 
     def __init__(
@@ -175,27 +303,12 @@ class Window(Generic[AxisT, DetectorT]):
         previous: Window[AxisT, DetectorT] | None,
         positions_fn: Callable[[np.ndarray], dict[AxisT, np.ndarray]] | None = None,
     ) -> None:
-        # Axes that do not move during this window.
-        # Move to these positions before starting the window.
         self.static_axes = static_axes
-
-        # Axes that move continuously during this window, with their boundary
-        # kinematics.  Empty for step scan windows.
         self.moving_axes = moving_axes
-
-        # True when the trajectory is nonlinear (velocity varies during window).
         self.non_linear_move = non_linear_move
-
-        # Total time for this collection window, in index units.
         self.duration = duration
-
-        # Detector groups active during this window.
         self.trigger_groups = trigger_groups
-
-        # The immediately preceding window, or None for the first window.
         self.previous = previous
-
-        # Private: callable(indexes) -> dict[axis, positions] for moving axes.
         self._positions_fn = positions_fn
 
     def positions(
@@ -208,11 +321,12 @@ class Window(Generic[AxisT, DetectorT]):
         ``max_duration`` limits how many index steps are yielded per chunk
         (None = yield all at once).
 
-        Raises RuntimeError for step-scan windows (no motion).
+        Raises RuntimeError if no position function was provided (step windows).
         """
         if self._positions_fn is None:
             raise RuntimeError(
-                "positions() called on a step-scan window with no motion"
+                "No position function on this window "
+                "(step windows have no continuous trajectory)"
             )
         n_total = int(self.duration / dt) if dt > 0 else 1
         chunk = (
@@ -294,6 +408,38 @@ class MonitorStream(Generic[MonitorT]):
     detector: MonitorT
 
 
+def _iter_with_outer(
+    gens: list[WindowGenerator[AxisT]],
+    depth: int,
+    parent_flat_idx: int,
+) -> Iterator[tuple[Window[AxisT, Any], dict[AxisT, float]]]:
+    """Recursively iterate generators, yielding (inner_window, outer_positions).
+
+    Each generator's ``windows(reverse)`` is called with a reversal flag
+    derived from its own ``snake`` attribute and the flat iteration-count
+    index of all ancestor generators.
+
+    ``parent_flat_idx`` is the iteration counter (not effective position
+    index) so that parity is preserved regardless of reversed dimension
+    lengths.
+    """
+    gen = gens[depth]
+    reverse = gen.snake and (parent_flat_idx % 2 == 1)
+
+    if depth == len(gens) - 1:
+        for window in gen.windows(reverse):
+            yield window, {}
+    else:
+        for i, outer_window in enumerate(gen.windows(reverse)):
+            child_flat_idx = parent_flat_idx * gen.length + i
+            for inner_window, deeper_outer in _iter_with_outer(
+                gens, depth + 1, child_flat_idx
+            ):
+                merged: dict[AxisT, float] = dict(outer_window.static_axes)
+                merged.update(deeper_outer)
+                yield inner_window, merged
+
+
 class Scan(Generic[AxisT, DetectorT, MonitorT]):
     """Compiled output of Spec.compile().
 
@@ -301,38 +447,29 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
     setpoints() or __iter__ is called.
 
     Serves as the sole entry point for both window iteration and analysis.
-    fly applies to the underlying motion trajectory as a whole -- all streams
-    share the same motion; fly=True means the innermost motion dimension
-    sweeps continuously.
 
-    ``motion_dims`` is the ordered outer -> inner list of Dimension objects;
-    each Dimension carries its own position function.
-    ``__iter__`` uses only these private Dimensions -- windowed_streams are for
-    detector analysis, not iteration.
+    ``generators`` is the ordered outer -> inner list of WindowGenerator
+    objects.  Each generator owns ``windows(reverse)`` which yields
+    ``Window`` objects (without ``previous``).  ``Scan.__iter__`` calls
+    ``windows()`` recursively, merging outer positions into the innermost
+    windows' ``static_axes`` and setting ``previous``.
     """
 
     def __init__(
         self,
-        motion_dims: Sequence[Dimension[AxisT]],
+        generators: Sequence[WindowGenerator[AxisT]],
         windowed_streams: Sequence[WindowedStream[AxisT, DetectorT]] = (),
         continuous_streams: Sequence[ContinuousStream[DetectorT]] = (),
         monitors: Sequence[MonitorStream[MonitorT]] = (),
-        fly: bool = False,
         start_window: int = 0,
         start_time: float = 0.0,
     ) -> None:
-        self._motion_dims: list[Dimension[AxisT]] = list(motion_dims)
+        self.generators: list[WindowGenerator[AxisT]] = list(generators)
         self.windowed_streams = list(windowed_streams)
         self.continuous_streams = list(continuous_streams)
         self.monitors = list(monitors)
-        self.fly = fly
         self._start_window = start_window
         self._start_time = start_time
-
-    @property
-    def dimensions(self) -> list[Dimension[AxisT]]:
-        """Ordered outer -> inner scan geometry."""
-        return self._motion_dims
 
     def with_start(
         self, window: int, time: float = 0.0
@@ -343,194 +480,57 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         rather than rewinding an existing iterator.
         """
         return Scan(
-            motion_dims=self._motion_dims,
+            generators=self.generators,
             windowed_streams=self.windowed_streams,
             continuous_streams=self.continuous_streams,
             monitors=self.monitors,
-            fly=self.fly,
             start_window=window,
             start_time=time,
         )
 
+    @staticmethod
+    def _changed_axes(
+        current: dict[AxisT, float],
+        previous: dict[AxisT, float],
+    ) -> dict[AxisT, float]:
+        """Return only the axes whose positions differ from *previous*."""
+        return {
+            ax: pos
+            for ax, pos in current.items()
+            if ax not in previous or previous[ax] != pos
+        }
+
     def __iter__(self) -> Iterator[Window[AxisT, DetectorT]]:
-        """Iterate collection windows, yielding one Window per collection point.
+        """Iterate collection windows.
 
-        For fly=False (step scan): one Window per setpoint combination.
-        For fly=True: one Window per outer-dimension combination (the innermost
-        dimension sweeps continuously within each Window).
+        Outer generators are iterated via ``windows()``, yielding step-scan
+        positions that are merged into the innermost windows' ``static_axes``.
+        The innermost generator (which may contain ``children`` for concat)
+        yields the actual collection windows.
 
-        Uses _dims and _motion_fns directly -- does not read windowed_streams.
-        static_axes contains only axes whose positions changed from the previous
-        window.
+        ``previous`` and ``static_axes`` are set by mutating the inner Window
+        before yielding it.
         """
-        dims = self._motion_dims
-
-        if not dims:
+        gens = self.generators
+        if not gens:
             return
 
-        if self.fly:
-            outer_dims = dims[:-1]
-            inner_dim: Dimension[AxisT] | None = dims[-1]
-        else:
-            outer_dims = dims
-            inner_dim = None
-
-        outer_lengths = [d.length for d in outer_dims]
-        total_outer = 1
-        for ln in outer_lengths:
-            total_outer *= ln
-
         prev_window: Window[AxisT, DetectorT] | None = None
-        prev_all_positions: dict[AxisT, float] = {}
+        prev_all: dict[AxisT, float] = {}
         window_idx = 0
 
-        for outer_idx in range(total_outer):
-            # Decode outer_idx -> per-dimension indexes (last dim = fastest).
-            outer_indexes: list[int] = []
-            remainder = outer_idx
-            for ln in reversed(outer_lengths):
-                outer_indexes.insert(0, remainder % ln)
-                remainder //= ln
+        for inner_window, outer_pos in _iter_with_outer(gens, 0, 0):
+            all_pos: dict[AxisT, float] = dict(outer_pos)
+            all_pos.update(inner_window.static_axes)
 
-            # Apply snake direction per outer dimension.
-            outer_index_values: list[float] = []
-            for dim_i, (dim, idx) in enumerate(
-                zip(outer_dims, outer_indexes, strict=False)
-            ):
-                if dim.snake:
-                    right_product = 1
-                    for j in range(dim_i + 1, len(outer_dims)):
-                        right_product *= outer_dims[j].length
-                    if self.fly and inner_dim is not None:
-                        right_product *= inner_dim.length
-                    reversed_pass = (outer_idx // right_product) % 2 == 1
-                    effective_idx = (dim.length - 1 - idx) if reversed_pass else idx
-                else:
-                    effective_idx = idx
-                outer_index_values.append(float(effective_idx))
+            inner_window.static_axes = self._changed_axes(all_pos, prev_all)
+            inner_window.previous = prev_window
 
-            # Evaluate outer axis positions at this combination.
-            current_positions: dict[AxisT, float] = {}
-            for dim, idx_val in zip(outer_dims, outer_index_values, strict=False):
-                result = dim(np.array([idx_val]))
-                for axis, arr in result.items():
-                    current_positions[axis] = float(arr[0])
+            if window_idx >= self._start_window:
+                yield inner_window
 
-            if self.fly and inner_dim is not None:
-                window = self._make_fly_window(
-                    outer_idx,
-                    current_positions,
-                    prev_all_positions,
-                    prev_window,
-                    inner_dim,
-                )
-
-                if window_idx >= self._start_window:
-                    yield window
-
-                prev_all_positions = dict(current_positions)
-                for axis, am in window.moving_axes.items():
-                    prev_all_positions[axis] = am.end_position
-                prev_window = window
-                window_idx += 1
-
-            else:
-                window = self._make_step_window(
-                    current_positions, prev_all_positions, prev_window
-                )
-
-                if window_idx >= self._start_window:
-                    yield window
-
-                prev_all_positions = dict(current_positions)
-                prev_window = window
-                window_idx += 1
-
-    def _make_step_window(
-        self,
-        current_positions: dict[AxisT, float],
-        prev_all_positions: dict[AxisT, float],
-        prev_window: Window[AxisT, DetectorT] | None,
-    ) -> Window[AxisT, DetectorT]:
-        """Build a step-scan Window for the given outer setpoint."""
-        static_axes: dict[AxisT, float] = {}
-        for axis, pos in current_positions.items():
-            if axis not in prev_all_positions or prev_all_positions[axis] != pos:
-                static_axes[axis] = pos
-        return Window(
-            static_axes=static_axes,
-            moving_axes={},
-            non_linear_move=False,
-            duration=1.0,
-            trigger_groups=[],
-            previous=prev_window,
-            positions_fn=None,
-        )
-
-    def _make_fly_window(
-        self,
-        outer_idx: int,
-        current_positions: dict[AxisT, float],
-        prev_all_positions: dict[AxisT, float],
-        prev_window: Window[AxisT, DetectorT] | None,
-        inner_dim: Dimension[AxisT],
-    ) -> Window[AxisT, DetectorT]:
-        """Build a fly-scan Window for the given outer combination."""
-        reversed_inner = inner_dim.snake and outer_idx % 2 == 1
-
-        inner_length = inner_dim.length
-        if reversed_inner:
-            start_i = float(inner_length) - 0.5
-            end_i = -0.5
-        else:
-            start_i = -0.5
-            end_i = float(inner_length) - 0.5
-
-        eps = 1e-6
-        moving_axes: dict[AxisT, AxisMotion] = {}
-        for axis in inner_dim(np.array([0.5])):
-
-            def _make_eval(ax: AxisT, fn: PositionFn) -> Callable[[float], float]:
-                def _ev(i: float) -> float:
-                    return float(fn(np.array([i]))[ax][0])
-
-                return _ev
-
-            ev = _make_eval(axis, inner_dim)
-            moving_axes[axis] = AxisMotion(
-                start_position=ev(start_i),
-                start_velocity=(ev(start_i + eps) - ev(start_i - eps)) / (2 * eps),
-                end_position=ev(end_i),
-                end_velocity=(ev(end_i + eps) - ev(end_i - eps)) / (2 * eps),
-            )
-
-        duration = abs(end_i - start_i)
-
-        static_axes: dict[AxisT, float] = {}
-        for axis, pos in current_positions.items():
-            if axis not in prev_all_positions or prev_all_positions[axis] != pos:
-                static_axes[axis] = pos
-
-        def _make_pos_fn(
-            s: float, e: float, fn: Callable[[np.ndarray], dict[AxisT, np.ndarray]]
-        ) -> Callable[[np.ndarray], dict[AxisT, np.ndarray]]:
-            span = e - s
-
-            def _pfn(indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
-                dur = abs(span)
-                mapped = (
-                    s + indexes * span / dur if dur != 0 else np.full_like(indexes, s)
-                )
-                return fn(mapped)
-
-            return _pfn
-
-        return Window(
-            static_axes=static_axes,
-            moving_axes=moving_axes,
-            non_linear_move=inner_dim.non_linear,
-            duration=duration,
-            trigger_groups=[],
-            previous=prev_window,
-            positions_fn=_make_pos_fn(start_i, end_i, inner_dim),
-        )
+            prev_all = dict(all_pos)
+            for axis, am in inner_window.moving_axes.items():
+                prev_all[axis] = am.end_position
+            prev_window = inner_window
+            window_idx += 1

@@ -17,17 +17,16 @@ Three type parameters are used throughout:
 - `DetectorT` — the type used to identify detectors (typically `str`; will be
   genericised to a device object later).
 - `MonitorT` — the type used to identify continuously-monitored detectors.
-  Only appears on `Spec` — never on `Path` or `Window`.
+  Only appears on `Spec` and `Scan` — never on `Window`.
 
 `Spec[AxisT, DetectorT, MonitorT]` — base class for all scan specs.
 `Acquire[AxisT, DetectorT, MonitorT]` — concrete `Spec` subclass: wraps a motion spec + produces a single stream.
-`Scan[AxisT, DetectorT, MonitorT]` — compiled output of `spec.compile()`; feeds both `Path` and analysis.
+`Scan[AxisT, DetectorT, MonitorT]` — compiled output of `spec.compile()`; iterable, yielding `Window` objects.
 `WindowedStream[AxisT, DetectorT]` — one named detector stream within a `Scan`: dimensions + detector groups.
 `ContinuousStream[DetectorT]` — constant-rate detector stream with no scan dimensions (e.g. cameras at 20 Hz).
 `MonitorStream[MonitorT]` — on-change PV monitor; no timing parameters.
-`Path[AxisT, DetectorT]` — motion-centric stateful iterator; constructed from `Scan`.
-`Window[AxisT, DetectorT]` — pure data object yielded by `Path`; trigger groups may span multiple streams.
-`ScanDimension[AxisT]` — one dimension of the compiled scan geometry.
+`Window[AxisT, DetectorT]` — pure data object yielded by iterating a `Scan`; trigger groups may span multiple streams.
+`Dimension[AxisT]` — one dimension of the compiled scan geometry.
 
 ---
 
@@ -65,7 +64,7 @@ class TriggerGroup(Generic[DetectorT]):
     A window may contain groups from different streams; consumers identify
     their group by matching against their known detector names.  The set of
     detectors is unique across all groups within a window (enforced at
-    Path construction time).
+    Scan construction time).
 
     trigger_patterns uniformly expresses:
       single rate, fixed timing:    [TriggerPattern(500, 0.003, 0.001)]
@@ -73,7 +72,7 @@ class TriggerGroup(Generic[DetectorT]):
       ptychography variable gaps:   [TriggerPattern(1, 0.1, 0.01),
                                      TriggerPattern(1, 0.1, 0.3), ...]
 
-    Baked in from DetectorGroup.livetime/deadtime at Path construction time.
+    Baked in from DetectorGroup.livetime/deadtime at Scan construction time.
     """
     detectors: list[DetectorT]
     trigger_patterns: list[TriggerPattern]
@@ -114,14 +113,14 @@ class Window(Generic[AxisT, DetectorT]):
     static_axes: dict[AxisT, float]
 
     # Axes that move continuously during this window, with their boundary
-    # kinematics.  Empty for step scan windows (asserted at Path construction
+    # kinematics.  Empty for step scan windows (asserted at Scan construction
     # time).  Keys are disjoint from static_axes — enforced at construction.
     moving_axes: dict[AxisT, AxisMotion]
 
     # True when the trajectory is nonlinear (velocity varies during the
     # window).  False for step scan windows (moving_axes is empty) and for
     # constant-velocity windows (start_velocity == end_velocity for every
-    # axis).  Computed analytically at Path construction time from the Spec's
+    # axis).  Computed analytically at Scan construction time from the Spec's
     # position functions — no floating-point comparison involved.
     non_linear_move: bool
 
@@ -135,18 +134,19 @@ class Window(Generic[AxisT, DetectorT]):
     # frozenset(group.detectors) is the unique lookup key per group.
     trigger_groups: list[TriggerGroup[DetectorT]]
 
-    # The immediately preceding window, or None for the first window.
-    # Never more than one step back.
-    previous: Window[AxisT, DetectorT] | None
-
 
 @dataclass
-class ScanDimension(Generic[AxisT]):
+class Dimension(Generic[AxisT]):
     """One dimension of the compiled scan geometry.
 
     Produced by Spec.compile(). One entry is created per motion primitive
     (Linspace, Spiral, etc.) in the spec tree; Zip merges two primitives
     into one entry with multiple axes.
+
+    Uses the 1.x fence/post index convention:
+    - Midpoints (detector setpoints) are at half-integer indexes
+      0.5, 1.5, ..., length - 0.5.
+    - Fly boundaries (posts) are at integer indexes 0, 1, ..., length.
 
     Whether the innermost dimension is flown or stepped is recorded on
     Scan.fly — not here, since only the innermost dimension can
@@ -163,7 +163,7 @@ class ScanDimension(Generic[AxisT]):
     ) -> Iterator[np.ndarray]:
         """Yield nominal collection positions in the forward direction.
 
-        For fly=True returns midpoints of the continuous sweep.
+        Midpoints are at half-integer indexes 0.5, 1.5, ..., length - 0.5.
         Snaking is NOT applied — dim.snake is provided for the caller.
         chunk_size=None yields one array; chunk_size=N yields chunks.
 
@@ -178,7 +178,7 @@ class DetectorGroup(Generic[DetectorT]):
 
     Lives on Acquire.detectors. Used to configure detectors before the scan
     starts. Static livetime/deadtime are baked into the trigger_patterns of
-    each TriggerGroup at Path construction time.
+    each TriggerGroup at Scan construction time.
 
     exposures_per_collection: exposures the detector accumulates per collection.
     collections_per_event: collections that form one event in the stream.
@@ -205,7 +205,7 @@ class WindowedStream(Generic[AxisT, DetectorT]):
         integer multiples of each other within a stream.
     """
     name: str
-    dimensions: list[ScanDimension[AxisT]]
+    dimensions: list[Dimension[AxisT]]
     detector_groups: list[DetectorGroup[DetectorT]]
 
 
@@ -241,13 +241,19 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
     """Compiled output of Spec.compile().
 
     O(spec complexity) to construct — no position arrays allocated until
-    setpoints() or path.positions() is called.
+    setpoints() or iteration is called.
 
-    Serves as the sole input to Path and the sole entry point for analysis.
+    Iterable: ``for window in scan`` yields one ``Window`` per collection
+    point (step scan) or per sweep (fly scan).  Also the sole entry point
+    for analysis via ``scan.windowed_streams``.
+
     fly applies to the underlying motion trajectory as a whole — all streams
     share the same motion; fly=True means the innermost motion dimension
     sweeps continuously.
     """
+    # Ordered outer → inner motion dimensions.
+    motion_dims: list[Dimension[AxisT]]
+
     # One or more named window-aligned detector streams, each with its own dimensions.
     # Acquire always produces exactly one stream.
     windowed_streams: list[WindowedStream[AxisT, DetectorT]]
@@ -263,6 +269,18 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
     # True when the innermost motion dimension sweeps continuously (flyscan).
     # False for software step scans.  Applies to the motion as a whole.
     fly: bool
+
+    def with_start(self, window: int, time: float = 0.0) -> Scan[AxisT, DetectorT, MonitorT]:
+        """Return a new Scan that starts iteration at the given window/time.
+
+        Used for pause/resume — construct a new Scan from a known progress
+        point rather than rewinding an existing iterator.
+        """
+        ...
+
+    def __iter__(self) -> Iterator[Window[AxisT, DetectorT]]:
+        """Yield one Window per collection point (step) or sweep (fly)."""
+        ...
 ```
 
 ---
@@ -270,7 +288,7 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
 ## `Spec[AxisT, DetectorT, MonitorT]` — scan spec base class
 
 `Spec` is the base class for all scan specs. Calling `spec.compile()`
-compiles it into a `Scan` used by both `Path` and analysis.
+compiles it into a `Scan`.
 `Acquire` is the concrete subclass for single-stream scans (see Construction).
 
 ```python
@@ -309,36 +327,32 @@ for m in scan.monitors:                    # list[MonitorStream[str]]
 
 # scan.windowed_streams: list[WindowedStream[str, str]] — each stream has its own dimensions.
 # scan.fly: bool — True if innermost motion dimension is a flyscan axis.
-# Used by both Path and analysis — see sections below.
+# scan.dimensions: list[Dimension[str]] — ordered outer → inner motion geometry.
 ```
 ---
 
-## `Path[AxisT, DetectorT]` — stateful scan iterator
+## `Scan` iteration
 
-`Path` is motion-centric: it iterates the underlying trajectory regardless of
-how many streams the spec describes. It owns all iteration state: current
-window index and time cursor within that window. `MonitorT` does not appear —
-monitors are not consumed via `Path`.
-
-Windows yielded by `Path` carry `trigger_groups` for all streams active in
-that window.  Consumers identify their group by matching `group.detectors`
-against their own known detector list.
-
-`dt` and other consumption parameters are supplied to method calls, not to the
-constructor, because the creator of `Path` does not know what will consume it.
+`Scan` is iterable: `for window in scan` yields one `Window` per collection
+point (step scan) or per continuous sweep (fly scan). Scan owns no mutable
+iteration state — it creates a fresh iterator each time.
 
 ```python
 scan: Scan[str, str, str] = spec.compile()
 
-# Normal start
-path: Path[str, str] = Path(scan)
+# Normal iteration
+for window in scan:
+    ...
 
-# Resume after pause — constructs from a known (window_index, time) point
-path = Path(scan, start_window=3, start_time=1.4)
+# Resume after pause — scan.with_start returns a new Scan
+scan2 = scan.with_start(window=3, time=1.4)
+for window in scan2:
+    ...
 ```
 
-`path.positions(dt, max_duration)` is only valid inside a `for window in path`
-loop — raises `RuntimeError` if called outside one.
+`window.positions(dt, max_duration)` yields servo-rate positions for the
+moving axes of that window. Only valid for fly-scan windows (raises
+`RuntimeError` for step-scan windows).
 
 ---
 
@@ -347,64 +361,41 @@ loop — raises `RuntimeError` if called outside one.
 ### 1. Software step scan
 
 Each window is a single point. `moving_axes` is always empty since `scan.fly`
-is `False` (asserted at Path construction time). Detector triggering info comes
-from `window.trigger_groups`, with `trigger_patterns` baked in from each
-stream's `detector_groups` at Path construction time giving
+is `False`. Detector triggering info comes from `window.trigger_groups`, with
+`trigger_patterns` baked in from each stream's `detector_groups` giving
 `[TriggerPattern(1, livetime, deadtime)]` per group.
 
 ```python
 async def run_step_scan(spec: Spec[str, str, str]) -> None:
     scan = spec.compile()
-    path: Path[str, str] = Path(scan)
 
-    for window in path:
-        # window: Window[str, str]
-        assert not window.moving_axes, (
-            "step scan windows must have no motion (scan.fly is False)"
-        )
+    for window in scan:
         await move(window.static_axes)   # dict[str, float]
 
-        async with asyncio.TaskGroup() as tg:
-            for group in window.trigger_groups:
-                for pattern in group.trigger_patterns:
-                    tg.create_task(
-                        trigger_detectors(group.detectors, pattern.livetime, pattern.deadtime)
-                    )
+        await asyncio.gather(*(
+            trigger_detectors(group.detectors, pattern.livetime, pattern.deadtime)
+            for group in window.trigger_groups
+            for pattern in group.trigger_patterns
+        ))
 ```
 
 ### 2. Flyscan — PandA sequence table
 
-One sequence table per collection window. The orchestrator supplies `path`,
+One sequence table per collection window. The orchestrator supplies `scan`,
 the exact set of `detector_names` this PandA sequence handles, the trigger
 type, and motor position outputs — all hardware configuration, not from spec.
 
 ```python
-def find_detector_group(
-    window: Window[AxisT, DetectorT],
-    detector_names: list[DetectorT],
-) -> TriggerGroup[DetectorT]:
-    """Return the TriggerGroup whose detectors exactly match detector_names.
-
-    Uses frozenset equality — DetectorT must be hashable.
-    Raises ValueError if no exact match found.
-    """
-    key = frozenset(detector_names)
-    for group in window.trigger_groups:
-        if frozenset(group.detectors) == key:
-            return group
-    raise ValueError(f"No detector group found for {detector_names}")
-
-
 async def run_panda_flyscan(
     panda,
-    path: Path[str, str],
+    scan: Scan[str, str, str],
     detector_names: list[str],
     trigger: SeqTrigger,
     motor_pos_outs: dict[str, PosOut],
 ) -> None:
-    for window in path:
-        # window: Window[str, str]
-        group = find_detector_group(window, detector_names)
+    det_key = frozenset(detector_names)
+    for window in scan:
+        group = next(g for g in window.trigger_groups if frozenset(g.detectors) == det_key)
 
         rows = SeqTable.empty()
 
@@ -448,77 +439,41 @@ async def run_motor_record_window(
     motor: Motor,
     window: Window[str, str],
 ) -> None:
-    """Execute one linear collection window on a single motor record.
-
-    Raises ValueError if the window is nonlinear or has more than one moving
-    axis.  Raises MotorLimitsError if the required velocity exceeds the motor's
-    maximum speed, or if the ramp trajectory falls outside its travel limits.
-    """
-    if window.non_linear_move:
-        raise ValueError(
-            "Motor record flyscan requires a linear window "
-            "(non_linear_move must be False)"
-        )
-    if len(window.moving_axes) != 1:
-        raise ValueError(
-            f"Motor record flyscan requires exactly one moving axis, "
-            f"got {list(window.moving_axes)}"
-        )
-
+    """Execute one linear collection window on a single motor record."""
     axis, motion = next(iter(window.moving_axes.items()))
-
-    # velocity = distance / time; window.duration is the collection time
-    # excluding motor ramps (start and end position are where collection begins
-    # and ends, not where the motor starts and stops moving).
-    velocity = (motion.end_position - motion.start_position) / window.duration
-
-    max_speed = await motor.max_velocity.get_value()
-    if abs(velocity) > max_speed:
-        egu = await motor.motor_egu.get_value()
-        raise MotorLimitsError(
-            f"Required scan velocity {abs(velocity):.4g} {egu}/s exceeds "
-            f"motor max speed {max_speed} {egu}/s"
-        )
+    velocity = motion.start_velocity
 
     acceleration_time = await motor.acceleration_time.get_value()
-
-    # Extend trajectory by half-ramp on each side so the motor is already
-    # at full velocity when it reaches start_position.
     ramp_up_start   = motion.start_position - acceleration_time * velocity / 2
     ramp_down_end   = motion.end_position   + acceleration_time * velocity / 2
 
-    # Check both ramp positions against motor soft limits.
     await motor.check_motor_limit(ramp_up_start, ramp_down_end)
 
-    # Move to the run-up start at maximum speed, then set the scan velocity.
-    await motor.velocity.set(abs(max_speed))
+    await motor.velocity.set(await motor.max_velocity.get_value())
     await motor.set(ramp_up_start)
     await motor.velocity.set(abs(velocity))
-
-    # Execute the constant-velocity sweep (including run-down ramp).
-    # Timeout = collection time + both ramps + 10 s margin.
-    timeout = window.duration + acceleration_time + 10
-    await motor.set(ramp_down_end, timeout=timeout)
+    await motor.set(ramp_down_end, timeout=window.duration + acceleration_time + 10)
 ```
 
 ### 4. Flyscan — PMAC trajectory
 
 Positions at servo cycle rate (e.g. 0.2ms) consumed in chunks of up to 10s.
-`path.positions(dt, max_duration)` yields `dict[AxisT, np.ndarray]`, one array
-per moving axis, implicitly for the current iteration window. Between windows
-the caller drives the turnaround using boundary kinematics from adjacent windows.
+`window.positions(dt, max_duration)` yields `dict[AxisT, np.ndarray]`, one
+array per moving axis, for that window. Between windows the caller drives
+the turnaround using boundary kinematics from adjacent windows.
 
 ```python
 async def run_pmac_flyscan(
     pmac,
-    path: Path[str, str],
+    scan: Scan[str, str, str],
 ) -> None:
-    for window in path:
+    prev_window: Window[str, str] | None = None
+    for window in scan:
         # window: Window[str, str]
 
         # Turnaround from previous window into this one.
-        if window.previous is not None:
-            prev = window.previous.moving_axes
+        if prev_window is not None:
+            prev = prev_window.moving_axes
             curr = window.moving_axes
             bridge = calculate_turnaround(
                 {a: m.end_position   for a, m in prev.items()},
@@ -529,35 +484,29 @@ async def run_pmac_flyscan(
             await pmac.send_positions(bridge)
 
         # Consume this window in time-sliced chunks.
-        # Yields early if the window ends before max_duration is reached.
-        # Raises RuntimeError if called outside a for-window loop.
-        for arrays in path.positions(dt=0.0002, max_duration=10.0):
+        for arrays in window.positions(dt=0.0002, max_duration=10.0):
             # arrays: dict[str, np.ndarray] — one entry per moving axis
             await pmac.send_positions(arrays)
+
+        prev_window = window
 ```
 
 ### 5. Pause and resume
 
 On pause the PandA completes the current window's triggers and reports progress
-as `(window_index, time_within_window)`. Resume constructs a new `Path` from
-that point. No rewind method exists on `Path`.
-
-Both PandA and PMAC resume from the same `(window_index, time_within_window)`
-point.  Each requires its own `Path` object because `Path` is a stateful
-iterator.
+as `(window_index, time_within_window)`. Resume constructs a new `Scan` from
+that point via `scan.with_start()`.
 
 ```python
 async def resume_after_pause(
     panda,
     scan: Scan[str, str, str],
-) -> tuple[Path[str, str], Path[str, str]]:
+) -> Scan[str, str, str]:
     window_index       = await panda.current_window_index()   # int
     time_within_window = await panda.time_within_window()     # float
 
-    panda_path = Path(scan, start_window=window_index, start_time=time_within_window)
-    pmac_path  = Path(scan, start_window=window_index, start_time=time_within_window)
-    return panda_path, pmac_path
-    # Pass each to the respective run_*_flyscan as normal.
+    return scan.with_start(window=window_index, time=time_within_window)
+    # Pass to run_panda_flyscan / run_pmac_flyscan as normal.
 ```
 
 ---
@@ -595,51 +544,28 @@ for stream in scan.windowed_streams:
 
     # Axis setpoint coordinates — full materialisation.
     for dim in stream.dimensions:
-        for axis in dim.axes:                          # axis: str
-            coords[axis] = next(dim.setpoints(axis))   # np.ndarray
-
-    # Axis setpoint coordinates — chunked (e.g. for incremental file writing).
-    for dim in stream.dimensions:
         for axis in dim.axes:
-            for chunk in dim.setpoints(axis, chunk_size=1000):
-                writer.append(axis, chunk)
+            coords[axis] = next(dim.setpoints(axis))   # np.ndarray
 
 # Example: 2D grid flyscan (Acquire with single stream "primary")
 # scan.fly == True
 # scan.windowed_streams[0].name == "primary"
 # scan.windowed_streams[0].dimensions == [
-#     ScanDimension(axes=["y"], length=50,  snake=False),
-#     ScanDimension(axes=["x"], length=100, snake=True),
+#     Dimension(axes=["y"], length=50,  snake=False),
+#     Dimension(axes=["x"], length=100, snake=True),
 # ]
 # DetectorGroup(["saxs", "waxs"]):                 collections_per_event=1  -> shape (50, 100)
 # DetectorGroup(["timestamp", "x_enc", "y_enc"]):  collections_per_event=10 -> shape (50, 100, 10)
 
 # Example: spiral scan — x and y share one dimension
-# scan.windowed_streams[0].dimensions == [ScanDimension(axes=["x", "y"], length=5000, snake=False)]
+# scan.windowed_streams[0].dimensions == [Dimension(axes=["x", "y"], length=5000, snake=False)]
 x_coords = next(scan.windowed_streams[0].dimensions[0].setpoints("x"))   # shape (5000,)
 y_coords = next(scan.windowed_streams[0].dimensions[0].setpoints("y"))   # shape (5000,)
 ```
 
 ---
 
-## Memory model
-
-Deserialising a `Spec` from JSON is O(spec complexity), not O(scan size).
-No position arrays are allocated until `path.positions()` is called.
-
-`Path(scan)` is O(spec complexity) — stores references to position functions,
-not evaluated arrays.
-
-`Window` objects are allocated one at a time during iteration. Each window
-holds only scalar boundary values and a back-reference to the previous window.
-
-`path.positions(dt, max_duration)` allocates at most `ceil(max_duration / dt)`
-floats per axis per chunk — e.g. 10s at 0.2ms with 2 axes:
-`2 × 50_000 × 8 bytes = 800 kB`.
-
----
-
-## Invariants (asserted at Spec or Path construction time)
+## Invariants (asserted at Spec or Scan construction time)
 
 - `AxisT` must be hashable (dict key).  `DetectorT` and `MonitorT` are not
   required to be hashable by the library; the library stores them in lists only.
@@ -651,9 +577,6 @@ floats per axis per chunk — e.g. 10s at 0.2ms with 2 axes:
   (and likewise within a `ContinuousStream`).
 - Detector names are disjoint from continuous stream detector names and monitor
   names within the `Acquire`.
-- Position functions on all motion spec nodes must be differentiable at
-  collection window boundaries (required for velocity computation at
-  turnarounds).
 - When `scan.fly == False` (step scan), windows always have empty `moving_axes`.
 
 ---
@@ -663,7 +586,7 @@ floats per axis per chunk — e.g. 10s at 0.2ms with 2 axes:
 ### Motion spec composition
 
 The composable motion nodes — `Linspace`, `Static`, `Product`, `Zip`, `Concat`,
-`Squash`, `Repeat`, `Snake` — use only `AxisT` and have no knowledge of
+`Repeat`, `Snake` — use only `AxisT` and have no knowledge of
 `DetectorT` or `MonitorT`. Assemble the full motion tree before wrapping it
 in `Acquire`.
 
@@ -700,6 +623,11 @@ triggering, monitor configuration, and fly/step mode, producing a
 `Spec[AxisT, DetectorT, MonitorT]` with exactly one detector stream.
 `fly=True` means the innermost motion dimension sweeps continuously (flyscan);
 all outer dimensions are stepped. `fly=False` (default) is a software step scan.
+
+`duration` is per-point time in seconds. When detectors are present, duration
+is derived from trigger timing. For detector-less scans: step scans default to
+`duration=0`, fly scans use `duration` to compute `window.duration = num_points * duration`.
+When `duration` is `None` (default), fly windows fall back to index-unit duration.
 
 ```python
 # Step scan
@@ -762,22 +690,14 @@ spec = Acquire(
     monitors=[MonitorStream("temp", "tc1")],
 )
 
-# Without monitors, MonitorT is unconstrained; an explicit annotation
-# is required to pin it to Never.
+# Without monitors, MonitorT is unconstrained; annotate to pin Never.
 spec_no_mon: Acquire[str, str, Never] = Acquire(
     motion,
-    detectors=[DetectorGroup(
-        exposures_per_collection=1,
-        collections_per_event=1,
-        livetime=0.003,
-        deadtime=0.001,
-        detectors=["saxs"],
-    )],
+    detectors=[DetectorGroup(1, 1, 0.003, 0.001, [\"saxs\"])],
 )
 ```
 
-See `tests/scanspec2/test_type_inference.py` for pyright assertions that
-verify this inference.
+See `tests/scanspec2/test_type_inference.py` for pyright assertions.
 
 ### `spec.compile()` — producing `Scan`
 
@@ -785,7 +705,7 @@ verify this inference.
 the spec into a `Scan`. This is O(spec complexity) — no position
 arrays are allocated.
 
-`Scan` is the input to `Path` and the sole entry point for analysis:
+`Scan` is iterable and the sole entry point for analysis:
 
 ```python
 scan: Scan[str, str, str] = acquire.compile()
@@ -796,7 +716,8 @@ assert scan.windowed_streams[0].name == "primary"
 assert scan.fly == True                              # flyscan — innermost sweeps
 assert len(scan.windowed_streams[0].detector_groups) == 2
 
-path  = Path(scan)                                   # for consumption
+for window in scan:                                  # iterate windows
+    ...
 shape = [d.length for d in scan.windowed_streams[0].dimensions]  # for analysis
 ```
 
@@ -859,9 +780,9 @@ spec: Acquire[str, str, str] = Acquire(
 #     WindowedStream(
 #         name="primary",
 #         dimensions=[
-#             ScanDimension(axes=["energy"], length=20,  snake=False),
-#             ScanDimension(axes=["y"],      length=50,  snake=False),
-#             ScanDimension(axes=["x"],      length=100, snake=True),
+#             Dimension(axes=["energy"], length=20,  snake=False),
+#             Dimension(axes=["y"],      length=50,  snake=False),
+#             Dimension(axes=["x"],      length=100, snake=True),
 #         ],
 #         detector_groups=[
 #             DetectorGroup(..., ["saxs", "waxs"]),
@@ -874,7 +795,6 @@ spec: Acquire[str, str, str] = Acquire(
 #         [DetectorGroup(..., ["front_cam", "side_cam"])]),
 # ]
 # scan.monitors == [MonitorStream("dcm_temp", "dcm_temperature")]
-```
 ```
 
 ### Validation at construction time
@@ -925,9 +845,10 @@ deserializer — never in Python-side `isinstance` checks or dispatch logic.
    different dimensionality (e.g. diffraction `[N]` and spectroscopy
    `[N, 2, 1000]`) is addressed by a second `Spec` subclass distinct from
    `Acquire`. The name and construction API for this subclass are not yet
-   specified.
+   specified. See also the concat-of-acquires placeholder:
+   `Acquire(motion1, det1, fly=True).concat(Acquire(Static(...), det2))`.
 
-2. **`path.positions(dt, max_duration)` return type**: yields
+2. **`window.positions(dt, max_duration)` return type**: yields
    `dict[AxisT, np.ndarray]` only for flying axes (those in `moving_axes`).
    Static axes are omitted. The PMAC consumer must union these with
    `window.static_axes` if it needs all axes.

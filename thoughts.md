@@ -587,3 +587,128 @@ output.
 5. First note that we no longer need to squash dimensions together. This removes a lot of complexity. Then find the tests in the existing scanspec code that deal with nesting snaked and non-snaked axes together and port them to scanspec2. These tests should guide your fix.
 6. Allowed.
 7. See 3 and 4.
+
+### After API_SPEC update
+
+- Don't add to test_use_cases without asking me: it's for my requirements. Add tests in other files. Remember this in AGENTS. Update test_linspace_fly_scan to have duration and delete your tests.
+- Consider how the use cases in the API_SPEC could be written more succinctly, e.g. asyncio.gather rather than task groups, and window.start_velocity rather than (end - start) / duration
+- Remove the + operator from Acquire, we already have the more explicit Spec.concat
+- Thoroughly read the API_SPEC and suggest anything that should be trimmed from it
+- Make a phased implementation plan for the rest of the API_SPEC, with each phase to be run from a clean context
+
+### Phase planning
+
+1. Concat direction is correct
+2. There is never the concept of `fly` in a Window. There is only the concept of static and moving axes. Concat of a fly and a step scan means concatting the window iterators together. Maybe this means our abstraction is wrong, instead of the concept of motion_dims in Scan we should pass window iterators? But then we lose the ability for Acquire to supply fly down. For the case of the diffraction detector at a static position we can get round this by just setting Acquire(Static(), fly=True), but that is not a general solution. Think more about this and propose a solution.
+3. Yes
+4. Stick with the order, B might expose architecture changes
+
+### Alternative fly/step idea
+
+Key takeaway: Dimension is the wrong abstraction for window iteration. Instead of Scan having list[Dimension], we should have list[WindowGenerator]. WindowGenerator should have 2 flavours, linear and non-linear. Product, Zip, Concat, Acquire need to know how to operate on WindowGenerator:
+- Product just adds a new WindowGenerator to the list
+- Zip merges each entry of 2 WindowGenerators together if non-linear, or merges the start and stop if linear
+- Concat runs one WindowGenerator after another whether linear or non-linear
+- Acquire(fly=True) tells the innermost generator to run as a flyscan
+
+Remaining questions are what the exact interface on WindowGenerator are for flyscan vs stepscan, and whether merging Windows from an outer WindowGenerator with an inner WindowGenerator is a reasonable approach. This needs detector trigger production being considered before a decision can be made.
+
+### Phase A WindowGenerator
+
+- Don't know what make_fly_window_data is. Tell me wny it is needed or delete it
+- Scan.dimensions not required, delete
+- WindowGenerator implementation suggestion is wrong. There should be no usage of Dimension inside it. Dimensions will be created by Acquire by reading dimensionality from stacked WindowGenerators
+- Scan.fly not required, delete
+- LinearPositions should be deleted, its functionality merged into the linear flavour of WindowGenerator
+
+### Phase A responses
+1. Start with b
+2. correct
+3. a, and Dimension.non_linear should be deleted too
+4. correct
+5. Dimension.setpoints remains
+6. correct
+
+### Code review phase A
+- _generators pattern should be replaced with *spec.compile().generators, e.g. for Repeat:
+```
+        return Scan(generators=[new_gen, *self.spec.compile().generators])
+```
+- In general, raise or ask me questions rather than guessing. For instance for zip, raise if the snaking of the inner generators doesn't match
+- Concat should raise if not len(left_gens) == len(right_gens) == 1
+- WindowGenerator should check exactly one of axis_ranges and position_fn are supplied
+- Dimension.__call__ can be deleted
+- Dimension.postion_fn should be private
+- Window.positions_fn should always exist
+- Scan.__iter__ and its _make functions look over complicated after these changes. Reconsider how to share code in the fly and step cases and refactor Scan.__iter__ and its dependant functions to be simpler
+
+### Phase B updates
+1. Optimise for the least number of TriggerPatterns in a TriggerGroup, the structure of repeats is not important when we get to a Window. Raise if livetime or deadtime is None, these should have been filled in before compile() is called.
+2. formula is correct. duration can be specified too, but it must be larger than the result of the formula.
+3. No ConcatGenerator
+4. correct
+5. sum the inners
+6. it's fixed, run it again
+
+The first step in phase B is to make a new use-case in test_use_cases (I give permission) that illustrates the flagship pattern. If you think phase B should be in a new context then update plan. If not then go ahead an implement phase B.
+
+### WindowGenerator idea
+
+I see now the problem. WindowGenerator is not big enough. It should encapsulate actually creating Windows in an iterator.
+
+Suggestion:
+- WindowGenerator.__call__ renamed to WindowGenerator.setpoints
+- WindowGenerator.__iter__() -> Iterator[Window[AxisT, DetectorT]] created
+- This should own the creation of Windows, using self.fly to decide whether to make static_axes or moving_axes as well as duration and trigger_groups. It should not set previous.
+- Scan.__iter__ should still have a stack of these, but iterates the outer generators more slowly, checking they have no moving_axes, duration or trigger_groups, and merging their static_axes and setting previous
+
+This allows us to do the 3 usecases in API_SPEC:
+- Maximal: Single Acquire, producing the same trigger_group for each window in the inner WindowGenerator
+- Flagship: Concat of Acquries, producing alternating trigger_groups for windows in the inner WindowGenerator
+- Ptychography: Custom Spec (not yet written) which generates the same trigger_group for each window, but alignment of detector frames is gappy, so detector dimensionality is different to the length of the inner WindowGenerator
+
+### WindowGenerator review
+
+- Window.positions_fn should be optional, Window.positions should raise if it doesn't exist
+- `Scan.__iter__` should modify the inner Window rather than recreating it, so `Window.position_fn` can be deleted
+- If we make `position_fn` be a callable as:
+```python
+class PositionFunction(Protocol[AxisT]):
+    @override
+    def __call__(self, indexes: float) -> dict[AxisT, float]:
+        ....
+    @override
+    def __call__(self, indexes: npt.NDArray[np.float64]) -> dict[AxisT, npt.NDArray[np.float64]]:
+        ....
+```
+  (or some similar typing construct that ensures the same signature), then does it tidy things up?
+- I feel like children should be the concern of Concat rather than being baked into WindowGenerator. Can you suggest how we could lift that functionality up? Evaluate if it's worth it.
+- Why is _fly_window so complicated? Why do you need a local positions_fn? Can it be simplified if we put in some limitations?
+- Add a parameterised test with fly=True/False to test_use_cases that implements the attached use case:
+```python
+spec = Acquire(
+    Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100)),
+    fly=fly,
+    detectors=[
+        DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
+        DetectorGroup(10, 1, 0.0003, 8e-9, ["timestamp", "x_enc", "y_enc"]),
+    ],
+    continuous_streams=[
+        ContinuousStream("cameras", [
+            DetectorGroup(1, 1, 0.048, 0.001, ["front_cam", "side_cam"]),
+        ]),
+    ],
+    monitors=[
+        MonitorStream("temperature", "tc1"),
+    ],
+)
+```
+  Note that for fly=True, we expect the TriggerGroup for saxs/waxs to have nrepeats=100, while for the step scan case we expect nrepeats=1. This change should be applied in `Acquire` so `WindowGenerator.trigger_group` is applied to each `Window` regardless of whether it is iterating a step or flyscan.
+
+### Final tweaks
+
+- Design decision: The result of `Spec.compile()` is owned by the caller, who is free to modify the structures within. Document this, then simplify Specs. For instance Repeat can modify WindowedStream in place rather than making a new one. Also removing list(outer_scan.generators) and mutating in place is fine.
+- Snake in an empty inner_gens is an error
+- I don't understand why Snake.compile has an if branch based on children? Write a test that shows why it is different
+
+### Use case creation

@@ -18,7 +18,7 @@ hardcoded list to keep in sync when new subclasses are added.
 from __future__ import annotations
 
 from abc import ABCMeta
-from collections.abc import Callable, Iterator, Sequence
+from collections.abc import Iterator, Sequence
 from typing import (
     TYPE_CHECKING,
     Annotated,
@@ -49,10 +49,12 @@ from .core import (
     ContinuousStream,
     DetectorGroup,
     Dimension,
-    LinearPositions,
     MonitorStream,
     Scan,
+    TriggerGroup,
+    TriggerPattern,
     WindowedStream,
+    WindowGenerator,
 )
 
 AxisT = TypeVar("AxisT")
@@ -157,7 +159,14 @@ class Spec(BaseModel, Generic[AxisT, DetectorT, MonitorT], metaclass=PosargsMeta
         return Concat(left=self, right=other)
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Compile this spec into a Scan.  Subclasses override."""
+        """Compile this spec into a Scan.  Subclasses override.
+
+        The returned Scan is owned by the caller, who is free to read or
+        modify any of its structures (generators, windowed_streams, etc.).
+        Consequently, ``compile()`` implementations may mutate the Scan
+        produced by an inner ``spec.compile()`` call rather than
+        constructing new wrapper objects.
+        """
         raise NotImplementedError
 
 
@@ -181,16 +190,6 @@ if TYPE_CHECKING:
 
 
 # ---------------------------------------------------------------------------
-# compile() helpers
-# ---------------------------------------------------------------------------
-
-
-def _motion_dims(spec: Spec[AxisT, Any, Any]) -> list[Dimension[AxisT]]:
-    """Return the motion dimensions from a compiled Scan."""
-    return list(spec.compile().dimensions)
-
-
-# ---------------------------------------------------------------------------
 # Motion primitives
 # ---------------------------------------------------------------------------
 
@@ -205,16 +204,12 @@ class Linspace(Spec[AxisT, Never, Never]):
 
     def compile(self) -> Scan[AxisT, Never, Never]:
         """Compile into a one-dimension Scan with a linear position function."""
-        dim = Dimension(
+        gen = WindowGenerator(
             axes=[self.axis],
             length=self.num,
-            snake=False,
-            position_fn=LinearPositions(
-                axis_ranges={self.axis: (self.start, self.stop)},
-                length=self.num,
-            ),
+            axis_ranges={self.axis: (self.start, self.stop)},
         )
-        return Scan(motion_dims=[dim])
+        return Scan(generators=[gen])
 
 
 class Static(Spec[AxisT, Never, Never]):
@@ -230,16 +225,12 @@ class Static(Spec[AxisT, Never, Never]):
 
     def compile(self) -> Scan[AxisT, Never, Never]:
         """Compile into a one-dimension Scan with a constant position function."""
-        dim = Dimension(
+        gen = WindowGenerator(
             axes=[self.axis],
             length=self.num,
-            snake=False,
-            position_fn=LinearPositions(
-                axis_ranges={self.axis: (self.value, self.value)},
-                length=self.num,
-            ),
+            axis_ranges={self.axis: (self.value, self.value)},
         )
-        return Scan(motion_dims=[dim])
+        return Scan(generators=[gen])
 
 
 class Spiral(Spec[AxisT, Never, Never]):
@@ -277,7 +268,8 @@ class Spiral(Spec[AxisT, Never, Never]):
         """Compile into a one-dimension Scan with a spiral position function."""
         num = self._num_points()
         yd = self._eff_y_diameter()
-        # diameter of the spiral at index num (outermost ring)
+        # The outermost midpoint is at index num-0.5; offset by 0.5 gives
+        # an effective spiral index of num.  diameter is 2*phi at that point.
         diameter = 2 * np.sqrt(4 * np.pi * num)
         x_scale = self.x_diameter / diameter
         y_scale = yd / diameter
@@ -286,25 +278,24 @@ class Spiral(Spec[AxisT, Never, Never]):
         x_axis, y_axis = self.x_axis, self.y_axis
 
         def spiral_fn(indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
-            # Offset by 1.0 so that integer index i maps to the midpoint of
-            # band i+1, keeping the fly-scan start boundary (i=-0.5) at
-            # phi=sqrt(2π) — well away from the singular spiral centre at
-            # phi=0 where dy/di diverges.  The 0.5 convention used by 1.x
-            # (midpoints = linspace(0.5, num-0.5, num)) places the start
-            # boundary exactly at phi=0, making start_velocity undefined.
-            phi = np.sqrt(4 * np.pi * (indexes + 1.0))
+            # Uses the 1.x fence/post convention: midpoints at half-integer
+            # indexes 0.5..N-0.5, fly boundaries at integer indexes 0..N.
+            # Offset by 0.5 so that:
+            #   - Fly start boundary (index=0) maps to phi=sqrt(2*pi),
+            #     well away from the singular spiral centre at phi=0.
+            #   - First midpoint (index=0.5) maps to phi=sqrt(4*pi*1.0).
+            phi = np.sqrt(4 * np.pi * (indexes + 0.5))
             return {
                 y_axis: yc + y_scale * phi * np.cos(phi),
                 x_axis: xc + x_scale * phi * np.sin(phi),
             }
 
-        dim = Dimension(
+        gen = WindowGenerator(
             axes=[self.y_axis, self.x_axis],
             length=num,
-            snake=False,
             position_fn=spiral_fn,
         )
-        return Scan(motion_dims=[dim])
+        return Scan(generators=[gen])
 
 
 # ---------------------------------------------------------------------------
@@ -322,15 +313,19 @@ class Repeat(Spec[AxisT, DetectorT, MonitorT]):
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile by prepending a new outer dimension of length *num*."""
-        inner_dims = _motion_dims(self.spec)
-        empty: dict[AxisT, tuple[float, float]] = {}
-        new_dim: Dimension[AxisT] = Dimension(
+        new_gen: WindowGenerator[AxisT] = WindowGenerator(
             axes=[],
             length=self.num,
-            snake=False,
-            position_fn=LinearPositions(axis_ranges=empty, length=self.num),
+            axis_ranges={},
         )
-        return Scan(motion_dims=[new_dim] + inner_dims)
+        scan = self.spec.compile()
+        new_dim: Dimension[AxisT] = Dimension(
+            axes=[], length=self.num, snake=False, position_fn=new_gen.setpoints
+        )
+        for ws in scan.windowed_streams:
+            ws.dimensions.insert(0, new_dim)
+        scan.generators.insert(0, new_gen)
+        return scan
 
 
 class Snake(Spec[AxisT, DetectorT, MonitorT]):
@@ -341,18 +336,12 @@ class Snake(Spec[AxisT, DetectorT, MonitorT]):
     )
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Compile by setting snake=True on the innermost dimension."""
-        inner_dims = _motion_dims(self.spec)
-        if not inner_dims:
-            return Scan(motion_dims=inner_dims)
-        last = inner_dims[-1]
-        inner_dims[-1] = Dimension(
-            axes=last.axes,
-            length=last.length,
-            snake=True,
-            position_fn=last.position_fn,
-        )
-        return Scan(motion_dims=inner_dims)
+        """Compile by setting snake=True on the innermost generator."""
+        scan = self.spec.compile()
+        if not scan.generators:
+            raise ValueError("Snake requires at least one generator")
+        scan.generators[-1].snake = True
+        return scan
 
 
 class Product(Spec[AxisT, DetectorT, MonitorT]):
@@ -362,10 +351,22 @@ class Product(Spec[AxisT, DetectorT, MonitorT]):
     inner: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="Fast (inner) spec.")
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Compile by concatenating outer dimensions before inner dimensions."""
-        outer_dims = _motion_dims(self.outer)
-        inner_dims = _motion_dims(self.inner)
-        return Scan(motion_dims=outer_dims + inner_dims)
+        """Compile by prepending outer generators before inner generators."""
+        outer_scan = self.outer.compile()
+        inner_scan = self.inner.compile()
+        outer_dims = [
+            Dimension(
+                axes=g.axes,
+                length=g.length,
+                snake=g.snake,
+                position_fn=g.setpoints,
+            )
+            for g in outer_scan.generators
+        ]
+        for ws in inner_scan.windowed_streams:
+            ws.dimensions[:0] = outer_dims
+        inner_scan.generators[:0] = outer_scan.generators
+        return inner_scan
 
 
 class Zip(Spec[AxisT, DetectorT, MonitorT]):
@@ -377,46 +378,47 @@ class Zip(Spec[AxisT, DetectorT, MonitorT]):
     )
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Compile by merging the innermost dimensions of left and right."""
-        left_dims = _motion_dims(self.left)
-        right_dims = _motion_dims(self.right)
-        if not left_dims or not right_dims:
+        """Compile by merging the innermost generators of left and right."""
+        left_scan = self.left.compile()
+        right_scan = self.right.compile()
+        if not left_scan.generators or not right_scan.generators:
             raise ValueError("Zip requires both specs to have at least one dimension")
-        l_inner = left_dims[-1]
-        r_inner = right_dims[-1]
+        l_inner = left_scan.generators[-1]
+        r_inner = right_scan.generators[-1]
         if l_inner.length != r_inner.length:
             raise ValueError(
                 f"Zip requires equal inner dimension lengths; "
                 f"got {l_inner.length} and {r_inner.length}"
             )
-        # Merge the two innermost dimensions.
-        merged_positions: Callable[[np.ndarray], dict[Any, np.ndarray]]
-        l_fn = l_inner.position_fn
-        r_fn = r_inner.position_fn
-        if isinstance(l_fn, LinearPositions) and isinstance(r_fn, LinearPositions):
-            l_ranges = cast(LinearPositions[AxisT], l_fn).axis_ranges
-            r_ranges = cast(LinearPositions[AxisT], r_fn).axis_ranges
-            merged_positions = LinearPositions(
-                axis_ranges={**l_ranges, **r_ranges},
+        if l_inner.snake != r_inner.snake:
+            raise ValueError(
+                f"Zip requires matching snake flags on inner generators; "
+                f"got {l_inner.snake} and {r_inner.snake}"
+            )
+        # Merge the two innermost generators.
+        if l_inner.axis_ranges is not None and r_inner.axis_ranges is not None:
+            merged_gen: WindowGenerator[AxisT] = WindowGenerator(
+                axes=l_inner.axes + r_inner.axes,
                 length=l_inner.length,
+                snake=l_inner.snake,
+                axis_ranges={**l_inner.axis_ranges, **r_inner.axis_ranges},
             )
         else:
 
             def _merged(indexes: np.ndarray) -> dict[Any, np.ndarray]:
                 result: dict[Any, np.ndarray] = {}
-                result.update(l_inner(indexes))
-                result.update(r_inner(indexes))
+                result.update(l_inner.setpoints(indexes))
+                result.update(r_inner.setpoints(indexes))
                 return result
 
-            merged_positions = _merged
-        merged_dim: Dimension[AxisT] = Dimension(
-            axes=l_inner.axes + r_inner.axes,
-            length=l_inner.length,
-            snake=l_inner.snake or r_inner.snake,
-            position_fn=merged_positions,
-        )
-        dims = left_dims[:-1] + [merged_dim]
-        return Scan(motion_dims=dims)
+            merged_gen = WindowGenerator(
+                axes=l_inner.axes + r_inner.axes,
+                length=l_inner.length,
+                snake=l_inner.snake,
+                position_fn=_merged,
+            )
+        left_scan.generators[-1] = merged_gen
+        return left_scan
 
 
 class Concat(Spec[AxisT, DetectorT, MonitorT]):
@@ -432,24 +434,47 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
     )
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Compile by concatenating the innermost dimensions of left and right."""
-        left_dims = _motion_dims(self.left)
-        right_dims = _motion_dims(self.right)
-        if not left_dims or not right_dims:
-            raise ValueError(
-                "Concat requires both specs to have at least one dimension"
-            )
-        l_inner = left_dims[-1]
-        r_inner = right_dims[-1]
-        # Outer dimensions must match (same axes and lengths).
-        if left_dims[:-1] and right_dims[:-1]:
-            l_outer_axes = [d.axes for d in left_dims[:-1]]
-            r_outer_axes = [d.axes for d in right_dims[:-1]]
-            if l_outer_axes != r_outer_axes:
-                raise ValueError(
-                    "Concat: outer dimensions must match between left and right"
-                )
-        # Build a merged inner dimension: same axes, summed length.
+        """Compile by concatenating left and right.
+
+        Two modes:
+        - Pure motion (no windowed_streams): merge innermost generators
+          into one generator with a combined position function.
+        - Detector-aware (any side has windowed_streams or children):
+          create a concat WindowGenerator whose children are iterated
+          sequentially, and merge windowed_streams.
+        """
+        left_scan = self.left.compile()
+        right_scan = self.right.compile()
+
+        left_has_streams = bool(left_scan.windowed_streams)
+        right_has_streams = bool(right_scan.windowed_streams)
+        left_has_children = (
+            bool(left_scan.generators) and left_scan.generators[-1].children is not None
+        )
+        right_has_children = (
+            bool(right_scan.generators)
+            and right_scan.generators[-1].children is not None
+        )
+
+        if (
+            left_has_streams
+            or right_has_streams
+            or left_has_children
+            or right_has_children
+        ):
+            return self._compile_concat(left_scan, right_scan)
+        return self._compile_merged(left_scan, right_scan)
+
+    def _compile_merged(
+        self,
+        left_scan: Scan[AxisT, DetectorT, MonitorT],
+        right_scan: Scan[AxisT, DetectorT, MonitorT],
+    ) -> Scan[AxisT, DetectorT, MonitorT]:
+        """Merge innermost generators (pure motion concat)."""
+        if len(left_scan.generators) != 1 or len(right_scan.generators) != 1:
+            raise ValueError("Concat requires both specs to have exactly one generator")
+        l_inner = left_scan.generators[0]
+        r_inner = right_scan.generators[0]
         if l_inner.axes != r_inner.axes:
             raise ValueError(
                 f"Concat: innermost axes must match; "
@@ -460,40 +485,90 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         total_len = l_len + r_len
 
         def concat_fn(indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
-            # indexes in [0, total_len); first l_len belong to left, rest to right.
             left_mask = indexes < l_len
             right_mask = ~left_mask
             result: dict[AxisT, np.ndarray] = {}
             if np.any(left_mask):
-                for axis, arr in l_inner(indexes[left_mask]).items():
+                for axis, arr in l_inner.setpoints(indexes[left_mask]).items():
                     result[axis] = np.empty(len(indexes), dtype=arr.dtype)
                     result[axis][left_mask] = arr
             if np.any(right_mask):
-                for axis, arr in r_inner(indexes[right_mask] - l_len).items():
+                shifted = indexes[right_mask] - l_len
+                for axis, arr in r_inner.setpoints(shifted).items():
                     if axis not in result:
-                        dummy = l_inner(np.array([0.0]))[axis]
+                        dummy = l_inner.setpoints(np.array([0.0]))[axis]
                         result[axis] = np.empty(len(indexes), dtype=dummy.dtype)
                     result[axis][right_mask] = arr
             return result
 
-        merged_dim: Dimension[AxisT] = Dimension(
+        merged_gen: WindowGenerator[AxisT] = WindowGenerator(
             axes=l_inner.axes,
             length=total_len,
             snake=l_inner.snake,
             position_fn=concat_fn,
         )
-        dims = left_dims[:-1] + [merged_dim]
-        return Scan(motion_dims=dims)
+        left_scan.generators[:] = [merged_gen]
+        return left_scan
+
+    @staticmethod
+    def _scan_to_children(
+        scan: Scan[AxisT, DetectorT, MonitorT],
+    ) -> list[WindowGenerator[AxisT]]:
+        """Extract leaf WindowGenerators from a Scan for concat children.
+
+        Each side of a Concat must have exactly one generator.  If that
+        generator already has children (from a nested Concat), flatten them;
+        otherwise use the generator itself.
+
+        Supporting multi-generator sides would require squashing generators
+        and stream dimensions together (the squash_dimensions algorithm from
+        scanspec 1.x).  This adds significant complexity and has never been
+        needed in practice, so it is not implemented.
+        """
+        gens = scan.generators
+        if len(gens) != 1:
+            raise ValueError("Concat requires each side to have exactly one generator")
+        gen = gens[0]
+        if gen.children is not None:
+            return list(gen.children)
+        return [gen]
+
+    def _compile_concat(
+        self,
+        left_scan: Scan[AxisT, DetectorT, MonitorT],
+        right_scan: Scan[AxisT, DetectorT, MonitorT],
+    ) -> Scan[AxisT, DetectorT, MonitorT]:
+        """Build a concat WindowGenerator with children."""
+        children = self._scan_to_children(left_scan) + self._scan_to_children(
+            right_scan
+        )
+        concat_gen: WindowGenerator[AxisT] = WindowGenerator(
+            axes=[],
+            length=0,
+            axis_ranges={},
+            children=children,
+        )
+        left_scan.generators[:] = [concat_gen]
+        # Merge right's windowed streams into left's (sum inner dim lengths)
+        left_by_name = {s.name: s for s in left_scan.windowed_streams}
+        for stream in right_scan.windowed_streams:
+            if stream.name in left_by_name:
+                existing = left_by_name[stream.name]
+                if existing.dimensions and stream.dimensions:
+                    existing.dimensions[-1].length += stream.dimensions[-1].length
+            else:
+                left_scan.windowed_streams.append(stream)
+        for cs in right_scan.continuous_streams:
+            if cs not in left_scan.continuous_streams:
+                left_scan.continuous_streams.append(cs)
+        for m in right_scan.monitors:
+            if m not in left_scan.monitors:
+                left_scan.monitors.append(m)
+        return left_scan
 
 
 class Acquire(Spec[AxisT, DetectorT, MonitorT]):
-    """Outermost spec node: binds detector triggering to a motion spec.
-
-    ``Acquire`` instances can be combined with ``+`` to concatenate two
-    detector configurations for the same scan path::
-
-        acq1 + acq2  ->  Concat(acq1, acq2)
-    """
+    """Outermost spec node: binds detector triggering to a motion spec."""
 
     spec: AnySpec[AxisT, Any, Any] = Field(
         description="Inner spec (motion or nested Acquire.)."
@@ -517,6 +592,14 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
     monitors: Sequence[MonitorStream[MonitorT]] = Field(
         default_factory=tuple,
         description="Free-running PV monitors.",
+    )
+    duration: float | None = Field(
+        default=None,
+        description=(
+            "Per-point duration in seconds. Required for detector-less fly "
+            "scans. When detectors are present, duration is derived from "
+            "trigger timing. For step scans without detectors, defaults to 0."
+        ),
     )
 
     @model_validator(mode="after")
@@ -546,27 +629,101 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
             )
         return self
 
-    def __add__(
-        self, other: Acquire[AxisT, DetectorT, MonitorT]
-    ) -> Concat[AxisT, DetectorT, MonitorT]:
-        """``acq1 + acq2`` -> ``Concat(acq1, acq2)``."""
-        return Concat(left=self, right=other)
-
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Compile into a Scan with detector groups and motion dims."""
-        inner_dims = _motion_dims(self.spec)
+        """Compile into a Scan with detector groups and generators."""
+        scan = self.spec.compile()
+        trigger_groups = self._bake_trigger_groups(scan.generators)
+        duration = self._compute_duration(trigger_groups, scan.generators)
+        if scan.generators:
+            last = scan.generators[-1]
+            last.fly = self.fly
+            last.trigger_groups = trigger_groups
+            last.duration = duration
+        dims = [
+            Dimension(
+                axes=g.axes,
+                length=g.length,
+                snake=g.snake,
+                position_fn=g.setpoints,
+            )
+            for g in scan.generators
+        ]
+
         stream = WindowedStream(
             name=self.stream_name,
-            dimensions=inner_dims,
+            dimensions=dims,
             detector_groups=list(self.detectors),
         )
-        return Scan(
-            motion_dims=inner_dims,
-            windowed_streams=[stream],
-            continuous_streams=list(self.continuous_streams),
-            monitors=list(self.monitors),
-            fly=self.fly,
-        )
+        scan.windowed_streams = [stream]
+        scan.continuous_streams = list(self.continuous_streams)
+        scan.monitors = list(self.monitors)
+        return scan
+
+    def _bake_trigger_groups(
+        self,
+        gens: list[WindowGenerator[AxisT]],
+    ) -> list[TriggerGroup[DetectorT]]:
+        """Convert DetectorGroups into TriggerGroups with TriggerPatterns."""
+        if not self.detectors:
+            return []
+        inner_length = gens[-1].length if gens else 1
+        fly = self.fly and bool(gens)
+        result: list[TriggerGroup[DetectorT]] = []
+        for dg in self.detectors:
+            if dg.livetime is None or dg.deadtime is None:
+                raise ValueError(
+                    f"livetime and deadtime must be set on DetectorGroup "
+                    f"before compile(); got livetime={dg.livetime}, "
+                    f"deadtime={dg.deadtime}"
+                )
+            if fly:
+                repeats = inner_length * dg.exposures_per_collection
+            else:
+                repeats = dg.exposures_per_collection
+            pattern = TriggerPattern(
+                repeats=repeats,
+                livetime=dg.livetime,
+                deadtime=dg.deadtime,
+            )
+            result.append(
+                TriggerGroup(
+                    detectors=list(dg.detectors),
+                    trigger_patterns=[pattern],
+                )
+            )
+        return result
+
+    def _compute_duration(
+        self,
+        trigger_groups: list[TriggerGroup[DetectorT]],
+        gens: list[WindowGenerator[AxisT]],
+    ) -> float | None:
+        """Derive per-point duration from trigger timing.
+
+        Returns per-point duration. For step scans (1 window per setpoint)
+        this equals total window duration. For fly scans the total window
+        duration is ``per_point * inner_length``; ``Scan.__iter__``
+        multiplies automatically.
+        """
+        if not trigger_groups:
+            return self.duration
+        total_dur = 0.0
+        for tg in trigger_groups:
+            tg_dur = sum(
+                tp.repeats * (tp.livetime + tp.deadtime) for tp in tg.trigger_patterns
+            )
+            total_dur = max(total_dur, tg_dur)
+        fly = self.fly and bool(gens)
+        inner_length = gens[-1].length if fly else 1
+        per_point = total_dur / inner_length
+        if self.duration is not None:
+            if self.duration < per_point:
+                raise ValueError(
+                    f"Explicit duration {self.duration} is less than "
+                    f"detector-derived per-point duration {per_point}"
+                )
+            return self.duration
+        return per_point
 
 
 # ---------------------------------------------------------------------------

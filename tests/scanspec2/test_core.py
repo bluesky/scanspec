@@ -9,13 +9,13 @@ from scanspec2.core import (
     ContinuousStream,
     DetectorGroup,
     Dimension,
-    LinearPositions,
     MonitorStream,
     Scan,
     TriggerGroup,
     TriggerPattern,
     Window,
     WindowedStream,
+    WindowGenerator,
 )
 
 
@@ -82,11 +82,16 @@ def test_window_previous():
 
 
 def test_scan_dimension():
+    import numpy as np
+
+    def pos_fn(indexes: np.ndarray) -> dict[str, np.ndarray]:
+        return {"x": indexes}
+
     sd = Dimension(
         axes=["x"],
         length=100,
         snake=False,
-        position_fn=LinearPositions({"x": (0.0, 99.0)}, length=100),
+        position_fn=pos_fn,
     )
     assert sd.axes == ["x"]
     assert sd.length == 100
@@ -101,32 +106,33 @@ def test_scan_dimension_setpoints_with_fn():
 
     sd = Dimension(axes=["x"], length=5, snake=False, position_fn=pos_fn)
     result = next(sd.setpoints("x"))
-    np.testing.assert_allclose(result, [0.0, 2.0, 4.0, 6.0, 8.0])
-    assert sd.non_linear is True
+    # Midpoints at half-integer indexes: 0.5, 1.5, 2.5, 3.5, 4.5
+    np.testing.assert_allclose(result, [1.0, 3.0, 5.0, 7.0, 9.0])
 
 
 def test_scan_dimension_setpoints_linear():
     import numpy as np
 
+    gen = WindowGenerator(axes=["x"], length=5, axis_ranges={"x": (0.0, 4.0)})
     sd = Dimension(
         axes=["x"],
         length=5,
         snake=False,
-        position_fn=LinearPositions({"x": (0.0, 4.0)}, length=5),
+        position_fn=gen.setpoints,
     )
     result = next(sd.setpoints("x"))
     np.testing.assert_allclose(result, [0.0, 1.0, 2.0, 3.0, 4.0])
-    assert sd.non_linear is False
 
 
 def test_scan_dimension_setpoints_chunks():
     import numpy as np
 
+    gen = WindowGenerator(axes=["x"], length=5, axis_ranges={"x": (0.0, 4.0)})
     sd = Dimension(
         axes=["x"],
         length=5,
         snake=False,
-        position_fn=LinearPositions({"x": (0.0, 4.0)}, length=5),
+        position_fn=gen.setpoints,
     )
     chunks = list(sd.setpoints("x", chunk_size=2))
     np.testing.assert_allclose(chunks[0], [0.0, 1.0])
@@ -159,11 +165,14 @@ def test_detector_group_none_timing():
 
 
 def test_windowed_stream():
+    gen = WindowGenerator(
+        axes=["x"], length=50, snake=True, axis_ranges={"x": (0.0, 49.0)}
+    )
     dim = Dimension(
         axes=["x"],
         length=50,
         snake=True,
-        position_fn=LinearPositions({"x": (0.0, 49.0)}, length=50),
+        position_fn=gen.setpoints,
     )
     dg = DetectorGroup(
         exposures_per_collection=1,
@@ -197,11 +206,14 @@ def test_monitor_stream():
 
 
 def test_scan_step():
+    gen = WindowGenerator(
+        axes=["x", "y"], length=200, axis_ranges={"x": (0.0, 1.0), "y": (0.0, 1.0)}
+    )
     dim = Dimension(
         axes=["x", "y"],
         length=200,
         snake=True,
-        position_fn=LinearPositions({"x": (0.0, 1.0), "y": (0.0, 1.0)}, length=200),
+        position_fn=gen.setpoints,
     )
     dg = DetectorGroup(
         exposures_per_collection=1,
@@ -214,14 +226,12 @@ def test_scan_step():
     cs: ContinuousStream[str] = ContinuousStream(name="cameras", detector_groups=[])
     mon = MonitorStream(name="temperature", detector="TEMP:PV")
     scan = Scan(
-        motion_dims=[],
+        generators=[],
         windowed_streams=[ws],
         continuous_streams=[cs],
         monitors=[mon],
-        fly=False,
     )
 
-    assert scan.fly is False
     assert scan.windowed_streams[0].name == "diffraction"
     assert scan.windowed_streams[0].dimensions[0].axes == ["x", "y"]
     assert scan.continuous_streams[0].name == "cameras"
@@ -232,11 +242,13 @@ def test_scan_fly():
     ws: WindowedStream[Never, Never] = WindowedStream(
         name="diff", dimensions=[], detector_groups=[]
     )
+    gen: WindowGenerator[Never] = WindowGenerator(
+        axes=[], length=1, fly=True, axis_ranges={}
+    )
     scan: Scan[Never, Never, Never] = Scan(
-        motion_dims=[],
+        generators=[gen],
         windowed_streams=[ws],
         continuous_streams=[],
         monitors=[],
-        fly=True,
     )
-    assert scan.fly is True
+    assert scan.generators[0].fly is True

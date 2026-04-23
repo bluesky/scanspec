@@ -26,6 +26,7 @@ The PRD is in `prd.md`. The design notes and user stories are in `thoughts.md`.
 - Keep tests simple: prefer a few direct instantiation / field-access assertions over elaborate setups.
 - Test **public interfaces**; avoid mocks unless there is no other way.
 - No serialisation tests for plain dataclasses — they carry no serialisation logic.
+- **`tests/scanspec2/test_use_cases.py` is the user's file.** Never add, remove, or modify tests in it without explicit permission. Put agent-created tests in other test files (e.g. `test_compile.py`, `test_core.py`, `test_specs.py`).
 
 ## Scratch / prototype files
 
