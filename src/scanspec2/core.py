@@ -66,78 +66,110 @@ class AxisMotion:
     end_velocity: float
 
 
+class LinearSource(Generic[AxisT]):
+    """Linear position interpolation from axis ranges.
+
+    Each axis maps to ``(start, stop)``.  Setpoints at half-integer indexes
+    follow the 1.x fence/post convention.
+    """
+
+    def __init__(
+        self, axis_ranges: dict[AxisT, tuple[float, float]], length: int
+    ) -> None:
+        self.axis_ranges = axis_ranges
+        self._length = length
+
+    def setpoints(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+        """Evaluate linear positions at *indexes*."""
+        result: dict[AxisT, np.ndarray] = {}
+        for ax, (start, stop) in self.axis_ranges.items():
+            if self._length <= 1:
+                step = stop - start
+            else:
+                step = (stop - start) / (self._length - 1)
+            first = start - step / 2
+            result[ax] = first + indexes * step
+        return result
+
+
+class FunctionSource(Generic[AxisT]):
+    """Arbitrary position function."""
+
+    def __init__(self, fn: Callable[[np.ndarray], dict[AxisT, np.ndarray]]) -> None:
+        self._fn = fn
+
+    def setpoints(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+        """Evaluate positions via the wrapped callable."""
+        return self._fn(indexes)
+
+
+class ConcatSource(Generic[AxisT]):
+    """Sequential concatenation of child WindowGenerators.
+
+    Delegates setpoint computation to children based on cumulative
+    length ranges.
+    """
+
+    def __init__(self, children: list[WindowGenerator[AxisT]]) -> None:
+        self.children = children
+
+    def setpoints(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+        """Delegate to children based on cumulative length ranges."""
+        result: dict[AxisT, np.ndarray] = {}
+        cumulative = 0
+        for child in self.children:
+            child_start = cumulative
+            child_end = cumulative + child.length
+            mask = (indexes >= child_start) & (indexes < child_end)
+            if np.any(mask):
+                child_idx = indexes[mask] - child_start
+                child_pts = child.setpoints(child_idx)
+                for ax, arr in child_pts.items():
+                    if ax not in result:
+                        result[ax] = np.empty(len(indexes), dtype=np.float64)
+                    result[ax][mask] = arr
+            cumulative = child_end
+        return result
+
+
 class WindowGenerator(Generic[AxisT]):
     """One dimension of window generation.
 
-    Two flavours distinguished by which argument is provided:
+    Position computation is delegated to the ``source``:
 
-    - *Linear*: ``axis_ranges`` maps each axis to ``(start, stop)`` using the
-      1.x fence/post convention (midpoints at half-integer indexes).
-    - *Non-linear*: ``position_fn`` is an arbitrary callable.
-
-    Exactly one of ``axis_ranges`` and ``position_fn`` must be supplied,
-    unless ``children`` is provided (for concat generators).
-
-    A generator with ``children`` represents a sequential concatenation of
-    sub-generators.  Iteration runs each child in order.  Each child must be
-    a single generator (not multi-gen); supporting multi-gen children would
-    require squashing generators and stream dimensions together (the
-    ``squash_dimensions`` algorithm from scanspec 1.x), which adds significant
-    complexity and has never been needed in practice.
+    - ``LinearSource``: axis_ranges → linear interpolation (fence/post).
+    - ``FunctionSource``: arbitrary callable.
+    - ``ConcatSource``: delegates to child WindowGenerators.
     """
 
     def __init__(
         self,
         axes: list[AxisT],
         length: int,
+        source: LinearSource[AxisT] | FunctionSource[AxisT] | ConcatSource[AxisT],
         snake: bool = False,
         fly: bool = False,
-        axis_ranges: dict[AxisT, tuple[float, float]] | None = None,
-        position_fn: Callable[[np.ndarray], dict[AxisT, np.ndarray]] | None = None,
         trigger_groups: list[TriggerGroup[Any]] | None = None,
         duration: float | None = None,
-        children: list[WindowGenerator[AxisT]] | None = None,
     ) -> None:
-        if children is not None:
-            # Concat generator — axes/length/position not used directly
-            pass
-        elif (axis_ranges is None) == (position_fn is None):
-            raise ValueError(
-                "Exactly one of axis_ranges and position_fn must be supplied"
-            )
         self.axes = axes
         self.length = length
+        self.source = source
         self.snake = snake
         self.fly = fly
-        self.axis_ranges = axis_ranges
-        self.position_fn = position_fn
         self.trigger_groups: list[TriggerGroup[Any]] = (
             trigger_groups if trigger_groups is not None else []
         )
         self.duration = duration
-        self.children = children
 
     @property
-    def is_linear(self) -> bool:
-        """True when positions are linearly interpolated from axis_ranges."""
-        return self.axis_ranges is not None
+    def non_linear(self) -> bool:
+        """True when positions use a non-linear function."""
+        return not isinstance(self.source, LinearSource)
 
     def setpoints(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
         """Evaluate positions at *indexes*."""
-        if self.axis_ranges is not None:
-            result: dict[AxisT, np.ndarray] = {}
-            for ax, (start, stop) in self.axis_ranges.items():
-                if self.length <= 1:
-                    step = stop - start
-                else:
-                    step = (stop - start) / (self.length - 1)
-                first = start - step / 2
-                result[ax] = first + indexes * step
-            return result
-        elif self.position_fn is not None:
-            return self.position_fn(indexes)
-        else:
-            return {}
+        return self.source.setpoints(indexes)
 
     def windows(self, reverse: bool = False) -> Iterator[Window[AxisT, Any]]:
         """Yield collection windows for this generator.
@@ -149,9 +181,13 @@ class WindowGenerator(Generic[AxisT]):
         For fly scans: one Window covering the whole sweep.
         For concat generators (children): iterates each child sequentially.
         """
-        if self.children is not None:
-            kids = list(reversed(self.children)) if reverse else self.children
-            for child in kids:
+        if isinstance(self.source, ConcatSource):
+            children = (
+                list(reversed(self.source.children))
+                if reverse
+                else self.source.children
+            )
+            for child in children:
                 yield from child.windows(reverse)
             return
 
@@ -169,7 +205,7 @@ class WindowGenerator(Generic[AxisT]):
             yield Window(
                 static_axes=step_pos,
                 moving_axes={},
-                non_linear_move=False,
+                non_linear=False,
                 duration=self.duration if self.duration is not None else 0.0,
                 trigger_groups=list(self.trigger_groups),
                 previous=None,
@@ -201,28 +237,19 @@ class WindowGenerator(Generic[AxisT]):
                 end_velocity=e_vel,
             )
 
-        span = end_i - start_i
-        # Capture for closure
         setpoints_fn = self.setpoints
+        sign = 1.0 if not reverse else -1.0
 
         def positions_fn(indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
-            dur = abs(span)
-            mapped = (
-                start_i + indexes * span / dur
-                if dur != 0
-                else np.full_like(indexes, start_i)
-            )
-            return setpoints_fn(mapped)
+            return setpoints_fn(start_i + indexes * sign)
 
         duration = (
-            length * self.duration
-            if self.duration is not None
-            else abs(end_i - start_i)
+            length * self.duration if self.duration is not None else float(length)
         )
         yield Window(
             static_axes={},
             moving_axes=moving_axes,
-            non_linear_move=not self.is_linear,
+            non_linear=self.non_linear,
             duration=duration,
             trigger_groups=list(self.trigger_groups),
             previous=None,
@@ -237,9 +264,8 @@ class Dimension(Generic[AxisT]):
     (Linspace, Spiral, etc.) in the spec tree; Zip merges two primitives
     into one entry with multiple axes.
 
-    Whether the innermost dimension is flown or stepped is recorded on
-    Scan.fly — not here, since only the innermost dimension can
-    ever be a flyscan axis.
+    Whether the innermost dimension is flown or stepped is not recorded
+    here, since only the innermost dimension can ever be a flyscan axis.
 
     """
 
@@ -297,7 +323,7 @@ class Window(Generic[AxisT, DetectorT]):
         self,
         static_axes: dict[AxisT, float],
         moving_axes: dict[AxisT, AxisMotion],
-        non_linear_move: bool,
+        non_linear: bool,
         duration: float,
         trigger_groups: list[TriggerGroup[DetectorT]],
         previous: Window[AxisT, DetectorT] | None,
@@ -305,7 +331,7 @@ class Window(Generic[AxisT, DetectorT]):
     ) -> None:
         self.static_axes = static_axes
         self.moving_axes = moving_axes
-        self.non_linear_move = non_linear_move
+        self.non_linear = non_linear
         self.duration = duration
         self.trigger_groups = trigger_groups
         self.previous = previous
@@ -488,6 +514,16 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
             start_time=time,
         )
 
+    @property
+    def has_moving_axes(self) -> bool:
+        """True if any window will have moving_axes (fly generators present)."""
+        return any(g.fly for g in self.generators)
+
+    @property
+    def non_linear(self) -> bool:
+        """True if any fly generator uses a non-linear position function."""
+        return any(g.fly and g.non_linear for g in self.generators)
+
     @staticmethod
     def _changed_axes(
         current: dict[AxisT, float],
@@ -505,7 +541,7 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
 
         Outer generators are iterated via ``windows()``, yielding step-scan
         positions that are merged into the innermost windows' ``static_axes``.
-        The innermost generator (which may contain ``children`` for concat)
+        The innermost generator (which may use a ``ConcatSource`` for concat)
         yields the actual collection windows.
 
         ``previous`` and ``static_axes`` are set by mutating the inner Window

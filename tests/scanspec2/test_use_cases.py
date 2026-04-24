@@ -32,7 +32,7 @@ def test_linspace_step_scan():
         # step scan: no moving axes
         assert w.moving_axes == {}
         # step scan: not a continuous trajectory
-        assert w.non_linear_move is False
+        assert w.non_linear is False
         # step scan: no detectors, duration is 0
         assert w.duration == approx(0.0)
         # no detectors configured on bare Linspace
@@ -43,13 +43,17 @@ def test_linspace_step_scan():
         else:
             assert w.previous is windows[i - 1]
 
+    # Step scan windows have no position function — positions() should error.
+    with pytest.raises(RuntimeError, match="No position function"):
+        next(windows[0].positions(dt=1.0))
+
 
 def test_linspace_fly_scan():
-    """Acquire(fly=True, Linspace(x, 0, 1, 5), duration=0.004) — one fly window."""
+    """Acquire(fly=True, Linspace(x, 0, 1, 5)) — one fly window."""
     linspace = Linspace("x", 0, 1, 5)
     scan = cast(
         Scan[str, Never, Never],
-        Acquire(linspace, fly=True, duration=0.004).compile(),
+        Acquire(linspace, fly=True).compile(),
     )
     windows = list(scan)
     assert len(windows) == 1
@@ -66,12 +70,19 @@ def test_linspace_fly_scan():
     assert am.start_velocity == approx(0.25)
     assert am.end_velocity == approx(0.25)
     # linear sweep
-    assert w.non_linear_move is False
-    # 5 points × 0.004 s/point = 0.02 s
-    assert w.duration == approx(0.02)
+    assert w.non_linear is False
+    # index-based duration: 5 points
+    assert w.duration == approx(5.0)
     # no detectors configured
     assert w.trigger_groups == []
     assert w.previous is None
+
+    # Fly window positions: dt=1.0 → 5 points at integer indexes.
+    all_chunks = list(w.positions(dt=1.0))
+    assert len(all_chunks) == 1
+    full_x = np.concatenate([ch["x"] for ch in all_chunks])
+    # Positions at indexes [0,1,2,3,4]: boundary-to-boundary sweep
+    assert full_x == approx([-0.125, 0.1875, 0.5, 0.8125, 1.125])
 
 
 def test_spiral_step_scan():
@@ -80,7 +91,11 @@ def test_spiral_step_scan():
     windows = list(scan)
     assert len(windows) == 10
 
-    assert windows[0].non_linear_move is False
+    assert windows[0].non_linear is False
+
+    # Step scan windows should error on positions().
+    with pytest.raises(RuntimeError, match="No position function"):
+        next(windows[0].positions(dt=1.0))
 
     x_pos = [w.static_axes["x"] for w in windows]
     y_pos = [w.static_axes["y"] for w in windows]
@@ -105,7 +120,7 @@ def test_spiral_fly_scan():
 
     w = windows[0]
     # The spiral position function is non-linear
-    assert w.non_linear_move is True
+    assert w.non_linear is True
     # duration = |9.5 - (-0.5)| = 10.0 index units (10 points)
     assert w.duration == approx(10.0)
     # only window, so no prior outer position to report
@@ -122,6 +137,21 @@ def test_spiral_fly_scan():
     assert w.moving_axes["y"].end_position == approx(12.417, abs=0.001)
     assert w.moving_axes["x"].end_velocity == approx(0.553, abs=0.001)
     assert w.moving_axes["y"].end_velocity == approx(2.586, abs=0.001)
+
+    # Fly window should have a positions function for spiral trajectory.
+    # dt=1.0, duration=10.0 → 10 points in 1 chunk.
+    all_chunks = list(w.positions(dt=1.0))
+    assert len(all_chunks) == 1
+    full_x = np.concatenate([ch["x"] for ch in all_chunks])
+    full_y = np.concatenate([ch["y"] for ch in all_chunks])
+    assert full_x == approx(
+        [0.332, -0.981, -0.549, 0.946, 1.757, 1.255, -0.138, -1.590, -2.401, -2.259],
+        abs=0.001,
+    )
+    assert full_y == approx(
+        [9.100, 9.576, 12.366, 12.451, 9.900, 7.028, 5.776, 6.748, 9.355, 12.417],
+        abs=0.001,
+    )
 
 
 def test_flagship_multi_stream_concat():
@@ -158,7 +188,15 @@ def test_flagship_multi_stream_concat():
         diff_acq.concat(spec_fwd).concat(spec_rev),
         num=200,
     )
-    scan: Scan[str, str, Never] = spec.compile()
+    scan: Scan[str, str, str] = Acquire(  # type: ignore[reportUnknownVariableType]
+        spec,
+        monitors=[MonitorStream("temperature", "tc1")],
+    ).compile()  # type: ignore[reportArgumentType]
+
+    # --- Monitors ---
+    assert len(scan.monitors) == 1
+    assert scan.monitors[0].name == "temperature"
+    assert scan.monitors[0].detector == "tc1"
 
     # --- Windowed streams ---
     streams_by_name = {s.name: s for s in scan.windowed_streams}
@@ -190,7 +228,7 @@ def test_flagship_multi_stream_concat():
         # Window 0: step to e=7.0
         assert w_diff.static_axes["e"] == approx(7.0)
         assert w_diff.moving_axes == {}
-        assert w_diff.non_linear_move is False
+        assert w_diff.non_linear is False
         # duration from detector: 1 × (0.01 + 0.001) = 0.011
         assert w_diff.duration == approx(0.011)
         # trigger_groups from diff_det
@@ -204,7 +242,7 @@ def test_flagship_multi_stream_concat():
         assert "e" in w_fwd.moving_axes
         am_fwd = w_fwd.moving_axes["e"]
         assert am_fwd.start_position < am_fwd.end_position
-        assert w_fwd.non_linear_move is False  # linear Linspace
+        assert w_fwd.non_linear is False  # linear Linspace
         # duration from detector: 1000 × (0.003 + 0.001) = 4.0
         assert w_fwd.duration == approx(4.0)
         assert len(w_fwd.trigger_groups) == 1
@@ -218,7 +256,7 @@ def test_flagship_multi_stream_concat():
         assert "e" in w_rev.moving_axes
         am_rev = w_rev.moving_axes["e"]
         assert am_rev.start_position > am_rev.end_position
-        assert w_rev.non_linear_move is False
+        assert w_rev.non_linear is False
         assert w_rev.duration == approx(4.0)
         assert len(w_rev.trigger_groups) == 1
         assert w_rev.trigger_groups[0].detectors == ["spectroscopy"]
@@ -403,7 +441,7 @@ def test_motor_record_fly():
 
     w = windows[0]
     # Must be linear for motor record
-    assert w.non_linear_move is False
+    assert w.non_linear is False
     # Exactly one moving axis
     assert len(w.moving_axes) == 1
     axis, motion = next(iter(w.moving_axes.items()))

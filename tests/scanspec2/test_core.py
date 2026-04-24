@@ -9,6 +9,7 @@ from scanspec2.core import (
     ContinuousStream,
     DetectorGroup,
     Dimension,
+    LinearSource,
     MonitorStream,
     Scan,
     TriggerGroup,
@@ -47,14 +48,14 @@ def test_window():
     w = Window(
         static_axes={"y": 5.0},
         moving_axes={"x": AxisMotion(0.0, 1.0, 10.0, 1.0)},
-        non_linear_move=False,
+        non_linear=False,
         duration=0.012,
         trigger_groups=[tg],
         previous=None,
     )
     assert w.static_axes == {"y": 5.0}
     assert "x" in w.moving_axes
-    assert w.non_linear_move is False
+    assert w.non_linear is False
     assert w.duration == pytest.approx(0.012)  # type: ignore[reportUnknownMemberType]
     assert w.previous is None
 
@@ -65,7 +66,7 @@ def test_window_previous():
     first = Window(
         static_axes={"y": 5.0},
         moving_axes={},
-        non_linear_move=False,
+        non_linear=False,
         duration=0.01,
         trigger_groups=[tg],
         previous=None,
@@ -73,7 +74,7 @@ def test_window_previous():
     second = Window(
         static_axes={"y": 6.0},
         moving_axes={},
-        non_linear_move=False,
+        non_linear=False,
         duration=0.01,
         trigger_groups=[tg],
         previous=first,
@@ -113,7 +114,9 @@ def test_scan_dimension_setpoints_with_fn():
 def test_scan_dimension_setpoints_linear():
     import numpy as np
 
-    gen = WindowGenerator(axes=["x"], length=5, axis_ranges={"x": (0.0, 4.0)})
+    gen = WindowGenerator(
+        axes=["x"], length=5, source=LinearSource({"x": (0.0, 4.0)}, 5)
+    )
     sd = Dimension(
         axes=["x"],
         length=5,
@@ -127,7 +130,9 @@ def test_scan_dimension_setpoints_linear():
 def test_scan_dimension_setpoints_chunks():
     import numpy as np
 
-    gen = WindowGenerator(axes=["x"], length=5, axis_ranges={"x": (0.0, 4.0)})
+    gen = WindowGenerator(
+        axes=["x"], length=5, source=LinearSource({"x": (0.0, 4.0)}, 5)
+    )
     sd = Dimension(
         axes=["x"],
         length=5,
@@ -166,7 +171,10 @@ def test_detector_group_none_timing():
 
 def test_windowed_stream():
     gen = WindowGenerator(
-        axes=["x"], length=50, snake=True, axis_ranges={"x": (0.0, 49.0)}
+        axes=["x"],
+        length=50,
+        snake=True,
+        source=LinearSource({"x": (0.0, 49.0)}, 50),
     )
     dim = Dimension(
         axes=["x"],
@@ -207,7 +215,9 @@ def test_monitor_stream():
 
 def test_scan_step():
     gen = WindowGenerator(
-        axes=["x", "y"], length=200, axis_ranges={"x": (0.0, 1.0), "y": (0.0, 1.0)}
+        axes=["x", "y"],
+        length=200,
+        source=LinearSource({"x": (0.0, 1.0), "y": (0.0, 1.0)}, 200),
     )
     dim = Dimension(
         axes=["x", "y"],
@@ -243,7 +253,7 @@ def test_scan_fly():
         name="diff", dimensions=[], detector_groups=[]
     )
     gen: WindowGenerator[Never] = WindowGenerator(
-        axes=[], length=1, fly=True, axis_ranges={}
+        axes=[], length=1, fly=True, source=LinearSource({}, 1)
     )
     scan: Scan[Never, Never, Never] = Scan(
         generators=[gen],

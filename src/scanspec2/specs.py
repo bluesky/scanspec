@@ -46,9 +46,12 @@ from pydantic import (
 )
 
 from .core import (
+    ConcatSource,
     ContinuousStream,
     DetectorGroup,
     Dimension,
+    FunctionSource,
+    LinearSource,
     MonitorStream,
     Scan,
     TriggerGroup,
@@ -77,6 +80,53 @@ def _recursive_subclasses(cls: type) -> Iterator[type]:
 
 
 # ---------------------------------------------------------------------------
+# Dynamic AnySpec union — rebuilt automatically by PosargsMeta.__new__
+# ---------------------------------------------------------------------------
+
+# Mutable module-level state for the union.  Updated every time a new
+# concrete Spec subclass is created (including out-of-package ones).
+_anyspec_union: Any = None
+_anyspec_cls: Any = None  # runtime AnySpec sentinel class, set once below
+
+
+def _maybe_rebuild_anyspec_union(cls: type) -> None:
+    """Rebuild ``_anyspec_union`` if *cls* is a new concrete Spec subclass."""
+    global _anyspec_union  # noqa: PLW0603
+    # Avoid running during Spec base-class creation or for parametrised generics.
+    if not hasattr(cls, "model_fields"):
+        return
+    # Check cls is a Spec subclass (not Spec itself).
+    try:
+        if cls.__name__ == "Spec" or not issubclass(cls, Spec):
+            return
+    except TypeError:
+        return
+    if "[" in cls.__name__:
+        return
+
+    subclasses = [s for s in _recursive_subclasses(Spec) if "[" not in s.__name__]
+    if len(subclasses) < 2:
+        return
+
+    _anyspec_union = Annotated[
+        Union[tuple(Annotated[sub, Tag(sub.__name__)] for sub in subclasses)],  # noqa: UP007
+        Discriminator(_discriminate_by_type),
+    ]
+
+    # Rebuild all existing subclasses so pydantic picks up the updated union.
+    ns: dict[str, Any] = {}
+    if _anyspec_cls is not None:
+        ns["AnySpec"] = _anyspec_cls
+    for sub in subclasses:
+        rebuild = getattr(sub, "model_rebuild", None)
+        if rebuild is not None:
+            try:
+                rebuild(force=True, _types_namespace=ns)
+            except Exception:
+                pass
+
+
+# ---------------------------------------------------------------------------
 # Metaclass
 # ---------------------------------------------------------------------------
 
@@ -87,6 +137,10 @@ class PosargsMeta(type(BaseModel), ABCMeta):
 
     ``@dataclass_transform`` tells pyright that subclasses behave like
     dataclasses, giving correct type inference for positional constructor calls.
+
+    Also rebuilds ``_anyspec_union`` whenever a new concrete Spec subclass is
+    created, so that out-of-package Spec subclasses are automatically included
+    in the discriminated union used for (de)serialisation.
     """
 
     def __new__(  # noqa: D102
@@ -107,6 +161,10 @@ class PosargsMeta(type(BaseModel), ABCMeta):
             original_init(self, **kwargs)
 
         cls.__init__ = patched_init
+
+        # Rebuild AnySpec union if this is a concrete Spec subclass.
+        _maybe_rebuild_anyspec_union(cls)
+
         return cls
 
 
@@ -173,20 +231,18 @@ class Spec(BaseModel, Generic[AxisT, DetectorT, MonitorT], metaclass=PosargsMeta
 # ---------------------------------------------------------------------------
 # AnySpec — single discriminated union covering all subclasses.
 #
-# At TYPE_CHECKING time AnySpec is simply the bare Spec class (no type args).
-# AnySpec: TypeAlias = Spec[AxisT, DetectorT, MonitorT]
+# At TYPE_CHECKING time AnySpec is simply the bare Spec class (no type args)
 # so AnySpec[T, D, M] resolves to Spec[T, D, M] for pyright.
 #
-# At runtime AnySpec is a subscriptable class whose __class_getitem__ ignores
-# type params and returns the real discriminated union (so pydantic uses the
-# union for validation), and __get_pydantic_core_schema__ makes TypeAdapter
-# work directly.  The union is built at the bottom of the module after all
-# subclasses are defined.
+# At runtime the AnySpec class is defined at the bottom of this module,
+# AFTER all concrete subclasses, so that pydantic defers annotation
+# resolution until model_rebuild is called with the complete union.
+# Out-of-package subclasses are handled by _maybe_rebuild_anyspec_union
+# which fires in PosargsMeta.__new__.
 # ---------------------------------------------------------------------------
 
 if TYPE_CHECKING:
     AnySpec: TypeAlias = Spec[AxisT, DetectorT, MonitorT]
-# Runtime AnySpec class defined at the bottom of this module.
 
 
 # ---------------------------------------------------------------------------
@@ -207,7 +263,7 @@ class Linspace(Spec[AxisT, Never, Never]):
         gen = WindowGenerator(
             axes=[self.axis],
             length=self.num,
-            axis_ranges={self.axis: (self.start, self.stop)},
+            source=LinearSource({self.axis: (self.start, self.stop)}, self.num),
         )
         return Scan(generators=[gen])
 
@@ -228,7 +284,7 @@ class Static(Spec[AxisT, Never, Never]):
         gen = WindowGenerator(
             axes=[self.axis],
             length=self.num,
-            axis_ranges={self.axis: (self.value, self.value)},
+            source=LinearSource({self.axis: (self.value, self.value)}, self.num),
         )
         return Scan(generators=[gen])
 
@@ -293,7 +349,7 @@ class Spiral(Spec[AxisT, Never, Never]):
         gen = WindowGenerator(
             axes=[self.y_axis, self.x_axis],
             length=num,
-            position_fn=spiral_fn,
+            source=FunctionSource(spiral_fn),
         )
         return Scan(generators=[gen])
 
@@ -301,6 +357,25 @@ class Spiral(Spec[AxisT, Never, Never]):
 # ---------------------------------------------------------------------------
 # Combinators — accept any Spec (including Acquire)
 # ---------------------------------------------------------------------------
+
+
+def _reject_continuous_and_monitors(scan: Scan[Any, Any, Any], combinator: str) -> None:
+    """Raise if *scan* has continuous_streams or monitors.
+
+    Continuous and monitor streams run in parallel to the entire scan and
+    must be attached at the outermost ``Acquire``, not nested inside
+    combinators.
+    """
+    if scan.continuous_streams:
+        raise ValueError(
+            f"{combinator} does not accept specs with continuous_streams; "
+            f"attach them on the outermost Acquire instead"
+        )
+    if scan.monitors:
+        raise ValueError(
+            f"{combinator} does not accept specs with monitors; "
+            f"attach them on the outermost Acquire instead"
+        )
 
 
 class Repeat(Spec[AxisT, DetectorT, MonitorT]):
@@ -316,7 +391,7 @@ class Repeat(Spec[AxisT, DetectorT, MonitorT]):
         new_gen: WindowGenerator[AxisT] = WindowGenerator(
             axes=[],
             length=self.num,
-            axis_ranges={},
+            source=LinearSource({}, self.num),
         )
         scan = self.spec.compile()
         new_dim: Dimension[AxisT] = Dimension(
@@ -338,9 +413,11 @@ class Snake(Spec[AxisT, DetectorT, MonitorT]):
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile by setting snake=True on the innermost generator."""
         scan = self.spec.compile()
-        if not scan.generators:
-            raise ValueError("Snake requires at least one generator")
-        scan.generators[-1].snake = True
+        if len(scan.generators) != 1:
+            raise ValueError(
+                f"Snake requires exactly one generator, got {len(scan.generators)}"
+            )
+        scan.generators[0].snake = True
         return scan
 
 
@@ -354,6 +431,8 @@ class Product(Spec[AxisT, DetectorT, MonitorT]):
         """Compile by prepending outer generators before inner generators."""
         outer_scan = self.outer.compile()
         inner_scan = self.inner.compile()
+        _reject_continuous_and_monitors(outer_scan, "Product")
+        _reject_continuous_and_monitors(inner_scan, "Product")
         outer_dims = [
             Dimension(
                 axes=g.axes,
@@ -370,55 +449,124 @@ class Product(Spec[AxisT, DetectorT, MonitorT]):
 
 
 class Zip(Spec[AxisT, DetectorT, MonitorT]):
-    """Merge two specs into one shared dimension (both must have the same length)."""
+    """Merge two specs into one shared dimension.
+
+    Supports the same cases as 1.x:
+
+    - Both sides have the same number of generators with matching inner
+      lengths: merge innermost generators dimension-by-dimension.
+    - Right has more generators than left: left-pad left with right's
+      extra outer generators.
+    - Right has a single generator of length 1 (e.g. ``Static``): expand
+      it to match left's innermost generator length.
+    """
 
     left: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="First spec.")
-    right: AnySpec[AxisT, DetectorT, MonitorT] = Field(
-        description="Second spec (must have the same length as left)."
-    )
+    right: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="Second spec.")
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Compile by merging the innermost generators of left and right."""
+        """Compile by merging generators of left and right."""
         left_scan = self.left.compile()
         right_scan = self.right.compile()
+        _reject_continuous_and_monitors(left_scan, "Zip")
+        _reject_continuous_and_monitors(right_scan, "Zip")
         if not left_scan.generators or not right_scan.generators:
             raise ValueError("Zip requires both specs to have at least one dimension")
-        l_inner = left_scan.generators[-1]
-        r_inner = right_scan.generators[-1]
-        if l_inner.length != r_inner.length:
+        if len(left_scan.generators) < len(right_scan.generators):
             raise ValueError(
-                f"Zip requires equal inner dimension lengths; "
-                f"got {l_inner.length} and {r_inner.length}"
+                f"Zip requires len(left.generators) >= len(right.generators); "
+                f"got {len(left_scan.generators)} and {len(right_scan.generators)}"
             )
-        if l_inner.snake != r_inner.snake:
-            raise ValueError(
-                f"Zip requires matching snake flags on inner generators; "
-                f"got {l_inner.snake} and {r_inner.snake}"
-            )
-        # Merge the two innermost generators.
-        if l_inner.axis_ranges is not None and r_inner.axis_ranges is not None:
-            merged_gen: WindowGenerator[AxisT] = WindowGenerator(
-                axes=l_inner.axes + r_inner.axes,
-                length=l_inner.length,
-                snake=l_inner.snake,
-                axis_ranges={**l_inner.axis_ranges, **r_inner.axis_ranges},
-            )
-        else:
 
-            def _merged(indexes: np.ndarray) -> dict[Any, np.ndarray]:
-                result: dict[Any, np.ndarray] = {}
-                result.update(l_inner.setpoints(indexes))
-                result.update(r_inner.setpoints(indexes))
-                return result
+        r_gens = list(right_scan.generators)
 
-            merged_gen = WindowGenerator(
-                axes=l_inner.axes + r_inner.axes,
-                length=l_inner.length,
-                snake=l_inner.snake,
-                position_fn=_merged,
-            )
-        left_scan.generators[-1] = merged_gen
+        # Special case: right is a single generator of length 1 (e.g. Static).
+        # Expand it to match left's innermost length.
+        if len(r_gens) == 1 and r_gens[0].length == 1:
+            l_inner = left_scan.generators[-1]
+            r_gen = r_gens[0]
+            # Build an expanded generator that repeats the single value.
+            if isinstance(r_gen.source, LinearSource):
+                expanded_gen: WindowGenerator[AxisT] = WindowGenerator(
+                    axes=r_gen.axes,
+                    length=l_inner.length,
+                    snake=l_inner.snake,
+                    source=LinearSource(r_gen.source.axis_ranges, l_inner.length),
+                )
+            else:
+                r_captured = r_gen
+
+                def _expand(indexes: np.ndarray) -> dict[Any, np.ndarray]:
+                    # Always evaluate at index 0.5 (the single setpoint)
+                    single = r_captured.setpoints(np.array([0.5]))
+                    return {
+                        ax: np.full(len(indexes), float(arr[0]))
+                        for ax, arr in single.items()
+                    }
+
+                expanded_gen = WindowGenerator(
+                    axes=r_gen.axes,
+                    length=l_inner.length,
+                    snake=l_inner.snake,
+                    source=FunctionSource(_expand),
+                )
+            r_gens = [expanded_gen]
+
+        # Left-pad r_gens so both lists are the same length.
+        npad = len(left_scan.generators) - len(r_gens)
+        padded_right: list[WindowGenerator[AxisT] | None] = [None] * npad + r_gens  # type: ignore[list-item]
+
+        # Merge generator-by-generator from outer to inner.
+        for i, (l_gen, r_gen_or_none) in enumerate(
+            zip(left_scan.generators, padded_right, strict=True)
+        ):
+            if r_gen_or_none is None:
+                continue
+            r_gen = r_gen_or_none
+            if l_gen.length != r_gen.length:
+                raise ValueError(
+                    f"Zip requires equal dimension lengths at position {i}; "
+                    f"got {l_gen.length} and {r_gen.length}"
+                )
+            if l_gen.snake != r_gen.snake:
+                raise ValueError(
+                    f"Zip requires matching snake flags at position {i}; "
+                    f"got {l_gen.snake} and {r_gen.snake}"
+                )
+            left_scan.generators[i] = self._merge_generators(l_gen, r_gen)
         return left_scan
+
+    @staticmethod
+    def _merge_generators(
+        left: WindowGenerator[AxisT], right: WindowGenerator[AxisT]
+    ) -> WindowGenerator[AxisT]:
+        """Merge two generators into one with combined axes."""
+        if isinstance(left.source, LinearSource) and isinstance(
+            right.source, LinearSource
+        ):
+            return WindowGenerator(
+                axes=left.axes + right.axes,
+                length=left.length,
+                snake=left.snake,
+                source=LinearSource(
+                    {**left.source.axis_ranges, **right.source.axis_ranges},
+                    left.length,
+                ),
+            )
+        l_cap, r_cap = left, right
+
+        def _merged(indexes: np.ndarray) -> dict[Any, np.ndarray]:
+            result: dict[Any, np.ndarray] = {}
+            result.update(l_cap.setpoints(indexes))
+            result.update(r_cap.setpoints(indexes))
+            return result
+
+        return WindowGenerator(
+            axes=left.axes + right.axes,
+            length=left.length,
+            snake=left.snake,
+            source=FunctionSource(_merged),
+        )
 
 
 class Concat(Spec[AxisT, DetectorT, MonitorT]):
@@ -434,122 +582,34 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
     )
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Compile by concatenating left and right.
-
-        Two modes:
-        - Pure motion (no windowed_streams): merge innermost generators
-          into one generator with a combined position function.
-        - Detector-aware (any side has windowed_streams or children):
-          create a concat WindowGenerator whose children are iterated
-          sequentially, and merge windowed_streams.
-        """
+        """Compile by concatenating left and right into a concat generator."""
         left_scan = self.left.compile()
         right_scan = self.right.compile()
+        _reject_continuous_and_monitors(left_scan, "Concat")
+        _reject_continuous_and_monitors(right_scan, "Concat")
 
-        left_has_streams = bool(left_scan.windowed_streams)
-        right_has_streams = bool(right_scan.windowed_streams)
-        left_has_children = (
-            bool(left_scan.generators) and left_scan.generators[-1].children is not None
-        )
-        right_has_children = (
-            bool(right_scan.generators)
-            and right_scan.generators[-1].children is not None
-        )
-
-        if (
-            left_has_streams
-            or right_has_streams
-            or left_has_children
-            or right_has_children
-        ):
-            return self._compile_concat(left_scan, right_scan)
-        return self._compile_merged(left_scan, right_scan)
-
-    def _compile_merged(
-        self,
-        left_scan: Scan[AxisT, DetectorT, MonitorT],
-        right_scan: Scan[AxisT, DetectorT, MonitorT],
-    ) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Merge innermost generators (pure motion concat)."""
-        if len(left_scan.generators) != 1 or len(right_scan.generators) != 1:
-            raise ValueError("Concat requires both specs to have exactly one generator")
-        l_inner = left_scan.generators[0]
-        r_inner = right_scan.generators[0]
-        if l_inner.axes != r_inner.axes:
-            raise ValueError(
-                f"Concat: innermost axes must match; "
-                f"got {l_inner.axes} vs {r_inner.axes}"
-            )
-        l_len = l_inner.length
-        r_len = r_inner.length
-        total_len = l_len + r_len
-
-        def concat_fn(indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
-            left_mask = indexes < l_len
-            right_mask = ~left_mask
-            result: dict[AxisT, np.ndarray] = {}
-            if np.any(left_mask):
-                for axis, arr in l_inner.setpoints(indexes[left_mask]).items():
-                    result[axis] = np.empty(len(indexes), dtype=arr.dtype)
-                    result[axis][left_mask] = arr
-            if np.any(right_mask):
-                shifted = indexes[right_mask] - l_len
-                for axis, arr in r_inner.setpoints(shifted).items():
-                    if axis not in result:
-                        dummy = l_inner.setpoints(np.array([0.0]))[axis]
-                        result[axis] = np.empty(len(indexes), dtype=dummy.dtype)
-                    result[axis][right_mask] = arr
-            return result
-
-        merged_gen: WindowGenerator[AxisT] = WindowGenerator(
-            axes=l_inner.axes,
-            length=total_len,
-            snake=l_inner.snake,
-            position_fn=concat_fn,
-        )
-        left_scan.generators[:] = [merged_gen]
-        return left_scan
-
-    @staticmethod
-    def _scan_to_children(
-        scan: Scan[AxisT, DetectorT, MonitorT],
-    ) -> list[WindowGenerator[AxisT]]:
-        """Extract leaf WindowGenerators from a Scan for concat children.
-
-        Each side of a Concat must have exactly one generator.  If that
-        generator already has children (from a nested Concat), flatten them;
-        otherwise use the generator itself.
-
-        Supporting multi-generator sides would require squashing generators
-        and stream dimensions together (the squash_dimensions algorithm from
-        scanspec 1.x).  This adds significant complexity and has never been
-        needed in practice, so it is not implemented.
-        """
-        gens = scan.generators
-        if len(gens) != 1:
-            raise ValueError("Concat requires each side to have exactly one generator")
-        gen = gens[0]
-        if gen.children is not None:
-            return list(gen.children)
-        return [gen]
-
-    def _compile_concat(
-        self,
-        left_scan: Scan[AxisT, DetectorT, MonitorT],
-        right_scan: Scan[AxisT, DetectorT, MonitorT],
-    ) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Build a concat WindowGenerator with children."""
-        children = self._scan_to_children(left_scan) + self._scan_to_children(
+        children = self._extract_children(left_scan) + self._extract_children(
             right_scan
         )
+
+        # Validate: pure-motion concats must share the same axes.
+        if not left_scan.windowed_streams and not right_scan.windowed_streams:
+            l_axes = left_scan.generators[0].axes if left_scan.generators else []
+            r_axes = right_scan.generators[0].axes if right_scan.generators else []
+            if l_axes != r_axes:
+                raise ValueError(
+                    f"Concat: innermost axes must match; got {l_axes} vs {r_axes}"
+                )
+
+        total_length = sum(c.length for c in children)
         concat_gen: WindowGenerator[AxisT] = WindowGenerator(
             axes=[],
-            length=0,
-            axis_ranges={},
-            children=children,
+            length=total_length,
+            source=ConcatSource(children),
         )
         left_scan.generators[:] = [concat_gen]
-        # Merge right's windowed streams into left's (sum inner dim lengths)
+
+        # Merge right's windowed streams into left's (sum inner dim lengths).
         left_by_name = {s.name: s for s in left_scan.windowed_streams}
         for stream in right_scan.windowed_streams:
             if stream.name in left_by_name:
@@ -565,6 +625,24 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
             if m not in left_scan.monitors:
                 left_scan.monitors.append(m)
         return left_scan
+
+    @staticmethod
+    def _extract_children(
+        scan: Scan[AxisT, DetectorT, MonitorT],
+    ) -> list[WindowGenerator[AxisT]]:
+        """Extract leaf WindowGenerators from a Scan for concat children.
+
+        Each side of a Concat must have exactly one generator.  If that
+        generator already has children (from a nested Concat), flatten them;
+        otherwise use the generator itself.
+        """
+        gens = scan.generators
+        if len(gens) != 1:
+            raise ValueError("Concat requires each side to have exactly one generator")
+        gen = gens[0]
+        if isinstance(gen.source, ConcatSource):
+            return list(gen.source.children)
+        return [gen]
 
 
 class Acquire(Spec[AxisT, DetectorT, MonitorT]):
@@ -639,22 +717,25 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
             last.fly = self.fly
             last.trigger_groups = trigger_groups
             last.duration = duration
-        dims = [
-            Dimension(
-                axes=g.axes,
-                length=g.length,
-                snake=g.snake,
-                position_fn=g.setpoints,
-            )
-            for g in scan.generators
-        ]
 
-        stream = WindowedStream(
-            name=self.stream_name,
-            dimensions=dims,
-            detector_groups=list(self.detectors),
-        )
-        scan.windowed_streams = [stream]
+        # Only create a windowed stream when this Acquire has detectors.
+        # A monitor/continuous-only Acquire preserves inner streams.
+        if self.detectors:
+            dims = [
+                Dimension(
+                    axes=g.axes,
+                    length=g.length,
+                    snake=g.snake,
+                    position_fn=g.setpoints,
+                )
+                for g in scan.generators
+            ]
+            stream = WindowedStream(
+                name=self.stream_name,
+                dimensions=dims,
+                detector_groups=list(self.detectors),
+            )
+            scan.windowed_streams = [stream]
         scan.continuous_streams = list(self.continuous_streams)
         scan.monitors = list(self.monitors)
         return scan
@@ -727,42 +808,32 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
 
 
 # ---------------------------------------------------------------------------
-# Build AnySpec union now that all subclasses are defined
+# Runtime AnySpec class — defined after all subclasses so pydantic defers
+# annotation resolution until model_rebuild below.
 # ---------------------------------------------------------------------------
 
 if not TYPE_CHECKING:
-    # Filter out pydantic-internal parametrized classes
-    # (e.g. "Spec[~AxisT, Never, Never]").
-    _subclasses = [s for s in _recursive_subclasses(Spec) if "[" not in s.__name__]
-    _ANYSPEC_UNION = Annotated[
-        Union[tuple(Annotated[sub, Tag(sub.__name__)] for sub in _subclasses)],  # noqa: UP007
-        Discriminator(_discriminate_by_type),
-    ]
 
     class AnySpec:
         """Runtime subscriptable sentinel for AnySpec.
 
-        At TYPE_CHECKING time, ``AnySpec = Spec`` (the bare base class), so
-        ``AnySpec[T, D, M]`` resolves to ``Spec[T, D, M]`` for pyright.
-
-        At runtime this class is used because the discriminated union cannot be
-        subscripted with TypeVars.  ``__class_getitem__`` ignores its params
-        and returns the real union so pydantic uses the correct schema.
+        ``__class_getitem__`` returns the discriminated union regardless of
+        type params so pydantic uses the correct schema.
         ``__get_pydantic_core_schema__`` makes ``TypeAdapter(AnySpec)`` work.
         """
 
         @classmethod
         def __class_getitem__(cls, params: Any) -> Any:
-            """Return the pydantic discriminated union regardless of params."""
-            return _ANYSPEC_UNION
+            return _anyspec_union
 
         @classmethod
         def __get_pydantic_core_schema__(
             cls, source_type: Any, handler: GetCoreSchemaHandler
         ) -> Any:
-            """Delegate to the union schema so TypeAdapter(AnySpec) works."""
-            return handler(_ANYSPEC_UNION)
+            return handler(_anyspec_union)
 
-    # Pass AnySpec into the rebuild namespace so forward-ref fields resolve correctly.
-    for _sub in _subclasses:
-        _sub.model_rebuild(_types_namespace={"AnySpec": AnySpec})
+    _anyspec_cls = AnySpec
+
+    # Final rebuild: resolve AnySpec annotations now that all subclasses and
+    # the runtime AnySpec class exist.
+    _maybe_rebuild_anyspec_union(Acquire)

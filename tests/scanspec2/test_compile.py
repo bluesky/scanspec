@@ -9,6 +9,7 @@ import pytest
 
 from scanspec2.core import (
     AxisMotion,
+    ConcatSource,
     DetectorGroup,
     Scan,
     TriggerPattern,
@@ -134,7 +135,15 @@ def test_snake_empty_generators_raises(monkeypatch: pytest.MonkeyPatch) -> None:
         return Scan(generators=[])
 
     monkeypatch.setattr(Linspace, "compile", _empty_compile)
-    with pytest.raises(ValueError, match="at least one generator"):
+    with pytest.raises(ValueError, match="exactly one generator"):
+        spec.compile()
+
+
+def test_snake_multiple_generators_raises():
+    """Snake on a spec with multiple generators is an error."""
+    # Product of two Linspaces produces 2 generators.  Snake requires 1.
+    spec = ~(Linspace("y", 0, 1, 3) * Linspace("x", 0, 1, 5))
+    with pytest.raises(ValueError, match="exactly one generator"):
         spec.compile()
 
 
@@ -153,8 +162,8 @@ def test_snake_with_concat_children():
     g = gens(sc)
     assert len(g) == 1
     assert g[0].snake is True
-    assert g[0].children is not None
-    assert len(g[0].children) == 2
+    assert isinstance(g[0].source, ConcatSource)
+    assert len(g[0].source.children) == 2
     # Verify iteration still works — snake reverses on odd outer iterations
     ws = windows(sc)
     assert len(ws) == 5  # 3 + 2 points
@@ -215,8 +224,34 @@ def test_zip_setpoints_both_axes():
 
 
 def test_zip_length_mismatch_raises():
-    with pytest.raises(ValueError, match="equal inner dimension lengths"):
+    with pytest.raises(ValueError, match="equal dimension lengths"):
         Linspace("x", 0.0, 10.0, 5).zip(Linspace("y", 0.0, 4.0, 3)).compile()
+
+
+def test_zip_static_expands_to_match():
+    """Zip with Static(num=1) expands to match left's innermost length."""
+    sc = Linspace("y", 0.0, 4.0, 5).zip(Static("x", 3.0)).compile()
+    g = gens(sc)
+    assert len(g) == 1
+    assert set(g[0].axes) == {"y", "x"}
+    assert g[0].length == 5
+    pts = g[0].setpoints(np.arange(5) + 0.5)
+    np.testing.assert_allclose(pts["y"], [0.0, 1.0, 2.0, 3.0, 4.0])
+    np.testing.assert_allclose(pts["x"], [3.0, 3.0, 3.0, 3.0, 3.0])
+
+
+def test_zip_product_left_single_right():
+    """z(3) * y(5).zip(x(5)) — z outer, y+x merged inner."""
+    sc = (
+        Linspace("z", 0.0, 2.0, 3)
+        * Linspace("y", 0.0, 4.0, 5).zip(Linspace("x", 0.0, 8.0, 5))
+    ).compile()
+    g = gens(sc)
+    assert len(g) == 2
+    assert g[0].axes == ["z"]
+    assert g[0].length == 3
+    assert set(g[1].axes) == {"y", "x"}
+    assert g[1].length == 5
 
 
 # ---------------------------------------------------------------------------
@@ -265,8 +300,9 @@ def test_repeat_prepends_outer_dimension():
 
 
 def test_acquire_compile_stream_name():
-    spec: Acquire[str, Never, Never] = Acquire(
-        Linspace("x", 0.0, 10.0, 5), stream_name="custom"
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    spec: Acquire[str, str, Never] = Acquire(
+        Linspace("x", 0.0, 10.0, 5), stream_name="custom", detectors=[det]
     )
     sc = spec.compile()
     assert sc.windowed_streams[0].name == "custom"
@@ -432,7 +468,7 @@ def test_step_scan_no_moving_axes():
     sc = (Linspace("y", 0.0, 4.0, 3) * Linspace("x", 0.0, 10.0, 5)).compile()
     for w in windows(sc):
         assert w.moving_axes == {}
-        assert w.non_linear_move is False
+        assert w.non_linear is False
 
 
 # ---------------------------------------------------------------------------
@@ -705,6 +741,79 @@ def test_explicit_duration_must_be_ge_derived():
         ).compile()
 
 
+# ---------------------------------------------------------------------------
+# Scan capability properties
+# ---------------------------------------------------------------------------
+
+
+def test_scan_has_moving_axes_fly():
+    sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0, 10, 5), fly=True
+    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
+    assert sc.has_moving_axes is True
+    assert sc.non_linear is False
+
+
+def test_scan_has_moving_axes_step():
+    sc = Linspace("x", 0, 10, 5).compile()
+    assert sc.has_moving_axes is False
+    assert sc.non_linear is False
+
+
+def test_scan_non_linear_spiral():
+    from scanspec2.specs import Spiral
+
+    sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Spiral("x", 0, 5, 2, "y", 10, 10), fly=True
+    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
+    assert sc.has_moving_axes is True
+    assert sc.non_linear is True
+
+
+# ---------------------------------------------------------------------------
+# AnySpec: out-of-package subclass included in union
+# ---------------------------------------------------------------------------
+
+
+def test_anyspec_extension():
+    """Spec subclass defined outside specs.py is included in the AnySpec union."""
+    from typing import Never as Nv
+
+    from pydantic import TypeAdapter
+
+    from scanspec2.core import LinearSource as LinSrc
+    from scanspec2.core import Scan as Sc
+    from scanspec2.core import WindowGenerator as WinGen
+    from scanspec2.specs import AnySpec, Spec
+
+    class CustomLinspace(Spec[str, Nv, Nv]):
+        axis: str
+        num: int = 3
+
+        def compile(self) -> Sc[str, Nv, Nv]:
+            gen = WinGen(
+                axes=[self.axis],
+                length=self.num,
+                source=LinSrc({self.axis: (0, 1)}, self.num),
+            )
+            return Sc(generators=[gen])
+
+    # The custom class can be serialised and deserialised via AnySpec.
+    original = CustomLinspace(axis="q", num=7)
+    ta = TypeAdapter(AnySpec)
+    serialized = ta.dump_python(original)
+    assert serialized["type"] == "CustomLinspace"
+    restored = ta.validate_python(serialized)
+    assert isinstance(restored, CustomLinspace)
+    assert restored.axis == "q"
+    assert restored.num == 7
+
+    # And it can compile.
+    sc = original.compile()
+    assert len(sc.generators) == 1
+    assert sc.generators[0].length == 7
+
+
 def test_explicit_duration_overrides_when_larger():
     det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
@@ -850,3 +959,56 @@ def test_concat_previous_chain():
     assert ws[0].previous is None
     for i in range(1, len(ws)):
         assert ws[i].previous is ws[i - 1]
+
+
+# ---------------------------------------------------------------------------
+# Combinators reject continuous_streams and monitors
+# ---------------------------------------------------------------------------
+
+
+def test_concat_rejects_continuous_streams():
+    from scanspec2.core import ContinuousStream
+
+    a: Acquire[str, str, Never] = Acquire(
+        Linspace("x", 0, 1, 5),
+        continuous_streams=[
+            ContinuousStream("cam", [DetectorGroup(1, 1, 0.01, 0.001, ["c1"])])
+        ],
+    )
+    with pytest.raises(ValueError, match="Concat does not accept.*continuous"):
+        a.concat(Acquire(Linspace("x", 1, 2, 5))).compile()
+
+
+def test_concat_rejects_monitors():
+    from scanspec2.core import MonitorStream
+
+    a: Acquire[str, Never, str] = Acquire(
+        Linspace("x", 0, 1, 5),
+        monitors=[MonitorStream("temp", "tc1")],
+    )
+    with pytest.raises(ValueError, match="Concat does not accept.*monitors"):
+        a.concat(Acquire(Linspace("x", 1, 2, 5))).compile()
+
+
+def test_product_rejects_continuous_streams():
+    from scanspec2.core import ContinuousStream
+
+    a: Acquire[str, str, Never] = Acquire(
+        Linspace("x", 0, 1, 5),
+        continuous_streams=[
+            ContinuousStream("cam", [DetectorGroup(1, 1, 0.01, 0.001, ["c1"])])
+        ],
+    )
+    with pytest.raises(ValueError, match="Product does not accept.*continuous"):
+        (Linspace("y", 0, 1, 3) * a).compile()  # type: ignore[reportOperatorIssue]
+
+
+def test_zip_rejects_monitors():
+    from scanspec2.core import MonitorStream
+
+    a: Acquire[str, Never, str] = Acquire(
+        Linspace("x", 0, 1, 5),
+        monitors=[MonitorStream("temp", "tc1")],
+    )
+    with pytest.raises(ValueError, match="Zip does not accept.*monitors"):
+        Linspace("y", 0, 1, 5).zip(a).compile()  # type: ignore[reportArgumentType]

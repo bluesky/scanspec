@@ -727,3 +727,40 @@ Task 2: Target audience is someone who already knows what scanspec is and does, 
 Task 3: One ADR for the high level design and the need for 2.0. A few more for any specific design decisions that you think need more than a paragraph of detail. Number 0003 and onwards.
 
 Task 4: Compare with 1.x. I think this is best done in a fresh context as I will also ask for a review of the existing structure and if there are any simplifications. If you agree then write me a prompt for the next context to do this task into prompt.md
+
+
+### Final review
+
+- Acquire now seems awkward, as you can technically concat two acquires with different continuous and monitored detectors. This is wrong as continuous and monitor detectors run in parallel to the entire scan. Suggest splitting out these into a class Continuous(Spec) and a class Monitor(Spec) and banning continuous and monitored detectors from Concat, Product, Zip, etc. Iterate on this asking questions if it is not clear.
+
+- We need an additional consumer use case that might require API changes. There are 3 scan consumers:
+  1. Trajectory flyscan capable: will consume an entire `Scan` with any `Window`s (consumer case 4)
+  2. Linear flyscan capable: will consume a `Scan` one `Window` at a time, asserts `not window.non_linear_move` (consumer case 3)
+  3. Step scan capable: will consume a `Scan` one `Window` at a time, asserts `not window.moving_axes` (consumer case 1)
+
+  The scan dispatcher will have one of these consumers in its hands, but for cases 2 and 3 it doesn't know whether every `Window` in `Scan` will obey the same `non_linear_move` and `moving_axes` assertions. Suggest a way that it could tell this from the `Scan` object.
+
+- Snake should operate on a spec with `len(scan.generators) == 1` (deviation from 1.x)
+
+- Zip should support precisely the cases that 1.x supports, see attached
+
+- WindowGenerator.windows() handles children, but WindowGenerator.setpoints() does not. Should it?
+
+- We want to support Spec subclasses out of the specs.py package. I suggest putting building the `_ANYSPEC_UNION` into `PosargsMeta.__new__` so it fires on any Spec subclass. It this would work then implement it with a test.
+
+- The linspace and spiral fly scans in test_use_cases should test the output of `positions()`. The step scan case should check that it errors.
+
+- Add a note to pr.md to delete API_SPEC and thoughts.md before merge
+- Add a note to pr.md to update docs and check they read well
+
+
+### Final final review
+
+- Check the actual positions in test_use_cases, not just their length, and also check the number of chunks
+- Don't guard _maybe_rebuild_anyspec_union(cls) with if TYPE_CHECKING
+- The AnySpec definition is now split into 3 places, can you rationalise it all into a single section? After all, `from __future__ import annotations` and the runtime definition is rebuilt anytime a `Spec` subclass is made. It is fine to skip making the union if there are less than 2 members, as this file contains more than 2 members.
+- Can you make Concat shorter now WindowGenerator supports children for setpoints()?
+- Also do a thorough review for code that can be made shorter, e.g. Snake.compile has 2 error checks when there should be 1
+- Acquire splitting: agree with option B, but I think Concat/Product/Zip should all reject specs with continous or monitor streams. Do this, then add a single top level `Acquire(Repeat(...), monitors=[MonitorStream("temperature", "tc1")])` into `test_flagship_multi_stream_concat` to test
+- Remove Scan.fly, the other 2 added properties are fine, but Window, Scan and WindowGenerator should use the same property name `non_linear`
+- You identified WindowGenerator as being an unwieldy interface. I agree, especially with the children addition. Consider its usage in `Linspace`, `Spiral`, `Zip`, `Concat` and `Acquire` and present some options for a refactor.
