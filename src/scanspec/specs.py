@@ -144,7 +144,7 @@ class Spec(Generic[Axis]):
         string.
         """
 
-        def _fallback(obj: Any) -> Any:
+        def _fallback(obj: Any) -> str:
             name = getattr(obj, "name", None)
             if isinstance(name, str):
                 return name
