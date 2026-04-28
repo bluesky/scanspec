@@ -2,9 +2,10 @@ from collections.abc import Mapping
 from typing import Any
 
 import pytest
+from ophyd_async.core import Device
 from pydantic import TypeAdapter, ValidationError
 
-from scanspec.specs import Ellipse, Linspace, Spec, Spiral
+from scanspec.specs import Ellipse, Fly, Linspace, Spec, Spiral
 
 
 def test_line_serializes() -> None:
@@ -146,3 +147,36 @@ def test_vanilla_serialization():
     serialized = adapter.dump_json(ob)
     deserialized = adapter.validate_json(serialized)
     assert deserialized == ob
+
+
+def test_spec_with_ophyd_async_device_axis_serializes():
+    motor = Device(name="motor")
+    spec = Fly(Linspace(motor, 1, 2, 5))
+    serialized = spec.serialize()
+    assert serialized["type"] == "Fly"
+    assert serialized["spec"]["type"] == "Linspace"
+    assert serialized["spec"]["axis"] == motor.name
+    assert serialized["spec"]["start"] == 1.0
+    assert serialized["spec"]["stop"] == 2.0
+    assert serialized["spec"]["num"] == 5
+
+
+def test_spec_with_nameless_axis_falls_back_to_repr():
+    class NamelessAxis:
+        pass
+
+    axis = NamelessAxis()
+    spec = Fly(Linspace(axis, 1, 2, 5))
+    serialized = spec.serialize()
+    assert serialized["spec"]["axis"] == repr(axis)
+
+
+def test_spec_with_ophyd_async_device_axis_is_json_serializable():
+    import json
+
+    motor = Device(name="motor")
+    spec = Fly(Linspace(motor, 1, 2, 5))
+    serialized = spec.serialize()
+    assert serialized["spec"]["axis"] == motor.name
+    # Should not raise
+    json.dumps(serialized)
