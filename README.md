@@ -19,8 +19,9 @@ can be produced and expanded Paths created to consume chunk by chunk.
 
 [cycler]: https://matplotlib.org/cycler/
 
-Source          | <https://github.com/bluesky/scanspec>
+What            | Where
 :---:           | :---:
+Source          | <https://github.com/bluesky/scanspec>
 PyPI            | `pip install scanspec`
 Docker          | `docker run ghcr.io/bluesky/scanspec:latest`
 Documentation   | <https://bluesky.github.io/scanspec>
