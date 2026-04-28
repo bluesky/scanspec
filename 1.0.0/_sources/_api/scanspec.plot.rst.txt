@@ -1,0 +1,21 @@
+``scanspec.plot``
+=================
+        
+
+.. automodule:: scanspec.plot
+    :members:
+
+    
+    
+    
+
+    
+    
+    .. rubric:: Members
+
+    .. autosummary::
+        :nosignatures:
+    
+        plot_spec
+    
+    
