@@ -161,6 +161,16 @@ def test_spec_with_ophyd_async_device_axis_serializes():
     assert serialized["spec"]["num"] == 5
 
 
+def test_spec_with_nameless_axis_falls_back_to_repr():
+    class NamelessAxis:
+        pass
+
+    axis = NamelessAxis()
+    spec = Fly(Linspace(axis, 1, 2, 5))
+    serialized = spec.serialize()
+    assert serialized["spec"]["axis"] == repr(axis)
+
+
 def test_spec_with_ophyd_async_device_axis_is_json_serializable():
     import json
 
