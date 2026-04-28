@@ -177,5 +177,6 @@ def test_spec_with_ophyd_async_device_axis_is_json_serializable():
     motor = Device(name="motor")
     spec = Fly(Linspace(motor, 1, 2, 5))
     serialized = spec.serialize()
+    assert serialized["spec"]["axis"] == motor.name
     # Should not raise
     json.dumps(serialized)
