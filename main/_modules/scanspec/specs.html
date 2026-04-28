@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.specs &#8212; scanspec 0.10.1.dev6+g0e4cdba04 documentation</title>
+    <title>scanspec.specs &#8212; scanspec 0.10.1.dev7+g198de7ba5 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../_static/documentation_options.js?v=d48ed414"></script>
+    <script src="../../_static/documentation_options.js?v=a1fac51b"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -610,8 +610,21 @@
 <div class="viewcode-block" id="Spec.serialize">
 <a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Spec.serialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Serialize the Spec to a dictionary.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">TypeAdapter</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span><span class="o">.</span><span class="n">dump_python</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Serialize the Spec to a dictionary.</span>
+
+<span class="sd">        Any value that pydantic cannot natively convert to a JSON-serializable</span>
+<span class="sd">        type (e.g. an ``ophyd_async`` device used as an axis) is serialized by</span>
+<span class="sd">        using its ``name`` attribute (if it has one), otherwise its ``repr()``</span>
+<span class="sd">        string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_fallback</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">name</span>
+            <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">TypeAdapter</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span><span class="o">.</span><span class="n">dump_python</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="n">_fallback</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Spec.deserialize">

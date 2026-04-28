@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>scanspec.specs &#8212; scanspec 0.10.1.dev6+g0e4cdba04 documentation</title>
+    <title>scanspec.specs &#8212; scanspec 0.10.1.dev7+g198de7ba5 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=d48ed414"></script>
+    <script src="../_static/documentation_options.js?v=a1fac51b"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -1259,6 +1259,10 @@
 <dt class="sig sig-object py" id="scanspec.specs.Spec.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/specs.html#Spec.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.specs.Spec.serialize" title="Link to this definition">#</a></dt>
 <dd><p>Serialize the Spec to a dictionary.</p>
+<p>Any value that pydantic cannot natively convert to a JSON-serializable
+type (e.g. an <code class="docutils literal notranslate"><span class="pre">ophyd_async</span></code> device used as an axis) is serialized by
+using its <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute (if it has one), otherwise its <code class="docutils literal notranslate"><span class="pre">repr()</span></code>
+string.</p>
 </dd></dl>
 
 <dl class="py method">
