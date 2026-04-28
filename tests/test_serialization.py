@@ -155,7 +155,7 @@ def test_spec_with_ophyd_async_device_axis_serializes():
     serialized = spec.serialize()
     assert serialized["type"] == "Fly"
     assert serialized["spec"]["type"] == "Linspace"
-    assert serialized["spec"]["axis"] == repr(motor)
+    assert serialized["spec"]["axis"] == motor.name
     assert serialized["spec"]["start"] == 1.0
     assert serialized["spec"]["stop"] == 2.0
     assert serialized["spec"]["num"] == 5

@@ -139,10 +139,18 @@ class Spec(Generic[Axis]):
         """Serialize the Spec to a dictionary.
 
         Any value that pydantic cannot natively convert to a JSON-serializable
-        type (e.g. an ``ophyd_async`` device used as an axis) is replaced by
-        its ``repr()`` string.
+        type (e.g. an ``ophyd_async`` device used as an axis) is serialized by
+        using its ``name`` attribute (if it has one), otherwise its ``repr()``
+        string.
         """
-        return TypeAdapter(Spec[Any]).dump_python(self, mode="json", fallback=repr)
+
+        def _fallback(obj: Any) -> Any:
+            name = getattr(obj, "name", None)
+            if isinstance(name, str):
+                return name
+            return repr(obj)
+
+        return TypeAdapter(Spec[Any]).dump_python(self, mode="json", fallback=_fallback)
 
     @staticmethod
     def deserialize(obj: Any) -> Spec[Any]:
