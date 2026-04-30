@@ -47,6 +47,7 @@ __all__ = [
     "Static",
     "Spiral",
     "Fly",
+    "Array",
     "step",
     "fly",
     "VARIABLE_DURATION",
@@ -816,6 +817,97 @@ class Spiral(Spec[Axis]):
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self._num, bounds
         )
+
+
+@dataclass(config=StrictConfig)
+class Array(Spec[Axis]):
+    """User defined array containing position of the frames to acquire.
+
+    Array can be of midpoints, making so that upper and lower bounds are calculated.
+    Or bounds can be provided and the midpoints are calculated based on it.
+
+    .. example_spec::
+
+        import numpy as np
+
+        from scanspec.specs import Fly, Array
+
+        array = np.array([-2.0, -1.0 ,0.0, 1.0, 2.0, 3.0])
+        spec = Fly(Array("x", array))
+    """
+
+    axis: Axis = Field(description="An identifier for what to move")
+    array: npt.NDArray[np.float64] | None = Field(
+        description="Array describing the midpoint of each frame", default=None
+    )
+    bounds: npt.NDArray[np.float64] | None = Field(
+        description="Array describing the bounds of the array", default=None
+    )
+    durations: npt.NDArray[np.float64] | None = Field(
+        description="Array describing the duration of each point in the array",
+        default=None,
+    )
+
+    def axes(self) -> list[Axis]:  # noqa: D102
+        return [self.axis]
+
+    def duration(self) -> None | float | Literal["VARIABLE_DURATION"]:  # noqa: D102
+        if self.durations is None:
+            return None
+        elif len(set(self.durations)) == 1:
+            return self.durations[0]
+        else:
+            return VARIABLE_DURATION
+
+    def calculate(  # noqa: D102
+        self, bounds: bool = False, nested: bool = False
+    ) -> list[Dimension[Axis]]:
+        # Case where only the midpoints array is provided.
+        # Assume no gaps between the points
+        if self.array is not None and bounds is True and self.bounds is None:
+            # Average value in between the midpoints
+            _bounds = (self.array[1:] - self.array[:-1]) / 2
+
+            mid = self.array
+
+            lower = np.asarray(mid - np.append(_bounds[0], _bounds))
+            upper = np.asarray(mid + np.append(_bounds, [_bounds[-1]]))
+
+        # Case where the users only provided the bounds array.
+        # Need to calculate the midpoints array by averaging the
+        # value between lower and upper
+        elif self.array is None and bounds is True and self.bounds is not None:
+            mid = np.empty(len(self.bounds) - 1, dtype=np.float64)
+            lower = self.bounds[:-1]
+            upper = self.bounds[1:]
+            mid = np.asarray(lower + ((upper - lower) / 2))
+
+        # Case where midpoints and bounds were provided.
+        # If the arrays are not the same size an AssertionError will be thrown
+        # when trying to define the Dimension object
+        elif self.array is not None and bounds is True and self.bounds is not None:
+            mid = self.array
+            lower = np.asarray(self.bounds[:-1])
+            upper = np.asarray(self.bounds[1:])
+
+        # Case where only the midpoints were provided and no bounds are to be calculated
+        elif self.array is not None and bounds is False:
+            mid = np.asarray(self.array)
+            lower = mid
+            upper = mid
+
+        else:
+            raise ValueError("Must provide a valid combination of arrays")
+
+        new_dim: Dimension[Axis] = Dimension(
+            {self.axis: mid},
+            {self.axis: lower},
+            {self.axis: upper},
+            None,
+            self.durations,
+        )
+
+        return [new_dim]
 
 
 def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
