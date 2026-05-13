@@ -1012,3 +1012,254 @@ def test_zip_rejects_monitors():
     )
     with pytest.raises(ValueError, match="Zip does not accept.*monitors"):
         Linspace("y", 0, 1, 5).zip(a).compile()  # type: ignore[reportArgumentType]
+
+
+# ---------------------------------------------------------------------------
+# Linspace.bounded — compile
+# ---------------------------------------------------------------------------
+
+
+def test_linspace_bounded_compile_one_point():
+    sc = Linspace.bounded("x", 0.0, 1.0, 1).compile()
+    g = gens(sc)
+    assert len(g) == 1
+    assert g[0].length == 1
+    pts = g[0].setpoints(np.array([0.5]))["x"]
+    np.testing.assert_allclose(pts, [0.5])
+
+
+def test_linspace_bounded_compile_many_points():
+    sc = Linspace.bounded("x", 0.0, 1.0, 4).compile()
+    g = gens(sc)
+    assert g[0].length == 4
+    pts = g[0].setpoints(np.arange(4) + 0.5)["x"]
+    np.testing.assert_allclose(pts, [0.125, 0.375, 0.625, 0.875])
+
+
+def test_linspace_bounded_compile_symmetric():
+    # bounded(x, 3, 7, 2) → Linspace(x, 4, 6, 2) → midpoints [4, 6]
+    sc = Linspace.bounded("x", 3.0, 7.0, 2).compile()
+    pts = gens(sc)[0].setpoints(np.arange(2) + 0.5)["x"]
+    np.testing.assert_allclose(pts, [4.0, 6.0])
+
+
+# ---------------------------------------------------------------------------
+# Range — compile
+# ---------------------------------------------------------------------------
+
+
+def test_range_compile_dimensions():
+    from scanspec2.specs import Range
+
+    sc = Range("x", 0.0, 1.0, 0.25).compile()
+    g = gens(sc)
+    assert len(g) == 1
+    assert g[0].axes == ["x"]
+    assert g[0].length == 5  # 0, 0.25, 0.5, 0.75, 1.0
+
+
+@pytest.mark.parametrize("step", [0.25, 0.25 + 1e-8])
+def test_range_setpoints_match_linspace(step: float) -> None:
+    from scanspec2.specs import Range
+
+    sc_range = Range("x", 0.0, 1.0, step).compile()
+    sc_linspace = Linspace("x", 0.0, 1.0, 5).compile()
+    idx = np.arange(5) + 0.5
+    pts_range = gens(sc_range)[0].setpoints(idx)["x"]
+    pts_linspace = gens(sc_linspace)[0].setpoints(idx)["x"]
+    np.testing.assert_allclose(pts_range, pts_linspace)
+
+
+def test_range_one_point():
+    from scanspec2.specs import Range
+
+    # step > (stop - start) → only one midpoint at start
+    sc = Range("x", 0.0, 1.0, 2.0).compile()
+    g = gens(sc)
+    assert g[0].length == 1
+    pts = g[0].setpoints(np.array([0.5]))["x"]
+    np.testing.assert_allclose(pts, [0.0])
+
+
+@pytest.mark.parametrize("step", [1.0, 1.0 + 1e-8])
+def test_range_two_points(step: float) -> None:
+    from scanspec2.specs import Range
+
+    sc = Range("x", 0.0, 1.0, step).compile()
+    assert gens(sc)[0].length == 2
+    pts = gens(sc)[0].setpoints(np.arange(2) + 0.5)["x"]
+    np.testing.assert_allclose(pts, [0.0, 1.0])
+
+
+def test_range_snake_flag():
+    from scanspec2.specs import Range
+
+    sc = (~Range("x", 0.0, 1.0, 0.25)).compile()
+    assert gens(sc)[-1].snake is True
+
+
+# ---------------------------------------------------------------------------
+# Range.bounded — compile
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("step", [0.25, 0.25 + 1e-8])
+def test_range_bounded_setpoints(step: float) -> None:
+    from scanspec2.specs import Range
+
+    sc = Range.bounded("x", 0.0, 1.0, step).compile()
+    g = gens(sc)
+    assert g[0].length == 4
+    pts = g[0].setpoints(np.arange(4) + 0.5)["x"]
+    np.testing.assert_allclose(pts, [0.125, 0.375, 0.625, 0.875])
+
+
+@pytest.mark.parametrize(
+    "lower,upper,step,expected_mid",
+    [
+        (0.0, 1.0, 0.8, [0.4]),  # step < range → one frame
+        (0.0, 1.0, 1.0, [0.5]),  # step == range → one frame
+        (0.0, 1.0, 1.2, [0.5]),  # step > range → clamped to one frame
+    ],
+)
+def test_range_bounded_one_point_setpoints(
+    lower: float, upper: float, step: float, expected_mid: list[float]
+) -> None:
+    from scanspec2.specs import Range
+
+    sc = Range.bounded("x", lower, upper, step).compile()
+    g = gens(sc)
+    assert g[0].length == 1
+    pts = g[0].setpoints(np.array([0.5]))["x"]
+    np.testing.assert_allclose(pts, expected_mid)
+
+
+# ---------------------------------------------------------------------------
+# Line alias — compile
+# ---------------------------------------------------------------------------
+
+
+def test_line_compile_same_as_linspace():
+    from scanspec2.specs import Line
+
+    sc_line = Line("x", 0.0, 10.0, 5).compile()
+    sc_linspace = Linspace("x", 0.0, 10.0, 5).compile()
+    idx = np.arange(5) + 0.5
+    pts_line = gens(sc_line)[0].setpoints(idx)["x"]
+    pts_linspace = gens(sc_linspace)[0].setpoints(idx)["x"]
+    np.testing.assert_allclose(pts_line, pts_linspace)
+
+
+# ---------------------------------------------------------------------------
+# Ellipse — compile
+# ---------------------------------------------------------------------------
+
+
+def test_ellipse_compile_returns_single_generator():
+    from scanspec2.specs import Ellipse
+
+    sc = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0).compile()
+    assert len(gens(sc)) == 1
+
+
+def test_ellipse_compile_point_count():
+    from scanspec2.specs import Ellipse
+
+    # x: [4.5, 5.0, 5.5], y: [-0.5, 0.0, 0.5] → 9-point grid, 5 inside ellipse
+    sc = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0).compile()
+    assert gens(sc)[0].length == 5
+
+
+def test_ellipse_compile_all_points_inside():
+    from scanspec2.specs import Ellipse
+
+    sc = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0).compile()
+    g = gens(sc)[0]
+    idx = np.arange(g.length) + 0.5
+    pts = g.setpoints(idx)
+    x = pts["x"] - 5.0
+    y = pts["y"] - 0.0
+    # All points must satisfy the ellipse equation <= 1
+    np.testing.assert_array_less(
+        (2 * x / 1.0) ** 2 + (2 * y / 1.0) ** 2,
+        np.ones(g.length) + 1e-9,
+    )
+
+
+def test_ellipse_compile_axes_present():
+    from scanspec2.specs import Ellipse
+
+    sc = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0).compile()
+    assert set(gens(sc)[0].axes) == {"x", "y"}
+
+
+def test_ellipse_compile_snake_same_point_count():
+    from scanspec2.specs import Ellipse
+
+    sc_straight = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0, snake=False).compile()
+    sc_snake = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0, snake=True).compile()
+    assert gens(sc_straight)[0].length == gens(sc_snake)[0].length == 5
+
+
+def test_ellipse_compile_vertical_swaps_fast_slow():
+    from scanspec2.specs import Ellipse
+
+    # vertical=False: y is slow, x is fast → midpoints ordered by y first
+    # vertical=True: x is slow, y is fast → midpoints ordered by x first
+    # Both have same set of 5 points, just in different order
+    sc_h = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0, vertical=False).compile()
+    sc_v = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0, vertical=True).compile()
+    assert gens(sc_h)[0].length == gens(sc_v)[0].length == 5
+
+
+# ---------------------------------------------------------------------------
+# Polygon — compile
+# ---------------------------------------------------------------------------
+
+
+def test_polygon_compile_returns_single_generator():
+    from scanspec2.specs import Polygon
+
+    sc = Polygon("x", "y", [(0, 0), (5, 0), (2.5, 4)], 1.0, 2.0).compile()
+    assert len(gens(sc)) == 1
+
+
+def test_polygon_compile_triangle_point_count():
+    from scanspec2.specs import Polygon
+
+    # Triangle (0,0),(5,0),(2.5,4), x_step=1, y_step=2
+    # y rows: 0, 2, 4; x cols: 0..5 → 7 masked points
+    sc = Polygon("x", "y", [(0, 0), (5, 0), (2.5, 4)], 1.0, 2.0).compile()
+    assert gens(sc)[0].length == 7
+
+
+def test_polygon_compile_axes_present():
+    from scanspec2.specs import Polygon
+
+    sc = Polygon("x", "y", [(0, 0), (5, 0), (2.5, 4)], 1.0, 2.0).compile()
+    assert set(gens(sc)[0].axes) == {"x", "y"}
+
+
+def test_polygon_compile_snake_same_point_count():
+    from scanspec2.specs import Polygon
+
+    sc_straight = Polygon(
+        "x", "y", [(0, 0), (5, 0), (2.5, 4)], 1.0, 2.0, snake=False
+    ).compile()
+    sc_snake = Polygon(
+        "x", "y", [(0, 0), (5, 0), (2.5, 4)], 1.0, 2.0, snake=True
+    ).compile()
+    assert gens(sc_straight)[0].length == gens(sc_snake)[0].length
+
+
+def test_polygon_compile_square_all_inside():
+    from scanspec2.specs import Polygon
+
+    # Unit square [0,1]×[0,1], step=0.5 → 3×3=9 grid, all 9 are inside the square
+    vertices = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)]
+    sc = Polygon("x", "y", vertices, 0.5).compile()
+    g = gens(sc)[0]
+    idx = np.arange(g.length) + 0.5
+    pts = g.setpoints(idx)
+    x, y = pts["x"], pts["y"]
+    assert np.all((x >= 0.0) & (x <= 1.0) & (y >= 0.0) & (y <= 1.0))
