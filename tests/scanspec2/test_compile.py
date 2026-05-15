@@ -25,6 +25,8 @@ from scanspec2.specs import (
     Static,
 )
 
+from . import approx
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -1012,3 +1014,80 @@ def test_zip_rejects_monitors():
     )
     with pytest.raises(ValueError, match="Zip does not accept.*monitors"):
         Linspace("y", 0, 1, 5).zip(a).compile()  # type: ignore[reportArgumentType]
+
+
+def test_acquire_fly_scan_window_positions():
+    # Detector with total acquisition time of 1s
+    det = DetectorGroup(1, 10, 0.9, 0.1, ["spec_det1"])
+    spec: Acquire[str, str, Never] = Acquire(
+        spec=Linspace("x", 0, 10, 10), fly=True, detectors=[det], stream_name="spec"
+    )
+    scan = spec.compile()
+    ws = windows(scan)
+    assert len(ws) == 1
+    for w in ws:
+        # Return positions spaced 1s apart
+        for p in w.positions(1, None):
+            assert len(p["x"]) == 10
+            assert p["x"] == approx(
+                [
+                    -0.55555556,
+                    0.67901235,
+                    1.91358025,
+                    3.14814815,
+                    4.38271605,
+                    5.61728395,
+                    6.85185185,
+                    8.08641975,
+                    9.32098765,
+                    10.55555556,
+                ]
+            )
+    det = DetectorGroup(1, 10, 1, 1, ["spec_det1"])
+    spec: Acquire[str, str, Never] = Acquire(
+        spec=Linspace("x", 0, 10, 10), fly=True, detectors=[det], stream_name="spec"
+    )
+    scan = spec.compile()
+    ws = windows(scan)
+    assert len(ws) == 1
+    for w in ws:
+        # Return positions spaced 1s apart
+        for p in w.positions(1, None):
+            assert len(p["x"]) == 20
+            assert p["x"] == approx(
+                [
+                    -0.26315789,
+                    0.29085873,
+                    0.84487535,
+                    1.39889197,
+                    1.95290859,
+                    2.50692521,
+                    3.06094183,
+                    3.61495845,
+                    4.16897507,
+                    4.72299169,
+                    5.27700831,
+                    5.83102493,
+                    6.38504155,
+                    6.93905817,
+                    7.49307479,
+                    8.04709141,
+                    8.60110803,
+                    9.15512465,
+                    9.70914127,
+                    10.26315789,
+                ]
+            )
+
+
+def test_acquire_step_scan_window_positions():
+    det = DetectorGroup(1, 10, 1, 1, ["spec_det1"])
+    spec: Acquire[str, str, Never] = Acquire(
+        spec=Linspace("x", 0, 10, 10), fly=False, detectors=[det], stream_name="spec"
+    )
+    scan = spec.compile()
+    ws = windows(scan)
+    pos = np.linspace(0, 10, 10, endpoint=False)
+    assert len(ws) == 10
+    for w, p in zip(ws, pos, strict=True):
+        assert w.static_axes == {"x": p}
