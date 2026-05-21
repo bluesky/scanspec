@@ -1081,6 +1081,30 @@ def test_range_one_point():
     np.testing.assert_allclose(pts, [0.0])
 
 
+def test_range_stop_not_on_grid():
+    """Last setpoint should be start + (num-1)*step even if stop is mid-interval."""
+    from scanspec2.specs import Range
+
+    # stop=1.1 is not a grid point; actual last midpoint is 0.0 + 2*0.5 = 1.0
+    sc = Range("x", 0.0, 1.1, 0.5).compile()
+    g = gens(sc)
+    assert g[0].length == 3
+    pts = g[0].setpoints(np.arange(3) + 0.5)["x"]
+    np.testing.assert_allclose(pts, [0.0, 0.5, 1.0])
+
+
+def test_range_descending_stop_not_on_grid():
+    """Descending range: last point is start - (num-1)*step."""
+    from scanspec2.specs import Range
+
+    # start=5, stop=2.5, step=1 → 3 points at 5, 4, 3 (not 2.5)
+    sc = Range("x", 5.0, 2.5, 1.0).compile()
+    g = gens(sc)
+    assert g[0].length == 3
+    pts = g[0].setpoints(np.arange(3) + 0.5)["x"]
+    np.testing.assert_allclose(pts, [5.0, 4.0, 3.0])
+
+
 @pytest.mark.parametrize("step", [1.0, 1.0 + 1e-8])
 def test_range_two_points(step: float) -> None:
     from scanspec2.specs import Range

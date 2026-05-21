@@ -337,10 +337,15 @@ class Range(Spec[AxisT, Never, Never]):
     def compile(self) -> Scan[AxisT, Never, Never]:
         """Compile into a one-dimension Scan with a linear position function."""
         num = self._num()
+        # Use the computed last midpoint rather than self.stop: when stop is not
+        # an exact multiple of step away from start, LinearSource((start, stop), num)
+        # would produce the wrong step spacing.
+        sign = np.sign(self.stop - self.start)
+        actual_stop = self.start + (num - 1) * sign * self.step
         gen = WindowGenerator(
             axes=[self.axis],
             length=num,
-            source=LinearSource({self.axis: (self.start, self.stop)}, num),
+            source=LinearSource({self.axis: (self.start, actual_stop)}, num),
         )
         return Scan(generators=[gen])
 
