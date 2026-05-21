@@ -1026,19 +1026,21 @@ def test_acquire_fly_scan_window_positions():
     for w in ws:
         # Return positions spaced 1s apart
         for p in w.positions(1, None):
-            assert len(p["x"]) == 10
+            assert len(p["x"]) == 12
             assert p["x"] == pytest.approx(  # type: ignore[reportUnknownMemberType]
                 [
                     10.55,
-                    11.55,
-                    12.55,
-                    13.55,
-                    14.55,
-                    15.55,
-                    16.55,
-                    17.55,
-                    18.55,
+                    11.45,
+                    12.35,
+                    13.25,
+                    14.15,
+                    15.05,
+                    15.95,
+                    16.85,
+                    17.75,
+                    18.65,
                     19.55,
+                    20.45,
                 ]
             )
     det = DetectorGroup(1, 10, 1, 1, ["spec_det1"])
@@ -1051,29 +1053,31 @@ def test_acquire_fly_scan_window_positions():
     for w in ws:
         # Return positions spaced 1s apart
         for p in w.positions(1, None):
-            assert len(p["x"]) == 20
+            assert len(p["x"]) == 22
             assert p["x"] == pytest.approx(  # type: ignore[reportUnknownMemberType]
                 [
                     10.775,
-                    11.24868421,
-                    11.72236842,
-                    12.19605263,
-                    12.66973684,
-                    13.14342105,
-                    13.61710526,
-                    14.09078947,
-                    14.56447368,
-                    15.03815789,
-                    15.51184211,
-                    15.98552632,
-                    16.45921053,
-                    16.93289474,
-                    17.40657895,
-                    17.88026316,
-                    18.35394737,
-                    18.82763158,
-                    19.30131579,
+                    11.225,
+                    11.675,
+                    12.125,
+                    12.575,
+                    13.025,
+                    13.475,
+                    13.925,
+                    14.375,
+                    14.825,
+                    15.275,
+                    15.725,
+                    16.175,
+                    16.625,
+                    17.075,
+                    17.525,
+                    17.975,
+                    18.425,
+                    18.875,
+                    19.325,
                     19.775,
+                    20.225,
                 ]
             )
 

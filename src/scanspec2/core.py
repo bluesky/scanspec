@@ -89,8 +89,13 @@ class LinearSource(Generic[AxisT]):
                 step = (stop - start) / self._length
             # If inquired for multiple indexes step size becomes
             # the original range normalized over the number of indexes.
+            # It's also necessary to add two extra points:
+            # *One point for the first lower bound
+            # *One point for the last upper bound
+            # result[ax][N] - result[ax][N-1] -> should return the midpoint
             else:
                 step = (stop - start) / (len(indexes))
+                indexes = np.arange(0, len(indexes) + 2, 1)
             first = start - step / 2
             result[ax] = first + indexes * step
         return result
