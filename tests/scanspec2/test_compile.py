@@ -25,8 +25,6 @@ from scanspec2.specs import (
     Static,
 )
 
-from . import approx
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -1020,7 +1018,7 @@ def test_acquire_fly_scan_window_positions():
     # Detector with total acquisition time of 1s
     det = DetectorGroup(1, 10, 0.9, 0.1, ["spec_det1"])
     spec: Acquire[str, str, Never] = Acquire(
-        spec=Linspace("x", 0, 10, 10), fly=True, detectors=[det], stream_name="spec"
+        spec=Linspace("x", 11, 20, 10), fly=True, detectors=[det], stream_name="spec"
     )
     scan = spec.compile()
     ws = windows(scan)
@@ -1029,23 +1027,23 @@ def test_acquire_fly_scan_window_positions():
         # Return positions spaced 1s apart
         for p in w.positions(1, None):
             assert len(p["x"]) == 10
-            assert p["x"] == approx(
+            assert p["x"] == pytest.approx(  # type: ignore[reportUnknownMemberType]
                 [
-                    -0.55555556,
-                    0.67901235,
-                    1.91358025,
-                    3.14814815,
-                    4.38271605,
-                    5.61728395,
-                    6.85185185,
-                    8.08641975,
-                    9.32098765,
-                    10.55555556,
+                    10.55,
+                    11.55,
+                    12.55,
+                    13.55,
+                    14.55,
+                    15.55,
+                    16.55,
+                    17.55,
+                    18.55,
+                    19.55,
                 ]
             )
     det = DetectorGroup(1, 10, 1, 1, ["spec_det1"])
     spec: Acquire[str, str, Never] = Acquire(
-        spec=Linspace("x", 0, 10, 10), fly=True, detectors=[det], stream_name="spec"
+        spec=Linspace("x", 11, 20, 10), fly=True, detectors=[det], stream_name="spec"
     )
     scan = spec.compile()
     ws = windows(scan)
@@ -1054,28 +1052,28 @@ def test_acquire_fly_scan_window_positions():
         # Return positions spaced 1s apart
         for p in w.positions(1, None):
             assert len(p["x"]) == 20
-            assert p["x"] == approx(
+            assert p["x"] == pytest.approx(  # type: ignore[reportUnknownMemberType]
                 [
-                    -0.26315789,
-                    0.29085873,
-                    0.84487535,
-                    1.39889197,
-                    1.95290859,
-                    2.50692521,
-                    3.06094183,
-                    3.61495845,
-                    4.16897507,
-                    4.72299169,
-                    5.27700831,
-                    5.83102493,
-                    6.38504155,
-                    6.93905817,
-                    7.49307479,
-                    8.04709141,
-                    8.60110803,
-                    9.15512465,
-                    9.70914127,
-                    10.26315789,
+                    10.775,
+                    11.24868421,
+                    11.72236842,
+                    12.19605263,
+                    12.66973684,
+                    13.14342105,
+                    13.61710526,
+                    14.09078947,
+                    14.56447368,
+                    15.03815789,
+                    15.51184211,
+                    15.98552632,
+                    16.45921053,
+                    16.93289474,
+                    17.40657895,
+                    17.88026316,
+                    18.35394737,
+                    18.82763158,
+                    19.30131579,
+                    19.775,
                 ]
             )
 

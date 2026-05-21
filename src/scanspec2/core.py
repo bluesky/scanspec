@@ -90,7 +90,7 @@ class LinearSource(Generic[AxisT]):
             # If inquired for multiple indexes step size becomes
             # the original range normalized over the number of indexes.
             else:
-                step = (stop - start) / (len(indexes) - 1)
+                step = (stop - start) / (len(indexes))
             first = start - step / 2
             result[ax] = first + indexes * step
         return result
