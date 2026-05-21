@@ -356,9 +356,16 @@ class Range(Spec[AxisT, Never, Never]):
 
         ``lower`` and ``upper`` are the outer edges of the bounding box.
         ``step`` is clamped to ``abs(upper - lower)`` so at least one frame
-        is always produced.
+        is always produced.  When ``lower == upper`` the step is used as-is
+        and a single point at that position is returned.
         """
         distance = abs(upper - lower)
+        if distance == 0.0:
+            # Degenerate case: single point, step unchanged
+            return cast(
+                Range[_BoundedAxisT],
+                cls(cast(Any, axis), lower, lower, abs(step)),
+            )
         direction = np.sign(upper - lower)
         step = min(distance, abs(step))
         half_step = step / 2 * direction

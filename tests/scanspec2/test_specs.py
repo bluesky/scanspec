@@ -366,9 +366,15 @@ def test_range_bounded_one_point(
     assert inst.start == expected_start
 
 
-# ---------------------------------------------------------------------------
-# Line alias — construction
-# ---------------------------------------------------------------------------
+def test_range_bounded_lower_equals_upper():
+    """lower == upper must not crash and must produce a single point."""
+    from scanspec2.specs import Range
+
+    inst = Range.bounded("x", 5.0, 5.0, 0.5)
+    assert isinstance(inst, Range)
+    assert inst.start == 5.0
+    assert inst.stop == 5.0
+    assert inst.step == 0.5  # step kept as-is, not clamped to 0
 
 
 def test_line_is_linspace():

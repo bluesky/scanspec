@@ -1134,9 +1134,15 @@ def test_range_bounded_one_point_setpoints(
     np.testing.assert_allclose(pts, expected_mid)
 
 
-# ---------------------------------------------------------------------------
-# Line alias — compile
-# ---------------------------------------------------------------------------
+def test_range_bounded_lower_equals_upper_compile():
+    """lower == upper must produce exactly one point at that position."""
+    from scanspec2.specs import Range
+
+    sc = Range.bounded("x", 7.0, 7.0, 0.5).compile()
+    g = gens(sc)
+    assert g[0].length == 1
+    pts = g[0].setpoints(np.array([0.5]))["x"]
+    np.testing.assert_allclose(pts, [7.0])
 
 
 def test_line_compile_same_as_linspace():
