@@ -446,6 +446,20 @@ def test_ellipse_x_step_gt0_raises():
         Ellipse("x", 0.0, 2.0, 0.0, "y", 0.0)
 
 
+def test_ellipse_x_diameter_zero_raises():
+    from scanspec2.specs import Ellipse
+
+    with pytest.raises(ValueError):
+        Ellipse("x", 0.0, 0.0, 1.0, "y", 0.0)
+
+
+def test_ellipse_y_diameter_zero_raises():
+    from scanspec2.specs import Ellipse
+
+    with pytest.raises(ValueError):
+        Ellipse("x", 0.0, 2.0, 1.0, "y", 0.0, y_diameter=0.0)
+
+
 # ---------------------------------------------------------------------------
 # Polygon — construction
 # ---------------------------------------------------------------------------

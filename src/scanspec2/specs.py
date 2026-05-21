@@ -951,10 +951,14 @@ class Ellipse(Spec[AxisT, Never, Never]):
 
     @model_validator(mode="after")
     def _fill_y_defaults(self) -> Self:
+        if self.x_diameter == 0.0:
+            raise ValueError("x_diameter must not be zero")
         if self.y_diameter is None:
             object.__setattr__(self, "y_diameter", abs(self.x_diameter))
         if self.y_step is None:
             object.__setattr__(self, "y_step", self.x_step)
+        if self.y_diameter == 0.0:
+            raise ValueError("y_diameter must not be zero")
         return self
 
     def compile(self) -> Scan[AxisT, Never, Never]:
