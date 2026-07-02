@@ -49,7 +49,7 @@ class TriggerPattern:
 
     repeats:  number of times this pattern repeats within the window.
     livetime: detector exposure time in seconds.
-    deadtime: detector readout/gap time in seconds.
+    deadtime: detector readout/spacing time in seconds.
     """
     repeats: int
     livetime: float
@@ -69,7 +69,7 @@ class TriggerGroup(Generic[DetectorT]):
     trigger_patterns uniformly expresses:
       single rate, fixed timing:    [TriggerPattern(500, 0.003, 0.001)]
       multi-rate (10x encoders):    [TriggerPattern(5000, 0.0003, 8e-9)]
-      ptychography variable gaps:   [TriggerPattern(1, 0.1, 0.01),
+      ptychography variable spacing: [TriggerPattern(1, 0.1, 0.01),
                                      TriggerPattern(1, 0.1, 0.3), ...]
 
     Baked in from DetectorGroup.livetime/deadtime at Scan construction time.
@@ -413,7 +413,7 @@ async def run_panda_flyscan(
             rows += SeqTable.row(trigger=trigger, position=int(lower))
 
         # One TriggerPattern per entry — handles single-rate,
-        # multi-rate, and ptychography variable-gap cases uniformly.
+        # multi-rate, and ptychography variable-spacing cases uniformly.
         for pattern in group.trigger_patterns:
             rows += SeqTable.row(
                 repeats=pattern.repeats,

@@ -933,8 +933,8 @@ class Ellipse(Spec[AxisT, Never, Never]):
 
     Builds a 2-D rectangular grid from ``Range`` objects spanning the
     bounding box of the ellipse, then keeps only those midpoints that satisfy
-    the ellipse equation.  ``snake`` and ``vertical`` control the fast/slow
-    axis selection (they do not affect *which* points are retained).
+    the ellipse equation.  ``vertical`` controls the fast/slow axis selection
+    (it does not affect *which* points are retained).
     """
 
     x_axis: AxisT = Field(description="Axis identifier for x.")
@@ -951,7 +951,6 @@ class Ellipse(Spec[AxisT, Never, Never]):
         default=None,
         description="Grid spacing along y (defaults to x_step).",
     )
-    snake: bool = Field(default=False, description="Snake the fast axis.")
     vertical: bool = Field(default=False, description="If True, y is the fast axis.")
 
     @model_validator(mode="after")
@@ -988,8 +987,6 @@ class Ellipse(Spec[AxisT, Never, Never]):
             eff_y_step,
         )
 
-        # Build grid: slow * fast (snake/vertical determine fast axis but do
-        # not change the set of masked points).
         if self.vertical:
             grid: Spec[AxisT, Never, Never] = x_range * y_range
         else:
@@ -1037,7 +1034,6 @@ class Polygon(Spec[AxisT, Never, Never]):
         default=None,
         description="Grid spacing along y (defaults to x_step).",
     )
-    snake: bool = Field(default=False, description="Snake the fast axis.")
     vertical: bool = Field(default=False, description="If True, y is the fast axis.")
 
     @model_validator(mode="after")

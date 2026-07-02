@@ -19,7 +19,7 @@ class TriggerPattern:
 
     repeats:  number of times this pattern repeats within the window.
     livetime: detector exposure time in seconds.
-    deadtime: detector readout/gap time in seconds.
+    deadtime: detector readout/spacing time in seconds.
     """
 
     repeats: int
@@ -40,7 +40,7 @@ class TriggerGroup(Generic[DetectorT]):
     trigger_patterns uniformly expresses:
       single rate, fixed timing:    [TriggerPattern(500, 0.003, 0.001)]
       multi-rate (10x encoders):    [TriggerPattern(5000, 0.0003, 8e-9)]
-      ptychography variable gaps:   [TriggerPattern(1, 0.1, 0.01),
+      ptychography variable spacing: [TriggerPattern(1, 0.1, 0.01),
                                      TriggerPattern(1, 0.1, 0.3), ...]
 
     Baked in from DetectorGroup.livetime/deadtime at Path construction time.

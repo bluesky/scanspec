@@ -423,11 +423,10 @@ def test_ellipse_y_step_defaults_to_x_step():
     assert e.y_step == 0.5
 
 
-def test_ellipse_snake_and_vertical_defaults():
+def test_ellipse_vertical_default():
     from scanspec2.specs import Ellipse
 
     e = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0)
-    assert e.snake is False
     assert e.vertical is False
 
 
@@ -491,11 +490,10 @@ def test_polygon_explicit_y_step():
     assert p.y_step == 0.25
 
 
-def test_polygon_snake_and_vertical_defaults():
+def test_polygon_vertical_default():
     from scanspec2.specs import Polygon
 
     p = Polygon("x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], 0.25)
-    assert p.snake is False
     assert p.vertical is False
 
 

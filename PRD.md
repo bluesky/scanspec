@@ -23,7 +23,7 @@ Relationship to other documents:
 
 ## 1. Background
 
-scanspec is a Python library for composably describing scan trajectories at
+Scanspec is a Python library for composably describing scan trajectories at
 synchrotron beamlines. A scientist (or a UI) builds a serializable `Spec`
 tree describing *what* the scan should do; the library compiles it into a
 structure that instrument-control software (ophyd-async) consumes to move
@@ -71,10 +71,14 @@ All are in scope for 2.0; they may be delivered in stages.
    the same stream must trigger at integer ratios of each other (validated
    at compile time). Detectors in different streams have no phase lock.
 
-5. **Gaps in the detector trigger pattern.** Ptychography wants variable
-   gaps between exposures while motion stays steady, e.g. "0.1 s livetime,
-   0.01 s deadtime, 0.1 s livetime, 0.3 s deadtime" repeated per line. The
-   motion trajectory must cover an integer number of repetitions.
+5. **Variable spacing in the detector trigger pattern.** Ptychography wants
+   variable spacing between exposures while motion stays steady. Under
+   centred-livetime semantics (§4.2), a 0.3 s spacing between two 0.1 s
+   exposures sharing a 0.01 s minimum deadtime is expressed as three
+   `TriggerRepeat`s:
+   `(1, 0.1, 0.01)` → `(1, 0.0, 0.29)` → `(1, 0.1, 0.01)` (total 0.51 s),
+   placing frames near opposite ends of the period. The motion trajectory
+   must cover an integer number of repetitions.
 
 6. **Different detector streams at different phases** (the flagship
    multi-stream pattern). N iterations of: take a diffraction image at
@@ -91,7 +95,7 @@ All are in scope for 2.0; they may be delivered in stages.
 
 ### Optional user stories (design must not preclude; not required for 2.0)
 
-- **Fast shutter in turnarounds** — acceptable to model the shutter as
+- **Fast shutter in gaps** — acceptable to model the shutter as
   another "axis" restricted to 0/1 if ever needed.
 - **Waiting for a sample environment** mid-sequence (else: custom plan).
 - **Relative positions** that survive JSON round-trip; resolved at execution
@@ -123,7 +127,7 @@ Spec (serializable description) → .compile() → Scan (compiled) → for windo
 
 The fundamental unit of iteration is the **collection window**: one
 contiguous stretch of motion during which detectors are triggered. Windows
-are separated by turnarounds (the 1.x term "gap" is retired). A step scan
+are separated by gaps. A step scan
 yields one window per point (e.g. 5000 windows); a flyscan yields one window
 per sweep (e.g. 50 row windows for a 50×100 grid).
 
@@ -181,7 +185,7 @@ O(spec complexity). It holds:
   `LinearSource` (uniform spacing, 1.x fence/post convention),
   `FunctionSource` (arbitrary `fn(indexes) → dict[axis, array]`; spirals and
   masked grids), or `ConcatSource` (sequential children; how concat-of-
-  acquires alternates trigger groups per window).
+  acquires alternates trigger sequences per window).
 - `windowed_streams: list[WindowedStream]` — per stream: `name`,
   `dimensions` (its own shape — streams can differ), `detector_groups`.
   Used to **arm** detectors before the scan and to **reshape** data after.
@@ -207,19 +211,19 @@ to execute one collection phase:
 | `moving_axes: dict[AxisT, AxisMotion]` | Axes sweeping continuously, each with `start_position`, `start_velocity`, `end_position`, `end_velocity`. Empty for step windows. Disjoint from `static_axes`. |
 | `non_linear: bool` | `True` → trajectory controller required (servo-rate positions). `False` → constant velocity per axis (or no motion). Computed analytically from the position functions, not by finite-differencing. |
 | `duration: float` | Total window time in seconds, derived from trigger timing (§4). |
-| `trigger_groups` | Detector triggering for this window (§4). |
-| `previous: Window \| None` | One step back only — enough to compute the turnaround into this window. |
+| `trigger_sequences` | Detector triggering for this window (§4). |
+| `previous: Window \| None` | One step back only — enough to compute the gap into this window. |
 
 `window.positions(dt, max_duration)` yields chunked
 `dict[axis, np.ndarray]` for the moving axes:
 
 - `dt: float` — positions at a fixed interval (servo-cycle rate).
-- `dt: TriggerPattern` — one position per trigger instant, centred on each
+- `dt: TriggerRepeat` — one position per trigger instant, centred on each
   active window (the 1.x-equivalent "positions at my detector frames").
 - Raises `RuntimeError` on step windows (no continuous trajectory).
 
-Turnarounds are out of scope for scanspec: consumers call an external
-`calculate_turnaround(from_pos, from_vel, to_pos, to_vel)` using the
+Gaps are out of scope for scanspec: consumers call an external
+`calculate_gap(from_pos, from_vel, to_pos, to_vel)` using the
 boundary kinematics of adjacent windows. Position functions are therefore
 required to be differentiable at window boundaries — a design constraint on
 every motion node.
@@ -245,22 +249,24 @@ Two deliberately separate concepts:
   `deadtime`, `detectors`. `exposures_per_event = exposures_per_collection ×
   collections_per_event`. Used with the stream's `dimensions` to call
   `StandardDetector.prepare()` before any window is iterated.
-- **`TriggerGroup`** (on `Window.trigger_groups`) — *runtime* instruction:
-  `detectors` + `trigger_patterns: list[TriggerPattern(repeats, livetime,
-  deadtime)]`. Baked from `DetectorGroup`s at compile time (ADR 0005):
-  flyscan windows get `repeats = inner_length × exposures_per_collection`;
-  step windows get `repeats = exposures_per_collection`. `livetime`/
-  `deadtime` must be resolved (not `None`) before `compile()`.
-  Consumers find their group by matching `frozenset(group.detectors)`
-  (unique per window, enforced); they read, never compute.
+- **`TriggerSequence`** (on `Window.trigger_sequences`) — *runtime*
+  instruction: `detectors` + a `trigger_repeat: TriggerRepeat(num, livetime,
+  deadtime)` + a parallel `children` dict of integer-multiple-rate sub-groups
+  (§4.3). Baked from `DetectorGroup`s at compile time (ADR 0007): flyscan
+  windows get `num = inner_length × exposures_per_collection`; step windows
+  get `num = exposures_per_collection`. `livetime`/`deadtime` must be resolved
+  (not `None`) before `compile()`. Consumers find their sequence by matching
+  `frozenset(sequence.detectors)` (unique per window, enforced); they read,
+  never compute.
 
-A stream's detector group may appear in the trigger groups of only a subset
+A stream's detector group may appear in the trigger sequences of only a subset
 of windows (flagship pattern: diffraction fires only in hold windows).
 
-Window `duration` is derived from the slowest group; an explicit
-`Acquire(duration=...)` must be ≥ the derived value. Detector-less step
-scans have `duration = 0`; detector-less fly scans require a supplied
-duration.
+Window `duration` is derived from the root `TriggerSequence`s — the sum of
+`num × (livetime + deadtime)` across them, since faster children run inside
+the parent livetime and do not extend it; an explicit `Acquire(duration=...)`
+must be ≥ the derived value. Detector-less step scans have `duration = 0`;
+detector-less fly scans require a supplied duration.
 
 ### 4.2 Centred livetime (ADR 0006 — tentative, agreed in substance)
 
@@ -270,37 +276,53 @@ nominal scan position, which position-compare triggering requires;
 leading-edge alignment would bias every position by `½·deadtime`. The struct
 is unchanged — only the interpretation.
 
-`livetime = 0.0` is explicitly valid: a pure dead-gap spacer. Because
-centred semantics already give symmetric gaps, spacers are only needed when
-two bursts must be separated by a gap different from the intra-burst
-deadtime — the ptychography pattern:
+`livetime = 0.0` is explicitly valid: a pure spacing-only repeat. Because
+centred semantics already give symmetric spacing, spacers are only needed
+when two bursts must be separated by a spacing different from the
+intra-burst deadtime — the ptychography pattern, expressed as a list of
+`TriggerSequence`s in the window (§4.3):
 
 ```python
-[TriggerPattern(N1, livetime1, deadtime),   # first burst
- TriggerPattern(1,  0.0,       gap),        # inter-burst spacer
- TriggerPattern(N2, livetime2, deadtime)]   # second burst
+[TriggerSequence(dets,         TriggerRepeat(N1, livetime1, deadtime), {}),  # first burst
+ TriggerSequence(frozenset(),  TriggerRepeat(1,  0.0,       spacing),  {}),  # spacer
+ TriggerSequence(dets,         TriggerRepeat(N2, livetime2, deadtime), {})]  # second burst
 ```
 
-### 4.3 Planned unification: the trigger tree (ADR 0007 — proposed)
+### 4.3 The two-level trigger structure (ADR 0007 — proposed)
 
 Sibling `TriggerGroup`s at integer-multiple rates have no structural link —
-nothing ties "500 SAXS frames" to "5000 encoder samples" during the scan.
-ADR 0007 merges `TriggerPattern` + `TriggerGroup` into a single recursive
-**`TriggerNode`** (`detectors`, `repeats`, `livetime`, `deadtime`,
-`children`); rate ratios become parent/child nesting, so progress through
-the parent structurally implies progress through the children:
+nothing ties "100 SAXS frames" to "7200 Tetramm samples" during the scan.
+ADR 0007 replaces `TriggerPattern` + `TriggerGroup` with two types: a
+**`TriggerRepeat`** (`num`, `livetime`, `deadtime`) carrying timing only, and
+a **`TriggerSequence`** binding `detectors` to one parent `trigger_repeat`
+plus a parallel `children` dict. Integer-multiple-rate sub-groups become
+parallel children that fire *during each parent livetime*, so progress
+through the parent structurally implies progress through the children:
 
 ```python
-TriggerNode(["saxs", "waxs"], 500, 0.003, 0.001, children=[
-    TriggerNode(["x_enc", "y_enc"], 10, 0.0003, 8e-9)   # 10× per SAXS frame
-])
+TriggerSequence(
+    detectors=frozenset({"saxs", "waxs"}),
+    trigger_repeat=TriggerRepeat(num=100, livetime=0.009, deadtime=0.001),
+    children={
+        frozenset({"tetramm"}): [TriggerRepeat(num=72, livetime=0.000124, deadtime=0.000001)],
+        frozenset({"panda"}):   [TriggerRepeat(num=45, livetime=0.000190, deadtime=0.000010)],
+    },
+)
 ```
 
-`Window.trigger_groups` becomes `Window.trigger_nodes` — an **ordered
+The `children` dict is **parallel** (keys fire simultaneously during each
+parent repeat); each value is a **sequential** `list[TriggerRepeat]`. Each
+child's total duration must be ≤ the parent livetime, and child detector sets
+must be disjoint from each other and the parent — all validated at compile
+time. The structure is fixed at **two levels** (parent + one child layer),
+which fits in a single PandA SEQ block.
+
+`Window.trigger_groups` becomes `Window.trigger_sequences` — an **ordered
 sequential list**; there are no parallel sibling streams within a window
 (no zipping of unrelated trigger streams with no common checkpoint base).
-Compiled specs always produce a length-1 root list; multi-entry lists can
-only arise from manual `Window` construction.
+Compiled specs produce a single-entry list, except for the variable-spacing
+spacer pattern (§4.2); longer multi-entry lists can also arise from manual
+`Window` construction.
 
 ADR 0007 also adds `Scan.active_stream_sets: list[frozenset[str]]` — every
 combination of stream names simultaneously active in some window — so a
@@ -308,9 +330,9 @@ consumer can validate sequencer-table capacity **up front, without
 iterating**: `Acquire` contributes its own singleton; `Concat` unions its
 children's lists; everything else passes the inner value through.
 
-This ADR is **not yet accepted**; see §9 and §11 for its review status and
-the corrections still to apply. When accepted it supersedes ADR 0005 and
-the `positions(TriggerPattern)` signature of ADR 0006.
+This ADR is **not yet accepted**; see §9 and §11 for its review status. When
+accepted it supersedes ADR 0005 and the `positions(TriggerPattern)` signature
+of ADR 0006 (which becomes `positions(TriggerRepeat)`).
 
 ---
 
@@ -341,23 +363,31 @@ Principles (agreed, ADR 0007 context):
   completed work.
 - **Progress is a count, not a time.** Hardware tracks completed trigger
   repeats; elapsed time cannot reliably be mapped back to a repeat index
-  (variable-gap patterns). Hence `Scan.with_start(window, trigger_index)`
+  (variable-spacing patterns). Hence `Scan.with_start(window, trigger_index)`
   returns a new `Scan` whose first yielded window has the first
-  `trigger_index` repeats truncated off its patterns and its `duration`
-  reduced accordingly. There is no rewind method and no mutable iterator
-  state.
+  `trigger_index` repeats truncated off its trigger sequences and its
+  `duration` reduced accordingly. There is no rewind method and no mutable
+  iterator state.
 - Intra-window resume currently requires the window to have exactly one
-  `TriggerGroup` (raises otherwise); the `TriggerNode` unification removes
-  this restriction structurally (one root node).
+  `TriggerGroup` (raises otherwise); the `TriggerSequence` structure removes
+  this restriction — `_truncate_trigger_sequence` walks the flat list of
+  sequences, counting completed root-level repeats across all of them.
 - Within a window, safe pause points are **checkpoints** at root-level
   repeat boundaries. ADR 0007 proposes gating each root repeat on a
-  Bluesky-held bit in the PandA sequencer table so that dropping the bit
-  stalls the hardware at the next checkpoint (max latency: one root repeat
-  period), after which Bluesky reads back progress and resumes via
-  `with_start`. Long blank sections must be constructed as many short
-  repeats to bound pause latency. The exact hardware sequence
-  (table-rewrite-while-stalled vs abort-and-restart, gate bit, status
-  readback) has open review corrections — see §11.
+  Bluesky-held bit (BITB) in the PandA sequencer table. When the bit
+  drops, the consumer polls briefly (~0.2 s) for the sequencer to stall;
+  if it has not stalled, the consumer checks whether the current
+  `table_line` is a blank row (`livetime = 0`): if so, it reads the
+  position immediately without waiting for the next repeat boundary
+  (no data is in flight, so any mid-blank position is a safe resume
+  point); if not, it waits up to `max_time_between_checkpoints` for the
+  hardware to reach the next live-section checkpoint. Either way,
+  `lookup_checkpoint_index(table_line)` gives the `trigger_index` passed
+  to `with_start`. Pause latency for blank sections is therefore bounded
+  by the poll interval, not the repeat duration; long blank spacers do
+  not need to be broken into short repeats. The exact hardware sequence
+  after the stall (table-rewrite-while-stalled vs abort-and-restart) has
+  an open question — see §11.
 
 ---
 
@@ -366,13 +396,13 @@ Principles (agreed, ADR 0007 context):
 Three consumer classes, dispatchable from the `Scan` without iterating:
 
 1. **Step-scan capable** — asserts `not scan.has_moving_axes`; moves
-   `window.static_axes`, fires `trigger_groups` per window.
+   `window.static_axes`, fires `trigger_sequences` per window.
 2. **Linear-flyscan capable** (motor record) — asserts `not scan.non_linear`;
    uses `AxisMotion` boundary kinematics to compute ramp distances; never
    needs position arrays.
 3. **Trajectory capable** (PMAC etc.) — consumes anything; streams
    `window.positions(dt=0.0002, max_duration=10.0)` chunks and bridges
-   windows with `calculate_turnaround`.
+   windows with `calculate_gap`.
 
 Worked examples of all of these plus the PandA sequence-table builder and
 pause/resume are in [API_SPEC.md](API_SPEC.md) §Consumption use cases, and
@@ -394,18 +424,17 @@ semantics and `positions(float | TriggerPattern)` (ADR 0006);
 
 **Known gaps and defects**:
 
-1. `TriggerNode` rework + `active_stream_sets` + checkpoint pause/resume
-   (ADR 0007, once accepted) — supersedes parts of the trigger code above.
-2. `Ellipse`/`Polygon` accept `snake=` but it has no effect on traversal
-   order (review finding) — implement or remove the parameter.
-3. `window.positions(float dt)`: `max_duration < dt` yields a zero-size
+1. `TriggerSequence`/`TriggerRepeat` rework + `active_stream_sets` +
+   checkpoint pause/resume (ADR 0007, once accepted) — supersedes parts of the
+   trigger code above, including the `positions(TriggerPattern)` argument type.
+2. `window.positions(float dt)`: `max_duration < dt` yields a zero-size
    chunk and loops forever — needs a guard (review finding).
-4. `Scan.number_of_events` (or per-stream) property.
-5. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
+3. `Scan.number_of_events` (or per-stream) property.
+4. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
    `TriggerInfo` for `StandardDetector.prepare()`.
-6. `scanspec2/__init__.py` exports (currently a bare docstring).
-7. Serialization test coverage is thin (smoke-test level).
-8. Auxiliary modules not ported (nice-to-have, in priority order):
+5. `scanspec2/__init__.py` exports (currently a bare docstring).
+6. Serialization test coverage is thin (smoke-test level).
+7. Auxiliary modules not ported (nice-to-have, in priority order):
    `plot.py`, `cli.py` + `__main__.py`, `service.py`, `sphinxext.py`.
 
 **Intentionally dropped from 1.x** (rationale in ADR 0003): `Path`,
@@ -420,24 +449,21 @@ semantics and `positions(float | TriggerPattern)` (ADR 0006);
   *Tentative*. The substance is agreed and implemented; review wording
   corrections have been applied. To be marked Accepted after maintainer
   sign-off — and partially superseded by ADR 0007 when that lands (the
-  centred semantics persist; the `TriggerPattern` argument type becomes the
-  node type).
-- **ADR 0007** (trigger tree + checkpoint pause/resume): status *Proposed*.
-  The structural decisions (TriggerNode, sequential root list, forward-only
-  resume, structural `active_stream_sets`) reflect maintainer direction.
-  Maintainer review has identified factual corrections not yet applied to
-  the ADR text:
-  - The checkpoint gate bit is **BITB** (BITA is already used for
-    motion-controller sync at window boundaries).
-  - Stall detection should poll the SEQ block **STATE** field, not
-    `TABLE_LINE`/`LINE_REPEAT`.
-  - **Two levels of trigger nesting fit in a single SEQ block** — the
-    "two chained tables for two levels" reasoning in assumption A3 is wrong.
-  - The assumption-A2 scenario (collapsing N repeats into one `REPEATS=N`
-    row) "will never occur in reality"; the ADR should instead present the
-    concrete worked sequence-table encoding.
-  When 0007 is accepted: mark **ADR 0005 as superseded by 0007**, and
-  annotate ADR 0006 accordingly.
+  centred semantics persist; the `TriggerPattern` argument type becomes
+  `TriggerRepeat`).
+- **ADR 0007** (two-level trigger structure + checkpoint pause/resume):
+  status *Proposed*. The structural decisions (`TriggerSequence` /
+  `TriggerRepeat`, parallel children dict, two-level depth, sequential root
+  list, forward-only resume, structural `active_stream_sets`) reflect
+  maintainer direction. The draft incorporates the maintainer's hardware
+  corrections: the checkpoint gate bit is **BITB** (BITA is already used for
+  motion-controller sync at window boundaries); stall detection polls the SEQ
+  block **STATE** field, not `TABLE_LINE`/`LINE_REPEAT`; **two trigger levels
+  fit in a single SEQ block** (no chained tables); and the SEQ encoding is
+  given as a concrete worked gate-row sub-table rather than the discarded
+  "collapse N repeats into one row" scenario. The one open point is the
+  pause hardware sequence (§11 Q1). When 0007 is accepted: mark **ADR 0005 as
+  superseded by 0007**, and annotate ADR 0006 accordingly.
 
 ---
 
@@ -448,7 +474,7 @@ semantics and `positions(float | TriggerPattern)` (ADR 0006);
   (code: `trigger_index`), a `Scan.fly` field (removed in favour of
   `has_moving_axes`/`non_linear`), and `positions()` without the
   `TriggerPattern` argument. It must be reconciled — and will need a second
-  pass when `TriggerNode` lands.
+  pass when `TriggerSequence`/`TriggerRepeat` land.
 - `docs/` (user-facing Sphinx docs) still document 1.x only; they are
   rewritten as part of the final migration, not before.
 
@@ -456,21 +482,26 @@ semantics and `positions(float | TriggerPattern)` (ADR 0006);
 
 ## 11. Open questions
 
-1. **Pause hardware sequence**: stall-then-rewrite-table-then-resume (as
-   drafted in ADR 0007) vs the maintainer-suggested simpler
-   stall-then-**abort**-the-sequence (then re-arm via `with_start`). Needs a
-   decision with the maintainer before implementing.
-2. **`Concat` of two same-named `Acquire`s**: maintainer comment "becomes
-   serial" on the deduplication test expectation needs clarification — does
+1. **Pause hardware sequence**: after the sequencer stalls on the gate row,
+   does the consumer rewrite the remaining table while PandA holds, or abort
+   the sequence and re-arm from scratch via `with_start`? ADR 0007 leaves this
+   open as a consumer-implementation decision; it does not affect the scanspec
+   data model, but needs resolving before the PandA consumer is built.
+2. **`Concat` of two same-named `Acquire`s**: the "becomes serial" note on the
+   deduplication test expectation needs clarification — does
    `active_stream_sets` dedupe to one singleton, or is there additional
    sequential-table semantics to capture?
-3. **Trigger-node depth validation**: given two nesting levels fit in one
-   SEQ block, where should the depth limit (if any) be enforced — compile
-   time in scanspec, or consumer-side capacity check via
-   `active_stream_sets`?
-4. **`Ellipse`/`Polygon` snake** (§8.2): support it or drop the parameter?
-5. Does pause/resume ever need an *end* point as well as a start point?
+3. Does pause/resume ever need an *end* point as well as a start point?
    (Raised during design; unresolved, currently assumed not.)
+4. **User-facing surface for variable-spacing trigger patterns**: §4.2/§4.3
+   describe what the compiled `TriggerSequence`/`TriggerRepeat` structure can
+   *express* (execution side only); how a spec author actually produces it
+   via `DetectorGroup`/`Acquire` is undecided. Candidates include a short,
+   fixed, tileable pattern (repeats identically across the window) versus a
+   fully arbitrary, explicit per-exposure list — and an earlier design proposed
+   a third shape (leading/trailing half-gap spacers around uniform middle frames)
+   that differs from the burst-spacer-burst example currently in §4.2. To be
+   resolved in ADR 0007.
 
 ---
 

@@ -1223,14 +1223,6 @@ def test_ellipse_compile_axes_present():
     assert set(gens(sc)[0].axes) == {"x", "y"}
 
 
-def test_ellipse_compile_snake_same_point_count():
-    from scanspec2.specs import Ellipse
-
-    sc_straight = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0, snake=False).compile()
-    sc_snake = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0, snake=True).compile()
-    assert gens(sc_straight)[0].length == gens(sc_snake)[0].length == 5
-
-
 def test_ellipse_compile_vertical_swaps_fast_slow():
     from scanspec2.specs import Ellipse
 
@@ -1268,18 +1260,6 @@ def test_polygon_compile_axes_present():
 
     sc = Polygon("x", "y", [(0, 0), (5, 0), (2.5, 4)], 1.0, 2.0).compile()
     assert set(gens(sc)[0].axes) == {"x", "y"}
-
-
-def test_polygon_compile_snake_same_point_count():
-    from scanspec2.specs import Polygon
-
-    sc_straight = Polygon(
-        "x", "y", [(0, 0), (5, 0), (2.5, 4)], 1.0, 2.0, snake=False
-    ).compile()
-    sc_snake = Polygon(
-        "x", "y", [(0, 0), (5, 0), (2.5, 4)], 1.0, 2.0, snake=True
-    ).compile()
-    assert gens(sc_straight)[0].length == gens(sc_snake)[0].length
 
 
 def test_polygon_compile_square_all_inside():
