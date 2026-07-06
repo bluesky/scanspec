@@ -63,6 +63,7 @@ from .core import (
 AxisT = TypeVar("AxisT")
 DetectorT = TypeVar("DetectorT")
 MonitorT = TypeVar("MonitorT")
+_BoundedAxisT = TypeVar("_BoundedAxisT")
 
 
 def _discriminate_by_type(obj: Any) -> str | None:
@@ -267,6 +268,28 @@ class Linspace(Spec[AxisT, Never, Never]):
         )
         return Scan(generators=[gen])
 
+    @classmethod
+    def bounded(
+        cls,
+        axis: _BoundedAxisT,
+        lower: float,
+        upper: float,
+        num: int = 1,
+    ) -> Linspace[_BoundedAxisT]:
+        """Construct a Linspace from extreme bounds rather than midpoints.
+
+        ``lower`` and ``upper`` are the outer edges of the first and last
+        frames respectively.  The midpoints are half a step inward from each
+        edge.
+        """
+        half_step = (upper - lower) / num / 2
+        start = lower + half_step
+        if num == 1:
+            stop = upper + half_step
+        else:
+            stop = upper - half_step
+        return cast(Linspace[_BoundedAxisT], cls(cast(Any, axis), start, stop, num))
+
 
 class Static(Spec[AxisT, Never, Never]):
     """Single static position for one axis."""
@@ -289,6 +312,75 @@ class Static(Spec[AxisT, Never, Never]):
         return Scan(generators=[gen])
 
 
+class Range(Spec[AxisT, Never, Never]):
+    """Evenly-spaced sweep defined by a step size rather than a point count.
+
+    ``start`` and ``stop`` are the midpoints of the first and last frames.
+    ``step`` is the spacing between midpoints (must be > 0).  The number of
+    points is derived from ``abs(stop - start) / step`` using the same
+    rounding rule as the 1.x implementation.
+    """
+
+    axis: AxisT = Field(description="Axis identifier.")
+    start: float = Field(description="Midpoint of the first frame.")
+    stop: float = Field(description="Midpoint of the last frame.")
+    step: float = Field(description="Step size between midpoints.", gt=0)
+
+    def _num(self) -> int:
+        step = abs(self.step)
+        distance = abs(self.stop - self.start)
+        num = int(distance // step) + 1
+        if np.isclose(step * num, distance):
+            num = num + 1
+        return num
+
+    def compile(self) -> Scan[AxisT, Never, Never]:
+        """Compile into a one-dimension Scan with a linear position function."""
+        num = self._num()
+        # Use the computed last midpoint rather than self.stop: when stop is not
+        # an exact multiple of step away from start, LinearSource((start, stop), num)
+        # would produce the wrong step spacing.
+        sign = np.sign(self.stop - self.start)
+        actual_stop = self.start + (num - 1) * sign * self.step
+        gen = WindowGenerator(
+            axes=[self.axis],
+            length=num,
+            source=LinearSource({self.axis: (self.start, actual_stop)}, num),
+        )
+        return Scan(generators=[gen])
+
+    @classmethod
+    def bounded(
+        cls,
+        axis: _BoundedAxisT,
+        lower: float,
+        upper: float,
+        step: float,
+    ) -> Range[_BoundedAxisT]:
+        """Construct a Range from extreme bounds rather than midpoints.
+
+        ``lower`` and ``upper`` are the outer edges of the bounding box.
+        ``step`` is clamped to ``abs(upper - lower)`` so at least one frame
+        is always produced.  When ``lower == upper`` the step is used as-is
+        and a single point at that position is returned.
+        """
+        distance = abs(upper - lower)
+        if distance == 0.0:
+            # Degenerate case: single point, step unchanged
+            return cast(
+                Range[_BoundedAxisT],
+                cls(cast(Any, axis), lower, lower, abs(step)),
+            )
+        direction = np.sign(upper - lower)
+        step = min(distance, abs(step))
+        half_step = step / 2 * direction
+        start = lower + half_step
+        stop = upper - half_step
+        if stop == start:
+            stop = np.nextafter(start, np.inf * direction)
+        return cast(Range[_BoundedAxisT], cls(cast(Any, axis), start, stop, step))
+
+
 class Spiral(Spec[AxisT, Never, Never]):
     """Archimedean spiral of *x_axis* and *y_axis*.
 
@@ -304,13 +396,14 @@ class Spiral(Spec[AxisT, Never, Never]):
 
     x_axis: AxisT = Field(description="Axis identifier for x.")
     x_centre: float = Field(description="x centre of the spiral.")
-    x_diameter: float = Field(description="x width of the spiral.")
-    x_step: float = Field(description="Radial spacing along x.")
+    x_diameter: float = Field(description="x width of the spiral.", gt=0)
+    x_step: float = Field(description="Radial spacing along x.", gt=0)
     y_axis: AxisT = Field(description="Axis identifier for y.")
     y_centre: float = Field(description="y centre of the spiral.")
     y_diameter: float | None = Field(
         default=None,
         description="y height of the spiral (defaults to abs(x_diameter)).",
+        gt=0,
     )
 
     def _eff_y_diameter(self) -> float:
@@ -805,6 +898,201 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
                 )
             return self.duration
         return per_point
+
+
+# ---------------------------------------------------------------------------
+# Masked-grid helpers
+# ---------------------------------------------------------------------------
+
+
+def _eval_full_grid(scan: Scan[Any, Any, Any]) -> dict[Any, np.ndarray]:
+    """Return all midpoints of a compiled scan as flat arrays.
+
+    Expands a multi-generator scan into a full Cartesian product, giving one
+    array per axis of length ``product(g.length for g in scan.generators)``.
+    Snake flags are ignored — the caller cares only about *which* points
+    exist, not their traversal order.
+    """
+    per_axis: dict[Any, np.ndarray] = {}
+    outer_len = 1
+    for gen in scan.generators:
+        inner_len = gen.length
+        midpt_idx = np.arange(inner_len, dtype=float) + 0.5
+        pts = gen.setpoints(midpt_idx)
+        # Each already-collected outer axis repeats inner_len times.
+        for ax in list(per_axis.keys()):
+            per_axis[ax] = np.repeat(per_axis[ax], inner_len)
+        # Each new inner axis tiles outer_len times.
+        for ax, arr in pts.items():
+            per_axis[ax] = np.tile(arr, outer_len)
+        outer_len *= inner_len
+    return per_axis
+
+
+class Ellipse(Spec[AxisT, Never, Never]):
+    """Grid of points masked to an elliptical footprint.
+
+    Builds a 2-D rectangular grid from ``Range`` objects spanning the
+    bounding box of the ellipse, then keeps only those midpoints that satisfy
+    the ellipse equation.  ``vertical`` controls the fast/slow axis selection
+    (it does not affect *which* points are retained).
+    """
+
+    x_axis: AxisT = Field(description="Axis identifier for x.")
+    x_centre: float = Field(description="x centre of the ellipse.")
+    x_diameter: float = Field(description="x diameter of the ellipse.", gt=0)
+    x_step: float = Field(description="Grid spacing along x.", gt=0)
+    y_axis: AxisT = Field(description="Axis identifier for y.")
+    y_centre: float = Field(description="y centre of the ellipse.")
+    y_diameter: float | None = Field(
+        default=None,
+        description="y diameter (defaults to abs(x_diameter)).",
+        gt=0,
+    )
+    y_step: float | None = Field(
+        default=None,
+        description="Grid spacing along y (defaults to x_step).",
+        gt=0,
+    )
+    vertical: bool = Field(default=False, description="If True, y is the fast axis.")
+
+    def _eff_y_diameter(self) -> float:
+        return self.y_diameter if self.y_diameter is not None else abs(self.x_diameter)
+
+    def _eff_y_step(self) -> float:
+        return self.y_step if self.y_step is not None else self.x_step
+
+    def compile(self) -> Scan[AxisT, Never, Never]:
+        """Compile into a flat single-generator Scan of masked midpoints."""
+        x_radius = abs(self.x_diameter) / 2
+        eff_y_diam = self._eff_y_diameter()
+        y_radius = abs(eff_y_diam) / 2
+        eff_y_step = self._eff_y_step()
+
+        x_range: Range[AxisT] = Range(
+            self.x_axis,
+            self.x_centre - x_radius,
+            self.x_centre + x_radius,
+            self.x_step,
+        )
+        y_range: Range[AxisT] = Range(
+            self.y_axis,
+            self.y_centre - y_radius,
+            self.y_centre + y_radius,
+            eff_y_step,
+        )
+
+        if self.vertical:
+            grid: Spec[AxisT, Never, Never] = x_range * y_range
+        else:
+            grid = y_range * x_range
+
+        all_pts = _eval_full_grid(grid.compile())
+
+        x = all_pts[self.x_axis] - self.x_centre
+        y = all_pts[self.y_axis] - self.y_centre
+        mask = (2 * x / self.x_diameter) ** 2 + (2 * y / eff_y_diam) ** 2 <= 1
+
+        x_masked = all_pts[self.x_axis][mask]
+        y_masked = all_pts[self.y_axis][mask]
+        num_masked = int(mask.sum())
+
+        x_ax: AxisT = self.x_axis
+        y_ax: AxisT = self.y_axis
+
+        def _pos_fn(indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+            idx = (indexes - 0.5).astype(int)
+            return {y_ax: y_masked[idx], x_ax: x_masked[idx]}
+
+        gen = WindowGenerator(
+            axes=[self.y_axis, self.x_axis],
+            length=num_masked,
+            source=FunctionSource(_pos_fn),
+        )
+        return Scan(generators=[gen])
+
+
+class Polygon(Spec[AxisT, Never, Never]):
+    """Grid of points masked to a polygonal footprint.
+
+    Uses an even-odd ray-casting rule to determine which grid midpoints are
+    inside the polygon defined by ``vertices``.
+    """
+
+    x_axis: AxisT = Field(description="Axis identifier for x.")
+    y_axis: AxisT = Field(description="Axis identifier for y.")
+    vertices: list[tuple[float, float]] = Field(
+        description="Ordered (x, y) vertices of the polygon."
+    )
+    x_step: float = Field(description="Grid spacing along x.", gt=0)
+    y_step: float | None = Field(
+        default=None,
+        description="Grid spacing along y (defaults to x_step).",
+        gt=0,
+    )
+    vertical: bool = Field(default=False, description="If True, y is the fast axis.")
+
+    def _eff_y_step(self) -> float:
+        return self.y_step if self.y_step is not None else self.x_step
+
+    def _poly_mask(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
+        """Even-odd ray-casting mask (matches 1.x algorithm exactly)."""
+        v1x, v1y = self.vertices[-1]
+        mask = np.full(len(x), False, dtype=np.bool_)
+        for v2x, v2y in self.vertices:
+            if v2y != v1y:
+                vmask = np.full(len(x), False, dtype=np.bool_)
+                vmask |= (y < v2y) & (y >= v1y)
+                vmask |= (y < v1y) & (y >= v2y)
+                t = (y - v1y) / (v2y - v1y)
+                vmask &= x < v1x + t * (v2x - v1x)
+                mask ^= vmask
+            v1x, v1y = v2x, v2y
+        return mask
+
+    def compile(self) -> Scan[AxisT, Never, Never]:
+        """Compile into a flat single-generator Scan of masked midpoints."""
+        x_start = min(v[0] for v in self.vertices)
+        x_stop = max(v[0] for v in self.vertices)
+        y_start = min(v[1] for v in self.vertices)
+        y_stop = max(v[1] for v in self.vertices)
+        eff_y_step = self._eff_y_step()
+
+        x_range: Range[AxisT] = Range(self.x_axis, x_start, x_stop, self.x_step)
+        y_range: Range[AxisT] = Range(self.y_axis, y_start, y_stop, eff_y_step)
+
+        if self.vertical:
+            grid: Spec[AxisT, Never, Never] = x_range * y_range
+        else:
+            grid = y_range * x_range
+
+        all_pts = _eval_full_grid(grid.compile())
+
+        x_arr = all_pts[self.x_axis]
+        y_arr = all_pts[self.y_axis]
+        mask = self._poly_mask(x_arr, y_arr)
+
+        x_masked = x_arr[mask]
+        y_masked = y_arr[mask]
+        num_masked = int(mask.sum())
+
+        x_ax: AxisT = self.x_axis
+        y_ax: AxisT = self.y_axis
+
+        def _pos_fn(indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+            idx = (indexes - 0.5).astype(int)
+            return {y_ax: y_masked[idx], x_ax: x_masked[idx]}
+
+        gen = WindowGenerator(
+            axes=[self.y_axis, self.x_axis],
+            length=num_masked,
+            source=FunctionSource(_pos_fn),
+        )
+        return Scan(generators=[gen])
+
+
+# Line is a trivial alias for Linspace (both names are supported).
+Line = Linspace
 
 
 # ---------------------------------------------------------------------------

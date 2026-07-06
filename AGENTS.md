@@ -1,49 +1,70 @@
 # Agent Guidelines
 
+## Read first
+
+- **`PRD.md`** — requirements and current design intent. Authoritative; read
+  it before designing or implementing anything.
+- **`API_SPEC.md`** — annotated consumption-API examples. Partially stale
+  (see PRD §10); where it disagrees with `src/scanspec2/` + PRD, the latter
+  win.
+- **`docs/explanations/decisions/`** — ADRs. 0001–0005 accepted; 0006
+  tentative; 0007 proposed with pending review corrections (PRD §9). Do not
+  treat 0006/0007 as settled.
+
 ## Repository structure
 
-This repository contains two packages during the scanspec 2.0 development period:
+Two packages coexist during 2.0 development:
 
-- `src/scanspec/` — the original 1.x package. **Do not modify this.** It is kept as a reference implementation.
-- `src/scanspec2/` — the new 2.0 package under active development. All new work goes here.
+- `src/scanspec/` — the 1.x package. **Do not modify.** Reference only;
+  don't load it into context unless porting a specific algorithm.
+- `src/scanspec2/` — the 2.0 package. All new work goes here.
 
-When `scanspec2` is feature-complete (all PRD requirements met and tests passing), the migration will be:
-1. Delete `src/scanspec/`.
-2. Rename `src/scanspec2/` → `src/scanspec/`.
-3. Update `pyproject.toml` and any import references accordingly.
+Tests mirror this: `tests/` covers 1.x (do not modify); `tests/scanspec2/`
+is where all new tests go.
 
-## Where to work
+Branch flow: feature branches → PRs against `bluesky/scanspec:v2-dev` →
+`v2-dev` merges to `main` only at the final 2.0 migration (PRD §12).
 
-**Always make changes in `src/scanspec2/`**, never in `src/scanspec/`.
+## Known churn — check before building on these
 
-All new tests go in `tests/scanspec2/`. Do not modify tests in `tests/` (those cover the 1.x package).
-
-The PRD is in `prd.md`. The design notes and user stories are in `thoughts.md`.
+- `TriggerPattern`/`TriggerGroup` will merge into a `TriggerNode` tree and
+  `Window.trigger_groups` → `Window.trigger_nodes` when ADR 0007 is
+  accepted. Avoid new code that deepens coupling to the current split.
+- Naming that the docs sometimes get wrong: the code uses
+  `Window.non_linear` (not `non_linear_move`), `Scan.has_moving_axes` /
+  `Scan.non_linear` (there is no `Scan.fly`), and
+  `Scan.with_start(window, trigger_index)` (not `time`).
 
 ## Testing conventions
 
-- Write pytest-style **functions**, not `unittest`-style classes.
-- Keep tests simple: prefer a few direct instantiation / field-access assertions over elaborate setups.
-- Test **public interfaces**; avoid mocks unless there is no other way.
-- No serialisation tests for plain dataclasses — they carry no serialisation logic.
-- **`tests/scanspec2/test_use_cases.py` is the user's file.** Never add, remove, or modify tests in it without explicit permission. Put agent-created tests in other test files (e.g. `test_compile.py`, `test_core.py`, `test_specs.py`).
+- pytest-style **functions**, not `unittest` classes.
+- Simple, direct assertions; test **public interfaces**; avoid mocks unless
+  there is no other way.
+- No serialisation tests for plain dataclasses (they carry none).
+- **`tests/scanspec2/test_use_cases.py` is the maintainer's file.** Never
+  add, remove, or modify tests in it without explicit permission. Put your
+  tests in `test_compile.py`, `test_core.py`, `test_specs.py`, etc.
 
-## Scratch / prototype files
+## Quality gates — all three must pass after every change
 
-- **Always write scratch or prototype files inside the workspace** (e.g. `/workspaces/scanspec/scratch/`) — never to `/tmp`.
-- After verifying a prototype, delete the scratch file or incorporate it into the codebase.
+```bash
+pytest tests/scanspec2/ -v
+python -m pyright src/scanspec2/ tests/scanspec2/   # 0 errors
+ruff check src/scanspec2/ tests/scanspec2/          # 0 errors
+```
 
-## Type annotations
+## Type annotations and lint
 
-- Do not add `# type: ignore` comments. If a type error cannot be fixed with code structure, leave it without a suppression comment and summarise the remaining pyright errors to the user at the end of the task.
+- No `# type: ignore`. If a type error can't be fixed structurally, leave it
+  unsuppressed and report the remaining pyright errors at the end of the task.
+- `# noqa: <code>` only for genuinely unfixable violations (e.g. `UP007` on
+  a dynamic `Union[tuple(...)]`).
 
-## Type-checking
+## Working style
 
-- Always run `python -m pyright src/scanspec2/ tests/scanspec2/` after running tests.
-- Both must pass (0 errors) before marking a phase complete.
-
-## Linting
-
-- Always run `ruff check src/scanspec2/ tests/scanspec2/` after running tests.
-- Must report 0 errors before marking a phase complete.
-- Use `# noqa: <code>` only when the violation is genuinely unfixable (e.g. `UP007` on a dynamic `Union[tuple(...)]`); never suppress fixable errors.
+- Raise questions or errors rather than guessing on design ambiguity (e.g.
+  mismatched snake flags in `Zip` raise; they are not silently reconciled).
+- Scratch/prototype files go in `/workspaces/scanspec/scratch/`, never
+  `/tmp`; delete or incorporate them after verification.
+- `CONTEXT.*.md` files (if present locally) are private working notes — never
+  commit them or reference them in committed files.
