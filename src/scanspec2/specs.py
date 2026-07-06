@@ -324,7 +324,7 @@ class Range(Spec[AxisT, Never, Never]):
     axis: AxisT = Field(description="Axis identifier.")
     start: float = Field(description="Midpoint of the first frame.")
     stop: float = Field(description="Midpoint of the last frame.")
-    step: float = Field(gt=0, description="Step size between midpoints.")
+    step: float = Field(description="Step size between midpoints.", gt=0)
 
     def _num(self) -> int:
         step = abs(self.step)
@@ -396,13 +396,14 @@ class Spiral(Spec[AxisT, Never, Never]):
 
     x_axis: AxisT = Field(description="Axis identifier for x.")
     x_centre: float = Field(description="x centre of the spiral.")
-    x_diameter: float = Field(description="x width of the spiral.")
-    x_step: float = Field(description="Radial spacing along x.")
+    x_diameter: float = Field(description="x width of the spiral.", gt=0)
+    x_step: float = Field(description="Radial spacing along x.", gt=0)
     y_axis: AxisT = Field(description="Axis identifier for y.")
     y_centre: float = Field(description="y centre of the spiral.")
     y_diameter: float | None = Field(
         default=None,
         description="y height of the spiral (defaults to abs(x_diameter)).",
+        gt=0,
     )
 
     def _eff_y_diameter(self) -> float:
@@ -939,40 +940,34 @@ class Ellipse(Spec[AxisT, Never, Never]):
 
     x_axis: AxisT = Field(description="Axis identifier for x.")
     x_centre: float = Field(description="x centre of the ellipse.")
-    x_diameter: float = Field(description="x diameter of the ellipse.")
-    x_step: float = Field(gt=0, description="Grid spacing along x.")
+    x_diameter: float = Field(description="x diameter of the ellipse.", gt=0)
+    x_step: float = Field(description="Grid spacing along x.", gt=0)
     y_axis: AxisT = Field(description="Axis identifier for y.")
     y_centre: float = Field(description="y centre of the ellipse.")
     y_diameter: float | None = Field(
         default=None,
         description="y diameter (defaults to abs(x_diameter)).",
+        gt=0,
     )
     y_step: float | None = Field(
         default=None,
         description="Grid spacing along y (defaults to x_step).",
+        gt=0,
     )
     vertical: bool = Field(default=False, description="If True, y is the fast axis.")
 
-    @model_validator(mode="after")
-    def _fill_y_defaults(self) -> Self:
-        if self.x_diameter == 0.0:
-            raise ValueError("x_diameter must not be zero")
-        if self.y_diameter is None:
-            object.__setattr__(self, "y_diameter", abs(self.x_diameter))
-        if self.y_step is None:
-            object.__setattr__(self, "y_step", self.x_step)
-        if self.y_diameter == 0.0:
-            raise ValueError("y_diameter must not be zero")
-        return self
+    def _eff_y_diameter(self) -> float:
+        return self.y_diameter if self.y_diameter is not None else abs(self.x_diameter)
+
+    def _eff_y_step(self) -> float:
+        return self.y_step if self.y_step is not None else self.x_step
 
     def compile(self) -> Scan[AxisT, Never, Never]:
         """Compile into a flat single-generator Scan of masked midpoints."""
         x_radius = abs(self.x_diameter) / 2
-        eff_y_diam = (
-            self.y_diameter if self.y_diameter is not None else abs(self.x_diameter)
-        )
+        eff_y_diam = self._eff_y_diameter()
         y_radius = abs(eff_y_diam) / 2
-        eff_y_step = self.y_step if self.y_step is not None else self.x_step
+        eff_y_step = self._eff_y_step()
 
         x_range: Range[AxisT] = Range(
             self.x_axis,
@@ -1029,18 +1024,13 @@ class Polygon(Spec[AxisT, Never, Never]):
     vertices: list[tuple[float, float]] = Field(
         description="Ordered (x, y) vertices of the polygon."
     )
-    x_step: float = Field(gt=0, description="Grid spacing along x.")
+    x_step: float = Field(description="Grid spacing along x.", gt=0)
     y_step: float | None = Field(
         default=None,
         description="Grid spacing along y (defaults to x_step).",
+        gt=0,
     )
     vertical: bool = Field(default=False, description="If True, y is the fast axis.")
-
-    @model_validator(mode="after")
-    def _fill_y_defaults(self) -> Self:
-        if self.y_step is None:
-            object.__setattr__(self, "y_step", self.x_step)
-        return self
 
     def _eff_y_step(self) -> float:
         return self.y_step if self.y_step is not None else self.x_step

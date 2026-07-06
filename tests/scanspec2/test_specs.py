@@ -2,6 +2,7 @@
 
 from typing import Any
 
+import numpy as np
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
@@ -17,6 +18,13 @@ from scanspec2.specs import (
     Static,
     Zip,
 )
+
+
+def _first_gen_positions(spec: Any) -> dict[Any, np.ndarray]:
+    """Public-API helper: midpoints of a spec's first compiled generator."""
+    gen = spec.compile().generators[0]
+    return gen.setpoints(np.arange(gen.length) + 0.5)
+
 
 # ---------------------------------------------------------------------------
 # Primitives — instantiation (positional and keyword)
@@ -393,6 +401,56 @@ def test_line_instantiation():
 
 
 # ---------------------------------------------------------------------------
+# Spiral — construction and validation
+# ---------------------------------------------------------------------------
+
+
+def test_spiral_positional():
+    from scanspec2.specs import Spiral
+
+    s = Spiral("x", 0.0, 5.0, 2.0, "y", 10.0, 10.0)
+    assert s.x_diameter == 5.0
+    assert s.x_step == 2.0
+    assert s.y_diameter == 10.0
+
+
+def test_spiral_y_diameter_defaults_to_x_diameter():
+    from scanspec2.specs import Spiral
+
+    s_implicit = Spiral("x", 0.0, 5.0, 2.0, "y", 10.0)
+    s_explicit = Spiral("x", 0.0, 5.0, 2.0, "y", 10.0, y_diameter=5.0)
+    assert s_implicit.y_diameter is None
+    implicit_pos = _first_gen_positions(s_implicit)
+    explicit_pos = _first_gen_positions(s_explicit)
+    for axis, arr in implicit_pos.items():
+        assert np.array_equal(arr, explicit_pos[axis])
+
+
+@pytest.mark.parametrize("bad_value", [0.0, -1.0])
+def test_spiral_x_diameter_not_positive_raises(bad_value: float):
+    from scanspec2.specs import Spiral
+
+    with pytest.raises(ValueError):
+        Spiral("x", 0.0, bad_value, 2.0, "y", 10.0)
+
+
+@pytest.mark.parametrize("bad_value", [0.0, -1.0])
+def test_spiral_x_step_not_positive_raises(bad_value: float):
+    from scanspec2.specs import Spiral
+
+    with pytest.raises(ValueError):
+        Spiral("x", 0.0, 5.0, bad_value, "y", 10.0)
+
+
+@pytest.mark.parametrize("bad_value", [0.0, -1.0])
+def test_spiral_y_diameter_not_positive_raises(bad_value: float):
+    from scanspec2.specs import Spiral
+
+    with pytest.raises(ValueError):
+        Spiral("x", 0.0, 5.0, 2.0, "y", 10.0, y_diameter=bad_value)
+
+
+# ---------------------------------------------------------------------------
 # Ellipse — construction
 # ---------------------------------------------------------------------------
 
@@ -412,15 +470,25 @@ def test_ellipse_positional():
 def test_ellipse_y_diameter_defaults_to_x_diameter():
     from scanspec2.specs import Ellipse
 
-    e = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0)
-    assert e.y_diameter == 2.0
+    e_implicit = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0)
+    e_explicit = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0, y_diameter=2.0)
+    assert e_implicit.y_diameter is None
+    implicit_pos = _first_gen_positions(e_implicit)
+    explicit_pos = _first_gen_positions(e_explicit)
+    for axis, arr in implicit_pos.items():
+        assert np.array_equal(arr, explicit_pos[axis])
 
 
 def test_ellipse_y_step_defaults_to_x_step():
     from scanspec2.specs import Ellipse
 
-    e = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0)
-    assert e.y_step == 0.5
+    e_implicit = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0)
+    e_explicit = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0, y_step=0.5)
+    assert e_implicit.y_step is None
+    implicit_pos = _first_gen_positions(e_implicit)
+    explicit_pos = _first_gen_positions(e_explicit)
+    for axis, arr in implicit_pos.items():
+        assert np.array_equal(arr, explicit_pos[axis])
 
 
 def test_ellipse_vertical_default():
@@ -438,25 +506,36 @@ def test_ellipse_explicit_y_diameter_and_y_step():
     assert e.y_step == 0.5
 
 
-def test_ellipse_x_step_gt0_raises():
+@pytest.mark.parametrize("bad_value", [0.0, -1.0])
+def test_ellipse_x_step_not_positive_raises(bad_value: float):
     from scanspec2.specs import Ellipse
 
     with pytest.raises(ValueError):
-        Ellipse("x", 0.0, 2.0, 0.0, "y", 0.0)
+        Ellipse("x", 0.0, 2.0, bad_value, "y", 0.0)
 
 
-def test_ellipse_x_diameter_zero_raises():
+@pytest.mark.parametrize("bad_value", [0.0, -1.0])
+def test_ellipse_x_diameter_not_positive_raises(bad_value: float):
     from scanspec2.specs import Ellipse
 
     with pytest.raises(ValueError):
-        Ellipse("x", 0.0, 0.0, 1.0, "y", 0.0)
+        Ellipse("x", 0.0, bad_value, 1.0, "y", 0.0)
 
 
-def test_ellipse_y_diameter_zero_raises():
+@pytest.mark.parametrize("bad_value", [0.0, -1.0])
+def test_ellipse_y_diameter_not_positive_raises(bad_value: float):
     from scanspec2.specs import Ellipse
 
     with pytest.raises(ValueError):
-        Ellipse("x", 0.0, 2.0, 1.0, "y", 0.0, y_diameter=0.0)
+        Ellipse("x", 0.0, 2.0, 1.0, "y", 0.0, y_diameter=bad_value)
+
+
+@pytest.mark.parametrize("bad_value", [0.0, -1.0])
+def test_ellipse_y_step_not_positive_raises(bad_value: float):
+    from scanspec2.specs import Ellipse
+
+    with pytest.raises(ValueError):
+        Ellipse("x", 0.0, 2.0, 1.0, "y", 0.0, y_step=bad_value)
 
 
 # ---------------------------------------------------------------------------
@@ -478,8 +557,15 @@ def test_polygon_positional():
 def test_polygon_y_step_defaults_to_x_step():
     from scanspec2.specs import Polygon
 
-    p = Polygon("x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], 0.25)
-    assert p.y_step == 0.25
+    p_implicit = Polygon("x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], 0.25)
+    p_explicit = Polygon(
+        "x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], 0.25, y_step=0.25
+    )
+    assert p_implicit.y_step is None
+    implicit_pos = _first_gen_positions(p_implicit)
+    explicit_pos = _first_gen_positions(p_explicit)
+    for axis, arr in implicit_pos.items():
+        assert np.array_equal(arr, explicit_pos[axis])
 
 
 def test_polygon_explicit_y_step():
@@ -497,8 +583,17 @@ def test_polygon_vertical_default():
     assert p.vertical is False
 
 
-def test_polygon_x_step_gt0_raises():
+@pytest.mark.parametrize("bad_value", [0.0, -1.0])
+def test_polygon_x_step_not_positive_raises(bad_value: float):
     from scanspec2.specs import Polygon
 
     with pytest.raises(ValueError):
-        Polygon("x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], 0.0)
+        Polygon("x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], bad_value)
+
+
+@pytest.mark.parametrize("bad_value", [0.0, -1.0])
+def test_polygon_y_step_not_positive_raises(bad_value: float):
+    from scanspec2.specs import Polygon
+
+    with pytest.raises(ValueError):
+        Polygon("x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], 1.0, y_step=bad_value)
