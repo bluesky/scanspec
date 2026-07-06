@@ -80,6 +80,13 @@ All are in scope for 2.0; they may be delivered in stages.
    placing frames near opposite ends of the period. The motion trajectory
    must cover an integer number of repetitions.
 
+   **Scope**: this is an execution/representation requirement only — the
+   compiled `TriggerSequence`/`TriggerRepeat` model (§4.2/§4.3) must be
+   *able* to express variable spacing, including via manual `Window`
+   construction. A first-class `DetectorGroup`/`Acquire` authoring surface
+   for spec authors is not required for 2.0; the design must simply not
+   preclude adding one later.
+
 6. **Different detector streams at different phases** (the flagship
    multi-stream pattern). N iterations of: take a diffraction image at
    static energy; flyscan energy up taking 1000 spectroscopy frames; flyscan
@@ -385,9 +392,10 @@ Principles (agreed, ADR 0007 context):
   `lookup_checkpoint_index(table_line)` gives the `trigger_index` passed
   to `with_start`. Pause latency for blank sections is therefore bounded
   by the poll interval, not the repeat duration; long blank spacers do
-  not need to be broken into short repeats. The exact hardware sequence
-  after the stall (table-rewrite-while-stalled vs abort-and-restart) has
-  an open question — see §11.
+  not need to be broken into short repeats. After the stall, the
+  consumer aborts the sequence and reloads it from the checkpoint via
+  `with_start`, rather than rewriting the remaining table in place while
+  PandA holds the gate.
 
 ---
 
@@ -461,9 +469,10 @@ semantics and `positions(float | TriggerPattern)` (ADR 0006);
   block **STATE** field, not `TABLE_LINE`/`LINE_REPEAT`; **two trigger levels
   fit in a single SEQ block** (no chained tables); and the SEQ encoding is
   given as a concrete worked gate-row sub-table rather than the discarded
-  "collapse N repeats into one row" scenario. The one open point is the
-  pause hardware sequence (§11 Q1). When 0007 is accepted: mark **ADR 0005 as
-  superseded by 0007**, and annotate ADR 0006 accordingly.
+  "collapse N repeats into one row" scenario. The pause hardware sequence
+  (abort-and-reload from checkpoint, §6) is now resolved. When 0007 is
+  accepted: mark **ADR 0005 as superseded by 0007**, and annotate ADR 0006
+  accordingly.
 
 ---
 
@@ -482,26 +491,22 @@ semantics and `positions(float | TriggerPattern)` (ADR 0006);
 
 ## 11. Open questions
 
-1. **Pause hardware sequence**: after the sequencer stalls on the gate row,
-   does the consumer rewrite the remaining table while PandA holds, or abort
-   the sequence and re-arm from scratch via `with_start`? ADR 0007 leaves this
-   open as a consumer-implementation decision; it does not affect the scanspec
-   data model, but needs resolving before the PandA consumer is built.
-2. **`Concat` of two same-named `Acquire`s**: the "becomes serial" note on the
+1. **`Concat` of two same-named `Acquire`s**: the "becomes serial" note on the
    deduplication test expectation needs clarification — does
    `active_stream_sets` dedupe to one singleton, or is there additional
    sequential-table semantics to capture?
-3. Does pause/resume ever need an *end* point as well as a start point?
+2. Does pause/resume ever need an *end* point as well as a start point?
    (Raised during design; unresolved, currently assumed not.)
-4. **User-facing surface for variable-spacing trigger patterns**: §4.2/§4.3
-   describe what the compiled `TriggerSequence`/`TriggerRepeat` structure can
-   *express* (execution side only); how a spec author actually produces it
-   via `DetectorGroup`/`Acquire` is undecided. Candidates include a short,
-   fixed, tileable pattern (repeats identically across the window) versus a
-   fully arbitrary, explicit per-exposure list — and an earlier design proposed
-   a third shape (leading/trailing half-gap spacers around uniform middle frames)
-   that differs from the burst-spacer-burst example currently in §4.2. To be
-   resolved in ADR 0007.
+3. **User-facing surface for variable-spacing trigger patterns**: not
+   required for 2.0 (§2.5) — only the compiled `TriggerSequence`/
+   `TriggerRepeat` structure needs to be able to express it. If a
+   `DetectorGroup`/`Acquire` authoring surface is added later, candidate
+   shapes include a short, fixed, tileable pattern (repeats identically
+   across the window), a fully arbitrary explicit per-exposure list, or a
+   third shape from an earlier design (leading/trailing half-gap spacers
+   around uniform middle frames, see `CONTEXT.adr.260513.md`) that differs
+   from the burst-spacer-burst example in §4.2. Left open for whenever that
+   surface is actually built.
 
 ---
 
