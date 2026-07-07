@@ -51,6 +51,42 @@ class TriggerGroup(Generic[DetectorT]):
 
 
 @dataclass
+class TriggerRepeat:
+    """Timing parameters for one repeating trigger block.
+
+    num:      number of times this block repeats within a TriggerSequence.
+    livetime: detector exposure time in seconds.
+    deadtime: detector readout/spacing time in seconds.
+
+    Centred-livetime semantics apply: execution order per repeat is
+    ``½·deadtime → livetime → ½·deadtime``.
+    """
+
+    num: int
+    livetime: float
+    deadtime: float
+
+
+@dataclass
+class TriggerSequence(Generic[DetectorT]):
+    """Detector triggering description for one sequential entry in a window.
+
+    ``detectors`` is the set of detectors triggered by ``trigger_repeat``.
+    ``children`` maps child detector sets to sequential ``list[TriggerRepeat]``
+    entries.  Different children fire in parallel during *each* parent repeat;
+    each child's own list is executed sequentially.  All child detector sets
+    must be disjoint from each other and from ``detectors``.
+
+    ``Window.trigger_sequences`` is an ordered list; entries execute one after
+    another within the window.
+    """
+
+    detectors: frozenset[DetectorT]
+    trigger_repeat: TriggerRepeat
+    children: dict[frozenset[DetectorT], list[TriggerRepeat]]
+
+
+@dataclass
 class AxisMotion:
     """Boundary kinematics for one moving axis within a Window.
 

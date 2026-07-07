@@ -8,9 +8,6 @@ Tentative
 
 ## Context
 
-Two meetings (01 May and 13 May 2026) clarified ambiguities in the trigger
-model that had been left implicit in the original design.
-
 **Livetime ordering**: ADR 0005 defined `TriggerPattern(repeats, livetime,
 deadtime)` but did not specify whether execution was `livetime → deadtime`
 or some centred arrangement. Hardware implementations (specifically the PandA

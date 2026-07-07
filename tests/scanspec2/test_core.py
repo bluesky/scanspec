@@ -14,10 +14,49 @@ from scanspec2.core import (
     Scan,
     TriggerGroup,
     TriggerPattern,
+    TriggerRepeat,
+    TriggerSequence,
     Window,
     WindowedStream,
     WindowGenerator,
 )
+
+
+def test_trigger_repeat():
+    tr = TriggerRepeat(num=500, livetime=0.003, deadtime=0.001)
+    assert tr.num == 500
+    assert tr.livetime == 0.003
+    assert tr.deadtime == 0.001
+
+
+def test_trigger_sequence():
+    tr = TriggerRepeat(num=100, livetime=0.01, deadtime=0.001)
+    ts = TriggerSequence(
+        detectors=frozenset({"det1", "det2"}),
+        trigger_repeat=tr,
+        children={},
+    )
+    assert ts.detectors == frozenset({"det1", "det2"})
+    assert ts.trigger_repeat == tr
+    assert ts.children == {}
+
+
+def test_trigger_sequence_children():
+    parent = TriggerRepeat(num=100, livetime=0.009, deadtime=0.001)
+    child_a = TriggerRepeat(num=72, livetime=0.000124, deadtime=0.000001)
+    child_b = TriggerRepeat(num=45, livetime=0.00019, deadtime=0.00001)
+    ts = TriggerSequence(
+        detectors=frozenset({"saxs", "waxs"}),
+        trigger_repeat=parent,
+        children={
+            frozenset({"tetramm"}): [child_a],
+            frozenset({"panda"}): [child_b],
+        },
+    )
+    assert ts.detectors == frozenset({"saxs", "waxs"})
+    assert ts.trigger_repeat == parent
+    assert ts.children[frozenset({"tetramm"})] == [child_a]
+    assert ts.children[frozenset({"panda"})] == [child_b]
 
 
 def test_trigger_pattern():
