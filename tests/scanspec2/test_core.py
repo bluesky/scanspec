@@ -113,6 +113,68 @@ def test_window_previous():
     assert second.previous is first
 
 
+def test_window_positions_trigger_repeat():
+    import numpy as np
+
+    tr = TriggerRepeat(num=10, livetime=0.009, deadtime=0.001)
+    ts = TriggerSequence(
+        detectors=frozenset({"det"}),
+        trigger_repeat=tr,
+        children={},
+    )
+
+    def pos_fn(indexes: np.ndarray) -> dict[str, np.ndarray]:
+        return {"x": indexes}
+
+    w = Window(
+        static_axes={},
+        moving_axes={"x": AxisMotion(0.0, 1.0, 0.1, 1.0)},
+        non_linear=False,
+        duration=0.1,
+        trigger_sequences=[ts],
+        previous=None,
+        positions_fn=pos_fn,
+    )
+
+    chunks = list(w.positions(tr))
+    assert len(chunks) == 1
+    result = chunks[0]["x"]
+    expected = (np.arange(10) + 0.5) * 0.01
+    np.testing.assert_allclose(result, expected)
+
+
+def test_window_positions_trigger_repeat_chunking():
+    import numpy as np
+
+    tr = TriggerRepeat(num=100, livetime=0.009, deadtime=0.001)
+    ts = TriggerSequence(
+        detectors=frozenset({"det"}),
+        trigger_repeat=tr,
+        children={},
+    )
+
+    def pos_fn(indexes: np.ndarray) -> dict[str, np.ndarray]:
+        return {"x": indexes}
+
+    w = Window(
+        static_axes={},
+        moving_axes={"x": AxisMotion(0.0, 1.0, 1.0, 1.0)},
+        non_linear=False,
+        duration=1.0,
+        trigger_sequences=[ts],
+        previous=None,
+        positions_fn=pos_fn,
+    )
+
+    # max_duration less than one repeat period → each chunk is 1 position
+    chunks = list(w.positions(tr, max_duration=0.005))
+    assert len(chunks) == 100
+    for i, chunk in enumerate(chunks):
+        assert len(chunk["x"]) == 1
+        expected = (i + 0.5) * 0.01
+        assert chunk["x"][0] == pytest.approx(expected)
+
+
 def test_scan_dimension():
     import numpy as np
 

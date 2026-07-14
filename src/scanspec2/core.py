@@ -338,13 +338,16 @@ class Window(Generic[AxisT, DetectorT]):
         self._positions_fn = positions_fn
 
     def positions(
-        self, dt: float, max_duration: float | None = None
+        self, dt: float | TriggerRepeat, max_duration: float | None = None
     ) -> Iterator[dict[AxisT, np.ndarray]]:
-        """Yield chunks of servo-rate positions for the moving axes.
+        """Yield chunks of positions for the moving axes.
 
-        ``dt`` is the index step (e.g. 1 = one point per collection frame;
-        use a smaller value for servo-rate interpolation in future).
-        ``max_duration`` limits how many index steps are yielded per chunk
+        ``dt`` behaviour:
+        - ``float``: servo-rate positions, one point per ``dt`` index step.
+        - ``TriggerRepeat``: one position per trigger repeat, centred on each
+          active livetime window (``½·deadtime → livetime → ½·deadtime``).
+
+        ``max_duration`` limits how many positions are yielded per chunk
         (None = yield all at once).
 
         Raises RuntimeError if no position function was provided (step windows).
@@ -354,6 +357,27 @@ class Window(Generic[AxisT, DetectorT]):
                 "No position function on this window "
                 "(step windows have no continuous trajectory)"
             )
+
+        if isinstance(dt, TriggerRepeat):
+            period = dt.livetime + dt.deadtime
+            n_total = dt.num
+            chunk = (
+                max(1, int(max_duration / period))
+                if max_duration is not None
+                else n_total
+            )
+            start = 0
+            while start < n_total:
+                end = min(start + chunk, n_total)
+                # One position per repeat, centred on the active window.
+                # Centre of the i-th repeat's livetime window falls at
+                # (i + 0.5) * period, since the ½·deadtime pre/post-delay
+                # is symmetric.
+                indexes = (np.arange(start, end, dtype=float) + 0.5) * period
+                yield self._positions_fn(indexes)
+                start = end
+            return
+
         n_total = int(self.duration / dt) if dt > 0 else 1
         chunk = (
             int(max_duration / dt) if max_duration is not None and dt > 0 else n_total
