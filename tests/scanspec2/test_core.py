@@ -12,8 +12,6 @@ from scanspec2.core import (
     LinearSource,
     MonitorStream,
     Scan,
-    TriggerGroup,
-    TriggerPattern,
     TriggerRepeat,
     TriggerSequence,
     Window,
@@ -57,20 +55,6 @@ def test_trigger_sequence_children():
     assert ts.trigger_repeat == parent
     assert ts.children[frozenset({"tetramm"})] == [child_a]
     assert ts.children[frozenset({"panda"})] == [child_b]
-
-
-def test_trigger_pattern():
-    tp = TriggerPattern(repeats=500, livetime=0.003, deadtime=0.001)
-    assert tp.repeats == 500
-    assert tp.livetime == 0.003
-    assert tp.deadtime == 0.001
-
-
-def test_trigger_group():
-    tp = TriggerPattern(repeats=100, livetime=0.01, deadtime=0.001)
-    tg = TriggerGroup(detectors=["det1", "det2"], trigger_patterns=[tp])
-    assert tg.detectors == ["det1", "det2"]
-    assert tg.trigger_patterns == [tp]
 
 
 def test_axis_motion():

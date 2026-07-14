@@ -14,43 +14,6 @@ MonitorT = TypeVar("MonitorT")
 
 
 @dataclass
-class TriggerPattern:
-    """One entry in a TriggerGroup's trigger sequence.
-
-    repeats:  number of times this pattern repeats within the window.
-    livetime: detector exposure time in seconds.
-    deadtime: detector readout/spacing time in seconds.
-    """
-
-    repeats: int
-    livetime: float
-    deadtime: float
-
-
-@dataclass
-class TriggerGroup(Generic[DetectorT]):
-    """Detector triggering description for one group within a collection window.
-
-    A group is a set of detectors sharing an identical trigger sequence.
-    A window may contain groups from different streams; consumers identify
-    their group by matching against their known detector names.  The set of
-    detectors is unique across all groups within a window (enforced at
-    Path construction time).
-
-    trigger_patterns uniformly expresses:
-      single rate, fixed timing:    [TriggerPattern(500, 0.003, 0.001)]
-      multi-rate (10x encoders):    [TriggerPattern(5000, 0.0003, 8e-9)]
-      ptychography variable spacing: [TriggerPattern(1, 0.1, 0.01),
-                                     TriggerPattern(1, 0.1, 0.3), ...]
-
-    Baked in from DetectorGroup.livetime/deadtime at Path construction time.
-    """
-
-    detectors: list[DetectorT]
-    trigger_patterns: list[TriggerPattern]
-
-
-@dataclass
 class TriggerRepeat:
     """Timing parameters for one repeating trigger block.
 
@@ -408,8 +371,8 @@ class DetectorGroup(Generic[DetectorT]):
     """Upfront description of a set of detectors sharing trigger parameters.
 
     Lives on Acquire.detectors. Used to configure detectors before the scan
-    starts. Static livetime/deadtime are baked into the trigger_patterns of
-    each TriggerGroup at Path construction time.
+    starts. Static livetime/deadtime are resolved into ``TriggerRepeat``
+    instances when ``Acquire.compile()`` is called.
 
     exposures_per_collection: exposures the detector accumulates per collection.
     collections_per_event:    collections that form one event in the stream.
