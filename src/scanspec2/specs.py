@@ -54,8 +54,8 @@ from .core import (
     LinearSource,
     MonitorStream,
     Scan,
-    TriggerGroup,
-    TriggerPattern,
+    TriggerRepeat,
+    TriggerSequence,
     WindowedStream,
     WindowGenerator,
 )
@@ -803,12 +803,12 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile into a Scan with detector groups and generators."""
         scan = self.spec.compile()
-        trigger_groups = self._bake_trigger_groups(scan.generators)
-        duration = self._compute_duration(trigger_groups, scan.generators)
+        trigger_sequences = self._bake_trigger_sequences(scan.generators)
+        duration = self._compute_duration(trigger_sequences, scan.generators)
         if scan.generators:
             last = scan.generators[-1]
             last.fly = self.fly
-            last.trigger_groups = trigger_groups
+            last.trigger_sequences = trigger_sequences
             last.duration = duration
 
         # Only create a windowed stream when this Acquire has detectors.
@@ -833,16 +833,16 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
         scan.monitors = list(self.monitors)
         return scan
 
-    def _bake_trigger_groups(
+    def _bake_trigger_sequences(
         self,
         gens: list[WindowGenerator[AxisT]],
-    ) -> list[TriggerGroup[DetectorT]]:
-        """Convert DetectorGroups into TriggerGroups with TriggerPatterns."""
+    ) -> list[TriggerSequence[DetectorT]]:
+        """Convert DetectorGroups into TriggerSequences with TriggerRepeats."""
         if not self.detectors:
             return []
         inner_length = gens[-1].length if gens else 1
         fly = self.fly and bool(gens)
-        result: list[TriggerGroup[DetectorT]] = []
+        result: list[TriggerSequence[DetectorT]] = []
         for dg in self.detectors:
             if dg.livetime is None or dg.deadtime is None:
                 raise ValueError(
@@ -851,25 +851,25 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
                     f"deadtime={dg.deadtime}"
                 )
             if fly:
-                repeats = inner_length * dg.exposures_per_collection
+                num = inner_length * dg.exposures_per_collection
             else:
-                repeats = dg.exposures_per_collection
-            pattern = TriggerPattern(
-                repeats=repeats,
-                livetime=dg.livetime,
-                deadtime=dg.deadtime,
-            )
+                num = dg.exposures_per_collection
             result.append(
-                TriggerGroup(
-                    detectors=list(dg.detectors),
-                    trigger_patterns=[pattern],
+                TriggerSequence(
+                    detectors=frozenset(dg.detectors),
+                    trigger_repeat=TriggerRepeat(
+                        num=num,
+                        livetime=dg.livetime,
+                        deadtime=dg.deadtime,
+                    ),
+                    children={},
                 )
             )
         return result
 
     def _compute_duration(
         self,
-        trigger_groups: list[TriggerGroup[DetectorT]],
+        trigger_sequences: list[TriggerSequence[DetectorT]],
         gens: list[WindowGenerator[AxisT]],
     ) -> float | None:
         """Derive per-point duration from trigger timing.
@@ -879,14 +879,13 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
         duration is ``per_point * inner_length``; ``Scan.__iter__``
         multiplies automatically.
         """
-        if not trigger_groups:
+        if not trigger_sequences:
             return self.duration
-        total_dur = 0.0
-        for tg in trigger_groups:
-            tg_dur = sum(
-                tp.repeats * (tp.livetime + tp.deadtime) for tp in tg.trigger_patterns
-            )
-            total_dur = max(total_dur, tg_dur)
+        total_dur = sum(
+            ts.trigger_repeat.num
+            * (ts.trigger_repeat.livetime + ts.trigger_repeat.deadtime)
+            for ts in trigger_sequences
+        )
         fly = self.fly and bool(gens)
         inner_length = gens[-1].length if fly else 1
         per_point = total_dur / inner_length

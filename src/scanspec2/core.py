@@ -185,7 +185,7 @@ class WindowGenerator(Generic[AxisT]):
         source: LinearSource[AxisT] | FunctionSource[AxisT] | ConcatSource[AxisT],
         snake: bool = False,
         fly: bool = False,
-        trigger_groups: list[TriggerGroup[Any]] | None = None,
+        trigger_sequences: list[TriggerSequence[Any]] | None = None,
         duration: float | None = None,
     ) -> None:
         self.axes = axes
@@ -193,8 +193,8 @@ class WindowGenerator(Generic[AxisT]):
         self.source = source
         self.snake = snake
         self.fly = fly
-        self.trigger_groups: list[TriggerGroup[Any]] = (
-            trigger_groups if trigger_groups is not None else []
+        self.trigger_sequences: list[TriggerSequence[Any]] = (
+            trigger_sequences if trigger_sequences is not None else []
         )
         self.duration = duration
 
@@ -243,7 +243,7 @@ class WindowGenerator(Generic[AxisT]):
                 moving_axes={},
                 non_linear=False,
                 duration=self.duration if self.duration is not None else 0.0,
-                trigger_groups=list(self.trigger_groups),
+                trigger_sequences=list(self.trigger_sequences),
                 previous=None,
             )
 
@@ -287,7 +287,7 @@ class WindowGenerator(Generic[AxisT]):
             moving_axes=moving_axes,
             non_linear=self.non_linear,
             duration=duration,
-            trigger_groups=list(self.trigger_groups),
+            trigger_sequences=list(self.trigger_sequences),
             previous=None,
             positions_fn=positions_fn,
         )
@@ -350,9 +350,10 @@ class Window(Generic[AxisT, DetectorT]):
     so the caller can compute the turnaround trajectory externally via
     calculate_turnaround.
 
-    trigger_groups may contain groups for multiple streams. In a multi-stream
-    scan a window may contain groups for only a subset of streams (e.g. some
-    motion phases trigger only diffraction detectors, others only spectroscopy).
+    ``trigger_sequences`` is an ordered list; entries execute one after
+    another within the window.  In a multi-stream scan a window may contain
+    sequences for only a subset of streams (e.g. some motion phases trigger
+    only diffraction detectors, others only spectroscopy).
     """
 
     def __init__(
@@ -361,7 +362,7 @@ class Window(Generic[AxisT, DetectorT]):
         moving_axes: dict[AxisT, AxisMotion],
         non_linear: bool,
         duration: float,
-        trigger_groups: list[TriggerGroup[DetectorT]],
+        trigger_sequences: list[TriggerSequence[DetectorT]],
         previous: Window[AxisT, DetectorT] | None,
         positions_fn: Callable[[np.ndarray], dict[AxisT, np.ndarray]] | None = None,
     ) -> None:
@@ -369,7 +370,7 @@ class Window(Generic[AxisT, DetectorT]):
         self.moving_axes = moving_axes
         self.non_linear = non_linear
         self.duration = duration
-        self.trigger_groups = trigger_groups
+        self.trigger_sequences = trigger_sequences
         self.previous = previous
         self._positions_fn = positions_fn
 

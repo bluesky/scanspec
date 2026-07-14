@@ -12,7 +12,7 @@ from scanspec2.core import (
     ConcatSource,
     DetectorGroup,
     Scan,
-    TriggerPattern,
+    TriggerRepeat,
     Window,
     WindowGenerator,
 )
@@ -664,11 +664,11 @@ def test_snake_fly_xyz():
 
 
 # ---------------------------------------------------------------------------
-# Phase B — trigger_groups
+# Phase B — trigger_sequences
 # ---------------------------------------------------------------------------
 
 
-def test_step_scan_trigger_groups():
+def test_step_scan_trigger_sequences():
     det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5), detectors=[det]
@@ -676,38 +676,48 @@ def test_step_scan_trigger_groups():
     ws = windows(sc)
     assert len(ws) == 5
     for w in ws:
-        assert len(w.trigger_groups) == 1
-        tg = w.trigger_groups[0]
-        assert tg.detectors == ["det1"]
-        assert tg.trigger_patterns == [TriggerPattern(1, 0.01, 0.001)]
+        assert len(w.trigger_sequences) == 1
+        ts = w.trigger_sequences[0]
+        assert ts.detectors == frozenset({"det1"})
+        assert ts.trigger_repeat == TriggerRepeat(num=1, livetime=0.01, deadtime=0.001)
 
 
-def test_fly_scan_trigger_groups():
+def test_fly_scan_trigger_sequences():
     det = DetectorGroup(1, 1, 0.003, 0.001, ["det1"])
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5), fly=True, detectors=[det]
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     assert len(ws) == 1
-    tg = ws[0].trigger_groups[0]
-    assert tg.detectors == ["det1"]
-    # fly: repeats = length * exposures_per_collection = 5 * 1
-    assert tg.trigger_patterns == [TriggerPattern(5, 0.003, 0.001)]
+    ts = ws[0].trigger_sequences[0]
+    assert ts.detectors == frozenset({"det1"})
+    # fly: num = length * exposures_per_collection = 5 * 1
+    assert ts.trigger_repeat == TriggerRepeat(num=5, livetime=0.003, deadtime=0.001)
 
 
-def test_multirate_trigger_groups():
-    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
-    det2 = DetectorGroup(10, 1, 0.0003, 8e-9, ["encoder"])
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 100),
-        fly=True,
-        detectors=[det1, det2],
-    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
-    ws = windows(sc)
-    tgs = ws[0].trigger_groups
-    assert len(tgs) == 2
-    assert tgs[0].trigger_patterns == [TriggerPattern(100, 0.003, 0.001)]
-    assert tgs[1].trigger_patterns == [TriggerPattern(1000, 0.0003, 8e-9)]
+# Multi-rate sibling groups (old TriggerGroup model) are not valid
+# under ADR 0007: top-level trigger_sequences are sequential, not parallel.
+# Multi-rate is expressed as parallel children of a single TriggerSequence,
+# implemented in Step 8.  Re-enable when _bake_trigger_sequences learns
+# parent/children logic.
+#
+# def test_multirate_trigger_sequences():
+#     det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
+#     det2 = DetectorGroup(10, 1, 0.0003, 8e-9, ["encoder"])
+#     sc: Scan[str, str, Never] = Acquire(
+#         Linspace("x", 0.0, 10.0, 100),
+#         fly=True,
+#         detectors=[det1, det2],
+#     ).compile()
+#     ws = windows(sc)
+#     tss = ws[0].trigger_sequences
+#     assert len(tss) == 1          # single TriggerSequence with children
+#     ts = tss[0]
+#     assert ts.detectors == frozenset({"saxs"})
+#     assert ts.trigger_repeat == TriggerRepeat(num=100, livetime=0.003, deadtime=0.001)
+#     assert ts.children[frozenset({"encoder"})] == [
+#         TriggerRepeat(num=1000, livetime=0.0003, deadtime=8e-9)
+#     ]
 
 
 def test_duration_derived_from_detectors():

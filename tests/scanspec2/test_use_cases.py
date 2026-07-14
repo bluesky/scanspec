@@ -12,7 +12,7 @@ from scanspec2.core import (
     DetectorGroup,
     MonitorStream,
     Scan,
-    TriggerPattern,
+    TriggerRepeat,
 )
 from scanspec2.specs import Acquire, Linspace, Product, Repeat, Spiral, Static
 
@@ -36,7 +36,7 @@ def test_linspace_step_scan():
         # step scan: no detectors, duration is 0
         assert w.duration == approx(0.0)
         # no detectors configured on bare Linspace
-        assert w.trigger_groups == []
+        assert w.trigger_sequences == []
         # previous window linkage
         if i == 0:
             assert w.previous is None
@@ -74,7 +74,7 @@ def test_linspace_fly_scan():
     # index-based duration: 5 points
     assert w.duration == approx(5.0)
     # no detectors configured
-    assert w.trigger_groups == []
+    assert w.trigger_sequences == []
     assert w.previous is None
 
     # Fly window positions: dt=1.0 → 5 points at integer indexes.
@@ -231,11 +231,11 @@ def test_flagship_multi_stream_concat():
         assert w_diff.non_linear is False
         # duration from detector: 1 × (0.01 + 0.001) = 0.011
         assert w_diff.duration == approx(0.011)
-        # trigger_groups from diff_det
-        assert len(w_diff.trigger_groups) == 1
-        tg = w_diff.trigger_groups[0]
-        assert tg.detectors == ["diffraction"]
-        assert tg.trigger_patterns == [TriggerPattern(1, 0.01, 0.001)]
+        # trigger_sequences from diff_det
+        assert len(w_diff.trigger_sequences) == 1
+        ts = w_diff.trigger_sequences[0]
+        assert ts.detectors == frozenset({"diffraction"})
+        assert ts.trigger_repeat == TriggerRepeat(num=1, livetime=0.01, deadtime=0.001)
 
         # Window 1: fly e 7.0 → 7.1
         assert w_fwd.moving_axes != {}
@@ -245,11 +245,11 @@ def test_flagship_multi_stream_concat():
         assert w_fwd.non_linear is False  # linear Linspace
         # duration from detector: 1000 × (0.003 + 0.001) = 4.0
         assert w_fwd.duration == approx(4.0)
-        assert len(w_fwd.trigger_groups) == 1
-        assert w_fwd.trigger_groups[0].detectors == ["spectroscopy"]
-        assert w_fwd.trigger_groups[0].trigger_patterns == [
-            TriggerPattern(1000, 0.003, 0.001)
-        ]
+        assert len(w_fwd.trigger_sequences) == 1
+        assert w_fwd.trigger_sequences[0].detectors == frozenset({"spectroscopy"})
+        assert w_fwd.trigger_sequences[0].trigger_repeat == TriggerRepeat(
+            num=1000, livetime=0.003, deadtime=0.001
+        )
 
         # Window 2: fly e 7.1 → 7.0
         assert w_rev.moving_axes != {}
@@ -258,11 +258,11 @@ def test_flagship_multi_stream_concat():
         assert am_rev.start_position > am_rev.end_position
         assert w_rev.non_linear is False
         assert w_rev.duration == approx(4.0)
-        assert len(w_rev.trigger_groups) == 1
-        assert w_rev.trigger_groups[0].detectors == ["spectroscopy"]
-        assert w_rev.trigger_groups[0].trigger_patterns == [
-            TriggerPattern(1000, 0.003, 0.001)
-        ]
+        assert len(w_rev.trigger_sequences) == 1
+        assert w_rev.trigger_sequences[0].detectors == frozenset({"spectroscopy"})
+        assert w_rev.trigger_sequences[0].trigger_repeat == TriggerRepeat(
+            num=1000, livetime=0.003, deadtime=0.001
+        )
 
     # Previous chain is connected across all 600 windows
     assert windows[0].previous is None
@@ -320,38 +320,51 @@ def test_maximal_fly_step(fly: bool):
     else:
         assert len(windows) == 5000
 
-    # --- Trigger groups on every window ---
+    # --- Trigger sequences on every window ---
+    # NOTE: this test uses sibling TriggerSequences (one per DetectorGroup),
+    # which is a temporary arrangement.  Under ADR 0007 multi-rate should be
+    # a single TriggerSequence with parallel children.  Revisit in Step 8.
     for w in windows:
-        assert len(w.trigger_groups) == 2
-        tg_saxs = w.trigger_groups[0]
-        tg_enc = w.trigger_groups[1]
-        assert tg_saxs.detectors == ["saxs", "waxs"]
-        assert tg_enc.detectors == ["timestamp", "x_enc", "y_enc"]
+        assert len(w.trigger_sequences) == 2
+        ts_saxs = w.trigger_sequences[0]
+        ts_enc = w.trigger_sequences[1]
+        assert ts_saxs.detectors == frozenset({"saxs", "waxs"})
+        assert ts_enc.detectors == frozenset({"timestamp", "x_enc", "y_enc"})
 
         if fly:
-            # fly: repeats = inner_length × exposures_per_collection
-            assert tg_saxs.trigger_patterns == [TriggerPattern(100, 0.003, 0.001)]
-            assert tg_enc.trigger_patterns == [TriggerPattern(1000, 0.0003, 8e-9)]
+            assert ts_saxs.trigger_repeat == TriggerRepeat(
+                num=100, livetime=0.003, deadtime=0.001
+            )
+            assert ts_enc.trigger_repeat == TriggerRepeat(
+                num=1000, livetime=0.0003, deadtime=8e-9
+            )
         else:
-            # step: repeats = exposures_per_collection
-            assert tg_saxs.trigger_patterns == [TriggerPattern(1, 0.003, 0.001)]
-            assert tg_enc.trigger_patterns == [TriggerPattern(10, 0.0003, 8e-9)]
+            assert ts_saxs.trigger_repeat == TriggerRepeat(
+                num=1, livetime=0.003, deadtime=0.001
+            )
+            assert ts_enc.trigger_repeat == TriggerRepeat(
+                num=10, livetime=0.0003, deadtime=8e-9
+            )
 
     # --- Duration ---
+    # Sibling sequences run sequentially (ADR 0007), so total_dur is the
+    # sum across all sequences, not max.  This is a consequence of the
+    # temporary sibling arrangement — Step 8 will produce a single
+    # TriggerSequence with parallel children and sum will still be correct.
     # saxs: repeats × (livetime + deadtime):
     #   fly: 100 × 0.004 = 0.4
     #   step: 1 × 0.004 = 0.004
-    # encoder: fly: 1000 × 0.0003008 ≈ 0.3008, step: 10 × 0.0003008 ≈ 0.003008
-    # per_point = max(total_dur) / inner_length (fly) or max(total_dur) (step)
+    # encoder: fly: 1000 × 0.0003008 = 0.300008, step: 10 × 0.0003008 = 0.00300008
+    # total_dur = 0.4 + 0.300008 = 0.700008 (fly) or
+    # 0.004 + 0.00300008 = 0.00700008 (step)
     if fly:
-        # total_dur: max(0.4, 0.3008) = 0.4; per_point = 0.4 / 100 = 0.004
-        # window duration = 100 × 0.004 = 0.4
+        total_dur = 0.700008
         for w in windows:
-            assert w.duration == approx(0.4)
+            assert w.duration == approx(total_dur)
     else:
-        # total_dur: max(0.004, 0.003008) = 0.004; per_point = 0.004
+        total_dur = 0.0070000800000000005
         for w in windows:
-            assert w.duration == approx(0.004)
+            assert w.duration == approx(total_dur)
 
     # --- Fly: moving_axes, snake direction ---
     if fly:
@@ -383,10 +396,10 @@ def test_maximal_fly_step(fly: bool):
 
 
 def test_panda_sequence_table():
-    """Use case 2: PandA flyscan — build a sequence table from trigger_groups.
+    """Use case 2: PandA flyscan — build a sequence table from trigger_sequences.
 
-    The consumer receives a Scan, finds its trigger group by detector name,
-    and reads trigger_patterns + moving_axes to populate a PandA sequence table.
+    The consumer receives a Scan, finds its trigger sequence by detector name,
+    and reads trigger_repeat + moving_axes to populate a PandA sequence table.
     """
     spec: Acquire[str, str, Never] = Acquire(
         Product(Linspace("y", 0, 5, 3), ~Linspace("x", 0, 10, 50)),
@@ -399,17 +412,14 @@ def test_panda_sequence_table():
     det_key = frozenset(["saxs", "waxs"])
 
     for window in scan:
-        # Consumer locates its group by matching detector names
-        group = next(
-            g for g in window.trigger_groups if frozenset(g.detectors) == det_key
-        )
+        # Consumer locates its sequence by matching detector names
+        seq = next(s for s in window.trigger_sequences if s.detectors == det_key)
 
-        # Trigger patterns are baked — consumer reads them directly for SeqTable
-        assert len(group.trigger_patterns) == 1
-        pattern = group.trigger_patterns[0]
-        assert pattern.repeats == 50
-        assert pattern.livetime == approx(0.003)
-        assert pattern.deadtime == approx(0.001)
+        # Trigger repeat is baked — consumer reads it directly for SeqTable
+        tr = seq.trigger_repeat
+        assert tr.num == 50
+        assert tr.livetime == approx(0.003)
+        assert tr.deadtime == approx(0.001)
 
         # PandA needs start_velocity to pick compare axis
         assert len(window.moving_axes) == 1
@@ -418,8 +428,8 @@ def test_panda_sequence_table():
         assert am.start_velocity != 0.0
 
         # Consumer-side: time1 = int(livetime * 1e6), time2 = int(deadtime * 1e6)
-        time1 = int(pattern.livetime * 1e6)
-        time2 = int(pattern.deadtime * 1e6)
+        time1 = int(tr.livetime * 1e6)
+        time2 = int(tr.deadtime * 1e6)
         assert time1 == 3000
         assert time2 == 1000
 

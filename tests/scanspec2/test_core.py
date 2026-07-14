@@ -82,14 +82,18 @@ def test_axis_motion():
 
 
 def test_window():
-    tp = TriggerPattern(repeats=10, livetime=0.001, deadtime=0.0001)
-    tg = TriggerGroup(detectors=["det1"], trigger_patterns=[tp])
+    tr = TriggerRepeat(num=10, livetime=0.001, deadtime=0.0001)
+    ts = TriggerSequence(
+        detectors=frozenset({"det1"}),
+        trigger_repeat=tr,
+        children={},
+    )
     w = Window(
         static_axes={"y": 5.0},
         moving_axes={"x": AxisMotion(0.0, 1.0, 10.0, 1.0)},
         non_linear=False,
         duration=0.012,
-        trigger_groups=[tg],
+        trigger_sequences=[ts],
         previous=None,
     )
     assert w.static_axes == {"y": 5.0}
@@ -100,14 +104,18 @@ def test_window():
 
 
 def test_window_previous():
-    tp = TriggerPattern(repeats=10, livetime=0.001, deadtime=0.0001)
-    tg = TriggerGroup(detectors=["det1"], trigger_patterns=[tp])
+    tr = TriggerRepeat(num=10, livetime=0.001, deadtime=0.0001)
+    ts = TriggerSequence(
+        detectors=frozenset({"det1"}),
+        trigger_repeat=tr,
+        children={},
+    )
     first = Window(
         static_axes={"y": 5.0},
         moving_axes={},
         non_linear=False,
         duration=0.01,
-        trigger_groups=[tg],
+        trigger_sequences=[ts],
         previous=None,
     )
     second = Window(
@@ -115,7 +123,7 @@ def test_window_previous():
         moving_axes={},
         non_linear=False,
         duration=0.01,
-        trigger_groups=[tg],
+        trigger_sequences=[ts],
         previous=first,
     )
     assert second.previous is first
