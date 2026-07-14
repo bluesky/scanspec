@@ -17,6 +17,7 @@ from scanspec2.core import (
     Window,
     WindowedStream,
     WindowGenerator,
+    _truncate_trigger_sequence,  # type: ignore[reportPrivateUsage]
 )
 
 
@@ -173,6 +174,29 @@ def test_window_positions_trigger_repeat_chunking():
         assert len(chunk["x"]) == 1
         expected = (i + 0.5) * 0.01
         assert chunk["x"][0] == pytest.approx(expected)
+
+
+def test_truncate_trigger_sequence():
+    seqs = [
+        TriggerSequence(frozenset({"a"}), TriggerRepeat(5, 0.01, 0.001), {}),
+        TriggerSequence(frozenset({"b"}), TriggerRepeat(3, 0.02, 0.002), {}),
+    ]
+
+    # trigger_index=0 → all sequences unchanged
+    t0 = _truncate_trigger_sequence(seqs, 0)
+    assert t0 == seqs
+
+    # trigger_index=6 → first seq fully consumed (5),
+    # second seq reduced from 3 to 2 (6-5=1 consumed → num=2)
+    t6 = _truncate_trigger_sequence(seqs, 6)
+    assert len(t6) == 1
+    assert t6[0].detectors == frozenset({"b"})
+    assert t6[0].trigger_repeat.num == 2
+    assert t6[0].children == {}
+
+    # trigger_index=8 → all consumed, empty result
+    t8 = _truncate_trigger_sequence(seqs, 8)
+    assert t8 == []
 
 
 def test_scan_dimension():

@@ -490,6 +490,40 @@ def _iter_with_outer(
                 yield inner_window, merged
 
 
+def _truncate_trigger_sequence(
+    sequences: list[TriggerSequence[DetectorT]],
+    trigger_index: int,
+) -> list[TriggerSequence[DetectorT]]:
+    """Remove *trigger_index* completed root-level repeats from *sequences*.
+
+    Walks the sequential list, skipping fully-completed sequences and
+    truncating the in-progress one.  ``detectors`` and ``children`` are
+    carried unchanged.
+    """
+    result: list[TriggerSequence[DetectorT]] = []
+    remaining = trigger_index
+    for seq in sequences:
+        num = seq.trigger_repeat.num
+        if remaining <= 0:
+            result.append(seq)
+        elif remaining >= num:
+            remaining -= num
+        else:
+            result.append(
+                TriggerSequence(
+                    detectors=seq.detectors,
+                    trigger_repeat=TriggerRepeat(
+                        num=num - remaining,
+                        livetime=seq.trigger_repeat.livetime,
+                        deadtime=seq.trigger_repeat.deadtime,
+                    ),
+                    children=seq.children,
+                )
+            )
+            remaining = 0
+    return result
+
+
 class Scan(Generic[AxisT, DetectorT, MonitorT]):
     """Compiled output of Spec.compile().
 
@@ -512,22 +546,22 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         continuous_streams: Sequence[ContinuousStream[DetectorT]] = (),
         monitors: Sequence[MonitorStream[MonitorT]] = (),
         start_window: int = 0,
-        start_time: float = 0.0,
+        trigger_index: int = 0,
     ) -> None:
         self.generators: list[WindowGenerator[AxisT]] = list(generators)
         self.windowed_streams = list(windowed_streams)
         self.continuous_streams = list(continuous_streams)
         self.monitors = list(monitors)
         self._start_window = start_window
-        self._start_time = start_time
+        self._trigger_index = trigger_index
 
     def with_start(
-        self, window: int, time: float = 0.0
+        self, window: int, trigger_index: int = 0
     ) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Return a new Scan that starts iteration at the given window and time.
+        """Return a new Scan that starts iteration at the given window.
 
-        Used for pause/resume -- construct a new Scan from a known progress point
-        rather than rewinding an existing iterator.
+        Used for pause/resume -- construct a new Scan from a known progress
+        point rather than rewinding an existing iterator.
         """
         return Scan(
             generators=self.generators,
@@ -535,7 +569,7 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
             continuous_streams=self.continuous_streams,
             monitors=self.monitors,
             start_window=window,
-            start_time=time,
+            trigger_index=trigger_index,
         )
 
     @property
@@ -569,7 +603,9 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         yields the actual collection windows.
 
         ``previous`` and ``static_axes`` are set by mutating the inner Window
-        before yielding it.
+        before yielding it.  On the first yielded window, if ``_trigger_index``
+        is set, the window's ``trigger_sequences`` are truncated to remove
+        completed root-level repeats.
         """
         gens = self.generators
         if not gens:
@@ -578,6 +614,7 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         prev_window: Window[AxisT, DetectorT] | None = None
         prev_all: dict[AxisT, float] = {}
         window_idx = 0
+        first_yielded = True
 
         for inner_window, outer_pos in _iter_with_outer(gens, 0, 0):
             all_pos: dict[AxisT, float] = dict(outer_pos)
@@ -587,6 +624,17 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
             inner_window.previous = prev_window
 
             if window_idx >= self._start_window:
+                if first_yielded and self._trigger_index > 0:
+                    inner_window.trigger_sequences = _truncate_trigger_sequence(
+                        inner_window.trigger_sequences,
+                        self._trigger_index,
+                    )
+                    inner_window.duration = sum(
+                        ts.trigger_repeat.num
+                        * (ts.trigger_repeat.livetime + ts.trigger_repeat.deadtime)
+                        for ts in inner_window.trigger_sequences
+                    )
+                first_yielded = False
                 yield inner_window
 
             prev_all = dict(all_pos)

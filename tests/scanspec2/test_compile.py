@@ -573,6 +573,19 @@ def test_with_start_does_not_mutate_original():
     assert len(windows(sc2)) == 2
 
 
+def test_with_start_trigger_index_truncates():
+    det = DetectorGroup(1, 1, 0.003, 0.001, ["det"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 10), fly=True, detectors=[det]
+    ).compile()  # type: ignore[reportArgumentType]
+    resumed = sc.with_start(window=0, trigger_index=3)
+    windows_list = list(resumed)
+    assert len(windows_list) == 1
+    ts = windows_list[0].trigger_sequences[0]
+    assert ts.trigger_repeat.num == 7  # 10 - 3 = 7
+    assert ts.detectors == frozenset({"det"})
+
+
 # ---------------------------------------------------------------------------
 # Snake nesting — ported from 1.x test_specs.test_product_snaking_linspaces
 # and test_specs.test_xyz_stack
