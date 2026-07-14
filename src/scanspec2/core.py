@@ -194,7 +194,7 @@ class WindowGenerator(Generic[AxisT]):
         self.snake = snake
         self.fly = fly
         self.trigger_sequences: list[TriggerSequence[Any]] = (
-            trigger_sequences if trigger_sequences is not None else []
+            list(trigger_sequences) if trigger_sequences is not None else []
         )
         self.duration = duration
 
@@ -351,7 +351,7 @@ class Window(Generic[AxisT, DetectorT]):
     calculate_turnaround.
 
     ``trigger_sequences`` is an ordered list; entries execute one after
-    another within the window.  In a multi-stream scan a window may contain
+    another within the window. In a multi-stream scan a window may contain
     sequences for only a subset of streams (e.g. some motion phases trigger
     only diffraction detectors, others only spectroscopy).
     """
@@ -370,7 +370,7 @@ class Window(Generic[AxisT, DetectorT]):
         self.moving_axes = moving_axes
         self.non_linear = non_linear
         self.duration = duration
-        self.trigger_sequences = trigger_sequences
+        self.trigger_sequences = list(trigger_sequences)
         self.previous = previous
         self._positions_fn = positions_fn
 
