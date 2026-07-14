@@ -173,7 +173,7 @@ def test_window_positions_trigger_repeat_chunking():
     for i, chunk in enumerate(chunks):
         assert len(chunk["x"]) == 1
         expected = (i + 0.5) * 0.01
-        assert chunk["x"][0] == pytest.approx(expected)
+        assert chunk["x"][0] == pytest.approx(expected)  # type: ignore[reportUnknownMemberType]
 
 
 def test_truncate_trigger_sequence():

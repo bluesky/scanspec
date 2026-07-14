@@ -545,6 +545,7 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         windowed_streams: Sequence[WindowedStream[AxisT, DetectorT]] = (),
         continuous_streams: Sequence[ContinuousStream[DetectorT]] = (),
         monitors: Sequence[MonitorStream[MonitorT]] = (),
+        active_stream_sets: Sequence[frozenset[str]] = (),
         start_window: int = 0,
         trigger_index: int = 0,
     ) -> None:
@@ -552,6 +553,7 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         self.windowed_streams = list(windowed_streams)
         self.continuous_streams = list(continuous_streams)
         self.monitors = list(monitors)
+        self.active_stream_sets: list[frozenset[str]] = list(active_stream_sets)
         self._start_window = start_window
         self._trigger_index = trigger_index
 
@@ -568,6 +570,7 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
             windowed_streams=self.windowed_streams,
             continuous_streams=self.continuous_streams,
             monitors=self.monitors,
+            active_stream_sets=self.active_stream_sets,
             start_window=window,
             trigger_index=trigger_index,
         )

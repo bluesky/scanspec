@@ -18,6 +18,7 @@ from scanspec2.core import (
 )
 from scanspec2.specs import (
     Acquire,
+    Concat,
     Linspace,
     Product,
     Repeat,
@@ -375,7 +376,7 @@ def test_maximal_example_dimensions():
         stream_name="primary",
         detectors=[
             DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
-            DetectorGroup(10, 1, 0.0003, 8e-9, ["timestamp", "x_enc", "y_enc"]),
+            DetectorGroup(10, 1, 0.00029, 8e-9, ["timestamp", "x_enc", "y_enc"]),
         ],
         continuous_streams=[
             ContinuousStream(
@@ -708,29 +709,97 @@ def test_fly_scan_trigger_sequences():
     assert ts.trigger_repeat == TriggerRepeat(num=5, livetime=0.003, deadtime=0.001)
 
 
-# Multi-rate sibling groups (old TriggerGroup model) are not valid
-# under ADR 0007: top-level trigger_sequences are sequential, not parallel.
-# Multi-rate is expressed as parallel children of a single TriggerSequence,
-# implemented in Step 8.  Re-enable when _bake_trigger_sequences learns
-# parent/children logic.
-#
-# def test_multirate_trigger_sequences():
-#     det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
-#     det2 = DetectorGroup(10, 1, 0.0003, 8e-9, ["encoder"])
-#     sc: Scan[str, str, Never] = Acquire(
-#         Linspace("x", 0.0, 10.0, 100),
-#         fly=True,
-#         detectors=[det1, det2],
-#     ).compile()
-#     ws = windows(sc)
-#     tss = ws[0].trigger_sequences
-#     assert len(tss) == 1          # single TriggerSequence with children
-#     ts = tss[0]
-#     assert ts.detectors == frozenset({"saxs"})
-#     assert ts.trigger_repeat == TriggerRepeat(num=100, livetime=0.003, deadtime=0.001)
-#     assert ts.children[frozenset({"encoder"})] == [
-#         TriggerRepeat(num=1000, livetime=0.0003, deadtime=8e-9)
-#     ]
+def test_multirate_trigger_sequences():
+    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
+    det2 = DetectorGroup(10, 1, 0.00029, 8e-9, ["encoder"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 100),
+        fly=True,
+        detectors=[det1, det2],
+    ).compile()  # type: ignore[reportArgumentType]
+    ws = windows(sc)
+    tss = ws[0].trigger_sequences
+    assert len(tss) == 1  # single TriggerSequence with children
+    ts = tss[0]
+    assert ts.detectors == frozenset({"saxs"})
+    assert ts.trigger_repeat == TriggerRepeat(num=100, livetime=0.003, deadtime=0.001)
+    assert ts.children[frozenset({"encoder"})] == [
+        TriggerRepeat(num=10, livetime=0.00029, deadtime=8e-9),
+    ]
+
+
+def test_child_duration_exceeds_parent_livetime_raises():
+    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
+    det2 = DetectorGroup(10, 1, 0.003, 0.001, ["enc"])
+    with pytest.raises(ValueError, match="exceeds parent livetime"):
+        Acquire(  # type: ignore[reportUnknownVariableType]
+            Linspace("x", 0.0, 10.0, 100),
+            fly=True,
+            detectors=[det1, det2],
+        ).compile()  # type: ignore[reportArgumentType]
+
+
+# Spacer/overlap checks in _bake_trigger_sequence are defensive —
+# unreachable via .compile() (caught by other validators).
+
+
+# ---------------------------------------------------------------------------
+# active_stream_sets
+# ---------------------------------------------------------------------------
+
+
+def test_active_stream_sets_single_acquire():
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 5), detectors=[det]
+    ).compile()  # type: ignore[reportArgumentType]
+    assert sc.active_stream_sets == [frozenset({"primary"})]
+
+
+def test_active_stream_sets_concat_different_names():
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det"])
+    # Outer Acquire has no detectors (monitor-only wrapper),
+    # so only the inner Acquires' stream names are active.
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Concat(
+            Acquire(Linspace("x", 0.0, 5.0, 3), detectors=[det], stream_name="diff"),
+            Acquire(Linspace("x", 5.0, 10.0, 5), detectors=[det], stream_name="spec"),
+        ),
+    ).compile()  # type: ignore[reportArgumentType]
+    assert sc.active_stream_sets == [
+        frozenset({"diff"}),
+        frozenset({"spec"}),
+    ]
+
+
+def test_active_stream_sets_concat_same_name_deduplicates():
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Concat(
+            Acquire(Linspace("x", 0.0, 5.0, 3), detectors=[det], stream_name="primary"),
+            Acquire(
+                Linspace("x", 5.0, 10.0, 5), detectors=[det], stream_name="primary"
+            ),
+        ),
+    ).compile()  # type: ignore[reportArgumentType]
+    assert sc.active_stream_sets == [
+        frozenset({"primary"}),
+    ]
+
+
+def test_active_stream_sets_detector_less_outer_acquire():
+    det = DetectorGroup(1, 1, 0.01, 0.001, ["det"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Concat(
+            Acquire(Linspace("x", 0.0, 5.0, 3), detectors=[det], stream_name="diff"),
+            Acquire(Linspace("x", 5.0, 10.0, 5), detectors=[det], stream_name="spec"),
+        ),
+        # Outer Acquire has no detectors (monitor/continuous-only wrapper)
+    ).compile()  # type: ignore[reportArgumentType]
+    assert sc.active_stream_sets == [
+        frozenset({"diff"}),
+        frozenset({"spec"}),
+    ]
 
 
 def test_duration_derived_from_detectors():

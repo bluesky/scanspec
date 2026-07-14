@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from abc import ABCMeta
 from collections.abc import Iterator, Sequence
+from math import isclose
 from typing import (
     TYPE_CHECKING,
     Annotated,
@@ -738,6 +739,58 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         return [gen]
 
 
+def _compute_active_stream_sets(
+    spec: Spec[AxisT, DetectorT, MonitorT],
+) -> list[frozenset[str]]:
+    """Walk the spec tree to find all distinct stream-name sets.
+
+    Returns a list of frozensets, one per simultaneously-active stream
+    combination.  Consumers use this to validate sequencer-table capacity
+    up front without iterating windows.
+    """
+
+    def _dedup(
+        items: list[frozenset[str]],
+    ) -> list[frozenset[str]]:
+        seen: set[frozenset[str]] = set()
+        result: list[frozenset[str]] = []
+        for s in items:
+            if s not in seen:
+                seen.add(s)
+                result.append(s)
+        return result
+
+    if isinstance(spec, Acquire):
+        if not spec.detectors:
+            return []
+        return [frozenset({spec.stream_name})]
+    if isinstance(spec, Concat):
+        return _dedup(
+            _compute_active_stream_sets(spec.left)
+            + _compute_active_stream_sets(spec.right)
+        )
+    # Repeat, Snake: single inner spec
+    inner_spec = getattr(spec, "spec", None)
+    if isinstance(inner_spec, Spec):
+        typed: Spec[AxisT, DetectorT, MonitorT] = cast(
+            Spec[AxisT, DetectorT, MonitorT], inner_spec
+        )
+        return _compute_active_stream_sets(typed)
+    # Product: outer and inner children
+    if isinstance(spec, Product):
+        return _dedup(
+            _compute_active_stream_sets(spec.outer)
+            + _compute_active_stream_sets(spec.inner)
+        )
+    # Zip: left and right children
+    if isinstance(spec, Zip):
+        return _dedup(
+            _compute_active_stream_sets(spec.left)
+            + _compute_active_stream_sets(spec.right)
+        )
+    return []
+
+
 class Acquire(Spec[AxisT, DetectorT, MonitorT]):
     """Outermost spec node: binds detector triggering to a motion spec."""
 
@@ -803,7 +856,7 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile into a Scan with detector groups and generators."""
         scan = self.spec.compile()
-        trigger_sequences = self._bake_trigger_sequences(scan.generators)
+        trigger_sequences = self._bake_trigger_sequence(scan.generators)
         duration = self._compute_duration(trigger_sequences, scan.generators)
         if scan.generators:
             last = scan.generators[-1]
@@ -831,41 +884,128 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
             scan.windowed_streams = [stream]
         scan.continuous_streams = list(self.continuous_streams)
         scan.monitors = list(self.monitors)
+        scan.active_stream_sets = _compute_active_stream_sets(self.spec)
+        if self.detectors:
+            scan.active_stream_sets = [frozenset({self.stream_name})]
         return scan
 
-    def _bake_trigger_sequences(
+    def _bake_trigger_sequence(
         self,
         gens: list[WindowGenerator[AxisT]],
     ) -> list[TriggerSequence[DetectorT]]:
-        """Convert DetectorGroups into TriggerSequences with TriggerRepeats."""
+        """Convert DetectorGroups into a single TriggerSequence.
+
+        The slowest-rate group becomes the parent; groups at the same rate
+        merge into the parent detector set; faster-rate groups become
+        children that fire during each parent livetime.  Different children
+        fire simultaneously; each child's own list of TriggerRepeats
+        executes sequentially.
+        """
         if not self.detectors:
             return []
         inner_length = gens[-1].length if gens else 1
         fly = self.fly and bool(gens)
-        result: list[TriggerSequence[DetectorT]] = []
+
+        # Resolve timing and compute num + total duration per group.
+        # For the parent, num is the total across the window (inner_length ×
+        # exposures_per_collection for fly).  For children, num is per parent
+        # repeat (exposures_per_collection only), since children fire during
+        # each parent livetime.
+        resolved: list[tuple[DetectorGroup[DetectorT], int, float, float, float]] = []
         for dg in self.detectors:
-            if dg.livetime is None or dg.deadtime is None:
+            lt = dg.livetime
+            dt = dg.deadtime
+            if lt is None or dt is None:
                 raise ValueError(
                     f"livetime and deadtime must be set on DetectorGroup "
-                    f"before compile(); got livetime={dg.livetime}, "
-                    f"deadtime={dg.deadtime}"
+                    f"before compile(); got livetime={lt}, "
+                    f"deadtime={dt}"
                 )
-            if fly:
-                num = inner_length * dg.exposures_per_collection
-            else:
-                num = dg.exposures_per_collection
-            result.append(
-                TriggerSequence(
-                    detectors=frozenset(dg.detectors),
-                    trigger_repeat=TriggerRepeat(
-                        num=num,
-                        livetime=dg.livetime,
-                        deadtime=dg.deadtime,
-                    ),
-                    children={},
-                )
+            total_num = (
+                inner_length * dg.exposures_per_collection
+                if fly
+                else dg.exposures_per_collection
             )
-        return result
+            total_dur = total_num * (lt + dt)
+            resolved.append((dg, total_num, total_dur, lt, dt))
+
+        # Longest total duration = parent (slowest rate)
+        parent_dg, parent_num, parent_total_dur, parent_lt, parent_dt = max(
+            resolved, key=lambda x: x[2]
+        )
+        parent_detectors: set[DetectorT] = set(parent_dg.detectors)
+        children: dict[frozenset[DetectorT], list[TriggerRepeat]] = {}
+
+        for dg, _, total_dur, lt, dt in resolved:
+            if dg is parent_dg:
+                continue
+            same_rate = isclose(
+                total_dur, parent_total_dur, rel_tol=1e-9, abs_tol=1e-12
+            )
+            if lt == parent_lt and dt == parent_dt and same_rate:
+                # Same timing and same rate → merge into parent
+                merged = set(dg.detectors)
+                overlap = parent_detectors & merged
+                if overlap:
+                    raise ValueError(
+                        f"Duplicate detector(s) {sorted(str(d) for d in overlap)} "
+                        f"in same-rate groups"
+                    )
+                parent_detectors |= merged
+            elif same_rate:
+                # Same rate but different timing → cannot share a parent
+                raise ValueError(
+                    f"DetectorGroup with detectors "
+                    f"{sorted(str(d) for d in dg.detectors)} has the same "
+                    f"total duration as the parent but different "
+                    f"livetime/deadtime ({lt}/{dt} vs "
+                    f"{parent_lt}/{parent_dt})"
+                )
+            else:
+                # Faster rate → parallel child.
+                # Child num is per parent repeat (exposures_per_collection),
+                # not multiplied by inner_length.
+                child_num = dg.exposures_per_collection
+                child_det = frozenset(dg.detectors)
+                overlap = parent_detectors & set(dg.detectors)
+                if overlap:
+                    raise ValueError(
+                        f"Detector(s) {sorted(str(d) for d in overlap)} appear "
+                        f"in both parent and child groups"
+                    )
+                for existing in children:
+                    if child_det & existing:
+                        raise ValueError(
+                            f"Child detector sets overlap: "
+                            f"{sorted(str(d) for d in child_det & existing)}"
+                        )
+                child_repeats = [TriggerRepeat(num=child_num, livetime=lt, deadtime=dt)]
+                child_dur = sum(
+                    r.num * (r.livetime + r.deadtime) for r in child_repeats
+                )
+                if child_dur > parent_lt:
+                    raise ValueError(
+                        f"Child total duration {child_dur} exceeds "
+                        f"parent livetime {parent_lt}"
+                    )
+                children[child_det] = child_repeats
+
+        if parent_lt == 0.0 and children:
+            raise ValueError(
+                "Spacer TriggerSequence (livetime=0.0) must not have children"
+            )
+
+        return [
+            TriggerSequence(
+                detectors=frozenset(parent_detectors),
+                trigger_repeat=TriggerRepeat(
+                    num=parent_num,
+                    livetime=parent_lt,
+                    deadtime=parent_dt,
+                ),
+                children=children,
+            )
+        ]
 
     def _compute_duration(
         self,

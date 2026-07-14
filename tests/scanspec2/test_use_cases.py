@@ -282,7 +282,7 @@ def test_maximal_fly_step(fly: bool):
         fly=fly,
         detectors=[
             DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
-            DetectorGroup(10, 1, 0.0003, 8e-9, ["timestamp", "x_enc", "y_enc"]),
+            DetectorGroup(10, 1, 0.00029, 8e-9, ["timestamp", "x_enc", "y_enc"]),
         ],
         continuous_streams=[
             ContinuousStream(
@@ -321,50 +321,36 @@ def test_maximal_fly_step(fly: bool):
         assert len(windows) == 5000
 
     # --- Trigger sequences on every window ---
-    # NOTE: this test uses sibling TriggerSequences (one per DetectorGroup),
-    # which is a temporary arrangement.  Under ADR 0007 multi-rate should be
-    # a single TriggerSequence with parallel children.  Revisit in Step 8.
+    # Single TriggerSequence: SAXS/WAXS is the parent, encoders are
+    # parallel children that fire during each parent livetime.
     for w in windows:
-        assert len(w.trigger_sequences) == 2
-        ts_saxs = w.trigger_sequences[0]
-        ts_enc = w.trigger_sequences[1]
-        assert ts_saxs.detectors == frozenset({"saxs", "waxs"})
-        assert ts_enc.detectors == frozenset({"timestamp", "x_enc", "y_enc"})
+        assert len(w.trigger_sequences) == 1
+        ts = w.trigger_sequences[0]
+        assert ts.detectors == frozenset({"saxs", "waxs"})
+        assert ts.children[frozenset({"timestamp", "x_enc", "y_enc"})] == [
+            TriggerRepeat(num=10, livetime=0.00029, deadtime=8e-9),
+        ]
 
         if fly:
-            assert ts_saxs.trigger_repeat == TriggerRepeat(
+            assert ts.trigger_repeat == TriggerRepeat(
                 num=100, livetime=0.003, deadtime=0.001
             )
-            assert ts_enc.trigger_repeat == TriggerRepeat(
-                num=1000, livetime=0.0003, deadtime=8e-9
-            )
         else:
-            assert ts_saxs.trigger_repeat == TriggerRepeat(
+            assert ts.trigger_repeat == TriggerRepeat(
                 num=1, livetime=0.003, deadtime=0.001
-            )
-            assert ts_enc.trigger_repeat == TriggerRepeat(
-                num=10, livetime=0.0003, deadtime=8e-9
             )
 
     # --- Duration ---
-    # Sibling sequences run sequentially (ADR 0007), so total_dur is the
-    # sum across all sequences, not max.  This is a consequence of the
-    # temporary sibling arrangement — Step 8 will produce a single
-    # TriggerSequence with parallel children and sum will still be correct.
+    # Parent-only: children run inside parent livetime and don't extend.
     # saxs: repeats × (livetime + deadtime):
     #   fly: 100 × 0.004 = 0.4
     #   step: 1 × 0.004 = 0.004
-    # encoder: fly: 1000 × 0.0003008 = 0.300008, step: 10 × 0.0003008 = 0.00300008
-    # total_dur = 0.4 + 0.300008 = 0.700008 (fly) or
-    # 0.004 + 0.00300008 = 0.00700008 (step)
     if fly:
-        total_dur = 0.700008
         for w in windows:
-            assert w.duration == approx(total_dur)
+            assert w.duration == approx(0.4)
     else:
-        total_dur = 0.0070000800000000005
         for w in windows:
-            assert w.duration == approx(total_dur)
+            assert w.duration == approx(0.004)
 
     # --- Fly: moving_axes, snake direction ---
     if fly:
@@ -563,7 +549,7 @@ def test_analysis_reshaping():
         fly=True,
         detectors=[
             DetectorGroup(1, 1, 0.003, 0.001, ["det1"]),
-            DetectorGroup(10, 1, 0.0003, 8e-9, ["enc"]),
+            DetectorGroup(10, 1, 0.00029, 8e-9, ["enc"]),
         ],
     )
     scan = spec.compile()
