@@ -980,6 +980,15 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
                             f"Child detector sets overlap: "
                             f"{sorted(str(d) for d in child_det & existing)}"
                         )
+                child_period = lt + dt
+                ratio = parent_lt / child_period
+                if not isclose(ratio, round(ratio), rel_tol=1e-3, abs_tol=1e-6):
+                    raise ValueError(
+                        f"Child detector(s) {sorted(str(d) for d in dg.detectors)} "
+                        f"do not trigger at an integer ratio of the parent rate: "
+                        f"parent_livetime {parent_lt} / child_period "
+                        f"{child_period} = {ratio}"
+                    )
                 child_repeats = [TriggerRepeat(num=child_num, livetime=lt, deadtime=dt)]
                 child_dur = sum(
                     r.num * (r.livetime + r.deadtime) for r in child_repeats

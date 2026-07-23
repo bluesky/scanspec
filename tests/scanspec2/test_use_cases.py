@@ -282,7 +282,9 @@ def test_maximal_fly_step(fly: bool):
         fly=fly,
         detectors=[
             DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
-            DetectorGroup(10, 1, 0.00029, 8e-9, ["timestamp", "x_enc", "y_enc"]),
+            # Encoders trigger 10x per saxs/waxs repeat: period must divide the
+            # parent's 0.003s livetime exactly, so livetime = 0.003/10 - deadtime.
+            DetectorGroup(10, 1, 0.000299992, 8e-9, ["timestamp", "x_enc", "y_enc"]),
         ],
         continuous_streams=[
             ContinuousStream(
@@ -328,7 +330,7 @@ def test_maximal_fly_step(fly: bool):
         ts = w.trigger_sequences[0]
         assert ts.detectors == frozenset({"saxs", "waxs"})
         assert ts.children[frozenset({"timestamp", "x_enc", "y_enc"})] == [
-            TriggerRepeat(num=10, livetime=0.00029, deadtime=8e-9),
+            TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
         ]
 
         if fly:
@@ -549,7 +551,8 @@ def test_analysis_reshaping():
         fly=True,
         detectors=[
             DetectorGroup(1, 1, 0.003, 0.001, ["det1"]),
-            DetectorGroup(10, 1, 0.00029, 8e-9, ["enc"]),
+            # See test_maximal_fly_step for how this livetime is derived.
+            DetectorGroup(10, 1, 0.000299992, 8e-9, ["enc"]),
         ],
     )
     scan = spec.compile()

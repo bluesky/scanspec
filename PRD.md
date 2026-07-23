@@ -146,7 +146,7 @@ Motion is composed first, then `Acquire` attaches acquisition:
 motion = Linspace("y", 0, 5, 50) * ~Linspace("x", 0, 10, 100)   # snaked grid
 spec = Acquire(motion, fly=True, detectors=[
     DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
-    DetectorGroup(10, 1, 0.0003, 8e-9, ["timestamp", "x_enc", "y_enc"]),
+    DetectorGroup(10, 1, 0.000299992, 8e-9, ["timestamp", "x_enc", "y_enc"]),
 ])
 scan = spec.compile()
 ```
@@ -441,9 +441,15 @@ semantics; the ADR 0007 trigger model (`TriggerRepeat`/`TriggerSequence`,
 `positions(float | TriggerRepeat)`, `Scan.active_stream_sets`) — this has
 fully replaced ADR 0005/0006's `TriggerPattern`/`TriggerGroup`, which no
 longer exist anywhere in the codebase; `with_start(window, trigger_index)`
-checkpoint truncation resume via `_truncate_trigger_sequence`. (ADR 0007's
-formal maintainer sign-off is still pending — see §9 — but the code and
-tests it describes are already in place on this branch.)
+checkpoint truncation resume via `_truncate_trigger_sequence`; compile-time
+validation that same-stream detector groups trigger at integer ratios of
+each other (story 4) — `_bake_trigger_sequence` checks that
+`parent_livetime / child_period` is (within floating tolerance) a whole
+number, in addition to the pre-existing checks that a child group's total
+duration fits within the parent livetime and that detector sets are
+disjoint. (ADR 0007's formal maintainer sign-off is still pending — see
+§9 — but the code and tests it describes are already in place on this
+branch.)
 
 **Known gaps and defects**:
 
@@ -457,12 +463,6 @@ tests it describes are already in place on this branch.)
 5. Serialization test coverage is thin (smoke-test level).
 6. Auxiliary modules not ported (nice-to-have, in priority order):
    `plot.py`, `cli.py` + `__main__.py`, `service.py`, `sphinxext.py`.
-7. Compile-time validation that same-stream detector groups trigger at
-   integer ratios of each other (story 4) is not implemented —
-   `_bake_trigger_sequence` checks that a child group's total duration fits
-   within the parent livetime and that detector sets are disjoint, but never
-   checks the rates are integer multiples. (This predates 2.0: ADR 0005
-   already stated the requirement without it being built.)
 
 **Intentionally dropped from 1.x** (rationale in ADR 0003): `Path`,
 `Midpoints`, `Slice`, `Squash`, `Mask`/regions, `Fly`, `ConstantDuration`,
@@ -528,6 +528,16 @@ tests it describes are already in place on this branch.)
    around uniform middle frames, see `CONTEXT.adr.260513.md`) that differs
    from the burst-spacer-burst example in §4.2. Left open for whenever that
    surface is actually built.
+3. **Does a child `DetectorGroup`'s `livetime` already exclude its own
+   `deadtime` when sized against the parent's livetime slot?** The §3.1
+   worked example (`DetectorGroup(10, 1, 0.0003, 8e-9, ...)` against a
+   parent `livetime=0.003`) predates the ADR 0007 parent/child
+   restructuring and was never rechecked against `_bake_trigger_sequence`'s
+   "child duration ≤ parent livetime" rule: `10 × (0.0003+8e-9) =
+   0.00300008` exceeds `0.003`. Tests currently assume the former (child
+   livetime is sized as `parent_livetime/ratio − deadtime`, e.g.
+   `0.000299992`); the §3.1 example itself has not been corrected pending
+   maintainer confirmation.
 
 ---
 

@@ -376,7 +376,9 @@ def test_maximal_example_dimensions():
         stream_name="primary",
         detectors=[
             DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
-            DetectorGroup(10, 1, 0.00029, 8e-9, ["timestamp", "x_enc", "y_enc"]),
+            # See test_maximal_fly_step (test_use_cases.py) for how this
+            # livetime is derived.
+            DetectorGroup(10, 1, 0.000299992, 8e-9, ["timestamp", "x_enc", "y_enc"]),
         ],
         continuous_streams=[
             ContinuousStream(
@@ -711,7 +713,9 @@ def test_fly_scan_trigger_sequences():
 
 def test_multirate_trigger_sequences():
     det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
-    det2 = DetectorGroup(10, 1, 0.00029, 8e-9, ["encoder"])
+    # Encoder triggers 10x per saxs repeat: period must divide the parent's
+    # 0.003s livetime exactly, so livetime = 0.003/10 - deadtime.
+    det2 = DetectorGroup(10, 1, 0.000299992, 8e-9, ["encoder"])
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 100),
         fly=True,
@@ -724,13 +728,27 @@ def test_multirate_trigger_sequences():
     assert ts.detectors == frozenset({"saxs"})
     assert ts.trigger_repeat == TriggerRepeat(num=100, livetime=0.003, deadtime=0.001)
     assert ts.children[frozenset({"encoder"})] == [
-        TriggerRepeat(num=10, livetime=0.00029, deadtime=8e-9),
+        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
     ]
+
+
+def test_non_integer_rate_ratio_raises():
+    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
+    # child_period = 0.004 -> parent_lt/child_period = 0.75, not an integer.
+    det2 = DetectorGroup(10, 1, 0.003, 0.001, ["enc"])
+    with pytest.raises(ValueError, match="integer ratio"):
+        Acquire(  # type: ignore[reportUnknownVariableType]
+            Linspace("x", 0.0, 10.0, 100),
+            fly=True,
+            detectors=[det1, det2],
+        ).compile()  # type: ignore[reportArgumentType]
 
 
 def test_child_duration_exceeds_parent_livetime_raises():
     det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
-    det2 = DetectorGroup(10, 1, 0.003, 0.001, ["enc"])
+    # child_period = 0.0003 -> parent_lt/child_period = 10 (clean ratio), but
+    # num=11 makes total child duration 0.0033 > the 0.003 parent livetime.
+    det2 = DetectorGroup(11, 1, 0.0002, 0.0001, ["enc"])
     with pytest.raises(ValueError, match="exceeds parent livetime"):
         Acquire(  # type: ignore[reportUnknownVariableType]
             Linspace("x", 0.0, 10.0, 100),
