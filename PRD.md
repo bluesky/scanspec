@@ -259,9 +259,14 @@ Two deliberately separate concepts:
 - **`TriggerSequence`** (on `Window.trigger_sequences`) — *runtime*
   instruction: `detectors` + a `trigger_repeat: TriggerRepeat(num, livetime,
   deadtime)` + a parallel `children` dict of integer-multiple-rate sub-groups
-  (§4.3). Baked from `DetectorGroup`s at compile time (ADR 0007): flyscan
-  windows get `num = inner_length × exposures_per_collection`; step windows
-  get `num = exposures_per_collection`. `livetime`/`deadtime` must be resolved
+  (§4.3). Baked from `DetectorGroup`s at compile time (ADR 0007): the
+  **parent** `trigger_repeat.num` is `inner_length × exposures_per_collection`
+  for flyscan windows, or `exposures_per_collection` for step windows. Each
+  **child**'s `num` is its own `DetectorGroup.exposures_per_collection` value
+  taken as-is — conventionally `child_rate_Hz × parent_livetime` (e.g.
+  `8000 Hz × 0.009 s = 72`, §4.3) — independent of `inner_length`, since
+  children fire once per *parent repeat*, not once per window.
+  `livetime`/`deadtime` must be resolved
   (not `None`) before `compile()`. Consumers find their sequence by matching
   `frozenset(sequence.detectors)` (unique per window, enforced); they read,
   never compute.
@@ -334,8 +339,12 @@ spacer pattern (§4.2); longer multi-entry lists can also arise from manual
 ADR 0007 also adds `Scan.active_stream_sets: list[frozenset[str]]` — every
 combination of stream names simultaneously active in some window — so a
 consumer can validate sequencer-table capacity **up front, without
-iterating**: `Acquire` contributes its own singleton; `Concat` unions its
-children's lists; everything else passes the inner value through.
+iterating**: `Acquire` contributes its own singleton (or nothing, if it has
+no detectors); `Concat`, `Product`, and `Zip` all union and deduplicate their
+children's lists; `Repeat` and `Snake` pass their single inner spec's value
+through unchanged. `Concat` of two same-named `Acquire`s dedupes to one
+singleton — confirmed by
+`test_active_stream_sets_concat_same_name_deduplicates`.
 
 This ADR is **not yet accepted**; see §9 and §11 for its review status. When
 accepted it supersedes ADR 0005 and the `positions(TriggerPattern)` signature
@@ -375,10 +384,11 @@ Principles (agreed, ADR 0007 context):
   `trigger_index` repeats truncated off its trigger sequences and its
   `duration` reduced accordingly. There is no rewind method and no mutable
   iterator state.
-- Intra-window resume currently requires the window to have exactly one
-  `TriggerGroup` (raises otherwise); the `TriggerSequence` structure removes
-  this restriction — `_truncate_trigger_sequence` walks the flat list of
-  sequences, counting completed root-level repeats across all of them.
+- Intra-window resume works regardless of how many entries a window's
+  `trigger_sequences` list contains — `_truncate_trigger_sequence` walks the
+  flat list, counting completed root-level repeats across all of them. (This
+  was a real restriction under the old `TriggerGroup` model, which required
+  exactly one group per window; that type no longer exists.)
 - Within a window, safe pause points are **checkpoints** at root-level
   repeat boundaries. ADR 0007 proposes gating each root repeat on a
   Bluesky-held bit (BITB) in the PandA sequencer table. When the bit
@@ -427,23 +437,32 @@ All 2.0 code is in `src/scanspec2/` (tests in `tests/scanspec2/`); 1.x in
 (`Linspace`+`bounded`, `Static`, `Range`+`bounded`, `Spiral`, `Ellipse`,
 `Polygon`, `Line`); all combinators; `Acquire`; serialization via dynamic
 discriminated union with out-of-package subclass support; centred-livetime
-semantics and `positions(float | TriggerPattern)` (ADR 0006);
-`with_start(window, trigger_index)` truncation resume.
+semantics; the ADR 0007 trigger model (`TriggerRepeat`/`TriggerSequence`,
+`positions(float | TriggerRepeat)`, `Scan.active_stream_sets`) — this has
+fully replaced ADR 0005/0006's `TriggerPattern`/`TriggerGroup`, which no
+longer exist anywhere in the codebase; `with_start(window, trigger_index)`
+checkpoint truncation resume via `_truncate_trigger_sequence`. (ADR 0007's
+formal maintainer sign-off is still pending — see §9 — but the code and
+tests it describes are already in place on this branch.)
 
 **Known gaps and defects**:
 
-1. `TriggerSequence`/`TriggerRepeat` rework + `active_stream_sets` +
-   checkpoint pause/resume (ADR 0007, once accepted) — supersedes parts of the
-   trigger code above, including the `positions(TriggerPattern)` argument type.
-2. `window.positions(float dt)`: `max_duration < dt` yields a zero-size
+1. `window.positions(float dt)`: `max_duration < dt` yields a zero-size
    chunk and loops forever — needs a guard (review finding).
-3. `Scan.number_of_events` (or per-stream) property.
-4. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
+2. `Scan.number_of_events` (or per-stream) property.
+3. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
    `TriggerInfo` for `StandardDetector.prepare()`.
-5. `scanspec2/__init__.py` exports (currently a bare docstring).
-6. Serialization test coverage is thin (smoke-test level).
-7. Auxiliary modules not ported (nice-to-have, in priority order):
+4. `scanspec2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only —
+   not yet the full `from scanspec2 import core, specs` surface.
+5. Serialization test coverage is thin (smoke-test level).
+6. Auxiliary modules not ported (nice-to-have, in priority order):
    `plot.py`, `cli.py` + `__main__.py`, `service.py`, `sphinxext.py`.
+7. Compile-time validation that same-stream detector groups trigger at
+   integer ratios of each other (story 4) is not implemented —
+   `_bake_trigger_sequence` checks that a child group's total duration fits
+   within the parent livetime and that detector sets are disjoint, but never
+   checks the rates are integer multiples. (This predates 2.0: ADR 0005
+   already stated the requirement without it being built.)
 
 **Intentionally dropped from 1.x** (rationale in ADR 0003): `Path`,
 `Midpoints`, `Slice`, `Squash`, `Mask`/regions, `Fly`, `ConstantDuration`,
@@ -453,12 +472,14 @@ semantics and `positions(float | TriggerPattern)` (ADR 0006);
 
 ## 9. In-flight design changes
 
-- **ADR 0006** (centred livetime, `positions(TriggerPattern)`): status
-  *Tentative*. The substance is agreed and implemented; review wording
-  corrections have been applied. To be marked Accepted after maintainer
-  sign-off — and partially superseded by ADR 0007 when that lands (the
-  centred semantics persist; the `TriggerPattern` argument type becomes
-  `TriggerRepeat`).
+- **ADR 0006** (centred livetime, originally `positions(TriggerPattern)`):
+  status *Tentative*. The centred-livetime substance is agreed and
+  implemented; review wording corrections have been applied. In the code,
+  ADR 0007's replacement has already landed — `TriggerPattern` no longer
+  exists, and `positions()` takes `float | TriggerRepeat` — even though
+  neither ADR's formal status reflects this yet. To be marked Accepted
+  (with the `positions()` argument-type description updated to
+  `TriggerRepeat`) after maintainer sign-off.
 - **ADR 0007** (two-level trigger structure + checkpoint pause/resume):
   status *Proposed*. The structural decisions (`TriggerSequence` /
   `TriggerRepeat`, parallel children dict, two-level depth, sequential root
@@ -478,12 +499,16 @@ semantics and `positions(float | TriggerPattern)` (ADR 0006);
 
 ## 10. Documentation debt
 
-- **API_SPEC.md is stale** against the code in places: it still names
-  `Window.non_linear_move` (code: `non_linear`), `with_start(window, time)`
-  (code: `trigger_index`), a `Scan.fly` field (removed in favour of
-  `has_moving_axes`/`non_linear`), and `positions()` without the
-  `TriggerPattern` argument. It must be reconciled — and will need a second
-  pass when `TriggerSequence`/`TriggerRepeat` land.
+- **API_SPEC.md predates ADR 0006/0007 entirely** and needs a full rewrite,
+  not a targeted patch: its trigger vocabulary throughout (data structures
+  and 2 of its 5 worked use cases) is `TriggerPattern`/`TriggerGroup`,
+  superseded by `TriggerRepeat`/`TriggerSequence` (already landed — §8); it
+  also still names `Window.non_linear_move` (code: `non_linear`),
+  `with_start(window, time)` (code: `trigger_index`), and a
+  `Scan.fly`/`Scan.motion_dims` field (removed in favour of
+  `has_moving_axes`/`non_linear` and `windowed_streams`). Its "Open
+  questions §1" (multi-stream `Spec` subclass) is also already resolved —
+  by `Concat` of `Acquire`s with different `stream_name`s (§3.1).
 - `docs/` (user-facing Sphinx docs) still document 1.x only; they are
   rewritten as part of the final migration, not before.
 
@@ -491,13 +516,9 @@ semantics and `positions(float | TriggerPattern)` (ADR 0006);
 
 ## 11. Open questions
 
-1. **`Concat` of two same-named `Acquire`s**: the "becomes serial" note on the
-   deduplication test expectation needs clarification — does
-   `active_stream_sets` dedupe to one singleton, or is there additional
-   sequential-table semantics to capture?
-2. Does pause/resume ever need an *end* point as well as a start point?
+1. Does pause/resume ever need an *end* point as well as a start point?
    (Raised during design; unresolved, currently assumed not.)
-3. **User-facing surface for variable-spacing trigger patterns**: not
+2. **User-facing surface for variable-spacing trigger patterns**: not
    required for 2.0 (§2.5) — only the compiled `TriggerSequence`/
    `TriggerRepeat` structure needs to be able to express it. If a
    `DetectorGroup`/`Acquire` authoring surface is added later, candidate
