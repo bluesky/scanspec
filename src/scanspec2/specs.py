@@ -549,8 +549,9 @@ class Zip(Spec[AxisT, DetectorT, MonitorT]):
 
     - Both sides have the same number of generators with matching inner
       lengths: merge innermost generators dimension-by-dimension.
-    - Right has more generators than left: left-pad left with right's
-      extra outer generators.
+    - Left has more generators than right: left-pad right's generator list
+      with placeholders so positions align by innermost generator; left's
+      extra outer generators are left untouched.
     - Right has a single generator of length 1 (e.g. ``Static``): expand
       it to match left's innermost generator length.
     """
