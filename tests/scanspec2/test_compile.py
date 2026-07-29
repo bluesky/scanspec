@@ -732,6 +732,41 @@ def test_multirate_trigger_sequences():
     ]
 
 
+def test_collections_per_event_multiplies_parent_num():
+    # exposures_per_event = exposures_per_collection * collections_per_event = 2 * 3 = 6
+    det_step = DetectorGroup(2, 3, 0.01, 0.001, ["det1"])
+    step_scan: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 5), detectors=[det_step]
+    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
+    for w in windows(step_scan):
+        ts = w.trigger_sequences[0]
+        assert ts.trigger_repeat == TriggerRepeat(num=6, livetime=0.01, deadtime=0.001)
+
+    det_fly = DetectorGroup(2, 3, 0.003, 0.001, ["det1"])
+    fly_scan: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 100), fly=True, detectors=[det_fly]
+    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
+    ts = windows(fly_scan)[0].trigger_sequences[0]
+    # fly: num = length * exposures_per_event = 100 * 6
+    assert ts.trigger_repeat == TriggerRepeat(num=600, livetime=0.003, deadtime=0.001)
+
+
+def test_collections_per_event_multiplies_child_num():
+    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
+    # Same exposures_per_event=10 as test_multirate_trigger_sequences, but
+    # split across both fields (5 * 2) instead of exposures_per_collection alone.
+    det2 = DetectorGroup(5, 2, 0.000299992, 8e-9, ["encoder"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 100),
+        fly=True,
+        detectors=[det1, det2],
+    ).compile()  # type: ignore[reportArgumentType]
+    ts = windows(sc)[0].trigger_sequences[0]
+    assert ts.children[frozenset({"encoder"})] == [
+        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+    ]
+
+
 def test_non_integer_rate_ratio_raises():
     det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
     # child_period = 0.004 -> parent_lt/child_period = 0.75, not an integer.

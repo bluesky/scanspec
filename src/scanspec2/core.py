@@ -409,6 +409,11 @@ class DetectorGroup(Generic[DetectorT]):
     deadtime: float | None  # None means ophyd-async sets it
     detectors: list[DetectorT]
 
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
+
 
 @dataclass
 class WindowedStream(Generic[AxisT, DetectorT]):

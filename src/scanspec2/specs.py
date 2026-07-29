@@ -909,8 +909,8 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
 
         # Resolve timing and compute num + total duration per group.
         # For the parent, num is the total across the window (inner_length ×
-        # exposures_per_collection for fly).  For children, num is per parent
-        # repeat (exposures_per_collection only), since children fire during
+        # exposures_per_event for fly).  For children, num is per parent
+        # repeat (exposures_per_event only), since children fire during
         # each parent livetime.
         resolved: list[tuple[DetectorGroup[DetectorT], int, float, float, float]] = []
         for dg in self.detectors:
@@ -923,9 +923,7 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
                     f"deadtime={dt}"
                 )
             total_num = (
-                inner_length * dg.exposures_per_collection
-                if fly
-                else dg.exposures_per_collection
+                inner_length * dg.exposures_per_event if fly else dg.exposures_per_event
             )
             total_dur = total_num * (lt + dt)
             resolved.append((dg, total_num, total_dur, lt, dt))
@@ -964,9 +962,9 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
                 )
             else:
                 # Faster rate → parallel child.
-                # Child num is per parent repeat (exposures_per_collection),
+                # Child num is per parent repeat (exposures_per_event),
                 # not multiplied by inner_length.
-                child_num = dg.exposures_per_collection
+                child_num = dg.exposures_per_event
                 child_det = frozenset(dg.detectors)
                 overlap = parent_detectors & set(dg.detectors)
                 if overlap:
