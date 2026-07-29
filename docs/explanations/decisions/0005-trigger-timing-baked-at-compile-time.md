@@ -14,7 +14,7 @@ actual trigger patterns (how many repeats per window, livetime, deadtime)
 were computed by each consumer independently. This meant:
 
 - PandA sequence table builders duplicated the logic of "inner dimension
-  length × exposures_per_collection = repeats".
+  length × exposures_per_collection × collections_per_event = repeats".
 - Step scan orchestrators had their own version.
 - Any new consumer (PMAC, motor record) had to reimplement the same formula.
 - Multi-rate detectors (e.g. encoders at 10× the Pilatus rate) required
@@ -27,8 +27,10 @@ objects with concrete `TriggerPattern`s at compile time:
 
 - Each `DetectorGroup` becomes a `TriggerGroup` with
   `trigger_patterns = [TriggerPattern(repeats, livetime, deadtime)]`.
-- For fly scans, `repeats = inner_length × exposures_per_collection`.
-- For step scans, `repeats = exposures_per_collection`.
+- For fly scans, `repeats = inner_length × exposures_per_collection ×
+  collections_per_event` (i.e. `inner_length × exposures_per_event`).
+- For step scans, `repeats = exposures_per_collection × collections_per_event`
+  (i.e. `exposures_per_event`).
 - Multi-rate groups (e.g. 10× encoders) each get their own `TriggerGroup`
   in the same window.
 - `livetime` and `deadtime` must be set (not `None`) before `compile()` —
@@ -53,3 +55,15 @@ every `Window` it yields, regardless of fly vs step.
   `TriggerPattern` entries per group — same structure, no special case.
 - **Validation at compile time**: Rate ratio and uniqueness invariants are
   checked when `Acquire.compile()` runs, not at consumption time.
+
+## Amendment (2026-07-29)
+
+The `repeats` formula above originally omitted `collections_per_event`
+entirely (`repeats = inner_length × exposures_per_collection`). This was a
+genuine error, not a simplification: `exposures_per_collection` describes a
+hardware-internal accumulation of raw exposures into a single recorded
+collection and is invisible to the resulting data shape, while
+`collections_per_event` describes how many separately-recorded collections
+exist per event — both require their own physical trigger pulse and so both
+belong in the repeat count. `_bake_trigger_sequence` (`src/scanspec2/specs.py`)
+and the affected test fixtures still need updating to match as of this amendment.

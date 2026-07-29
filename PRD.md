@@ -259,14 +259,17 @@ Two deliberately separate concepts:
 - **`TriggerSequence`** (on `Window.trigger_sequences`) — *runtime*
   instruction: `detectors` + a `trigger_repeat: TriggerRepeat(num, livetime,
   deadtime)` + a parallel `children` dict of integer-multiple-rate sub-groups
-  (§4.3). Baked from `DetectorGroup`s at compile time (ADR 0007): the
-  **parent** `trigger_repeat.num` is `inner_length × exposures_per_collection`
-  for flyscan windows, or `exposures_per_collection` for step windows. Each
-  **child**'s `num` is its own `DetectorGroup.exposures_per_collection` value
-  taken as-is — conventionally `child_rate_Hz × parent_livetime` (e.g.
-  `8000 Hz × 0.009 s = 72`, §4.3) — independent of `inner_length`, since
-  children fire once per *parent repeat*, not once per window.
-  `livetime`/`deadtime` must be resolved
+  (§4.3). Baked from `DetectorGroup`s at compile time (ADR 0007): every
+  recorded collection needs its own trigger, so `num` is computed from
+  `exposures_per_event` (`= exposures_per_collection × collections_per_event`),
+  not `exposures_per_collection` alone (known gap in §8 for the pending code
+  fix). The **parent** `trigger_repeat.num` is `inner_length ×
+  exposures_per_event` for flyscan windows, or `exposures_per_event` for step
+  windows. Each **child**'s `num` follows the same rule scaled to the
+  parent's livetime rather than the whole window — conventionally
+  `child_rate_Hz × parent_livetime` (e.g. `8000 Hz × 0.009 s = 72`, §4.3) —
+  independent of `inner_length`, since children fire once per *parent
+  repeat*, not once per window. `livetime`/`deadtime` must be resolved
   (not `None`) before `compile()`. Consumers find their sequence by matching
   `frozenset(sequence.detectors)` (unique per window, enforced); they read,
   never compute.
@@ -456,12 +459,18 @@ branch.)
 1. `window.positions(float dt)`: `max_duration < dt` yields a zero-size
    chunk and loops forever — needs a guard (review finding).
 2. `Scan.number_of_events` (or per-stream) property.
-3. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
+3. `_bake_trigger_sequence` computes `num` from `exposures_per_collection`
+   alone, omitting `collections_per_event` — undercounts triggers whenever
+   `collections_per_event > 1` (currently untested: every `DetectorGroup` in
+   the test suite uses `collections_per_event=1`, masking the omission). Fix
+   is to use `exposures_per_event` throughout (§4.1); code and test fixes
+   pending.
+4. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
    `TriggerInfo` for `StandardDetector.prepare()`.
-4. `scanspec2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only —
+5. `scanspec2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only —
    not yet the full `from scanspec2 import core, specs` surface.
-5. Serialization test coverage is thin (smoke-test level).
-6. Auxiliary modules not ported (nice-to-have, in priority order):
+6. Serialization test coverage is thin (smoke-test level).
+7. Auxiliary modules not ported (nice-to-have, in priority order):
    `plot.py`, `cli.py` + `__main__.py`, `service.py`, `sphinxext.py`.
 
 **Intentionally dropped from 1.x** (rationale in ADR 0003): `Path`,
