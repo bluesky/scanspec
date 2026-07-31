@@ -504,10 +504,20 @@ def _truncate_trigger_sequence(
     Walks the sequential list, skipping fully-completed sequences and
     truncating the in-progress one.  ``detectors`` and ``children`` are
     carried unchanged.
+
+    Blank/spacer sequences (``livetime == 0.0``) are never counted and never
+    truncated -- they always pass through whole.  A gap only ever needs to be
+    *at least* as long as designed, never exactly that long, so replaying a
+    blank in full on resume (padded by whatever already elapsed before the
+    pause plus the real pause duration) can only lengthen the realized gap,
+    never shorten it below the intended minimum.
     """
     result: list[TriggerSequence[DetectorT]] = []
     remaining = trigger_index
     for seq in sequences:
+        if seq.trigger_repeat.livetime == 0.0:
+            result.append(seq)
+            continue
         num = seq.trigger_repeat.num
         if remaining <= 0:
             result.append(seq)

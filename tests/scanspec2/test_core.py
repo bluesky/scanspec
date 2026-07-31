@@ -199,6 +199,35 @@ def test_truncate_trigger_sequence():
     assert t8 == []
 
 
+def test_truncate_trigger_sequence_blank_replays_in_full():
+    burst1: TriggerSequence[str] = TriggerSequence(
+        frozenset({"det"}), TriggerRepeat(100, 0.003, 0.001), {}
+    )
+    blank: TriggerSequence[str] = TriggerSequence(
+        frozenset(), TriggerRepeat(1, 0.0, 50.0), {}
+    )
+    burst2: TriggerSequence[str] = TriggerSequence(
+        frozenset({"det"}), TriggerRepeat(200, 0.003, 0.001), {}
+    )
+    seqs: list[TriggerSequence[str]] = [burst1, blank, burst2]
+
+    # Pause anywhere in or after the blank (burst1 fully done, blank never
+    # counted) -> trigger_index=100 regardless of how far into the 50s blank
+    # the pause landed. The blank must survive whole, not be dropped or
+    # partially truncated, so the realized gap on resume is never shorter
+    # than the designed minimum.
+    result = _truncate_trigger_sequence(seqs, 100)
+    assert result == [blank, burst2]
+
+    # Pause mid-burst1 (60 of 100 done): burst1 truncates as normal, blank
+    # and burst2 downstream are untouched.
+    result_mid = _truncate_trigger_sequence(seqs, 60)
+    assert len(result_mid) == 3
+    assert result_mid[0].trigger_repeat.num == 40
+    assert result_mid[1] == blank
+    assert result_mid[2] == burst2
+
+
 def test_scan_dimension():
     import numpy as np
 
