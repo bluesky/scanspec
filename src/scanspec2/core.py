@@ -213,6 +213,11 @@ class WindowGenerator(Generic[AxisT]):
     def _fly_window(self, reverse: bool) -> Iterator[Window[AxisT, Any]]:
         """Yield a single fly-scan Window."""
         length = self.length
+        # Seconds per index step. Velocities and positions_fn are evaluated
+        # against the position function's own index domain (0..length), but
+        # must be reported/accepted in real seconds -- this is the conversion
+        # factor between the two.
+        seconds_per_index = self.duration if self.duration is not None else 1.0
         if reverse:
             start_i, end_i = float(length), 0.0
         else:
@@ -226,9 +231,11 @@ class WindowGenerator(Generic[AxisT]):
 
         for axis in self.setpoints(np.array([0.5])):
             s_vel = (_eval(start_i + eps, axis) - _eval(start_i - eps, axis)) / (
-                2 * eps
+                2 * eps * seconds_per_index
             )
-            e_vel = (_eval(end_i + eps, axis) - _eval(end_i - eps, axis)) / (2 * eps)
+            e_vel = (_eval(end_i + eps, axis) - _eval(end_i - eps, axis)) / (
+                2 * eps * seconds_per_index
+            )
             moving_axes[axis] = AxisMotion(
                 start_position=_eval(start_i, axis),
                 start_velocity=s_vel,
@@ -239,12 +246,10 @@ class WindowGenerator(Generic[AxisT]):
         setpoints_fn = self.setpoints
         sign = 1.0 if not reverse else -1.0
 
-        def positions_fn(indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
-            return setpoints_fn(start_i + indexes * sign)
+        def positions_fn(times: np.ndarray) -> dict[AxisT, np.ndarray]:
+            return setpoints_fn(start_i + (times / seconds_per_index) * sign)
 
-        duration = (
-            length * self.duration if self.duration is not None else float(length)
-        )
+        duration = length * seconds_per_index
         yield Window(
             static_axes={},
             moving_axes=moving_axes,

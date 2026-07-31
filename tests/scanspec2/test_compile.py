@@ -528,6 +528,59 @@ def test_fly_scan_forward_sweep_kinematics():
     assert am.end_velocity == pytest.approx(2.5)  # type: ignore[reportUnknownMemberType]
 
 
+def test_fly_scan_velocity_uses_real_seconds_not_index_units():
+    """AxisMotion velocities must be reported in real position-units-per-
+    second. A detector-derived per-point duration (0.004s, not the masking
+    default of 1.0s/index) is required to expose this: velocity computed per
+    index-step instead of per real second would be off by exactly
+    1/0.004 = 250x.
+    """
+    det = DetectorGroup(1, 1, 0.003, 0.001, ["det"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 100), fly=True, detectors=[det]
+    ).compile()  # type: ignore[reportArgumentType]
+    w = windows(sc)[0]
+    am = w.moving_axes["x"]
+
+    # Linspace(x, 0, 10, 100) fence-post: step = 10/99, spanning index -0.5..99.5
+    step = 10.0 / 99.0
+    expected_start_position = -step / 2
+    expected_end_position = expected_start_position + 100 * step
+    # window duration = 100 points * (0.003 + 0.001)s/point = 0.4s
+    expected_velocity = (expected_end_position - expected_start_position) / 0.4
+
+    assert am.start_position == pytest.approx(expected_start_position)  # type: ignore[reportUnknownMemberType]
+    assert am.end_position == pytest.approx(expected_end_position)  # type: ignore[reportUnknownMemberType]
+    assert am.start_velocity == pytest.approx(expected_velocity)  # type: ignore[reportUnknownMemberType]
+    assert am.end_velocity == pytest.approx(expected_velocity)  # type: ignore[reportUnknownMemberType]
+
+
+def test_window_positions_dt_maps_real_seconds_to_physical_position():
+    """window.positions(dt) samples at real time intervals and must return
+    the correct physical position at each -- not the position at index==dt.
+    """
+    det = DetectorGroup(1, 1, 0.003, 0.001, ["det"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 10.0, 100), fly=True, detectors=[det]
+    ).compile()  # type: ignore[reportArgumentType]
+    w = windows(sc)[0]
+    assert w.duration == pytest.approx(0.4)  # type: ignore[reportUnknownMemberType]
+
+    # Sample the whole 0.4s window in 4 real-time steps.
+    chunks = list(w.positions(w.duration / 4))
+    all_x = chunks[-1]["x"]
+    assert len(all_x) == 4
+
+    step = 10.0 / 99.0
+    expected_start_position = -step / 2
+    expected_end_position = expected_start_position + 100 * step
+    # First sample (t=0) must be at the physical start; last sample (t=0.4,
+    # the full duration) must be at the physical end -- not clustered near
+    # the start, which is what the index/time unit-confusion bug produced.
+    assert all_x[0] == pytest.approx(expected_start_position)  # type: ignore[reportUnknownMemberType]
+    assert all_x[-1] == pytest.approx(expected_end_position)  # type: ignore[reportUnknownMemberType]
+
+
 def test_fly_scan_snake_reverses_direction():
     sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Linspace("y", 0.0, 2.0, 2) * ~Linspace("x", 0.0, 10.0, 5), fly=True
