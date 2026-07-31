@@ -387,6 +387,18 @@ Principles (agreed, ADR 0007 context):
   `trigger_index` repeats truncated off its trigger sequences and its
   `duration` reduced accordingly. There is no rewind method and no mutable
   iterator state.
+- **Blank/spacer repeats (`livetime == 0.0`) never count toward
+  `trigger_index`, and are never truncated** — a pause landing anywhere in a
+  blank always replays it in full on resume. Gaps are minimum requirements
+  (detector readout/recovery time, or a ptychography spacing minimum), so
+  overshooting one (by whatever elapsed before the pause plus the pause
+  itself) is harmless, while undershooting it — which counting blanks would
+  risk, since resume could then skip the blank's unexecuted remainder — is
+  not. This assumes at most one blank between live bursts per window (§4.3
+  Assumption A1); a window with several blanks before the true resume point
+  would replay all of them, not just the one the pause landed in —
+  currently unreachable via `compile()`, worth revisiting if a
+  variable-spacing authoring surface is ever built (§11).
 - Intra-window resume works regardless of how many entries a window's
   `trigger_sequences` list contains — `_truncate_trigger_sequence` walks the
   flat list, counting completed root-level repeats across all of them. (This

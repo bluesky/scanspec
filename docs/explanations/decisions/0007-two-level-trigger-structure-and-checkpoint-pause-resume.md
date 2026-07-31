@@ -113,8 +113,17 @@ window for children to execute within.
 **scanspec2's role** is to define the unit of progress and the resume API:
 
 - Each root-level repeat of a `TriggerSequence`'s `trigger_repeat` is a
-  **checkpoint**. `trigger_index` counts completed root-level parent repeats
-  across all `TriggerSequence`s in the window.
+  **checkpoint**, except blank/spacer repeats (`livetime == 0.0`), which are
+  never counted and never truncated — a paused blank always replays in full
+  on resume. `trigger_index` counts completed *live* root-level parent
+  repeats across all `TriggerSequence`s in the window. Gaps are minimum
+  requirements, not exact durations, so overshooting a gap (however long
+  elapsed pre-pause, plus the pause itself) is harmless, while undershooting
+  it — which counting blanks would risk, since resume could then skip the
+  unexecuted remainder — is not. (Assumes at most one blank between live
+  bursts per window, per Assumption A1 — a window with several blanks before
+  the true resume point would replay all of them; currently unreachable via
+  `compile()`.)
 - `Scan.with_start(window, trigger_index)` returns a new `Scan` whose first
   window has the first `trigger_index` repeats removed, via
   `_truncate_trigger_sequence(sequences, trigger_index)`.
