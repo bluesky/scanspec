@@ -229,6 +229,14 @@ to execute one collection phase:
   active window (the 1.x-equivalent "positions at my detector frames").
 - Raises `RuntimeError` on step windows (no continuous trajectory).
 
+**Not yet implemented** (ADR 0007 Assumption A4): this signature is replaced
+with a plain `positions(times: np.ndarray) -> dict[axis, np.ndarray]`. All
+chunking, `max_duration`, and the `TriggerRepeat` overload are removed — the
+caller supplies explicit time instants and owns iteration entirely.
+Rationale: generating those instants (including any hardware-specific
+row/edge structure, e.g. PandA position-compare rows) is a consumer-layer
+concern, not something the hardware-agnostic `Window` model should encode.
+
 Gaps are out of scope for scanspec: consumers call an external
 `calculate_gap(from_pos, from_vel, to_pos, to_vel)` using the
 boundary kinematics of adjacent windows. Position functions are therefore
@@ -435,7 +443,12 @@ Three consumer classes, dispatchable from the `Scan` without iterating:
    needs position arrays.
 3. **Trajectory capable** (PMAC etc.) — consumes anything; streams
    `window.positions(dt=0.0002, max_duration=10.0)` chunks and bridges
-   windows with `calculate_gap`.
+   windows with `calculate_gap`. **Not yet implemented** (§8; ADR 0007
+   Assumption A4): this call site moves to `window.positions(times)`, where
+   the PMAC consumer itself generates the dense time array (still spaced at
+   the servo cycle, still bridged across windows via `calculate_gap`) —
+   `max_duration`-based chunking disappears along with the chunking logic
+   inside `positions()`.
 
 Worked examples of all of these plus the PandA sequence-table builder and
 pause/resume are in [API_SPEC.md](API_SPEC.md) §Consumption use cases, and
@@ -469,7 +482,12 @@ branch.)
 **Known gaps and defects**:
 
 1. `window.positions(float dt)`: `max_duration < dt` yields a zero-size
-   chunk and loops forever — needs a guard (review finding).
+   chunk and loops forever (review finding). **Resolution path changed**:
+   rather than adding a guard, this is obsoleted entirely once
+   `positions()`'s signature changes to `positions(times: np.ndarray)`
+   (ADR 0007 Assumption A4) — not yet implemented. `max_duration` and all
+   chunking logic are removed, so the zero-size-chunk failure mode has no
+   code path left to occur in.
 2. `Scan.number_of_events` (or per-stream) property.
 3. `_bake_trigger_sequence` computes `num` from `exposures_per_collection`
    alone, omitting `collections_per_event` — undercounts triggers whenever

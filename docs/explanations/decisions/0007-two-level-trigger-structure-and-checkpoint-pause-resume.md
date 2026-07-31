@@ -193,10 +193,15 @@ The two axes of PandA resource consumption are orthogonal:
    dataclasses. Remove `TriggerPattern` and `TriggerGroup`.
    `Window.trigger_groups` → `Window.trigger_sequences: list[TriggerSequence]`.
 
-2. **`Window.positions()`** (`core.py`): update signature from
-   `float | TriggerPattern` to `float | TriggerRepeat`. When a `TriggerRepeat`
-   is passed, compute trigger instants using the centred-livetime formula for
-   that repeat's `livetime` and `deadtime`.
+2. **`Window.positions()`** (`core.py`): current signature (already
+   implemented) is `positions(dt: float | TriggerRepeat, max_duration: float
+   | None = None)`. **Not yet implemented**: replace this with a plain
+   `positions(times: np.ndarray) -> dict[axis, np.ndarray]`. Drop the
+   `TriggerRepeat` branch, `max_duration`, and all internal chunking — the
+   caller supplies explicit time instants and owns iteration entirely. See
+   Assumption A4 for the rationale: generating those time instants (including
+   any PandA-specific row/edge structure) is a consumer-layer concern, not
+   something `Window.positions()` should know about.
 
 3. **`_truncate_trigger_sequence`** (`core.py`): walk the flat
    `list[TriggerSequence]`, accumulating `trigger_repeat.num` counts. Skip
@@ -262,3 +267,47 @@ reduces N checkpoints to one. A valid minimal encoding is a two-row sub-table
 `[gate_row (TRIGGER=BITB=1, REPEATS=1), data_row (TRIGGER=Immediate, REPEATS=1)]`
 iterated via the table-level `SEQ.REPEATS` field. The precise row layout is a
 PandA consumer implementation detail.
+
+### A4 — PandA position-compare row/edge encoding is a consumer-side concern, distinct from A3's BITB pause gate; it does not live in `Window.positions()`
+
+PandA's own SEQ position-compare encoding for the *N* live exposures within a
+window requires **N+1 table rows and 2N edges**, not a flat repeat of one row
+pattern: every exposure needs its own gate-open (HIGH) edge and gate-close
+(LOW) edge — 2N edges, unavoidable. Consecutive exposures share the boundary
+between them (the LOW that closes exposure *n* and the HIGH that opens
+exposure *n+1* land on the same row), so only the first and last edges are
+unpaired, giving 1 (opening, HIGH-only) + (N−1) (middle, LOW+HIGH each) + 1
+(closing, LOW-only) = N+1 rows:
+
+```
+windows:  /‾‾‾‾‾‾‾‾‾‾‾‾‾‾\/‾‾‾‾‾‾‾‾‾‾‾‾‾‾\/‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
+livetime: __‾‾‾‾‾‾‾‾‾‾‾‾____‾‾‾‾‾‾‾‾‾‾‾‾____‾‾‾‾‾‾‾‾‾‾‾‾__
+pcomp:      |           |               |               |
+action:     high        low+high        low+high        low
+```
+
+This row count is fixed by the structure of the gate signal itself — it is
+independent of whether livetime placement is centred (ADR 0006) or
+leading-edge; centred-livetime only changes *which numeric position* each row
+compares against, not how many rows/edges are structurally required.
+
+This is a **different mechanism from A3**. A3 is about the BITB pause gate —
+one gate row per root-level parent repeat, inserted purely so the consumer
+has somewhere to stall for pause/resume; it says nothing about how the
+detector's own exposure trigger is generated. A4 is about position-compare
+rows that generate the exposure gate itself (HIGH/LOW per frame), which exist
+regardless of whether pause/resume is in play at all. A reader should not
+conflate the two: A3 rows gate *pausing*, A4 rows gate *exposures*.
+
+Because this row/edge encoding is fundamentally PandA-hardware-specific — a
+PMAC consumer has no concept of "SEQ blocks" or position-compare rows at all,
+it just wants a dense position stream — it belongs in the hardware-specific
+consumer/driver layer (ophyd-async), not in scanspec's hardware-agnostic
+`Window`/`TriggerSequence` model. scanspec's job stays "what position is the
+axis at, at time T" — a pure function of the compiled spec — not "how does
+PandA's SEQ table format encode N trigger events." This is the rationale for
+the `Window.positions()` signature change described in Consequences item 2:
+the caller, not `Window.positions()`, now owns generating whatever row/edge
+instants its hardware needs and supplies them as an explicit time array.
+
+Not yet implemented — see Consequences item 2.
