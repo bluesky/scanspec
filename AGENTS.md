@@ -44,6 +44,18 @@ Branch flow: feature branches → PRs against `bluesky/scanspec:v2-dev` →
 - **`tests/scanspec2/test_use_cases.py` is the maintainer's file.** Never
   add, remove, or modify tests in it without explicit permission. Put your
   tests in `test_compile.py`, `test_core.py`, `test_specs.py`, etc.
+- **Assert real, independently-derived expected values — not just shape,
+  direction, or internal consistency.** A test that only checks
+  `len(...) > 0`, `a < b`, or that two derived quantities agree with each
+  other (e.g. `start_velocity == end_velocity`) will pass even if the
+  underlying computation is wrong by a constant factor or unit — it can
+  never catch a bug that scales or shifts every value equally. Derive the
+  expected value independently (by hand, from the spec/math), not by
+  running the implementation and asserting on its own output. See
+  `e2207568` for a concrete example: a velocity/position unit-conversion
+  bug survived undetected through the whole implementation because every
+  existing test either used a masking special case or asserted only
+  shape/consistency.
 
 ## Quality gates — all three must pass after every change
 
