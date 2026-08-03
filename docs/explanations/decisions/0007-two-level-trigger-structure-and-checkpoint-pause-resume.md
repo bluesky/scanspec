@@ -257,15 +257,19 @@ The parent `TriggerSequence.trigger_repeat` and its `children` both encode into 
 single SEQ block — no chained tables are required. The one-child-layer limit in
 this ADR is therefore structurally exact, not conservative.
 
-### A3 — SEQ encoding inserts one BITB gate row per root-level parent repeat
+### A3 — Pause gate ordering: position-compare first, then BITB; row-level structure not yet reconciled with A4
 
-The pause/resume guarantee for live rows (max latency = one root-level repeat
-period) requires a `TRIGGER=BITB=1` gate row before each root-level parent repeat.
-The consumer must not collapse N repeats into a single `REPEATS=N` SEQ row — that
-reduces N checkpoints to one. A valid minimal encoding is a two-row sub-table
-`[gate_row (TRIGGER=BITB=1, REPEATS=1), data_row (TRIGGER=Immediate, REPEATS=1)]`
-iterated via the table-level `SEQ.REPEATS` field. The precise row layout is a
-PandA consumer implementation detail.
+A PandA SEQ row supports only one trigger condition, so BITB cannot be
+combined with a position-compare condition on the same row. The current
+direction is to trigger on position first, then on BITB, as two sequential
+steps — the precise row/table structure this requires, and how it composes
+with A4's N+1-row exposure encoding, is not yet resolved.
+
+This choice affects only the PandA consumer/driver's row-generation logic.
+It does not change scanspec's API or data model: `Window.positions()`,
+`TriggerSequence`, `trigger_index`, and `Scan.with_start` are unaffected
+either way, since none of this row-level detail is represented in
+scanspec's code.
 
 ### A4 — PandA position-compare row/edge encoding is a consumer-side concern, distinct from A3's BITB pause gate; it does not live in `Window.positions()`
 
@@ -290,13 +294,15 @@ independent of whether livetime placement is centred (ADR 0006) or
 leading-edge; centred-livetime only changes *which numeric position* each row
 compares against, not how many rows/edges are structurally required.
 
-This is a **different mechanism from A3**. A3 is about the BITB pause gate —
-one gate row per root-level parent repeat, inserted purely so the consumer
-has somewhere to stall for pause/resume; it says nothing about how the
-detector's own exposure trigger is generated. A4 is about position-compare
-rows that generate the exposure gate itself (HIGH/LOW per frame), which exist
-regardless of whether pause/resume is in play at all. A reader should not
-conflate the two: A3 rows gate *pausing*, A4 rows gate *exposures*.
+This is a **related but distinct mechanism from A3**. A4 is about the
+position-compare rows that generate the exposure gate itself (HIGH/LOW per
+frame) — these exist regardless of whether pause/resume is in play at all.
+A3 is about how the BITB pause gate composes with those same rows once they
+exist: per A3, a single PandA SEQ row supports only one trigger condition,
+so pause-gating cannot be combined into A4's position-compare rows directly
+— the current direction is to trigger on position first, then BITB, as
+separate sequential steps. The exact row/table structure this composition
+requires is still open; see A3.
 
 Because this row/edge encoding is fundamentally PandA-hardware-specific — a
 PMAC consumer has no concept of "SEQ blocks" or position-compare rows at all,
