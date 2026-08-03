@@ -193,15 +193,14 @@ The two axes of PandA resource consumption are orthogonal:
    dataclasses. Remove `TriggerPattern` and `TriggerGroup`.
    `Window.trigger_groups` → `Window.trigger_sequences: list[TriggerSequence]`.
 
-2. **`Window.positions()`** (`core.py`): current signature (already
-   implemented) is `positions(dt: float | TriggerRepeat, max_duration: float
-   | None = None)`. **Not yet implemented**: replace this with a plain
-   `positions(times: np.ndarray) -> dict[axis, np.ndarray]`. Drop the
-   `TriggerRepeat` branch, `max_duration`, and all internal chunking — the
-   caller supplies explicit time instants and owns iteration entirely. See
-   Assumption A4 for the rationale: generating those time instants (including
-   any PandA-specific row/edge structure) is a consumer-layer concern, not
-   something `Window.positions()` should know about.
+2. **`Window.positions()`** (`core.py`): signature is
+   `positions(times: np.ndarray) -> dict[axis, np.ndarray]`. The
+   `TriggerRepeat` branch, `max_duration`, and all internal chunking are
+   gone — the caller supplies explicit time instants and owns iteration
+   entirely. See Assumption A4 for the rationale: generating those time
+   instants (including any PandA-specific row/edge structure) is a
+   consumer-layer concern, not something `Window.positions()` should know
+   about.
 
 3. **`_truncate_trigger_sequence`** (`core.py`): walk the flat
    `list[TriggerSequence]`, accumulating `trigger_repeat.num` counts. Skip
@@ -309,5 +308,3 @@ PandA's SEQ table format encode N trigger events." This is the rationale for
 the `Window.positions()` signature change described in Consequences item 2:
 the caller, not `Window.positions()`, now owns generating whatever row/edge
 instants its hardware needs and supplies them as an explicit time array.
-
-Not yet implemented — see Consequences item 2.

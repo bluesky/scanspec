@@ -221,21 +221,14 @@ to execute one collection phase:
 | `trigger_sequences` | Detector triggering for this window (§4). |
 | `previous: Window \| None` | One step back only — enough to compute the gap into this window. |
 
-`window.positions(dt, max_duration)` yields chunked
-`dict[axis, np.ndarray]` for the moving axes:
-
-- `dt: float` — positions at a fixed interval (servo-cycle rate).
-- `dt: TriggerRepeat` — one position per trigger instant, centred on each
-  active window (the 1.x-equivalent "positions at my detector frames").
-- Raises `RuntimeError` on step windows (no continuous trajectory).
-
-**Not yet implemented** (ADR 0007 Assumption A4): this signature is replaced
-with a plain `positions(times: np.ndarray) -> dict[axis, np.ndarray]`. All
-chunking, `max_duration`, and the `TriggerRepeat` overload are removed — the
-caller supplies explicit time instants and owns iteration entirely.
-Rationale: generating those instants (including any hardware-specific
-row/edge structure, e.g. PandA position-compare rows) is a consumer-layer
-concern, not something the hardware-agnostic `Window` model should encode.
+`window.positions(times: np.ndarray) -> dict[axis, np.ndarray]` returns
+positions for the moving axes at each given real-second time, computed
+directly (no chunking, no generator — the caller supplies exactly the times
+it wants and owns any iteration/chunking itself). Raises `RuntimeError` on
+step windows (no continuous trajectory). Generating those instants
+(including any hardware-specific row/edge structure, e.g. PandA
+position-compare rows, ADR 0007 Assumption A4) is a consumer-layer concern,
+not something the hardware-agnostic `Window` model encodes.
 
 Gaps are out of scope for scanspec: consumers call an external
 `calculate_gap(from_pos, from_vel, to_pos, to_vel)` using the
@@ -441,14 +434,11 @@ Three consumer classes, dispatchable from the `Scan` without iterating:
 2. **Linear-flyscan capable** (motor record) — asserts `not scan.non_linear`;
    uses `AxisMotion` boundary kinematics to compute ramp distances; never
    needs position arrays.
-3. **Trajectory capable** (PMAC etc.) — consumes anything; streams
-   `window.positions(dt=0.0002, max_duration=10.0)` chunks and bridges
-   windows with `calculate_gap`. **Not yet implemented** (§8; ADR 0007
-   Assumption A4): this call site moves to `window.positions(times)`, where
-   the PMAC consumer itself generates the dense time array (still spaced at
-   the servo cycle, still bridged across windows via `calculate_gap`) —
-   `max_duration`-based chunking disappears along with the chunking logic
-   inside `positions()`.
+3. **Trajectory capable** (PMAC etc.) — consumes anything; generates its own
+   servo-rate time array (e.g. 0.0002s spacing) and consumes it in
+   self-chosen chunks via `window.positions(times)`, bridging windows with
+   `calculate_gap`. Chunking is entirely the consumer's responsibility —
+   scanspec never materializes more than the times array it's given.
 
 Worked examples of all of these plus the PandA sequence-table builder and
 pause/resume are in [API_SPEC.md](API_SPEC.md) §Consumption use cases, and
@@ -466,41 +456,30 @@ All 2.0 code is in `src/scanspec2/` (tests in `tests/scanspec2/`); 1.x in
 `Polygon`, `Line`); all combinators; `Acquire`; serialization via dynamic
 discriminated union with out-of-package subclass support; centred-livetime
 semantics; the ADR 0007 trigger model (`TriggerRepeat`/`TriggerSequence`,
-`positions(float | TriggerRepeat)`, `Scan.active_stream_sets`) — this has
-fully replaced ADR 0005/0006's `TriggerPattern`/`TriggerGroup`, which no
-longer exist anywhere in the codebase; `with_start(window, trigger_index)`
+`positions(times: np.ndarray)`, `Scan.active_stream_sets`) — this has fully
+replaced ADR 0005/0006's `TriggerPattern`/`TriggerGroup`, which no longer
+exist anywhere in the codebase; `with_start(window, trigger_index)`
 checkpoint truncation resume via `_truncate_trigger_sequence`; compile-time
 validation that same-stream detector groups trigger at integer ratios of
 each other (story 4) — `_bake_trigger_sequence` checks that
 `parent_livetime / child_period` is (within floating tolerance) a whole
 number, in addition to the pre-existing checks that a child group's total
 duration fits within the parent livetime and that detector sets are
-disjoint. (ADR 0007's formal maintainer sign-off is still pending — see
-§9 — but the code and tests it describes are already in place on this
-branch.)
+disjoint; `num` is computed from `exposures_per_event`
+(`exposures_per_collection × collections_per_event`) throughout, not
+`exposures_per_collection` alone. (ADR 0007's formal maintainer sign-off is
+still pending — see §9 — but the code and tests it describes are already
+in place on this branch.)
 
 **Known gaps and defects**:
 
-1. `window.positions(float dt)`: `max_duration < dt` yields a zero-size
-   chunk and loops forever (review finding). **Resolution path changed**:
-   rather than adding a guard, this is obsoleted entirely once
-   `positions()`'s signature changes to `positions(times: np.ndarray)`
-   (ADR 0007 Assumption A4) — not yet implemented. `max_duration` and all
-   chunking logic are removed, so the zero-size-chunk failure mode has no
-   code path left to occur in.
-2. `Scan.number_of_events` (or per-stream) property.
-3. `_bake_trigger_sequence` computes `num` from `exposures_per_collection`
-   alone, omitting `collections_per_event` — undercounts triggers whenever
-   `collections_per_event > 1` (currently untested: every `DetectorGroup` in
-   the test suite uses `collections_per_event=1`, masking the omission). Fix
-   is to use `exposures_per_event` throughout (§4.1); code and test fixes
-   pending.
-4. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
+1. `Scan.number_of_events` (or per-stream) property.
+2. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
    `TriggerInfo` for `StandardDetector.prepare()`.
-5. `scanspec2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only —
+3. `scanspec2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only —
    not yet the full `from scanspec2 import core, specs` surface.
-6. Serialization test coverage is thin (smoke-test level).
-7. Auxiliary modules not ported (nice-to-have, in priority order):
+4. Serialization test coverage is thin (smoke-test level).
+5. Auxiliary modules not ported (nice-to-have, in priority order):
    `plot.py`, `cli.py` + `__main__.py`, `service.py`, `sphinxext.py`.
 
 **Intentionally dropped from 1.x** (rationale in ADR 0003): `Path`,
