@@ -555,9 +555,38 @@ def test_fly_scan_velocity_uses_real_seconds_not_index_units():
     assert am.end_velocity == pytest.approx(expected_velocity)  # type: ignore[reportUnknownMemberType]
 
 
-def test_window_positions_dt_maps_real_seconds_to_physical_position():
-    """window.positions(dt) samples at real time intervals and must return
-    the correct physical position at each -- not the position at index==dt.
+def test_fly_scan_reversed_velocity_has_correct_sign():
+    """AxisMotion velocity for a snake-reversed window must be negative when
+    position decreases with time, not just correct in magnitude. Requires a
+    detector-derived duration (not the masking 1.0s/index default) combined
+    with a reversed window -- the sign bug only manifested when both apply.
+    """
+    det = DetectorGroup(1, 1, 0.003, 0.001, ["det"])
+    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+        Product(Linspace("y", 0.0, 1.0, 2), ~Linspace("x", 0.0, 10.0, 100)),
+        fly=True,
+        detectors=[det],
+    ).compile()  # type: ignore[reportArgumentType]
+    ws = windows(sc)
+    assert len(ws) == 2
+
+    forward, reverse = ws[0].moving_axes["x"], ws[1].moving_axes["x"]
+    # Forward window: position increases with time -> positive velocity.
+    assert forward.start_position < forward.end_position
+    assert forward.start_velocity > 0
+    # Reversed window: position decreases with time -> negative velocity,
+    # not the same positive magnitude the pre-fix code reported.
+    assert reverse.start_position > reverse.end_position
+    assert reverse.start_velocity < 0
+    # Both windows traverse the same physical range at the same rate, so
+    # their velocities must be exact negatives of each other.
+    assert reverse.start_velocity == pytest.approx(-forward.start_velocity)  # type: ignore[reportUnknownMemberType]
+    assert reverse.end_velocity == pytest.approx(-forward.end_velocity)  # type: ignore[reportUnknownMemberType]
+
+
+def test_window_positions_times_maps_real_seconds_to_physical_position():
+    """window.positions(times) must return the correct physical position at
+    each given real-second time -- not the position at index==time.
     """
     det = DetectorGroup(1, 1, 0.003, 0.001, ["det"])
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
@@ -566,9 +595,9 @@ def test_window_positions_dt_maps_real_seconds_to_physical_position():
     w = windows(sc)[0]
     assert w.duration == pytest.approx(0.4)  # type: ignore[reportUnknownMemberType]
 
-    # Sample the whole 0.4s window in 4 real-time steps.
-    chunks = list(w.positions(w.duration / 4))
-    all_x = chunks[-1]["x"]
+    # Sample the whole 0.4s window at 4 real-time instants, caller-supplied.
+    times = np.linspace(0.0, w.duration, 4)
+    all_x = w.positions(times)["x"]
     assert len(all_x) == 4
 
     step = 10.0 / 99.0

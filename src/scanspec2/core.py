@@ -218,6 +218,7 @@ class WindowGenerator(Generic[AxisT]):
         # must be reported/accepted in real seconds -- this is the conversion
         # factor between the two.
         seconds_per_index = self.duration if self.duration is not None else 1.0
+        sign = 1.0 if not reverse else -1.0
         if reverse:
             start_i, end_i = float(length), 0.0
         else:
@@ -230,11 +231,19 @@ class WindowGenerator(Generic[AxisT]):
             return float(self.setpoints(np.array([i]))[ax][0])
 
         for axis in self.setpoints(np.array([0.5])):
-            s_vel = (_eval(start_i + eps, axis) - _eval(start_i - eps, axis)) / (
-                2 * eps * seconds_per_index
+            # d(position)/d(time) = d(position)/d(index) * d(index)/d(time).
+            # The position function is direction-agnostic (always increasing
+            # with index); d(index)/d(time) = sign / seconds_per_index is
+            # what actually carries the scan direction.
+            s_vel = (
+                (_eval(start_i + eps, axis) - _eval(start_i - eps, axis))
+                * sign
+                / (2 * eps * seconds_per_index)
             )
-            e_vel = (_eval(end_i + eps, axis) - _eval(end_i - eps, axis)) / (
-                2 * eps * seconds_per_index
+            e_vel = (
+                (_eval(end_i + eps, axis) - _eval(end_i - eps, axis))
+                * sign
+                / (2 * eps * seconds_per_index)
             )
             moving_axes[axis] = AxisMotion(
                 start_position=_eval(start_i, axis),
@@ -244,7 +253,6 @@ class WindowGenerator(Generic[AxisT]):
             )
 
         setpoints_fn = self.setpoints
-        sign = 1.0 if not reverse else -1.0
 
         def positions_fn(times: np.ndarray) -> dict[AxisT, np.ndarray]:
             return setpoints_fn(start_i + (times / seconds_per_index) * sign)
@@ -342,18 +350,8 @@ class Window(Generic[AxisT, DetectorT]):
         self.previous = previous
         self._positions_fn = positions_fn
 
-    def positions(
-        self, dt: float | TriggerRepeat, max_duration: float | None = None
-    ) -> Iterator[dict[AxisT, np.ndarray]]:
-        """Yield chunks of positions for the moving axes.
-
-        ``dt`` behaviour:
-        - ``float``: servo-rate positions, one point per ``dt`` index step.
-        - ``TriggerRepeat``: one position per trigger repeat, centred on each
-          active livetime window (``½·deadtime → livetime → ½·deadtime``).
-
-        ``max_duration`` limits how many positions are yielded per chunk
-        (None = yield all at once).
+    def positions(self, times: np.ndarray) -> dict[AxisT, np.ndarray]:
+        """Positions for the moving axes at each of the given real-second times.
 
         Raises RuntimeError if no position function was provided (step windows).
         """
@@ -362,37 +360,7 @@ class Window(Generic[AxisT, DetectorT]):
                 "No position function on this window "
                 "(step windows have no continuous trajectory)"
             )
-
-        if isinstance(dt, TriggerRepeat):
-            period = dt.livetime + dt.deadtime
-            n_total = dt.num
-            chunk = (
-                max(1, int(max_duration / period))
-                if max_duration is not None
-                else n_total
-            )
-            start = 0
-            while start < n_total:
-                end = min(start + chunk, n_total)
-                # One position per repeat, centred on the active window.
-                # Centre of the i-th repeat's livetime window falls at
-                # (i + 0.5) * period, since the ½·deadtime pre/post-delay
-                # is symmetric.
-                indexes = (np.arange(start, end, dtype=float) + 0.5) * period
-                yield self._positions_fn(indexes)
-                start = end
-            return
-
-        n_total = int(self.duration / dt) if dt > 0 else 1
-        chunk = (
-            int(max_duration / dt) if max_duration is not None and dt > 0 else n_total
-        )
-        start = 0
-        while start < n_total:
-            end = min(start + chunk, n_total)
-            indexes = np.linspace(start * dt, end * dt, end - start)
-            yield self._positions_fn(indexes)
-            start = end
+        return self._positions_fn(times)
 
 
 @dataclass

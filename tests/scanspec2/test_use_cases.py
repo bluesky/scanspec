@@ -45,7 +45,7 @@ def test_linspace_step_scan():
 
     # Step scan windows have no position function — positions() should error.
     with pytest.raises(RuntimeError, match="No position function"):
-        next(windows[0].positions(dt=1.0))
+        windows[0].positions(np.array([0.0]))
 
 
 def test_linspace_fly_scan():
@@ -77,11 +77,9 @@ def test_linspace_fly_scan():
     assert w.trigger_sequences == []
     assert w.previous is None
 
-    # Fly window positions: dt=1.0 → 5 points at integer indexes.
-    all_chunks = list(w.positions(dt=1.0))
-    assert len(all_chunks) == 1
-    full_x = np.concatenate([ch["x"] for ch in all_chunks])
-    # Positions at indexes [0,1,2,3,4]: boundary-to-boundary sweep
+    # Fly window positions: 5 points evenly spaced across the full duration
+    # (boundary-to-boundary sweep), caller-supplied times.
+    full_x = w.positions(np.linspace(0.0, w.duration, 5))["x"]
     assert full_x == approx([-0.125, 0.1875, 0.5, 0.8125, 1.125])
 
 
@@ -95,7 +93,7 @@ def test_spiral_step_scan():
 
     # Step scan windows should error on positions().
     with pytest.raises(RuntimeError, match="No position function"):
-        next(windows[0].positions(dt=1.0))
+        windows[0].positions(np.array([0.0]))
 
     x_pos = [w.static_axes["x"] for w in windows]
     y_pos = [w.static_axes["y"] for w in windows]
@@ -139,11 +137,10 @@ def test_spiral_fly_scan():
     assert w.moving_axes["y"].end_velocity == approx(2.586, abs=0.001)
 
     # Fly window should have a positions function for spiral trajectory.
-    # dt=1.0, duration=10.0 → 10 points in 1 chunk.
-    all_chunks = list(w.positions(dt=1.0))
-    assert len(all_chunks) == 1
-    full_x = np.concatenate([ch["x"] for ch in all_chunks])
-    full_y = np.concatenate([ch["y"] for ch in all_chunks])
+    # 10 points evenly spaced across the full duration, caller-supplied times.
+    result = w.positions(np.linspace(0.0, w.duration, 10))
+    full_x = result["x"]
+    full_y = result["y"]
     assert full_x == approx(
         [0.332, -0.981, -0.549, 0.946, 1.757, 1.255, -0.138, -1.590, -2.401, -2.259],
         abs=0.001,
@@ -464,8 +461,9 @@ def test_motor_record_fly():
 def test_pmac_trajectory_positions():
     """Use case 4: PMAC — consume window.positions() in servo-rate chunks.
 
-    Consumer calls window.positions(dt, max_duration) to get chunked
-    position arrays for the trajectory scan.
+    Consumer generates and consumes one chunk of times at a time -- never
+    materializes the full servo-rate array, matching real PMAC usage where
+    duration/dt could be very large.
     """
     spec: Acquire[str, str, Never] = Acquire(
         Product(Linspace("y", 0, 1, 2), ~Linspace("x", 0, 10, 100)),
@@ -478,16 +476,40 @@ def test_pmac_trajectory_positions():
 
     for i, window in enumerate(windows):
         assert "x" in window.moving_axes
+        motion = window.moving_axes["x"]
 
-        # Consume positions in chunks — emulates PMAC servo-rate loading
+        # Consumer generates one chunk of times at a time -- emulates PMAC
+        # servo-rate loading, 5 samples per chunk, never holding the whole
+        # servo-rate array in memory at once.
+        dt = 0.01
+        chunk_size = 5
+        n_total = int(window.duration / dt)
         all_x: list[np.ndarray] = []
-        for arrays in window.positions(dt=0.01, max_duration=0.05):
+        start = 0
+        while start < n_total:
+            end = min(start + chunk_size, n_total)
+            chunk_times = np.arange(start, end) * dt
+            arrays = window.positions(chunk_times)
             assert "x" in arrays
             all_x.append(arrays["x"])
-
-        # Concatenate all chunks — should cover the full sweep
+            start = end
         full_x = np.concatenate(all_x)
-        assert len(full_x) > 0
+
+        # Chunking must not drop or duplicate samples, and must match a
+        # single direct call over the same times exactly. (This full-array
+        # call is verification-only -- the loop above is the pattern being
+        # demonstrated, and never materializes more than one chunk.)
+        full_times = np.arange(n_total) * dt
+        assert len(full_x) == n_total
+        np.testing.assert_allclose(full_x, window.positions(full_times)["x"])
+
+        # This is a linear (constant-velocity) sweep, so position at any
+        # time is start_position + velocity * t -- checked independently of
+        # how positions() itself computes it, not just shape/direction.
+        assert full_x[0] == approx(motion.start_position)
+        assert motion.start_velocity == approx(motion.end_velocity)
+        expected_last = motion.start_position + motion.start_velocity * full_times[-1]
+        assert full_x[-1] == approx(expected_last)
 
         # X direction alternates due to snake
         if i == 0:

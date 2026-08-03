@@ -114,66 +114,43 @@ def test_window_previous():
     assert second.previous is first
 
 
-def test_window_positions_trigger_repeat():
+def test_window_positions_returns_dict_directly():
+    """positions(times) returns a plain dict, not a generator/chunks."""
     import numpy as np
 
-    tr = TriggerRepeat(num=10, livetime=0.009, deadtime=0.001)
-    ts = TriggerSequence(
-        detectors=frozenset({"det"}),
-        trigger_repeat=tr,
-        children={},
-    )
+    def pos_fn(times: np.ndarray) -> dict[str, np.ndarray]:
+        return {"x": times}
 
-    def pos_fn(indexes: np.ndarray) -> dict[str, np.ndarray]:
-        return {"x": indexes}
-
-    w = Window(
+    w: Window[str, Never] = Window(
         static_axes={},
         moving_axes={"x": AxisMotion(0.0, 1.0, 0.1, 1.0)},
         non_linear=False,
         duration=0.1,
-        trigger_sequences=[ts],
+        trigger_sequences=[],
         previous=None,
         positions_fn=pos_fn,
     )
 
-    chunks = list(w.positions(tr))
-    assert len(chunks) == 1
-    result = chunks[0]["x"]
-    expected = (np.arange(10) + 0.5) * 0.01
-    np.testing.assert_allclose(result, expected)
+    times = (np.arange(10) + 0.5) * 0.01
+    result = w.positions(times)
+    assert isinstance(result, dict)
+    np.testing.assert_allclose(result["x"], times)
 
 
-def test_window_positions_trigger_repeat_chunking():
+def test_window_positions_raises_without_positions_fn():
+    """positions() raises RuntimeError on step windows (no positions_fn)."""
     import numpy as np
 
-    tr = TriggerRepeat(num=100, livetime=0.009, deadtime=0.001)
-    ts = TriggerSequence(
-        detectors=frozenset({"det"}),
-        trigger_repeat=tr,
-        children={},
-    )
-
-    def pos_fn(indexes: np.ndarray) -> dict[str, np.ndarray]:
-        return {"x": indexes}
-
-    w = Window(
-        static_axes={},
-        moving_axes={"x": AxisMotion(0.0, 1.0, 1.0, 1.0)},
+    w: Window[str, Never] = Window(
+        static_axes={"x": 1.0},
+        moving_axes={},
         non_linear=False,
-        duration=1.0,
-        trigger_sequences=[ts],
+        duration=0.0,
+        trigger_sequences=[],
         previous=None,
-        positions_fn=pos_fn,
     )
-
-    # max_duration less than one repeat period → each chunk is 1 position
-    chunks = list(w.positions(tr, max_duration=0.005))
-    assert len(chunks) == 100
-    for i, chunk in enumerate(chunks):
-        assert len(chunk["x"]) == 1
-        expected = (i + 0.5) * 0.01
-        assert chunk["x"][0] == pytest.approx(expected)  # type: ignore[reportUnknownMemberType]
+    with pytest.raises(RuntimeError, match="step windows"):
+        w.positions(np.array([0.0]))
 
 
 def test_truncate_trigger_sequence():
