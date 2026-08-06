@@ -330,15 +330,18 @@ The `children` dict is **parallel** (keys fire simultaneously during each
 parent repeat); each value is a **sequential** `list[TriggerRepeat]`. Each
 child's total duration must be ≤ the parent livetime, and child detector sets
 must be disjoint from each other and the parent — all validated at compile
-time. The structure is fixed at **two levels** (parent + one child layer),
-which fits in a single PandA SEQ block.
+time. The structure is fixed at **two levels** (parent + one child layer).
+One parent plus one child fits in a single PandA SEQ block; each additional
+child requires an additional SEQ block — the SAXS/WAXS + Tetramm + PandA
+example above has two children, so it costs two SEQ blocks, not one.
 
 `Window.trigger_groups` becomes `Window.trigger_sequences` — an **ordered
 sequential list**; there are no parallel sibling streams within a window
 (no zipping of unrelated trigger streams with no common checkpoint base).
-Compiled specs produce a single-entry list, except for the variable-spacing
-spacer pattern (§4.2); longer multi-entry lists can also arise from manual
-`Window` construction.
+Compiled specs always produce a single-entry list — a spec-facing authoring
+surface for the variable-spacing spacer pattern (§4.2) is not required for
+2.0 (§2.5, §11) — so multi-entry lists, including that pattern, only arise
+via manual `Window` construction.
 
 ADR 0007 also adds `Scan.active_stream_sets: list[frozenset[str]]` — every
 combination of stream names simultaneously active in some window — so a
@@ -348,11 +351,14 @@ no detectors); `Concat`, `Product`, and `Zip` all union and deduplicate their
 children's lists; `Repeat` and `Snake` pass their single inner spec's value
 through unchanged. `Concat` of two same-named `Acquire`s dedupes to one
 singleton — confirmed by
-`test_active_stream_sets_concat_same_name_deduplicates`.
+`test_active_stream_sets_concat_same_name_deduplicates`. A SEQ block has 6
+outputs, so independent streams can reuse different outputs of the same
+block rather than each needing a separate one — up to 6 streams per block.
 
 This ADR is **not yet accepted**; see §9 and §11 for its review status. When
 accepted it supersedes ADR 0005 and the `positions(TriggerPattern)` signature
-of ADR 0006 (which becomes `positions(TriggerRepeat)`).
+of ADR 0006 — already superseded in code by `positions(times: np.ndarray)`
+(§3.3, ADR 0007 Assumption A4).
 
 ---
 
@@ -494,24 +500,24 @@ in place on this branch.)
   status *Tentative*. The centred-livetime substance is agreed and
   implemented; review wording corrections have been applied. In the code,
   ADR 0007's replacement has already landed — `TriggerPattern` no longer
-  exists, and `positions()` takes `float | TriggerRepeat` — even though
-  neither ADR's formal status reflects this yet. To be marked Accepted
-  (with the `positions()` argument-type description updated to
-  `TriggerRepeat`) after maintainer sign-off.
+  exists, and `positions()` takes `times: np.ndarray` (ADR 0007 Assumption
+  A4) — even though neither ADR's formal status reflects this yet. To be
+  marked Accepted (with the `positions()` argument-type description updated
+  to match) after maintainer sign-off.
 - **ADR 0007** (two-level trigger structure + checkpoint pause/resume):
   status *Proposed*. The structural decisions (`TriggerSequence` /
   `TriggerRepeat`, parallel children dict, two-level depth, sequential root
   list, forward-only resume, structural `active_stream_sets`) reflect
-  maintainer direction. The draft incorporates the maintainer's hardware
-  corrections: the checkpoint gate bit is **BITB** (BITA is already used for
-  motion-controller sync at window boundaries); stall detection polls the SEQ
-  block **STATE** field, not `TABLE_LINE`/`LINE_REPEAT`; **two trigger levels
-  fit in a single SEQ block** (no chained tables); and the SEQ encoding is
-  given as a concrete worked gate-row sub-table rather than the discarded
-  "collapse N repeats into one row" scenario. The pause hardware sequence
-  (abort-and-reload from checkpoint, §6) is now resolved. When 0007 is
-  accepted: mark **ADR 0005 as superseded by 0007**, and annotate ADR 0006
-  accordingly.
+  maintainer direction. The draft incorporates hardware corrections found
+  during review: the checkpoint gate bit is **BITB** (BITA is already used
+  for motion-controller sync at window boundaries); stall detection polls
+  the SEQ block **STATE** field, not `TABLE_LINE`/`LINE_REPEAT`; one parent
+  plus one child fits in a single SEQ block, and each additional child
+  requires an additional block (§4.3, Assumption A2); the SEQ row/trigger
+  encoding for pause-gating is still open (Assumption A3) rather than
+  settled. The pause hardware sequence (abort-and-reload from checkpoint,
+  §6) is now resolved. When 0007 is accepted: mark **ADR 0005 as superseded
+  by 0007**, and annotate ADR 0006 accordingly.
 
 ---
 

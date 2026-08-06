@@ -16,8 +16,9 @@ relationship to the master group, so there is no invariant linking their repeat
 counts at any checkpoint during the scan.
 
 This ADR supersedes ADR 0005. It also modifies ADR 0006: centred-livetime
-semantics are unchanged, but the `Window.positions()` argument type changes from
-`TriggerPattern` to `TriggerRepeat` (defined below).
+semantics are unchanged, but the `Window.positions()` argument changes to a
+plain `times: np.ndarray` (Assumption A4) — no longer `TriggerPattern`, and
+no longer the structured `TriggerRepeat` type defined below either.
 
 ## Decision
 
@@ -90,6 +91,17 @@ structural relationship to each other — they start at the same instant (the
 beginning of the parent livetime) but their individual trigger instants are
 independent.
 
+This configuration has two children (Tetramm, PandA), so it costs two SEQ
+blocks — one parent-plus-first-child pair, plus one more block for the
+second child (§5).
+
+If a detector needed to fire at a rate nested inside one of these children —
+e.g. an 80 kHz detector triggered within each Tetramm exposure — it would
+not be expressed as a child of a child. Since 80 kHz is still an integer
+multiple of the 100 Hz parent rate, its timing is computed directly against
+the parent's 9 ms livetime and added as a third parallel entry in the same
+`children` dict, not nested inside Tetramm's (A2).
+
 ### 3. Spacers for variable spacing
 
 `livetime = 0.0` on `trigger_repeat` is valid (per ADR 0006): it is a pure
@@ -161,7 +173,7 @@ at window boundaries. Key consumer behaviour:
 
 After stalling, the consumer aborts the sequence and reloads it from the
 checkpoint via `with_start`, rather than rewriting the remaining table in
-place while PandA holds on the gate row. This is a consumer implementation
+place while PandA holds mid-table. This is a consumer implementation
 decision; it does not affect the scanspec data model.
 
 ### 5. `Scan.active_stream_sets`
@@ -178,12 +190,17 @@ validate sequencer-table capacity up front without iterating windows.
 The two axes of PandA resource consumption are orthogonal:
 
 - **Nesting depth** (parent + children in a `TriggerSequence`) determines how
-  many SEQ block levels a single active set requires. This ADR fixes depth at
-  two (parent + one child layer), which fits in a single SEQ block.
+  many SEQ blocks a single active set requires: one parent plus one child
+  fits in a single SEQ block, and each additional child requires an
+  additional SEQ block. This ADR fixes depth at two (parent + one child
+  layer); the SAXS/WAXS + Tetramm + PandA example (§2) has two children, so
+  it costs two SEQ blocks, not one.
 - **Number of distinct simultaneous active sets** determines how many independent
   SEQ tables are needed across the full scan. A `Concat` of two differently-named
   streams produces two singleton sets — one table used alternately, not
-  simultaneously.
+  simultaneously. A SEQ block has 6 outputs, so independent streams can
+  reuse different outputs of the same block rather than each needing a
+  separate one — up to 6 streams per block.
 
 ## Consequences
 
@@ -240,22 +257,35 @@ The two axes of PandA resource consumption are orthogonal:
 
 ## Assumptions
 
-### A1 — `_bake_trigger_sequence` always produces a single-entry list; the spacer pattern has no authoring surface yet
+### A1 — Compiled specs always produce one `TriggerSequence`; the spacer pattern (Decision §3) has no way to be authored yet
 
-`_bake_trigger_sequence` always produces a single-entry `list[TriggerSequence]`
-per compiled window — it has no `DetectorGroup`-level input for the
-variable-spacing spacer pattern (Decision §3), so compiled specs cannot
-produce it. Multi-entry lists only arise via manual `Window` construction
-until a spec-facing authoring surface is added (out of scope for this ADR;
-see PRD §2.5, §11). `_truncate_trigger_sequence` and `_compute_duration` must
-still handle multi-entry lists correctly in all cases, since manually
-constructed `Window`s are a supported input to both.
+Today, `_bake_trigger_sequence` always produces a single-entry
+`list[TriggerSequence]` for a compiled window: it takes a flat
+`list[DetectorGroup]` and bakes it into one parent/children structure, with
+no way to express a *sequence* of several `TriggerSequence`s in one window.
+This means the variable-spacing spacer pattern from Decision §3 — which
+needs multiple `TriggerSequence` entries (burst, spacer, burst) — cannot be
+produced by `compile()` at all today.
 
-### A2 — Two nesting levels fit in a single PandA SEQ block
+The only way to get a multi-entry `list[TriggerSequence]` is to construct a
+`Window` by hand, bypassing `compile()` entirely. Adding a spec-facing way to
+author the spacer pattern is out of scope for this ADR (see PRD §2.5, §11).
+Even though compiled specs can't produce multi-entry lists yet,
+`_truncate_trigger_sequence` and `_compute_duration` must still handle them
+correctly, since manually constructed `Window`s are a supported input to
+both.
 
-The parent `TriggerSequence.trigger_repeat` and its `children` both encode into a
-single SEQ block — no chained tables are required. The one-child-layer limit in
-this ADR is therefore structurally exact, not conservative.
+### A2 — The one-child-layer limit exists for checkpointing, not SEQ block capacity
+
+Pause/resume needs a single top-level stream to checkpoint on (Decision §4).
+That requirement — not SEQ block capacity, which §5 covers separately — is
+why this ADR caps nesting at one child layer. Any deeper nesting is
+expressible within this structure: since every detector group fires at a
+fixed integer-multiple rate of the same top-level parent (Decision §2), a
+group that might conceptually sit two or more levels deep can always be
+re-derived directly against the parent's livetime and added as another
+entry in the same flat `children` dict, rather than nested inside another
+child.
 
 ### A3 — Pause gate ordering: position-compare first, then BITB; row-level structure not yet reconciled with A4
 
