@@ -500,15 +500,17 @@ in place on this branch.)
 ## 9. In-flight design changes
 
 - **ADR 0006** (centred livetime, originally `positions(TriggerPattern)`):
-  status *Tentative*. The centred-livetime substance is agreed and
-  implemented; review wording corrections have been applied. In the code,
-  ADR 0007's replacement has already landed — `TriggerPattern` no longer
-  exists, and `positions()` takes `times: np.ndarray` (ADR 0007 Assumption
-  A4) — even though neither ADR's formal status reflects this yet. To be
-  marked Accepted (with the `positions()` argument-type description updated
-  to match) after maintainer sign-off.
+  status **Accepted**. The centred-livetime substance (execution order,
+  `livetime=0.0` spacer validity) is settled and implemented, carried
+  forward unchanged into ADR 0007. Decision 3 (`positions()` argument type)
+  is already superseded in code — `TriggerPattern` no longer exists, and
+  `positions()` takes `times: np.ndarray` (ADR 0007 Assumption A4) — but
+  this can only be formally annotated on the ADR itself once ADR 0007 is
+  Accepted (still Proposed as of this writing); until then, Decision 3's
+  text is known-stale in practice but not yet marked as superseded.
 - **ADR 0007** (two-level trigger structure + checkpoint pause/resume):
-  status *Proposed*. The structural decisions (`TriggerSequence` /
+  status *Proposed (implementation substantially complete, pending
+  Assumption A3)*. The structural decisions (`TriggerSequence` /
   `TriggerRepeat`, parallel children dict, two-level depth, sequential root
   list, forward-only resume, structural `active_stream_sets`) reflect
   maintainer direction. The draft incorporates hardware corrections found

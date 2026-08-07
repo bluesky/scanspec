@@ -4,7 +4,7 @@ Date: 2026-06-26
 
 ## Status
 
-Proposed
+Proposed (implementation substantially complete, pending Assumption A3)
 
 ## Context
 

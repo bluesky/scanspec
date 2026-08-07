@@ -4,7 +4,7 @@ Date: 2026-04-23
 
 ## Status
 
-Accepted
+Accepted (partially superseded by ADR 0005)
 
 ## Context
 
