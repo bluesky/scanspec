@@ -11,8 +11,8 @@ Relationship to other documents:
 
 - **PRD.md** (this file) — requirements and current design intent. Authoritative.
 - **API_SPEC.md** — annotated code examples of the consumption API. Where the
-  two disagree, the *code* in `src/scanspec2/` plus this PRD reflect the most
-  recent decisions; API_SPEC.md is updated to match (see §10).
+  two disagree, the *code* in `src/scanspec/v2/` plus this PRD reflect the
+  most recent decisions; API_SPEC.md is updated to match (see §10).
 - **ADRs 0001–0005** — accepted decisions. **ADR 0006** is tentative,
   **ADR 0007** is proposed; both are incorporated here with their open points
   flagged (§9, §11).
@@ -39,8 +39,10 @@ streams, servo-rate positions without materialising the whole scan).
 
 scanspec 2.0 is a **breaking release**: no backwards compatibility for JSON
 specs or Python APIs. ophyd-async will be updated to the new API. JSON is the
-only serialization format (GraphQL deferred). 2.0 is developed in parallel in
-`src/scanspec2/`; on completion it replaces `src/scanspec/` (see §12).
+only serialization format (GraphQL deferred). 2.0 is developed as a nested
+submodule, `src/scanspec/v2/` (`import scanspec.v2`), alongside the
+unmodified 1.x package; it takes over the top-level `scanspec` name only at
+final 2.0 release (see §12 for the two-phase migration).
 
 ---
 
@@ -138,7 +140,7 @@ are separated by gaps. A step scan
 yields one window per point (e.g. 5000 windows); a flyscan yields one window
 per sweep (e.g. 50 row windows for a 50×100 grid).
 
-### 3.1 Construction (`src/scanspec2/specs.py`)
+### 3.1 Construction (`src/scanspec/v2/specs.py`)
 
 Motion is composed first, then `Acquire` attaches acquisition:
 
@@ -182,7 +184,7 @@ scan = spec.compile()
 - Out-of-package `Spec` subclasses are supported: the serialization union is
   rebuilt automatically whenever a `Spec` subclass is defined.
 
-### 3.2 The compiled `Scan` (`src/scanspec2/core.py`)
+### 3.2 The compiled `Scan` (`src/scanspec/v2/core.py`)
 
 `Scan` is the sole entry point for execution *and* analysis. Construction is
 O(spec complexity). It holds:
@@ -448,14 +450,15 @@ Three consumer classes, dispatchable from the `Scan` without iterating:
 
 Worked examples of all of these plus the PandA sequence-table builder and
 pause/resume are in [API_SPEC.md](API_SPEC.md) §Consumption use cases, and
-exercised in `tests/scanspec2/test_use_cases.py`.
+exercised in `tests/scanspec/v2/test_use_cases.py`.
 
 ---
 
 ## 8. Implementation status
 
-All 2.0 code is in `src/scanspec2/` (tests in `tests/scanspec2/`); 1.x in
-`src/scanspec/` is frozen as a reference. Integration branch: `v2-dev`.
+All 2.0 code is in `src/scanspec/v2/` (tests in `tests/scanspec/v2/`); 1.x
+in `src/scanspec/` (everything else) is frozen as a reference. Integration
+branch: `v2-dev`.
 
 **Implemented and passing**: all core data structures; all motion primitives
 (`Linspace`+`bounded`, `Static`, `Range`+`bounded`, `Spiral`, `Ellipse`,
@@ -482,8 +485,8 @@ in place on this branch.)
 1. `Scan.number_of_events` (or per-stream) property.
 2. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
    `TriggerInfo` for `StandardDetector.prepare()`.
-3. `scanspec2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only —
-   not yet the full `from scanspec2 import core, specs` surface.
+3. `scanspec/v2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only
+   — not yet the full `from scanspec.v2 import core, specs` surface.
 4. Serialization test coverage is thin (smoke-test level).
 5. Auxiliary modules not ported (nice-to-have, in priority order):
    `plot.py`, `cli.py` + `__main__.py`, `service.py`, `sphinxext.py`.
@@ -567,11 +570,25 @@ in place on this branch.)
 
 ## 12. End state (migration)
 
-When `src/scanspec2/` is feature-complete on `v2-dev` and all tests pass:
+Two phases, not one shot — this is deliberate, so ophyd-async can start
+integrating against the 2.0 API before 2.0 is ready to actually replace 1.x
+in production.
 
-1. Delete `src/scanspec/` (1.x) and its tests.
-2. Rename `src/scanspec2/` → `src/scanspec/` (and `tests/scanspec2/`),
-   updating `pyproject.toml` and imports.
+**Phase 1** (done): `src/scanspec2/` moved to `src/scanspec/v2/` — a
+submodule nested inside the existing, unmodified 1.x package
+(`import scanspec.v2`). 1.x is completely unaffected; nothing takes over
+the top-level `scanspec` name yet. Stays on `v2-dev`; merging to `main` is
+a separate, later decision, not part of this phase.
+
+**Phase 2** (later, once 2.0 is feature-complete on `v2-dev` and all tests
+pass):
+
+1. Move `src/scanspec/` (1.x, everything except `v2/`) to `src/scanspec/v1/`
+   (kept, not deleted — for consumers not yet migrated) and its tests
+   likewise.
+2. Promote `src/scanspec/v2/` to the top-level `src/scanspec/` (and
+   `tests/scanspec/v2/` to `tests/scanspec/`), updating `pyproject.toml` and
+   imports.
 3. Rewrite `docs/` for the 2.0 API; verify it reads well end-to-end.
 4. Delete the working documents (this PRD, API_SPEC.md) or fold their
    remaining content into `docs/`.

@@ -1,4 +1,4 @@
-"""Type-inference verification for the scanspec2 Acquire API.
+"""Type-inference verification for the scanspec.v2 Acquire API.
 
 Demonstrates that pyright infers ``DetectorT`` and ``MonitorT`` for
 ``Acquire[AxisT, DetectorT, MonitorT]`` from the constructor arguments, so
@@ -12,8 +12,8 @@ from __future__ import annotations
 
 from typing import Any, assert_type
 
-from scanspec2.core import DetectorGroup, MonitorStream
-from scanspec2.specs import Acquire, Linspace
+from scanspec.v2.core import DetectorGroup, MonitorStream
+from scanspec.v2.specs import Acquire, Linspace
 
 # ---------------------------------------------------------------------------
 # Inference assertions

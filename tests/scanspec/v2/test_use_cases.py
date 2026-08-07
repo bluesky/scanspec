@@ -1,4 +1,4 @@
-"""End-to-end use-case tests for scanspec2."""
+"""End-to-end use-case tests for scanspec.v2."""
 
 from __future__ import annotations
 
@@ -7,16 +7,16 @@ from typing import Never, cast
 import numpy as np
 import pytest
 
-from scanspec2.core import (
+from scanspec.v2.core import (
     ContinuousStream,
     DetectorGroup,
     MonitorStream,
     Scan,
     TriggerRepeat,
 )
-from scanspec2.specs import Acquire, Linspace, Product, Repeat, Spiral, Static
+from scanspec.v2.specs import Acquire, Linspace, Product, Repeat, Spiral, Static
 
-from .. import approx
+from ... import approx
 
 
 def test_linspace_step_scan():

@@ -697,7 +697,7 @@ spec_no_mon: Acquire[str, str, Never] = Acquire(
 )
 ```
 
-See `tests/scanspec2/test_type_inference.py` for pyright assertions.
+See `tests/scanspec/v2/test_type_inference.py` for pyright assertions.
 
 ### `spec.compile()` — producing `Scan`
 

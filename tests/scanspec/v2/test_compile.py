@@ -7,7 +7,7 @@ from typing import Any, Never
 import numpy as np
 import pytest
 
-from scanspec2.core import (
+from scanspec.v2.core import (
     AxisMotion,
     ConcatSource,
     DetectorGroup,
@@ -16,7 +16,7 @@ from scanspec2.core import (
     Window,
     WindowGenerator,
 )
-from scanspec2.specs import (
+from scanspec.v2.specs import (
     Acquire,
     Concat,
     Linspace,
@@ -316,7 +316,7 @@ def test_acquire_compile_fly_flag():
 
 
 def test_acquire_compile_continuous_streams_and_monitors():
-    from scanspec2.core import ContinuousStream, DetectorGroup, MonitorStream
+    from scanspec.v2.core import ContinuousStream, DetectorGroup, MonitorStream
 
     spec = Acquire(
         Linspace("x", 0.0, 10.0, 5),
@@ -364,7 +364,7 @@ def test_three_level_product():
 
 
 def test_maximal_example_dimensions():
-    from scanspec2.core import ContinuousStream, DetectorGroup, MonitorStream
+    from scanspec.v2.core import ContinuousStream, DetectorGroup, MonitorStream
 
     energy = Linspace("energy", 7.0, 7.1, 20)
     xy = Product(Linspace("y", 0.0, 5.0, 50), ~Linspace("x", 0.0, 10.0, 100))
@@ -988,7 +988,7 @@ def test_scan_has_moving_axes_step():
 
 
 def test_scan_non_linear_spiral():
-    from scanspec2.specs import Spiral
+    from scanspec.v2.specs import Spiral
 
     sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Spiral("x", 0, 5, 2, "y", 10, 10), fly=True
@@ -1008,10 +1008,10 @@ def test_anyspec_extension():
 
     from pydantic import TypeAdapter
 
-    from scanspec2.core import LinearSource as LinSrc
-    from scanspec2.core import Scan as Sc
-    from scanspec2.core import WindowGenerator as WinGen
-    from scanspec2.specs import AnySpec, Spec
+    from scanspec.v2.core import LinearSource as LinSrc
+    from scanspec.v2.core import Scan as Sc
+    from scanspec.v2.core import WindowGenerator as WinGen
+    from scanspec.v2.specs import AnySpec, Spec
 
     class CustomLinspace(Spec[str, Nv, Nv]):
         axis: str
@@ -1194,7 +1194,7 @@ def test_concat_previous_chain():
 
 
 def test_concat_rejects_continuous_streams():
-    from scanspec2.core import ContinuousStream
+    from scanspec.v2.core import ContinuousStream
 
     a: Acquire[str, str, Never] = Acquire(
         Linspace("x", 0, 1, 5),
@@ -1207,7 +1207,7 @@ def test_concat_rejects_continuous_streams():
 
 
 def test_concat_rejects_monitors():
-    from scanspec2.core import MonitorStream
+    from scanspec.v2.core import MonitorStream
 
     a: Acquire[str, Never, str] = Acquire(
         Linspace("x", 0, 1, 5),
@@ -1218,7 +1218,7 @@ def test_concat_rejects_monitors():
 
 
 def test_product_rejects_continuous_streams():
-    from scanspec2.core import ContinuousStream
+    from scanspec.v2.core import ContinuousStream
 
     a: Acquire[str, str, Never] = Acquire(
         Linspace("x", 0, 1, 5),
@@ -1231,7 +1231,7 @@ def test_product_rejects_continuous_streams():
 
 
 def test_zip_rejects_monitors():
-    from scanspec2.core import MonitorStream
+    from scanspec.v2.core import MonitorStream
 
     a: Acquire[str, Never, str] = Acquire(
         Linspace("x", 0, 1, 5),
@@ -1276,7 +1276,7 @@ def test_linspace_bounded_compile_symmetric():
 
 
 def test_range_compile_dimensions():
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     sc = Range("x", 0.0, 1.0, 0.25).compile()
     g = gens(sc)
@@ -1287,7 +1287,7 @@ def test_range_compile_dimensions():
 
 @pytest.mark.parametrize("step", [0.25, 0.25 + 1e-8])
 def test_range_setpoints_match_linspace(step: float) -> None:
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     sc_range = Range("x", 0.0, 1.0, step).compile()
     sc_linspace = Linspace("x", 0.0, 1.0, 5).compile()
@@ -1298,7 +1298,7 @@ def test_range_setpoints_match_linspace(step: float) -> None:
 
 
 def test_range_one_point():
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     # step > (stop - start) → only one midpoint at start
     sc = Range("x", 0.0, 1.0, 2.0).compile()
@@ -1310,7 +1310,7 @@ def test_range_one_point():
 
 def test_range_stop_not_on_grid():
     """Last setpoint should be start + (num-1)*step even if stop is mid-interval."""
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     # stop=1.1 is not a grid point; actual last midpoint is 0.0 + 2*0.5 = 1.0
     sc = Range("x", 0.0, 1.1, 0.5).compile()
@@ -1322,7 +1322,7 @@ def test_range_stop_not_on_grid():
 
 def test_range_descending_stop_not_on_grid():
     """Descending range: last point is start - (num-1)*step."""
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     # start=5, stop=2.5, step=1 → 3 points at 5, 4, 3 (not 2.5)
     sc = Range("x", 5.0, 2.5, 1.0).compile()
@@ -1334,7 +1334,7 @@ def test_range_descending_stop_not_on_grid():
 
 @pytest.mark.parametrize("step", [1.0, 1.0 + 1e-8])
 def test_range_two_points(step: float) -> None:
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     sc = Range("x", 0.0, 1.0, step).compile()
     assert gens(sc)[0].length == 2
@@ -1343,7 +1343,7 @@ def test_range_two_points(step: float) -> None:
 
 
 def test_range_snake_flag():
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     sc = (~Range("x", 0.0, 1.0, 0.25)).compile()
     assert gens(sc)[-1].snake is True
@@ -1356,7 +1356,7 @@ def test_range_snake_flag():
 
 @pytest.mark.parametrize("step", [0.25, 0.25 + 1e-8])
 def test_range_bounded_setpoints(step: float) -> None:
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     sc = Range.bounded("x", 0.0, 1.0, step).compile()
     g = gens(sc)
@@ -1376,7 +1376,7 @@ def test_range_bounded_setpoints(step: float) -> None:
 def test_range_bounded_one_point_setpoints(
     lower: float, upper: float, step: float, expected_mid: list[float]
 ) -> None:
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     sc = Range.bounded("x", lower, upper, step).compile()
     g = gens(sc)
@@ -1387,7 +1387,7 @@ def test_range_bounded_one_point_setpoints(
 
 def test_range_bounded_lower_equals_upper_compile():
     """lower == upper must produce exactly one point at that position."""
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     sc = Range.bounded("x", 7.0, 7.0, 0.5).compile()
     g = gens(sc)
@@ -1397,7 +1397,7 @@ def test_range_bounded_lower_equals_upper_compile():
 
 
 def test_line_compile_same_as_linspace():
-    from scanspec2.specs import Line
+    from scanspec.v2.specs import Line
 
     sc_line = Line("x", 0.0, 10.0, 5).compile()
     sc_linspace = Linspace("x", 0.0, 10.0, 5).compile()
@@ -1413,14 +1413,14 @@ def test_line_compile_same_as_linspace():
 
 
 def test_ellipse_compile_returns_single_generator():
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     sc = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0).compile()
     assert len(gens(sc)) == 1
 
 
 def test_ellipse_compile_point_count():
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     # x: [4.5, 5.0, 5.5], y: [-0.5, 0.0, 0.5] → 9-point grid, 5 inside ellipse
     sc = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0).compile()
@@ -1428,7 +1428,7 @@ def test_ellipse_compile_point_count():
 
 
 def test_ellipse_compile_all_points_inside():
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     sc = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0).compile()
     g = gens(sc)[0]
@@ -1444,14 +1444,14 @@ def test_ellipse_compile_all_points_inside():
 
 
 def test_ellipse_compile_axes_present():
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     sc = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0).compile()
     assert set(gens(sc)[0].axes) == {"x", "y"}
 
 
 def test_ellipse_compile_vertical_swaps_fast_slow():
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     # vertical=False: y is slow, x is fast → midpoints ordered by y first
     # vertical=True: x is slow, y is fast → midpoints ordered by x first
@@ -1467,14 +1467,14 @@ def test_ellipse_compile_vertical_swaps_fast_slow():
 
 
 def test_polygon_compile_returns_single_generator():
-    from scanspec2.specs import Polygon
+    from scanspec.v2.specs import Polygon
 
     sc = Polygon("x", "y", [(0, 0), (5, 0), (2.5, 4)], 1.0, 2.0).compile()
     assert len(gens(sc)) == 1
 
 
 def test_polygon_compile_triangle_point_count():
-    from scanspec2.specs import Polygon
+    from scanspec.v2.specs import Polygon
 
     # Triangle (0,0),(5,0),(2.5,4), x_step=1, y_step=2
     # y rows: 0, 2, 4; x cols: 0..5 → 7 masked points
@@ -1483,14 +1483,14 @@ def test_polygon_compile_triangle_point_count():
 
 
 def test_polygon_compile_axes_present():
-    from scanspec2.specs import Polygon
+    from scanspec.v2.specs import Polygon
 
     sc = Polygon("x", "y", [(0, 0), (5, 0), (2.5, 4)], 1.0, 2.0).compile()
     assert set(gens(sc)[0].axes) == {"x", "y"}
 
 
 def test_polygon_compile_square_all_inside():
-    from scanspec2.specs import Polygon
+    from scanspec.v2.specs import Polygon
 
     # Unit square [0,1]×[0,1], step=0.5 → 3×3=9 grid, all 9 are inside the square
     vertices = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)]

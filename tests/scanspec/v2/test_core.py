@@ -1,10 +1,10 @@
-"""Tests for scanspec2.core data structures."""
+"""Tests for scanspec.v2.core data structures."""
 
 from typing import Never
 
 import pytest
 
-from scanspec2.core import (
+from scanspec.v2.core import (
     AxisMotion,
     ContinuousStream,
     DetectorGroup,
