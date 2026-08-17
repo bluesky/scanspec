@@ -13,9 +13,9 @@ Relationship to other documents:
 - **API_SPEC.md** — annotated code examples of the consumption API. Where the
   two disagree, the *code* in `src/scanspec/v2/` plus this PRD reflect the
   most recent decisions; API_SPEC.md is updated to match (see §10).
-- **ADRs 0001–0005** — accepted decisions. **ADR 0006** is tentative,
-  **ADR 0007** is proposed; both are incorporated here with their open points
-  flagged (§9, §11).
+- **ADRs 0001–0007** — all accepted; see `docs/explanations/decisions/` for
+  supersession detail between them (several are partially or fully
+  superseded by later ADRs in the set).
 - Working documents (PRD.md, API_SPEC.md) are deleted or folded into `docs/`
   before the final 2.0 release; they exist for the development period.
 
@@ -286,7 +286,7 @@ the parent livetime and do not extend it; an explicit `Acquire(duration=...)`
 must be ≥ the derived value. Detector-less step scans have `duration = 0`;
 detector-less fly scans require a supplied duration.
 
-### 4.2 Centred livetime (ADR 0006 — tentative, agreed in substance)
+### 4.2 Centred livetime (ADR 0006 — accepted)
 
 Execution order of each repeat is **`½·deadtime → livetime → ½·deadtime`**,
 not `livetime → deadtime`. This centres the detector's active window on the
@@ -306,7 +306,7 @@ intra-burst deadtime — the ptychography pattern, expressed as a list of
  TriggerSequence(dets,         TriggerRepeat(N2, livetime2, deadtime), {})]  # second burst
 ```
 
-### 4.3 The two-level trigger structure (ADR 0007 — proposed)
+### 4.3 The two-level trigger structure (ADR 0007 — accepted)
 
 Sibling `TriggerGroup`s at integer-multiple rates have no structural link —
 nothing ties "100 SAXS frames" to "7200 Tetramm samples" during the scan.
@@ -357,10 +357,8 @@ singleton — confirmed by
 outputs, so independent streams can reuse different outputs of the same
 block rather than each needing a separate one — up to 6 streams per block.
 
-This ADR is **not yet accepted**; see §9 and §11 for its review status. When
-accepted it supersedes ADR 0005 and the `positions(TriggerPattern)` signature
-of ADR 0006 — already superseded in code by `positions(times: np.ndarray)`
-(§3.3, ADR 0007 Assumption A4).
+This ADR supersedes ADR 0005 and the `positions(TriggerPattern)` signature
+of ADR 0006 (§3.3, ADR 0007 Assumption A4).
 
 ---
 
@@ -476,9 +474,8 @@ number, in addition to the pre-existing checks that a child group's total
 duration fits within the parent livetime and that detector sets are
 disjoint; `num` is computed from `exposures_per_event`
 (`exposures_per_collection × collections_per_event`) throughout, not
-`exposures_per_collection` alone. (ADR 0007's formal maintainer sign-off is
-still pending — see §9 — but the code and tests it describes are already
-in place on this branch.)
+`exposures_per_collection` alone. ADR 0007 is Accepted (§9); the code and
+tests it describes are in place on this branch.
 
 **Known gaps and defects**:
 
@@ -497,32 +494,17 @@ in place on this branch.)
 
 ---
 
-## 9. In-flight design changes
+## 9. ADR review status
 
-- **ADR 0006** (centred livetime, originally `positions(TriggerPattern)`):
-  status **Accepted**. The centred-livetime substance (execution order,
-  `livetime=0.0` spacer validity) is settled and implemented, carried
-  forward unchanged into ADR 0007. Decision 3 (`positions()` argument type)
-  is already superseded in code — `TriggerPattern` no longer exists, and
-  `positions()` takes `times: np.ndarray` (ADR 0007 Assumption A4) — but
-  this can only be formally annotated on the ADR itself once ADR 0007 is
-  Accepted (still Proposed as of this writing); until then, Decision 3's
-  text is known-stale in practice but not yet marked as superseded.
-- **ADR 0007** (two-level trigger structure + checkpoint pause/resume):
-  status *Proposed (implementation substantially complete, pending
-  Assumption A3)*. The structural decisions (`TriggerSequence` /
-  `TriggerRepeat`, parallel children dict, two-level depth, sequential root
-  list, forward-only resume, structural `active_stream_sets`) reflect
-  maintainer direction. The draft incorporates hardware corrections found
-  during review: the checkpoint gate bit is **BITB** (BITA is already used
-  for motion-controller sync at window boundaries); stall detection polls
-  the SEQ block **STATE** field, not `TABLE_LINE`/`LINE_REPEAT`; one parent
-  plus one child fits in a single SEQ block, and each additional child
-  requires an additional block (§4.3, Assumption A2); the SEQ row/trigger
-  encoding for pause-gating is still open (Assumption A3) rather than
-  settled. The pause hardware sequence (abort-and-reload from checkpoint,
-  §6) is now resolved. When 0007 is accepted: mark **ADR 0005 as superseded
-  by 0007**, and annotate ADR 0006 accordingly.
+ADR 0006 and ADR 0007 are both **Accepted**, with no open review items.
+ADR 0005 is superseded by ADR 0007; ADR 0006 Decision 3 (`positions()`
+argument type) is superseded by ADR 0007 in the same pass; ADR 0003
+Decisions #1/#2/#5 are likewise superseded by ADR 0007. See
+`docs/explanations/decisions/` for the full supersession detail and each
+ADR's own Assumptions section for what remains genuinely open at the
+implementation level (e.g. ADR 0007 Assumption A5: `TriggerRepeat`
+`livetime`/`deadtime` need to regain the unresolved-value support their
+ADR 0005 predecessor had).
 
 ---
 
@@ -547,16 +529,12 @@ in place on this branch.)
 
 1. Does pause/resume ever need an *end* point as well as a start point?
    (Raised during design; unresolved, currently assumed not.)
-2. **User-facing surface for variable-spacing trigger patterns**: not
-   required for 2.0 (§2.5) — only the compiled `TriggerSequence`/
-   `TriggerRepeat` structure needs to be able to express it. If a
-   `DetectorGroup`/`Acquire` authoring surface is added later, candidate
-   shapes include a short, fixed, tileable pattern (repeats identically
-   across the window), a fully arbitrary explicit per-exposure list, or a
-   third shape from an earlier design (leading/trailing half-gap spacers
-   around uniform middle frames, see `CONTEXT.adr.260513.md`) that differs
-   from the burst-spacer-burst example in §4.2. Left open for whenever that
-   surface is actually built.
+2. ~~User-facing surface for variable-spacing trigger patterns~~ **Resolved:
+   not needed.** The compiled `TriggerSequence`/`TriggerRepeat` structure
+   must be able to express it (already true via manual `Window`
+   construction, §4.3), but no dedicated `DetectorGroup`/`Acquire` authoring
+   surface is required — hand-built `Window`s remain the accepted way to
+   construct this pattern.
 3. **Does a child `DetectorGroup`'s `livetime` already exclude its own
    `deadtime` when sized against the parent's livetime slot?** The §3.1
    worked example (`DetectorGroup(10, 1, 0.0003, 8e-9, ...)` against a
@@ -565,8 +543,10 @@ in place on this branch.)
    "child duration ≤ parent livetime" rule: `10 × (0.0003+8e-9) =
    0.00300008` exceeds `0.003`. Tests currently assume the former (child
    livetime is sized as `parent_livetime/ratio − deadtime`, e.g.
-   `0.000299992`); the §3.1 example itself has not been corrected pending
-   maintainer confirmation.
+   `0.000299992`). Not corrected yet — pending the `Acquire`
+   authoring-surface redesign, since `_bake_trigger_sequence`'s
+   auto-derivation (the source of this artifact) is being replaced (§9
+   Assumption A5 covers the related `livetime`/`deadtime` gap).
 
 ---
 

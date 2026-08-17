@@ -4,7 +4,9 @@ Date: 2026-05-13
 
 ## Status
 
-Accepted
+Accepted (partially superseded by ADR 0007)
+
+- Decision 3 (`Window.positions()` accepts `float | TriggerPattern`) — superseded by ADR 0007.
 
 ## Context
 

@@ -7,11 +7,12 @@
 - **`API_SPEC.md`** — annotated consumption-API examples. Partially stale
   (see PRD §10); where it disagrees with `src/scanspec/v2/` + PRD, the
   latter win.
-- **`docs/explanations/decisions/`** — ADRs. 0001–0006 accepted (0006's
-  Decision 3, the `positions()` argument type, is superseded in code by
-  ADR 0007 already — pending 0007's own acceptance to formalize that);
-  0007 proposed, implementation substantially complete pending Assumption
-  A3 (PRD §9). Do not treat 0007 as settled.
+- **`docs/explanations/decisions/`** — ADRs. 0001–0007 all accepted; several
+  are partially or fully superseded by later ADRs in the set (0003, 0005,
+  0006 — see each file's own Status field). ADR 0007's own Assumptions
+  section flags what's still genuinely open at the implementation level
+  (e.g. A5: `TriggerRepeat` `livetime`/`deadtime` need to regain the
+  unresolved-value support their ADR 0005 predecessor had — PRD §9).
 
 ## Repository structure
 

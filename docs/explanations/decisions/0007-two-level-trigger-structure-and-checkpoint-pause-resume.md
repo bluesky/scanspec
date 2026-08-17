@@ -4,7 +4,7 @@ Date: 2026-06-26
 
 ## Status
 
-Proposed (implementation substantially complete, pending Assumption A3)
+Accepted
 
 ## Context
 
@@ -287,13 +287,22 @@ re-derived directly against the parent's livetime and added as another
 entry in the same flat `children` dict, rather than nested inside another
 child.
 
-### A3 — Pause gate ordering: position-compare first, then BITB; row-level structure not yet reconciled with A4
+### A3 — Pause gate composes with position-compare as separate, interleaved rows; exact row/table structure is a consumer-side concern
 
 A PandA SEQ row supports only one trigger condition, so BITB cannot be
-combined with a position-compare condition on the same row. The current
-direction is to trigger on position first, then on BITB, as two sequential
-steps — the precise row/table structure this requires, and how it composes
-with A4's N+1-row exposure encoding, is not yet resolved.
+combined with a position-compare condition on the same row. Repeats also
+cannot be rolled into a single `REPEATS=N` row for this purpose — the pause
+gate must be checked on every repeat, not just once at the end of a
+collapsed block of them. The direction is to trigger on position first, then
+on BITB, as two separate, interleaved rows.
+
+The precise row/table structure this produces — exactly how many rows it
+costs beyond A4's N+1, which edges get an interleaved BITB check, and how it
+interacts with the per-child SEQ-block-capacity accounting in §5 — is **not**
+something scanspec or this ADR needs to resolve. It is the not-yet-written
+ophyd-async PandA driver's job; scanspec's obligation stops at documenting
+the constraint (separate interleaved rows, checked per repeat, not
+collapsible) clearly enough for that implementation to be built correctly.
 
 This choice affects only the PandA consumer/driver's row-generation logic.
 It does not change scanspec's API or data model: `Window.positions()`,
@@ -330,9 +339,10 @@ frame) — these exist regardless of whether pause/resume is in play at all.
 A3 is about how the BITB pause gate composes with those same rows once they
 exist: per A3, a single PandA SEQ row supports only one trigger condition,
 so pause-gating cannot be combined into A4's position-compare rows directly
-— the current direction is to trigger on position first, then BITB, as
-separate sequential steps. The exact row/table structure this composition
-requires is still open; see A3.
+— the direction is to trigger on position first, then BITB, as separate,
+interleaved rows, checked on every repeat. The exact row/table
+structure this composition requires is a consumer-side (ophyd-async PandA
+driver) concern, not something this ADR resolves; see A3.
 
 Because this row/edge encoding is fundamentally PandA-hardware-specific — a
 PMAC consumer has no concept of "SEQ blocks" or position-compare rows at all,
@@ -344,3 +354,24 @@ PandA's SEQ table format encode N trigger events." This is the rationale for
 the `Window.positions()` signature change described in Consequences item 2:
 the caller, not `Window.positions()`, now owns generating whatever row/edge
 instants its hardware needs and supplies them as an explicit time array.
+
+### A5 — `TriggerRepeat.livetime`/`deadtime` do not yet support unresolved values, unlike their ADR 0005 predecessor
+
+ADR 0005's `TriggerPattern.livetime`/`deadtime` were `float | None`, with
+`None` meaning the value is not yet known at authoring time and must be
+filled in by a downstream process (e.g. ophyd-async, which has visibility
+into a device's real limits) before `compile()` — `compile()` raised if
+either was still `None`. `TriggerRepeat.livetime`/`deadtime` (Decision §1)
+carry this forward as plain `float`, with no equivalent unresolved-value
+representation.
+
+This is a gap, not an intentional narrowing: nothing in this ADR's Context
+or Decision revisits or retracts ADR 0005's requirement, and `thoughts.md`'s
+original statement of the requirement ("we still need the ability to just
+specify duration and ophyd will fill in livetime and deadtime from it")
+covers both fields, not only `deadtime`. Restoring `float | None` parity —
+or an equivalent unresolved-value representation suited to the two-level
+`TriggerRepeat`/`TriggerSequence` structure — is unresolved and needs to be
+addressed before the `Acquire` authoring-surface redesign lands (Decision
+§1 and Consequences), since that redesign is exactly where a caller-supplied
+`TriggerSequence` would need to carry not-yet-resolved timing values.

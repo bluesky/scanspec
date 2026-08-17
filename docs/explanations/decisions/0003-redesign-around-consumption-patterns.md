@@ -4,7 +4,10 @@ Date: 2026-04-23
 
 ## Status
 
-Accepted (partially superseded by ADR 0005)
+Accepted (partially superseded by ADR 0007)
+
+- Decisions #1/#2 (`Window.trigger_groups`, baked `TriggerPattern` timing) — superseded by ADR 0007.
+- Decision #5 (`with_start(window, time)`) — superseded by ADR 0007.
 
 ## Context
 
