@@ -59,6 +59,8 @@ from .core import (
     TriggerSequence,
     WindowedStream,
     WindowGenerator,
+    trigger_sequences_duration,
+    validate_trigger_sequence,
 )
 
 AxisT = TypeVar("AxisT")
@@ -331,7 +333,7 @@ class Range(Spec[AxisT, Never, Never]):
         step = abs(self.step)
         distance = abs(self.stop - self.start)
         num = int(distance // step) + 1
-        if np.isclose(step * num, distance):
+        if isclose(step * num, distance, rel_tol=1e-5, abs_tol=1e-8):
             num = num + 1
         return num
 
@@ -826,6 +828,37 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
             "trigger timing. For step scans without detectors, defaults to 0."
         ),
     )
+    trigger_sequence: TriggerSequence[DetectorT] | None = Field(
+        default=None,
+        description=(
+            "Caller-supplied trigger hierarchy for the windowed stream, "
+            "used as-is instead of auto-deriving one from `detectors`. "
+            "Required when `detectors` has more than one DetectorGroup -- "
+            "which one becomes the parent is otherwise ambiguous. "
+            "`detectors` is still required alongside it (arming-time "
+            "description); the two are cross-checked for the same "
+            "detector set, not derived from each other."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _validate_trigger_sequence_detectors_match(self) -> Self:
+        """If trigger_sequence is given, its detectors must match `detectors`."""
+        if self.trigger_sequence is None:
+            return self
+        from_detectors = {d for dg in self.detectors for d in dg.detectors}
+        from_sequence = set(self.trigger_sequence.detectors)
+        for child_det in self.trigger_sequence.children:
+            from_sequence |= set(child_det)
+        if from_detectors != from_sequence:
+            raise ValueError(
+                f"detectors and trigger_sequence describe different "
+                f"detector sets: only in detectors="
+                f"{sorted(str(d) for d in from_detectors - from_sequence)}, "
+                f"only in trigger_sequence="
+                f"{sorted(str(d) for d in from_sequence - from_detectors)}"
+            )
+        return self
 
     @model_validator(mode="after")
     def _validate_unique_detectors(self) -> Self:
@@ -857,7 +890,11 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile into a Scan with detector groups and generators."""
         scan = self.spec.compile()
-        trigger_sequences = self._bake_trigger_sequence(scan.generators)
+        if self.trigger_sequence is not None:
+            validate_trigger_sequence(self.trigger_sequence)
+            trigger_sequences = [self.trigger_sequence]
+        else:
+            trigger_sequences = self._bake_trigger_sequence(scan.generators)
         duration = self._compute_duration(trigger_sequences, scan.generators)
         if scan.generators:
             last = scan.generators[-1]
@@ -894,124 +931,39 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
         self,
         gens: list[WindowGenerator[AxisT]],
     ) -> list[TriggerSequence[DetectorT]]:
-        """Convert DetectorGroups into a single TriggerSequence.
+        """Wrap a single DetectorGroup into a trivial TriggerSequence.
 
-        The slowest-rate group becomes the parent; groups at the same rate
-        merge into the parent detector set; faster-rate groups become
-        children that fire during each parent livetime.  Different children
-        fire simultaneously; each child's own list of TriggerRepeats
-        executes sequentially.
+        Only handles the unambiguous case: zero or one DetectorGroup, where
+        there is no hierarchy decision to make.  With more than one, which
+        detector becomes the parent is ambiguous -- supply
+        ``Acquire(trigger_sequence=...)`` explicitly instead of relying on
+        auto-derivation.
         """
         if not self.detectors:
             return []
+        if len(self.detectors) > 1:
+            raise ValueError(
+                "Acquire.detectors has more than one DetectorGroup; which "
+                "one should become the trigger-sequence parent is "
+                "ambiguous. Supply Acquire(trigger_sequence=...) "
+                "explicitly instead."
+            )
+        dg = self.detectors[0]
+        lt = dg.livetime
+        dt = dg.deadtime
+        if lt is None or dt is None:
+            raise ValueError(
+                f"livetime and deadtime must be set on DetectorGroup "
+                f"before compile(); got livetime={lt}, deadtime={dt}"
+            )
         inner_length = gens[-1].length if gens else 1
         fly = self.fly and bool(gens)
-
-        # Resolve timing and compute num + total duration per group.
-        # For the parent, num is the total across the window (inner_length ×
-        # exposures_per_event for fly).  For children, num is per parent
-        # repeat (exposures_per_event only), since children fire during
-        # each parent livetime.
-        resolved: list[tuple[DetectorGroup[DetectorT], int, float, float, float]] = []
-        for dg in self.detectors:
-            lt = dg.livetime
-            dt = dg.deadtime
-            if lt is None or dt is None:
-                raise ValueError(
-                    f"livetime and deadtime must be set on DetectorGroup "
-                    f"before compile(); got livetime={lt}, "
-                    f"deadtime={dt}"
-                )
-            total_num = (
-                inner_length * dg.exposures_per_event if fly else dg.exposures_per_event
-            )
-            total_dur = total_num * (lt + dt)
-            resolved.append((dg, total_num, total_dur, lt, dt))
-
-        # Longest total duration = parent (slowest rate)
-        parent_dg, parent_num, parent_total_dur, parent_lt, parent_dt = max(
-            resolved, key=lambda x: x[2]
-        )
-        parent_detectors: set[DetectorT] = set(parent_dg.detectors)
-        children: dict[frozenset[DetectorT], list[TriggerRepeat]] = {}
-
-        for dg, _, total_dur, lt, dt in resolved:
-            if dg is parent_dg:
-                continue
-            same_rate = isclose(
-                total_dur, parent_total_dur, rel_tol=1e-9, abs_tol=1e-12
-            )
-            if lt == parent_lt and dt == parent_dt and same_rate:
-                # Same timing and same rate → merge into parent
-                merged = set(dg.detectors)
-                overlap = parent_detectors & merged
-                if overlap:
-                    raise ValueError(
-                        f"Duplicate detector(s) {sorted(str(d) for d in overlap)} "
-                        f"in same-rate groups"
-                    )
-                parent_detectors |= merged
-            elif same_rate:
-                # Same rate but different timing → cannot share a parent
-                raise ValueError(
-                    f"DetectorGroup with detectors "
-                    f"{sorted(str(d) for d in dg.detectors)} has the same "
-                    f"total duration as the parent but different "
-                    f"livetime/deadtime ({lt}/{dt} vs "
-                    f"{parent_lt}/{parent_dt})"
-                )
-            else:
-                # Faster rate → parallel child.
-                # Child num is per parent repeat (exposures_per_event),
-                # not multiplied by inner_length.
-                child_num = dg.exposures_per_event
-                child_det = frozenset(dg.detectors)
-                overlap = parent_detectors & set(dg.detectors)
-                if overlap:
-                    raise ValueError(
-                        f"Detector(s) {sorted(str(d) for d in overlap)} appear "
-                        f"in both parent and child groups"
-                    )
-                for existing in children:
-                    if child_det & existing:
-                        raise ValueError(
-                            f"Child detector sets overlap: "
-                            f"{sorted(str(d) for d in child_det & existing)}"
-                        )
-                child_period = lt + dt
-                ratio = parent_lt / child_period
-                if not isclose(ratio, round(ratio), rel_tol=1e-3, abs_tol=1e-6):
-                    raise ValueError(
-                        f"Child detector(s) {sorted(str(d) for d in dg.detectors)} "
-                        f"do not trigger at an integer ratio of the parent rate: "
-                        f"parent_livetime {parent_lt} / child_period "
-                        f"{child_period} = {ratio}"
-                    )
-                child_repeats = [TriggerRepeat(num=child_num, livetime=lt, deadtime=dt)]
-                child_dur = sum(
-                    r.num * (r.livetime + r.deadtime) for r in child_repeats
-                )
-                if child_dur > parent_lt:
-                    raise ValueError(
-                        f"Child total duration {child_dur} exceeds "
-                        f"parent livetime {parent_lt}"
-                    )
-                children[child_det] = child_repeats
-
-        if parent_lt == 0.0 and children:
-            raise ValueError(
-                "Spacer TriggerSequence (livetime=0.0) must not have children"
-            )
-
+        num = inner_length * dg.exposures_per_event if fly else dg.exposures_per_event
         return [
             TriggerSequence(
-                detectors=frozenset(parent_detectors),
-                trigger_repeat=TriggerRepeat(
-                    num=parent_num,
-                    livetime=parent_lt,
-                    deadtime=parent_dt,
-                ),
-                children=children,
+                detectors=frozenset(dg.detectors),
+                trigger_repeat=TriggerRepeat(num=num, livetime=lt, deadtime=dt),
+                children={},
             )
         ]
 
@@ -1029,11 +981,7 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
         """
         if not trigger_sequences:
             return self.duration
-        total_dur = sum(
-            ts.trigger_repeat.num
-            * (ts.trigger_repeat.livetime + ts.trigger_repeat.deadtime)
-            for ts in trigger_sequences
-        )
+        total_dur = trigger_sequences_duration(trigger_sequences)
         fly = self.fly and bool(gens)
         inner_length = gens[-1].length if fly else 1
         per_point = total_dur / inner_length

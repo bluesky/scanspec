@@ -13,6 +13,7 @@ from scanspec.v2.core import (
     DetectorGroup,
     Scan,
     TriggerRepeat,
+    TriggerSequence,
     Window,
     WindowGenerator,
 )
@@ -380,6 +381,18 @@ def test_maximal_example_dimensions():
             # livetime is derived.
             DetectorGroup(10, 1, 0.000299992, 8e-9, ["timestamp", "x_enc", "y_enc"]),
         ],
+        # Multiple DetectorGroups at different rates -- which becomes the
+        # trigger-sequence parent is no longer auto-derived, so it's given
+        # explicitly (inner_length=100, the innermost `x` dimension).
+        trigger_sequence=TriggerSequence(
+            detectors=frozenset({"saxs", "waxs"}),
+            trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
+            children={
+                frozenset({"timestamp", "x_enc", "y_enc"}): [
+                    TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+                ],
+            },
+        ),
         continuous_streams=[
             ContinuousStream(
                 "cameras",
@@ -798,10 +811,22 @@ def test_multirate_trigger_sequences():
     # Encoder triggers 10x per saxs repeat: period must divide the parent's
     # 0.003s livetime exactly, so livetime = 0.003/10 - deadtime.
     det2 = DetectorGroup(10, 1, 0.000299992, 8e-9, ["encoder"])
+    # Which DetectorGroup becomes the parent is no longer auto-derived --
+    # supplied explicitly, matching the two DetectorGroups above.
+    trigger_sequence = TriggerSequence(
+        detectors=frozenset({"saxs"}),
+        trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
+        children={
+            frozenset({"encoder"}): [
+                TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+            ],
+        },
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 100),
         fly=True,
         detectors=[det1, det2],
+        trigger_sequence=trigger_sequence,
     ).compile()  # type: ignore[reportArgumentType]
     ws = windows(sc)
     tss = ws[0].trigger_sequences
@@ -833,49 +858,59 @@ def test_collections_per_event_multiplies_parent_num():
     assert ts.trigger_repeat == TriggerRepeat(num=600, livetime=0.003, deadtime=0.001)
 
 
-def test_collections_per_event_multiplies_child_num():
-    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
-    # Same exposures_per_event=10 as test_multirate_trigger_sequences, but
-    # split across both fields (5 * 2) instead of exposures_per_collection alone.
-    det2 = DetectorGroup(5, 2, 0.000299992, 8e-9, ["encoder"])
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 100),
-        fly=True,
-        detectors=[det1, det2],
-    ).compile()  # type: ignore[reportArgumentType]
-    ts = windows(sc)[0].trigger_sequences[0]
-    assert ts.children[frozenset({"encoder"})] == [
-        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-    ]
-
-
 def test_non_integer_rate_ratio_raises():
-    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
     # child_period = 0.004 -> parent_lt/child_period = 0.75, not an integer.
+    # Now checked by validate_trigger_sequence at compile() time, against a
+    # caller-supplied trigger_sequence rather than auto-derivation.
+    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
     det2 = DetectorGroup(10, 1, 0.003, 0.001, ["enc"])
+    trigger_sequence = TriggerSequence(
+        detectors=frozenset({"saxs"}),
+        trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
+        children={
+            frozenset({"enc"}): [
+                TriggerRepeat(num=10, livetime=0.003, deadtime=0.001),
+            ],
+        },
+    )
     with pytest.raises(ValueError, match="integer ratio"):
         Acquire(  # type: ignore[reportUnknownVariableType]
             Linspace("x", 0.0, 10.0, 100),
             fly=True,
             detectors=[det1, det2],
+            trigger_sequence=trigger_sequence,
         ).compile()  # type: ignore[reportArgumentType]
 
 
 def test_child_duration_exceeds_parent_livetime_raises():
-    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
     # child_period = 0.0003 -> parent_lt/child_period = 10 (clean ratio), but
     # num=11 makes total child duration 0.0033 > the 0.003 parent livetime.
+    # Now checked by validate_trigger_sequence at compile() time, against a
+    # caller-supplied trigger_sequence rather than auto-derivation.
+    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
     det2 = DetectorGroup(11, 1, 0.0002, 0.0001, ["enc"])
+    trigger_sequence = TriggerSequence(
+        detectors=frozenset({"saxs"}),
+        trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
+        children={
+            frozenset({"enc"}): [
+                TriggerRepeat(num=11, livetime=0.0002, deadtime=0.0001),
+            ],
+        },
+    )
     with pytest.raises(ValueError, match="exceeds parent livetime"):
         Acquire(  # type: ignore[reportUnknownVariableType]
             Linspace("x", 0.0, 10.0, 100),
             fly=True,
             detectors=[det1, det2],
+            trigger_sequence=trigger_sequence,
         ).compile()  # type: ignore[reportArgumentType]
 
 
-# Spacer/overlap checks in _bake_trigger_sequence are defensive —
-# unreachable via .compile() (caught by other validators).
+# Spacer/overlap/ratio/duration checks live in core.validate_trigger_sequence,
+# exercised above via Acquire(trigger_sequence=...). _bake_trigger_sequence
+# only handles the unambiguous single-DetectorGroup case (see
+# test_fly_scan_trigger_sequences).
 
 
 # ---------------------------------------------------------------------------

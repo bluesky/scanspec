@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
+from math import isclose
 from typing import Any, Generic, TypeVar
 
 import numpy as np
@@ -18,16 +19,19 @@ class TriggerRepeat:
     """Timing parameters for one repeating trigger block.
 
     num:      number of times this block repeats within a TriggerSequence.
-    livetime: detector exposure time in seconds.
-    deadtime: detector readout/spacing time in seconds.
+    livetime: detector exposure time in seconds. None means not yet
+        resolved -- a downstream process (e.g. ophyd-async) fills it in
+        before compile(); must be resolved by then.
+    deadtime: detector readout/spacing time in seconds. Same None
+        semantics as livetime.
 
     Centred-livetime semantics apply: execution order per repeat is
     ``½·deadtime → livetime → ½·deadtime``.
     """
 
     num: int
-    livetime: float
-    deadtime: float
+    livetime: float | None
+    deadtime: float | None
 
 
 @dataclass
@@ -512,6 +516,91 @@ def _truncate_trigger_sequence(
     return result
 
 
+def validate_trigger_sequence(seq: TriggerSequence[DetectorT]) -> None:
+    """Check that *seq* is fully resolved and physically valid.
+
+    Not specific to ``Acquire`` -- also required for manually-constructed
+    ``Window``s (ADR 0007 Assumption A1), so lives here rather than as a
+    private method.
+
+    Raises ``ValueError`` if:
+
+    - the root ``trigger_repeat``'s ``livetime``/``deadtime`` is ``None``
+      (not yet resolved).
+    - a child detector set overlaps the parent's or another child's.
+    - a child repeat's ``livetime``/``deadtime`` is ``None``.
+    - a child does not trigger at an integer ratio of the parent rate.
+    - a child's total duration exceeds the parent's livetime.
+    """
+    parent = seq.trigger_repeat
+    if parent.livetime is None or parent.deadtime is None:
+        raise ValueError(
+            f"trigger_repeat.livetime/deadtime must be resolved (not None) "
+            f"before compile(); got livetime={parent.livetime}, "
+            f"deadtime={parent.deadtime}"
+        )
+    parent_lt = parent.livetime
+
+    child_sets = list(seq.children.items())
+    for i, (child_det, _) in enumerate(child_sets):
+        overlap = seq.detectors & child_det
+        if overlap:
+            raise ValueError(
+                f"Detector(s) {sorted(str(d) for d in overlap)} appear in "
+                f"both parent and child groups"
+            )
+        for other_det, _ in child_sets[i + 1 :]:
+            shared = child_det & other_det
+            if shared:
+                raise ValueError(
+                    f"Child detector sets overlap: {sorted(str(d) for d in shared)}"
+                )
+
+    for child_det, repeats in seq.children.items():
+        child_dur = 0.0
+        for r in repeats:
+            if r.livetime is None or r.deadtime is None:
+                raise ValueError(
+                    f"Child {sorted(str(d) for d in child_det)}: "
+                    f"livetime/deadtime must be resolved (not None) before "
+                    f"compile(); got livetime={r.livetime}, "
+                    f"deadtime={r.deadtime}"
+                )
+            child_period = r.livetime + r.deadtime
+            ratio = parent_lt / child_period
+            if not isclose(ratio, round(ratio), rel_tol=1e-3, abs_tol=1e-6):
+                raise ValueError(
+                    f"Child detector(s) {sorted(str(d) for d in child_det)} "
+                    f"do not trigger at an integer ratio of the parent "
+                    f"rate: parent_livetime {parent_lt} / child_period "
+                    f"{child_period} = {ratio}"
+                )
+            child_dur += r.num * child_period
+        if child_dur > parent_lt:
+            raise ValueError(
+                f"Child total duration {child_dur} exceeds parent livetime {parent_lt}"
+            )
+
+
+def trigger_sequences_duration(seqs: list[TriggerSequence[DetectorT]]) -> float:
+    """Total duration of *seqs*: sum of ``num * (livetime + deadtime)``.
+
+    Requires every ``TriggerRepeat`` to be resolved (see
+    ``validate_trigger_sequence``); raises ``ValueError`` otherwise.
+    """
+    total = 0.0
+    for ts in seqs:
+        r = ts.trigger_repeat
+        if r.livetime is None or r.deadtime is None:
+            raise ValueError(
+                f"trigger_repeat.livetime/deadtime must be resolved before "
+                f"computing duration; got livetime={r.livetime}, "
+                f"deadtime={r.deadtime}"
+            )
+        total += r.num * (r.livetime + r.deadtime)
+    return total
+
+
 class Scan(Generic[AxisT, DetectorT, MonitorT]):
     """Compiled output of Spec.compile().
 
@@ -620,10 +709,8 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
                         inner_window.trigger_sequences,
                         self._trigger_index,
                     )
-                    inner_window.duration = sum(
-                        ts.trigger_repeat.num
-                        * (ts.trigger_repeat.livetime + ts.trigger_repeat.deadtime)
-                        for ts in inner_window.trigger_sequences
+                    inner_window.duration = trigger_sequences_duration(
+                        inner_window.trigger_sequences
                     )
                 first_yielded = False
                 yield inner_window

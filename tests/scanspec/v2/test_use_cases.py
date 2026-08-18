@@ -13,6 +13,7 @@ from scanspec.v2.core import (
     MonitorStream,
     Scan,
     TriggerRepeat,
+    TriggerSequence,
 )
 from scanspec.v2.specs import Acquire, Linspace, Product, Repeat, Spiral, Static
 
@@ -283,6 +284,19 @@ def test_maximal_fly_step(fly: bool):
             # parent's 0.003s livetime exactly, so livetime = 0.003/10 - deadtime.
             DetectorGroup(10, 1, 0.000299992, 8e-9, ["timestamp", "x_enc", "y_enc"]),
         ],
+        # Which DetectorGroup becomes the parent is no longer auto-derived;
+        # supplied explicitly, matching the assertions below.
+        trigger_sequence=TriggerSequence(
+            detectors=frozenset({"saxs", "waxs"}),
+            trigger_repeat=TriggerRepeat(
+                num=100 if fly else 1, livetime=0.003, deadtime=0.001
+            ),
+            children={
+                frozenset({"timestamp", "x_enc", "y_enc"}): [
+                    TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+                ],
+            },
+        ),
         continuous_streams=[
             ContinuousStream(
                 "cameras",
@@ -413,6 +427,8 @@ def test_panda_sequence_table():
         assert am.start_velocity != 0.0
 
         # Consumer-side: time1 = int(livetime * 1e6), time2 = int(deadtime * 1e6)
+        assert tr.livetime is not None
+        assert tr.deadtime is not None
         time1 = int(tr.livetime * 1e6)
         time2 = int(tr.deadtime * 1e6)
         assert time1 == 3000
@@ -576,6 +592,19 @@ def test_analysis_reshaping():
             # See test_maximal_fly_step for how this livetime is derived.
             DetectorGroup(10, 1, 0.000299992, 8e-9, ["enc"]),
         ],
+        # Which DetectorGroup becomes the parent is no longer auto-derived;
+        # this test doesn't assert on trigger_sequences, so exact values
+        # only need to be physically valid (innermost dimension x has
+        # length 5, so parent num = 5).
+        trigger_sequence=TriggerSequence(
+            detectors=frozenset({"det1"}),
+            trigger_repeat=TriggerRepeat(num=5, livetime=0.003, deadtime=0.001),
+            children={
+                frozenset({"enc"}): [
+                    TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+                ],
+            },
+        ),
     )
     scan = spec.compile()
 
