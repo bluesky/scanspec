@@ -261,8 +261,9 @@ Two deliberately separate concepts:
   `StandardDetector.prepare()` before any window is iterated.
 - **`TriggerSequence`** (on `Window.trigger_sequences`) — *runtime*
   instruction: `detectors` + a `trigger_repeat: TriggerRepeat(num, livetime,
-  deadtime)` + a parallel `children` dict of integer-multiple-rate sub-groups
-  (§4.3). Baked from `DetectorGroup`s at compile time (ADR 0007): every
+  deadtime)` + a parallel `children: list[TriggerChild]` of
+  integer-multiple-rate sub-groups (§4.3). Baked from `DetectorGroup`s at
+  compile time (ADR 0007): every
   recorded collection needs its own trigger, so `num` is computed from
   `exposures_per_event` (`= exposures_per_collection × collections_per_event`),
   not `exposures_per_collection` alone (known gap in §8 for the pending code
@@ -301,9 +302,9 @@ intra-burst deadtime — the ptychography pattern, expressed as a list of
 `TriggerSequence`s in the window (§4.3):
 
 ```python
-[TriggerSequence(dets,         TriggerRepeat(N1, livetime1, deadtime), {}),  # first burst
- TriggerSequence(frozenset(),  TriggerRepeat(1,  0.0,       spacing),  {}),  # spacer
- TriggerSequence(dets,         TriggerRepeat(N2, livetime2, deadtime), {})]  # second burst
+[TriggerSequence(detectors=dets,        trigger_repeat=TriggerRepeat(num=N1, livetime=livetime1, deadtime=deadtime), children=[]),  # first burst
+ TriggerSequence(detectors=frozenset(), trigger_repeat=TriggerRepeat(num=1,  livetime=0.0,        deadtime=spacing),  children=[]),  # spacer
+ TriggerSequence(detectors=dets,        trigger_repeat=TriggerRepeat(num=N2, livetime=livetime2, deadtime=deadtime), children=[])]  # second burst
 ```
 
 ### 4.3 The two-level trigger structure (ADR 0007 — accepted)
@@ -313,25 +314,36 @@ nothing ties "100 SAXS frames" to "7200 Tetramm samples" during the scan.
 ADR 0007 replaces `TriggerPattern` + `TriggerGroup` with two types: a
 **`TriggerRepeat`** (`num`, `livetime`, `deadtime`) carrying timing only, and
 a **`TriggerSequence`** binding `detectors` to one parent `trigger_repeat`
-plus a parallel `children` dict. Integer-multiple-rate sub-groups become
-parallel children that fire *during each parent livetime*, so progress
-through the parent structurally implies progress through the children:
+plus a parallel `children: list[TriggerChild]`. Integer-multiple-rate
+sub-groups become parallel children that fire *during each parent
+livetime*, so progress through the parent structurally implies progress
+through the children:
 
 ```python
 TriggerSequence(
     detectors=frozenset({"saxs", "waxs"}),
     trigger_repeat=TriggerRepeat(num=100, livetime=0.009, deadtime=0.001),
-    children={
-        frozenset({"tetramm"}): [TriggerRepeat(num=72, livetime=0.000124, deadtime=0.000001)],
-        frozenset({"panda"}):   [TriggerRepeat(num=45, livetime=0.000190, deadtime=0.000010)],
-    },
+    children=[
+        TriggerChild(detectors=frozenset({"tetramm"}), repeats=[TriggerRepeat(num=72, livetime=0.000124, deadtime=0.000001)]),
+        TriggerChild(detectors=frozenset({"panda"}),   repeats=[TriggerRepeat(num=45, livetime=0.000190, deadtime=0.000010)]),
+    ],
 )
 ```
 
-The `children` dict is **parallel** (keys fire simultaneously during each
-parent repeat); each value is a **sequential** `list[TriggerRepeat]`. Each
-child's total duration must be ≤ the parent livetime, and child detector sets
-must be disjoint from each other and the parent — all validated at compile
+`TriggerRepeat`/`TriggerChild`/`TriggerSequence` are pydantic `BaseModel`s,
+not plain dataclasses like most compiled output (ADR 0003 Decision 6
+carve-out) — `TriggerSequence` is also caller-authored input to
+`Acquire.trigger_sequence` and must survive a JSON round trip (e.g. sent to
+ophyd-async to have unresolved `livetime`/`deadtime` filled in). `children`
+is a list of named entries rather than a dict keyed by the child's
+`frozenset` of detectors specifically so this round-trips: a `frozenset`
+is not a valid JSON object key.
+
+The `children` list is **parallel** (every entry fires simultaneously
+during each parent repeat); each entry's `repeats` is a **sequential**
+`list[TriggerRepeat]`. Each child's total duration must be ≤ the parent
+livetime, and child detector sets must be disjoint from each other and the
+parent — all validated at compile
 time. The structure is fixed at **two levels** (parent + one child layer).
 One parent plus one child fits in a single PandA SEQ block; each additional
 child requires an additional SEQ block — the SAXS/WAXS + Tetramm + PandA
@@ -499,12 +511,15 @@ tests it describes are in place on this branch.
 ADR 0006 and ADR 0007 are both **Accepted**, with no open review items.
 ADR 0005 is superseded by ADR 0007; ADR 0006 Decision 3 (`positions()`
 argument type) is superseded by ADR 0007 in the same pass; ADR 0003
-Decisions #1/#2/#5 are likewise superseded by ADR 0007. See
-`docs/explanations/decisions/` for the full supersession detail and each
-ADR's own Assumptions section for what remains genuinely open at the
-implementation level (e.g. ADR 0007 Assumption A5: `TriggerRepeat`
-`livetime`/`deadtime` need to regain the unresolved-value support their
-ADR 0005 predecessor had).
+Decisions #1/#2/#5 are likewise superseded by ADR 0007, and Decision 6 has
+a carve-out for `TriggerRepeat`/`TriggerSequence`/`TriggerChild` (now
+pydantic `BaseModel`s, not plain dataclasses). See
+`docs/explanations/decisions/` for the full supersession detail. ADR 0007
+Assumption A5 (`TriggerRepeat` needing to regain the unresolved-value
+support its ADR 0005 predecessor had) is implemented: `livetime`/`deadtime`
+are `float | None`, and `TriggerSequence` round-trips through JSON
+(including with unresolved values) now that `children` is a
+`list[TriggerChild]` rather than a `frozenset`-keyed dict.
 
 ---
 

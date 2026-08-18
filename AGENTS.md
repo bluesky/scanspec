@@ -9,10 +9,10 @@
   latter win.
 - **`docs/explanations/decisions/`** — ADRs. 0001–0007 all accepted; several
   are partially or fully superseded by later ADRs in the set (0003, 0005,
-  0006 — see each file's own Status field). ADR 0007's own Assumptions
-  section flags what's still genuinely open at the implementation level
-  (e.g. A5: `TriggerRepeat` `livetime`/`deadtime` need to regain the
-  unresolved-value support their ADR 0005 predecessor had — PRD §9).
+  0006 — see each file's own Status field). ADR 0003 Decision 6 has a
+  carve-out: `TriggerRepeat`/`TriggerSequence`/`TriggerChild` are pydantic
+  `BaseModel`s, not plain dataclasses, because `TriggerSequence` is also
+  caller-authored input that must survive a JSON round trip (PRD §9).
 
 ## Repository structure
 

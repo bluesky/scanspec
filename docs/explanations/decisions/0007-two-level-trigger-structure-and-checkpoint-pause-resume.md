@@ -28,26 +28,39 @@ Replace `TriggerPattern` and `TriggerGroup` with two
 new types:
 
 ```python
-@dataclass
-class TriggerRepeat:
-    num: int          # number of times this pattern repeats
-    livetime: float   # detector exposure time in seconds
-    deadtime: float   # detector readout/spacing time in seconds
+class TriggerRepeat(BaseModel):
+    num: int                  # number of times this pattern repeats
+    livetime: float | None    # detector exposure time in seconds
+    deadtime: float | None    # detector readout/spacing time in seconds
 
-@dataclass
-class TriggerSequence(Generic[DetectorT]):
+class TriggerChild(BaseModel, Generic[DetectorT]):
+    detectors: frozenset[DetectorT]
+    repeats: list[TriggerRepeat]
+
+class TriggerSequence(BaseModel, Generic[DetectorT]):
     detectors: frozenset[DetectorT]
     trigger_repeat: TriggerRepeat
-    children: dict[frozenset[DetectorT], list[TriggerRepeat]]
+    children: list[TriggerChild[DetectorT]]
 ```
 
 `Window.trigger_groups` becomes `Window.trigger_sequences: list[TriggerSequence]`.
 The list is **sequential** — entries execute one after another within the window.
 
-`children` is a **parallel** dict: each key is a frozenset of child detectors,
-each value is a **sequential** `list[TriggerRepeat]` that those detectors execute
+`children` is a **parallel** list: each `TriggerChild` names its own detector
+set explicitly and a **sequential** `repeats` list that those detectors execute
 during *each* parent repeat. All child detector sets must be disjoint from each
-other and from the parent `detectors`; this is validated at compile time.
+other and from the parent `detectors`; this is validated at compile time
+(`validate_trigger_sequence`, `core.py`).
+
+`livetime`/`deadtime` are nullable: `None` means not yet resolved, filled in
+by a downstream process (e.g. ophyd-async) before `compile()` requires them
+concrete (see Assumption A5). These three types are pydantic `BaseModel`s,
+not plain dataclasses, unlike most compiled output (ADR 0003 Decision 6) --
+a carve-out, because `TriggerSequence` is also caller-authored input to
+`Acquire.trigger_sequence` and must survive a JSON round trip. `children`'s
+list-of-named-entries shape (rather than a dict keyed by the child's
+`frozenset` of detectors) is what makes that round trip possible at all: a
+`frozenset` is not a valid JSON object key.
 
 Centred-livetime semantics (ADR 0006) apply to every `TriggerRepeat`: execution
 order per repeat is `½·deadtime → livetime → ½·deadtime`.
@@ -77,12 +90,18 @@ TriggerSequence(
     detectors = frozenset({saxs, waxs}),
     trigger_repeat = TriggerRepeat(num=100, livetime=0.009, deadtime=0.001),
     # 100 × 0.010 s = 1.000 s total window duration
-    children = {
-        frozenset({tetramm}): [TriggerRepeat(num=72,  livetime=0.000124, deadtime=0.000001)],
-        # 8000 Hz × 0.009 s livetime = 72 triggers per parent repeat
-        frozenset({panda}):   [TriggerRepeat(num=45,  livetime=0.000190, deadtime=0.000010)],
-        # 5000 Hz × 0.009 s livetime = 45 triggers per parent repeat
-    }
+    children = [
+        TriggerChild(
+            detectors=frozenset({tetramm}),
+            repeats=[TriggerRepeat(num=72, livetime=0.000124, deadtime=0.000001)],
+            # 8000 Hz × 0.009 s livetime = 72 triggers per parent repeat
+        ),
+        TriggerChild(
+            detectors=frozenset({panda}),
+            repeats=[TriggerRepeat(num=45, livetime=0.000190, deadtime=0.000010)],
+            # 5000 Hz × 0.009 s livetime = 45 triggers per parent repeat
+        ),
+    ]
 )
 ```
 

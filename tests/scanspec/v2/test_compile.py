@@ -12,6 +12,7 @@ from scanspec.v2.core import (
     ConcatSource,
     DetectorGroup,
     Scan,
+    TriggerChild,
     TriggerRepeat,
     TriggerSequence,
     Window,
@@ -387,11 +388,14 @@ def test_maximal_example_dimensions():
         trigger_sequence=TriggerSequence(
             detectors=frozenset({"saxs", "waxs"}),
             trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
-            children={
-                frozenset({"timestamp", "x_enc", "y_enc"}): [
-                    TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-                ],
-            },
+            children=[
+                TriggerChild(
+                    detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
+                    repeats=[
+                        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+                    ],
+                ),
+            ],
         ),
         continuous_streams=[
             ContinuousStream(
@@ -816,11 +820,14 @@ def test_multirate_trigger_sequences():
     trigger_sequence = TriggerSequence(
         detectors=frozenset({"saxs"}),
         trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
-        children={
-            frozenset({"encoder"}): [
-                TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-            ],
-        },
+        children=[
+            TriggerChild(
+                detectors=frozenset({"encoder"}),
+                repeats=[
+                    TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+                ],
+            ),
+        ],
     )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 100),
@@ -834,7 +841,9 @@ def test_multirate_trigger_sequences():
     ts = tss[0]
     assert ts.detectors == frozenset({"saxs"})
     assert ts.trigger_repeat == TriggerRepeat(num=100, livetime=0.003, deadtime=0.001)
-    assert ts.children[frozenset({"encoder"})] == [
+    assert len(ts.children) == 1
+    assert ts.children[0].detectors == frozenset({"encoder"})
+    assert ts.children[0].repeats == [
         TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
     ]
 
@@ -867,11 +876,14 @@ def test_non_integer_rate_ratio_raises():
     trigger_sequence = TriggerSequence(
         detectors=frozenset({"saxs"}),
         trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
-        children={
-            frozenset({"enc"}): [
-                TriggerRepeat(num=10, livetime=0.003, deadtime=0.001),
-            ],
-        },
+        children=[
+            TriggerChild(
+                detectors=frozenset({"enc"}),
+                repeats=[
+                    TriggerRepeat(num=10, livetime=0.003, deadtime=0.001),
+                ],
+            ),
+        ],
     )
     with pytest.raises(ValueError, match="integer ratio"):
         Acquire(  # type: ignore[reportUnknownVariableType]
@@ -892,11 +904,14 @@ def test_child_duration_exceeds_parent_livetime_raises():
     trigger_sequence = TriggerSequence(
         detectors=frozenset({"saxs"}),
         trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
-        children={
-            frozenset({"enc"}): [
-                TriggerRepeat(num=11, livetime=0.0002, deadtime=0.0001),
-            ],
-        },
+        children=[
+            TriggerChild(
+                detectors=frozenset({"enc"}),
+                repeats=[
+                    TriggerRepeat(num=11, livetime=0.0002, deadtime=0.0001),
+                ],
+            ),
+        ],
     )
     with pytest.raises(ValueError, match="exceeds parent livetime"):
         Acquire(  # type: ignore[reportUnknownVariableType]

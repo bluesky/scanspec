@@ -8,14 +8,14 @@ from math import isclose
 from typing import Any, Generic, TypeVar
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict
 
 AxisT = TypeVar("AxisT")
 DetectorT = TypeVar("DetectorT")
 MonitorT = TypeVar("MonitorT")
 
 
-@dataclass
-class TriggerRepeat:
+class TriggerRepeat(BaseModel):
     """Timing parameters for one repeating trigger block.
 
     num:      number of times this block repeats within a TriggerSequence.
@@ -27,30 +27,53 @@ class TriggerRepeat:
 
     Centred-livetime semantics apply: execution order per repeat is
     ``½·deadtime → livetime → ½·deadtime``.
+
+    A pydantic BaseModel (not a plain dataclass, unlike most compiled
+    output -- ADR 0003 Decision 6) because it doubles as caller-authored
+    input to ``Acquire.trigger_sequence`` and must survive a JSON round
+    trip, e.g. sent to ophyd-async to have unresolved timing filled in.
     """
+
+    model_config = ConfigDict(frozen=True)
 
     num: int
     livetime: float | None
     deadtime: float | None
 
 
-@dataclass
-class TriggerSequence(Generic[DetectorT]):
+class TriggerChild(BaseModel, Generic[DetectorT]):
+    """One parallel child within a TriggerSequence.
+
+    ``detectors`` names the child's own detector set explicitly (rather
+    than keying a dict by it) so the whole structure serializes to JSON
+    cleanly -- a ``frozenset`` is not a valid JSON object key, but is a
+    perfectly ordinary field value.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    detectors: frozenset[DetectorT]
+    repeats: list[TriggerRepeat]
+
+
+class TriggerSequence(BaseModel, Generic[DetectorT]):
     """Detector triggering description for one sequential entry in a window.
 
     ``detectors`` is the set of detectors triggered by ``trigger_repeat``.
-    ``children`` maps child detector sets to sequential ``list[TriggerRepeat]``
-    entries.  Different children fire in parallel during *each* parent repeat;
-    each child's own list is executed sequentially.  All child detector sets
-    must be disjoint from each other and from ``detectors``.
+    ``children`` is a list of parallel children, each firing during *every*
+    parent repeat; each child's own ``repeats`` list executes sequentially.
+    All child detector sets must be disjoint from each other and from
+    ``detectors``.
 
     ``Window.trigger_sequences`` is an ordered list; entries execute one after
     another within the window.
     """
 
+    model_config = ConfigDict(frozen=True)
+
     detectors: frozenset[DetectorT]
     trigger_repeat: TriggerRepeat
-    children: dict[frozenset[DetectorT], list[TriggerRepeat]]
+    children: list[TriggerChild[DetectorT]]
 
 
 @dataclass
@@ -541,27 +564,26 @@ def validate_trigger_sequence(seq: TriggerSequence[DetectorT]) -> None:
         )
     parent_lt = parent.livetime
 
-    child_sets = list(seq.children.items())
-    for i, (child_det, _) in enumerate(child_sets):
-        overlap = seq.detectors & child_det
+    for i, child in enumerate(seq.children):
+        overlap = seq.detectors & child.detectors
         if overlap:
             raise ValueError(
                 f"Detector(s) {sorted(str(d) for d in overlap)} appear in "
                 f"both parent and child groups"
             )
-        for other_det, _ in child_sets[i + 1 :]:
-            shared = child_det & other_det
+        for other in seq.children[i + 1 :]:
+            shared = child.detectors & other.detectors
             if shared:
                 raise ValueError(
                     f"Child detector sets overlap: {sorted(str(d) for d in shared)}"
                 )
 
-    for child_det, repeats in seq.children.items():
+    for child in seq.children:
         child_dur = 0.0
-        for r in repeats:
+        for r in child.repeats:
             if r.livetime is None or r.deadtime is None:
                 raise ValueError(
-                    f"Child {sorted(str(d) for d in child_det)}: "
+                    f"Child {sorted(str(d) for d in child.detectors)}: "
                     f"livetime/deadtime must be resolved (not None) before "
                     f"compile(); got livetime={r.livetime}, "
                     f"deadtime={r.deadtime}"
@@ -570,7 +592,7 @@ def validate_trigger_sequence(seq: TriggerSequence[DetectorT]) -> None:
             ratio = parent_lt / child_period
             if not isclose(ratio, round(ratio), rel_tol=1e-3, abs_tol=1e-6):
                 raise ValueError(
-                    f"Child detector(s) {sorted(str(d) for d in child_det)} "
+                    f"Child detector(s) {sorted(str(d) for d in child.detectors)} "
                     f"do not trigger at an integer ratio of the parent "
                     f"rate: parent_livetime {parent_lt} / child_period "
                     f"{child_period} = {ratio}"

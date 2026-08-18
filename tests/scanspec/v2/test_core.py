@@ -12,6 +12,7 @@ from scanspec.v2.core import (
     LinearSource,
     MonitorStream,
     Scan,
+    TriggerChild,
     TriggerRepeat,
     TriggerSequence,
     Window,
@@ -33,11 +34,11 @@ def test_trigger_sequence():
     ts = TriggerSequence(
         detectors=frozenset({"det1", "det2"}),
         trigger_repeat=tr,
-        children={},
+        children=[],
     )
     assert ts.detectors == frozenset({"det1", "det2"})
     assert ts.trigger_repeat == tr
-    assert ts.children == {}
+    assert ts.children == []
 
 
 def test_trigger_sequence_children():
@@ -47,15 +48,52 @@ def test_trigger_sequence_children():
     ts = TriggerSequence(
         detectors=frozenset({"saxs", "waxs"}),
         trigger_repeat=parent,
-        children={
-            frozenset({"tetramm"}): [child_a],
-            frozenset({"panda"}): [child_b],
-        },
+        children=[
+            TriggerChild(detectors=frozenset({"tetramm"}), repeats=[child_a]),
+            TriggerChild(detectors=frozenset({"panda"}), repeats=[child_b]),
+        ],
     )
     assert ts.detectors == frozenset({"saxs", "waxs"})
     assert ts.trigger_repeat == parent
-    assert ts.children[frozenset({"tetramm"})] == [child_a]
-    assert ts.children[frozenset({"panda"})] == [child_b]
+    by_det = {child.detectors: child.repeats for child in ts.children}
+    assert by_det[frozenset({"tetramm"})] == [child_a]
+    assert by_det[frozenset({"panda"})] == [child_b]
+
+
+def test_trigger_sequence_json_round_trip():
+    """The actual point of the list-of-TriggerChild shape: this must not
+    raise. A dict keyed by frozenset (the previous shape) cannot serialize
+    to JSON at all -- frozenset is not a valid JSON object key."""
+    parent = TriggerRepeat(num=100, livetime=0.009, deadtime=0.001)
+    child_a = TriggerRepeat(num=72, livetime=0.000124, deadtime=0.000001)
+    child_b = TriggerRepeat(num=45, livetime=0.00019, deadtime=0.00001)
+    ts = TriggerSequence(
+        detectors=frozenset({"saxs", "waxs"}),
+        trigger_repeat=parent,
+        children=[
+            TriggerChild(detectors=frozenset({"tetramm"}), repeats=[child_a]),
+            TriggerChild(detectors=frozenset({"panda"}), repeats=[child_b]),
+        ],
+    )
+    wire = ts.model_dump_json()
+    round_tripped = TriggerSequence[str].model_validate_json(wire)
+    assert round_tripped == ts
+
+
+def test_trigger_sequence_json_round_trip_unresolved_timing():
+    """The motivating case: a draft with unresolved livetime/deadtime must
+    still round-trip -- e.g. sent to ophyd-async, which fills in real
+    device limits and sends it back."""
+    draft = TriggerSequence(
+        detectors=frozenset({"saxs", "waxs"}),
+        trigger_repeat=TriggerRepeat(num=100, livetime=None, deadtime=None),
+        children=[],
+    )
+    wire = draft.model_dump_json()
+    assert '"livetime":null' in wire
+    round_tripped = TriggerSequence[str].model_validate_json(wire)
+    assert round_tripped == draft
+    assert round_tripped.trigger_repeat.livetime is None
 
 
 def test_axis_motion():
@@ -71,7 +109,7 @@ def test_window():
     ts = TriggerSequence(
         detectors=frozenset({"det1"}),
         trigger_repeat=tr,
-        children={},
+        children=[],
     )
     w = Window(
         static_axes={"y": 5.0},
@@ -93,7 +131,7 @@ def test_window_previous():
     ts = TriggerSequence(
         detectors=frozenset({"det1"}),
         trigger_repeat=tr,
-        children={},
+        children=[],
     )
     first = Window(
         static_axes={"y": 5.0},
@@ -155,8 +193,16 @@ def test_window_positions_raises_without_positions_fn():
 
 def test_truncate_trigger_sequence():
     seqs = [
-        TriggerSequence(frozenset({"a"}), TriggerRepeat(5, 0.01, 0.001), {}),
-        TriggerSequence(frozenset({"b"}), TriggerRepeat(3, 0.02, 0.002), {}),
+        TriggerSequence(
+            detectors=frozenset({"a"}),
+            trigger_repeat=TriggerRepeat(num=5, livetime=0.01, deadtime=0.001),
+            children=[],
+        ),
+        TriggerSequence(
+            detectors=frozenset({"b"}),
+            trigger_repeat=TriggerRepeat(num=3, livetime=0.02, deadtime=0.002),
+            children=[],
+        ),
     ]
 
     # trigger_index=0 → all sequences unchanged
@@ -169,7 +215,7 @@ def test_truncate_trigger_sequence():
     assert len(t6) == 1
     assert t6[0].detectors == frozenset({"b"})
     assert t6[0].trigger_repeat.num == 2
-    assert t6[0].children == {}
+    assert t6[0].children == []
 
     # trigger_index=8 → all consumed, empty result
     t8 = _truncate_trigger_sequence(seqs, 8)
@@ -178,13 +224,19 @@ def test_truncate_trigger_sequence():
 
 def test_truncate_trigger_sequence_blank_replays_in_full():
     burst1: TriggerSequence[str] = TriggerSequence(
-        frozenset({"det"}), TriggerRepeat(100, 0.003, 0.001), {}
+        detectors=frozenset({"det"}),
+        trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
+        children=[],
     )
     blank: TriggerSequence[str] = TriggerSequence(
-        frozenset(), TriggerRepeat(1, 0.0, 50.0), {}
+        detectors=frozenset(),
+        trigger_repeat=TriggerRepeat(num=1, livetime=0.0, deadtime=50.0),
+        children=[],
     )
     burst2: TriggerSequence[str] = TriggerSequence(
-        frozenset({"det"}), TriggerRepeat(200, 0.003, 0.001), {}
+        detectors=frozenset({"det"}),
+        trigger_repeat=TriggerRepeat(num=200, livetime=0.003, deadtime=0.001),
+        children=[],
     )
     seqs: list[TriggerSequence[str]] = [burst1, blank, burst2]
 

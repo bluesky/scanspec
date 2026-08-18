@@ -12,6 +12,7 @@ from scanspec.v2.core import (
     DetectorGroup,
     MonitorStream,
     Scan,
+    TriggerChild,
     TriggerRepeat,
     TriggerSequence,
 )
@@ -291,11 +292,14 @@ def test_maximal_fly_step(fly: bool):
             trigger_repeat=TriggerRepeat(
                 num=100 if fly else 1, livetime=0.003, deadtime=0.001
             ),
-            children={
-                frozenset({"timestamp", "x_enc", "y_enc"}): [
-                    TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-                ],
-            },
+            children=[
+                TriggerChild(
+                    detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
+                    repeats=[
+                        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+                    ],
+                ),
+            ],
         ),
         continuous_streams=[
             ContinuousStream(
@@ -340,7 +344,9 @@ def test_maximal_fly_step(fly: bool):
         assert len(w.trigger_sequences) == 1
         ts = w.trigger_sequences[0]
         assert ts.detectors == frozenset({"saxs", "waxs"})
-        assert ts.children[frozenset({"timestamp", "x_enc", "y_enc"})] == [
+        assert len(ts.children) == 1
+        assert ts.children[0].detectors == frozenset({"timestamp", "x_enc", "y_enc"})
+        assert ts.children[0].repeats == [
             TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
         ]
 
@@ -599,11 +605,14 @@ def test_analysis_reshaping():
         trigger_sequence=TriggerSequence(
             detectors=frozenset({"det1"}),
             trigger_repeat=TriggerRepeat(num=5, livetime=0.003, deadtime=0.001),
-            children={
-                frozenset({"enc"}): [
-                    TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-                ],
-            },
+            children=[
+                TriggerChild(
+                    detectors=frozenset({"enc"}),
+                    repeats=[
+                        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+                    ],
+                ),
+            ],
         ),
     )
     scan = spec.compile()

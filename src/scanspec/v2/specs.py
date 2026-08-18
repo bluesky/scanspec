@@ -848,8 +848,8 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
             return self
         from_detectors = {d for dg in self.detectors for d in dg.detectors}
         from_sequence = set(self.trigger_sequence.detectors)
-        for child_det in self.trigger_sequence.children:
-            from_sequence |= set(child_det)
+        for child in self.trigger_sequence.children:
+            from_sequence |= set(child.detectors)
         if from_detectors != from_sequence:
             raise ValueError(
                 f"detectors and trigger_sequence describe different "
@@ -963,7 +963,7 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
             TriggerSequence(
                 detectors=frozenset(dg.detectors),
                 trigger_repeat=TriggerRepeat(num=num, livetime=lt, deadtime=dt),
-                children={},
+                children=[],
             )
         ]
 
