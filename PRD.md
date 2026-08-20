@@ -550,18 +550,14 @@ are `float | None`, and `TriggerSequence` round-trips through JSON
    construction, §4.3), but no dedicated `DetectorGroup`/`Acquire` authoring
    surface is required — hand-built `Window`s remain the accepted way to
    construct this pattern.
-3. **Does a child `DetectorGroup`'s `livetime` already exclude its own
-   `deadtime` when sized against the parent's livetime slot?** The §3.1
-   worked example (`DetectorGroup(10, 1, 0.0003, 8e-9, ...)` against a
-   parent `livetime=0.003`) predates the ADR 0007 parent/child
-   restructuring and was never rechecked against `_bake_trigger_sequence`'s
-   "child duration ≤ parent livetime" rule: `10 × (0.0003+8e-9) =
-   0.00300008` exceeds `0.003`. Tests currently assume the former (child
-   livetime is sized as `parent_livetime/ratio − deadtime`, e.g.
-   `0.000299992`). Not corrected yet — pending the `Acquire`
-   authoring-surface redesign, since `_bake_trigger_sequence`'s
-   auto-derivation (the source of this artifact) is being replaced (§9
-   Assumption A5 covers the related `livetime`/`deadtime` gap).
+3. ~~Does a child `DetectorGroup`'s `livetime` already exclude its own
+   `deadtime` when sized against the parent's livetime slot?~~ **Resolved:
+   yes.** A child's `livetime` is sized as `parent_livetime/ratio −
+   deadtime` (e.g. `0.000299992 = 0.003/10 − 8e-9`), so `ratio` child
+   repeats fit exactly inside the parent's livetime — confirmed as the
+   intended design, matching `validate_trigger_sequence`'s "child duration ≤
+   parent livetime" rule and the tests/examples throughout this document and
+   `API_SPEC.md`.
 
 ---
 

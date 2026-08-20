@@ -6,15 +6,26 @@ import numpy as np
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from scanspec.v2.core import ContinuousStream, DetectorGroup, MonitorStream
+from scanspec.v2.core import (
+    ContinuousStream,
+    DetectorGroup,
+    MonitorStream,
+    TriggerChild,
+    TriggerRepeat,
+    TriggerSequence,
+)
 from scanspec.v2.specs import (
     Acquire,
     AnySpec,
     Concat,
+    Ellipse,
     Linspace,
+    Polygon,
     Product,
+    Range,
     Repeat,
     Snake,
+    Spiral,
     Static,
     Zip,
 )
@@ -172,6 +183,41 @@ def test_product_json_round_trip():
     assert isinstance(restored.inner.spec, Linspace)
 
 
+@pytest.mark.parametrize(
+    ("spec", "expected_type"),
+    [
+        pytest.param(Static("y", 3.0), Static, id="Static"),
+        pytest.param(Range("x", 0.0, 1.0, 0.25), Range, id="Range"),
+        pytest.param(Spiral("x", 0.0, 5.0, 2.0, "y", 10.0, 10.0), Spiral, id="Spiral"),
+        pytest.param(Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0), Ellipse, id="Ellipse"),
+        pytest.param(
+            Polygon("x", "y", [(0.0, 0.0), (5.0, 0.0), (2.5, 4.0)], 1.0),
+            Polygon,
+            id="Polygon",
+        ),
+        pytest.param(
+            Linspace("x", 0.0, 1.0, 10).zip(Linspace("y", 0.0, 1.0, 10)),
+            Zip,
+            id="Zip",
+        ),
+        pytest.param(
+            Linspace("x", 0.0, 5.0, 5).concat(Linspace("x", 5.0, 10.0, 5)),
+            Concat,
+            id="Concat",
+        ),
+        pytest.param(Repeat(Linspace("x", 0.0, 1.0, 10), 3), Repeat, id="Repeat"),
+        pytest.param(Snake(Linspace("x", 0.0, 1.0, 10)), Snake, id="Snake"),
+    ],
+)
+def test_motion_spec_json_round_trip(
+    spec: AnySpec[Any, Any, Any], expected_type: type
+) -> None:
+    ta: TypeAdapter[AnySpec[Any, Any, Any]] = TypeAdapter(AnySpec)
+    restored = ta.validate_json(ta.dump_json(spec))
+    assert isinstance(restored, expected_type)
+    assert restored == spec
+
+
 def test_acquire_json_round_trip():
     spec: Acquire[str, str, str] = Acquire(
         Linspace("x", 0.0, 10.0, 100),
@@ -192,6 +238,49 @@ def test_acquire_json_round_trip():
     assert isinstance(restored, Acquire)
     assert restored.detectors[0].detectors == ["saxs", "waxs"]
     assert restored.monitors[0].name == "temp"
+
+
+def test_acquire_json_round_trip_full():
+    """Round-trip an Acquire exercising every optional field, including a
+    trigger_sequence with a non-empty children list -- the newly-fixed path
+    (TriggerChild, not a frozenset-keyed dict) from this session's Slice 2,
+    only exercised in isolation elsewhere (test_core.py)."""
+    spec: Acquire[str, str, str] = Acquire(
+        Linspace("x", 0.0, 10.0, 100),
+        fly=True,
+        detectors=[
+            DetectorGroup(1, 1, 0.003, 0.001, ["saxs"]),
+            DetectorGroup(10, 1, 0.0003, 8e-9, ["encoder"]),
+        ],
+        trigger_sequence=TriggerSequence(
+            detectors=frozenset({"saxs"}),
+            trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
+            children=[
+                TriggerChild(
+                    detectors=frozenset({"encoder"}),
+                    repeats=[
+                        TriggerRepeat(num=10, livetime=0.0003, deadtime=8e-9),
+                    ],
+                ),
+            ],
+        ),
+        continuous_streams=[
+            ContinuousStream(
+                "cameras",
+                [DetectorGroup(1, 1, 0.048, 0.001, ["front_cam", "side_cam"])],
+            ),
+        ],
+        monitors=[MonitorStream("temp", "tc1")],
+        duration=0.5,
+    )
+    ta: TypeAdapter[AnySpec[Any, Any, Any]] = TypeAdapter(AnySpec)
+    restored = ta.validate_json(ta.dump_json(spec))
+    assert isinstance(restored, Acquire)
+    assert restored == spec
+    assert restored.trigger_sequence is not None
+    assert restored.trigger_sequence.children[0].detectors == frozenset({"encoder"})
+    assert restored.continuous_streams[0].name == "cameras"
+    assert restored.duration == 0.5
 
 
 # ---------------------------------------------------------------------------
