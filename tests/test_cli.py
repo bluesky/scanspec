@@ -214,9 +214,11 @@ def test_plot_3d_line() -> None:
         list[Line3D],
         list(
             filter(
-                lambda artist: isinstance(artist, Arrow3D)
-                and artist.get_visible()
-                and artist.get_in_layout(),
+                lambda artist: (
+                    isinstance(artist, Arrow3D)
+                    and artist.get_visible()
+                    and artist.get_in_layout()
+                ),
                 extra_artists,
             )
         ),

@@ -39,19 +39,19 @@ else:
 
 
 __all__ = [
-    "Axis",
-    "OtherAxis",
-    "if_instance_do",
     "AxesPoints",
+    "Axis",
     "Dimension",
-    "SnakedDimension",
-    "gap_between_frames",
-    "squash_frames",
-    "Path",
     "Midpoints",
-    "discriminated_union_of_subclasses",
-    "StrictConfig",
+    "OtherAxis",
+    "Path",
     "Slice",
+    "SnakedDimension",
+    "StrictConfig",
+    "discriminated_union_of_subclasses",
+    "gap_between_frames",
+    "if_instance_do",
+    "squash_frames",
 ]
 
 #: Used to ensure pydantic dataclasses error if given extra arguments
@@ -66,8 +66,6 @@ DurationArray = npt.NDArray[np.float64]
 
 class UnsupportedSubclass(RuntimeWarning):
     """Warning for subclasses that are not simple extensions of generic types."""
-
-    pass
 
 
 def discriminated_union_of_subclasses(

@@ -32,24 +32,24 @@ from .core import (
 )
 
 __all__ = [
-    "ConstantDuration",
-    "Spec",
-    "Product",
-    "Zip",
-    "Snake",
-    "Concat",
-    "Squash",
-    "Linspace",
-    "Line",
-    "Range",
-    "Ellipse",
-    "Polygon",
-    "Static",
-    "Spiral",
-    "Fly",
-    "step",
-    "fly",
     "VARIABLE_DURATION",
+    "Concat",
+    "ConstantDuration",
+    "Ellipse",
+    "Fly",
+    "Line",
+    "Linspace",
+    "Polygon",
+    "Product",
+    "Range",
+    "Snake",
+    "Spec",
+    "Spiral",
+    "Squash",
+    "Static",
+    "Zip",
+    "fly",
+    "step",
 ]
 
 _NpMask = npt.NDArray[np.bool_]
@@ -75,7 +75,7 @@ class Spec(Generic[Axis]):
         self.axes()
         self.duration()
 
-    def axes(self) -> list[Axis]:  # noqa: D102
+    def axes(self) -> list[Axis]:
         """Return the list of axes that are present in the scan.
 
         Ordered from slowest moving to fastest moving.
@@ -94,7 +94,7 @@ class Spec(Generic[Axis]):
 
     def calculate(
         self, bounds: bool = False, nested: bool = False
-    ) -> list[Dimension[Axis]]:  # noqa: D102
+    ) -> list[Dimension[Axis]]:
         """Produce a stack of nested `Dimension` that form the scan.
 
         Ordered from slowest moving to fastest moving.

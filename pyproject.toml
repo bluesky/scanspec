@@ -32,7 +32,8 @@ dev = [
     "scanspec[service]",
     "autodoc-pydantic",
     "copier",
-    "httpx",
+    "httpx",     # ophyd-async's own dependency, unrelated to starlette's TestClient
+    "httpx2",    # starlette.testclient now requires this instead of httpx
     "myst-parser",
     "pre-commit",
     "pydata-sphinx-theme>=0.12",
@@ -172,6 +173,12 @@ src = ["src", "tests"]
 line-length = 88
 
 [tool.ruff.lint]
+# Ruff 0.16 widened its own default rule set from 59 to 413 rules; since we
+# only ever set extend-select (never select), that default is what
+# extend-select layers onto — restore the pre-0.16 default explicitly so our
+# selection below is additive to what it always was, not to whatever Ruff
+# decides to default to next. https://astral.sh/blog/ruff-v0.16.0
+select = ["E4", "E7", "E9", "F"]
 extend-select = [
     "B",   # flake8-bugbear - https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
     "C4",  # flake8-comprehensions - https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4

@@ -25,7 +25,7 @@ release = scanspec.__version__
 if "+" in release:
     # Not on a tag, use branch name
     root = Path(__file__).absolute().parent.parent
-    git_branch = check_output("git branch --show-current".split(), cwd=root)
+    git_branch = check_output(["git", "branch", "--show-current"], cwd=root)
     version = git_branch.decode().strip()
 else:
     version = release
@@ -75,6 +75,11 @@ nitpick_ignore = [
     ("py:class", "scanspec.core.T"),
     ("py:class", "pydantic.config.ConfigDict"),
     ("py:class", "numpy.float64"),
+    # autodoc-pydantic renders Field(ge=.../gt=...) constraints as their
+    # underlying Annotated[..., annotated_types.Ge(...)] metadata and tries
+    # to cross-reference it; neither target is a real doc page under Sphinx 9.
+    ("py:class", "annotated_types.Ge"),
+    ("py:obj", "typing.Annotated[float"),
 ]
 
 # Both the class’ and the __init__ method’s docstring are concatenated and

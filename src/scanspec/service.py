@@ -3,7 +3,7 @@
 import base64
 import json
 from collections.abc import Mapping
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import numpy as np
@@ -37,7 +37,7 @@ class ValidResponse:
     valid_spec: Spec[str] = Field(description="The validated version of the spec")
 
 
-class PointsFormat(str, Enum):
+class PointsFormat(StrEnum):
     """Formats in which we can return points."""
 
     STRING = "STRING"
