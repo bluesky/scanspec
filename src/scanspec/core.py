@@ -150,12 +150,36 @@ def discriminated_union_of_subclasses(
 
     def add_subclass_to_union(subclass: type[C]):
         # Add a discriminator field to a subclass so it can
-        # be identified when deserializing
+        # be identified when deserializing. Subclasses may declare
+        # _discriminator_aliases = (<old name>, ...) to also accept
+        # previous tag values (e.g. after being renamed) when deserializing;
+        # whichever tag is given, the field is normalized back to the
+        # subclass's current name. Note: this must not be a dunder name -
+        # typing._GenericAlias.__getattr__ (used for e.g. Linspace[Any])
+        # refuses to forward dunder-shaped attributes to its origin class.
+        aliases = getattr(subclass, "_discriminator_aliases", ())
+        canonical = subclass.__name__
         subclass.__annotations__ = {
             **subclass.__annotations__,
-            discriminator: Literal[subclass.__name__],  # type: ignore
+            discriminator: Literal[(canonical, *aliases)],  # type: ignore
         }
-        setattr(subclass, discriminator, Field(subclass.__name__, repr=False))  # type: ignore
+        setattr(subclass, discriminator, Field(canonical, repr=False))  # type: ignore
+        if aliases:
+            # Whichever tag value was given, normalize back to the current
+            # name once fields are set, so e.g. equality and re-serialization
+            # are unaffected by which tag was used to deserialize.
+            original_post_init: Callable[[Any], None] = subclass.__post_init__  # type: ignore
+
+            def normalizing_post_init(
+                self: Any,
+                _original: Callable[[Any], None] = original_post_init,
+                _discriminator: str = discriminator,
+                _canonical: str = canonical,
+            ) -> None:
+                _original(self)
+                setattr(self, _discriminator, _canonical)
+
+            subclass.__post_init__ = normalizing_post_init  # type: ignore
 
     def get_schema_of_union(
         cls: type[C], actual_type: type, handler: GetCoreSchemaHandler
@@ -265,7 +289,16 @@ def _compatible_types(left: TypeVar, right: TypeVar) -> bool:
 def _make_schema(
     members: tuple[type[Any], ...], handler: Callable[[Any], CoreSchema]
 ) -> dict[str, CoreSchema]:
-    return {member.__name__: handler(member) for member in members}
+    choices: dict[str, CoreSchema] = {}
+    for member in members:
+        member_schema = handler(member)
+        choices[member.__name__] = member_schema
+        for alias in getattr(member, "_discriminator_aliases", ()):
+            # Reuse the same schema object under the alias tag so old
+            # serialized tags are routed to the same schema as the current
+            # tag, without duplicating the (potentially recursive) schema.
+            choices[alias] = member_schema
+    return choices
 
 
 def if_instance_do(
