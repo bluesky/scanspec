@@ -4,6 +4,20 @@
         
         
         
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
 .. automodule:: scanspec.specs
     :members:
@@ -19,9 +33,23 @@
     .. autosummary::
         :nosignatures:
     
-        Spec
-        step
-        fly
         VARIABLE_DURATION
+        Concat
+        ConstantDuration
+        Ellipse
+        Fly
+        Line
+        Linspace
+        Polygon
+        Product
+        Range
+        Snake
+        Spec
+        Spiral
+        Squash
+        Static
+        Zip
+        fly
+        step
     
     

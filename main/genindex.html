@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; scanspec 1.0.1.dev2+gbb7ee7480 documentation</title>
+    <title>Index &#8212; scanspec 1.0.1.dev3+ga59298826 documentation</title>
   
   
   
@@ -26,8 +26,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
@@ -37,45 +37,52 @@
     <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- So that users can add custom icons -->
-  <script src="_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="_static/documentation_options.js?v=6b691c48"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/documentation_options.js?v=4c0c868b"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=30646c52"></script>
     <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://bluesky.github.io/scanspec/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'main';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
             false;
         </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="icon" href="_static/scanspec-logo.svg"/>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="main" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -101,7 +108,7 @@
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
   <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
     <span class="fa-solid fa-bars"></span>
@@ -193,11 +200,18 @@
       
         <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
       
         <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -210,8 +224,7 @@
           
           
           
-          <a href="https://github.com/bluesky/scanspec" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/bluesky/scanspec" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -222,8 +235,7 @@
           
           
           
-          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
 </ul></div>
       
@@ -328,11 +340,18 @@
         
           <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
         
           <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -345,8 +364,7 @@
           
           
           
-          <a href="https://github.com/bluesky/scanspec" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/bluesky/scanspec" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -357,8 +375,7 @@
           
           
           
-          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/scanspec" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fas fa-cube fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
 </ul></div>
         
@@ -387,7 +404,15 @@
   </div>
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
         <div class="sidebar-primary-item">
+
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
@@ -449,16 +474,12 @@
  | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
- | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
- | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
- | <a href="#X"><strong>X</strong></a>
- | <a href="#Y"><strong>Y</strong></a>
  | <a href="#Z"><strong>Z</strong></a>
  
 </div>
@@ -515,14 +536,6 @@
 </li>
       <li><a href="_api/scanspec.core.html#scanspec.core.Axis">Axis (class in scanspec.core)</a>
 </li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.axis">axis (scanspec.specs.Linspace attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.axis">(scanspec.specs.Range attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.axis">(scanspec.specs.Static attribute)</a>
-</li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -573,19 +586,15 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.check_path_changes">check_path_changes (scanspec.specs.Concat attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Squash.check_path_changes">(scanspec.specs.Squash attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat">Concat (class in scanspec.specs)</a>
 </li>
-      </ul></li>
       <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.concat">concat() (scanspec.core.Dimension method)</a>
 
       <ul>
         <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec.concat">(scanspec.specs.Spec method)</a>
 </li>
       </ul></li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.ConstantDuration.constant_duration">constant_duration (scanspec.specs.ConstantDuration attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.ConstantDuration">ConstantDuration (class in scanspec.specs)</a>
 </li>
       <li><a href="_api/scanspec.core.html#scanspec.core.Path.consume">consume() (scanspec.core.Path method)</a>
 </li>
@@ -625,6 +634,8 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse">Ellipse (class in scanspec.specs)</a>
+</li>
       <li><a href="_api/scanspec.core.html#scanspec.core.Path.end_index">end_index (scanspec.core.Path attribute)</a>
 </li>
   </ul></td>
@@ -641,6 +652,8 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Fly">Fly (class in scanspec.specs)</a>
+</li>
       <li><a href="_api/scanspec.specs.html#scanspec.specs.fly">fly() (in module scanspec.specs)</a>
 </li>
   </ul></td>
@@ -656,13 +669,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.gap">gap (scanspec.core.Dimension attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.gap">(scanspec.specs.Concat attribute)</a>
 </li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.gap">(scanspec.specs.Product attribute)</a>
-</li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.core.html#scanspec.core.gap_between_frames">gap_between_frames() (in module scanspec.core)</a>
@@ -679,25 +686,19 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.core.html#scanspec.core.Path.index">index (scanspec.core.Path attribute)</a>
 </li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.inner">inner (scanspec.specs.Product attribute)</a>
-</li>
   </ul></td>
 </tr></table>
 
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.left">left (scanspec.specs.Concat attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Zip.left">(scanspec.specs.Zip attribute)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.core.html#scanspec.core.Path.lengths">lengths (scanspec.core.Path attribute)</a>
 </li>
       <li><a href="_api/scanspec.specs.html#scanspec.specs.Line">Line (in module scanspec.specs)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace">Linspace (class in scanspec.specs)</a>
 </li>
       <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.lower">lower (scanspec.core.Dimension attribute)</a>
 </li>
@@ -729,26 +730,10 @@
   </ul></td>
 </tr></table>
 
-<h2 id="N">N</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.num">num (scanspec.specs.Linspace attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.num">(scanspec.specs.Static attribute)</a>
-</li>
-      </ul></li>
-  </ul></td>
-</tr></table>
-
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.core.html#scanspec.core.OtherAxis">OtherAxis (class in scanspec.core)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.outer">outer (scanspec.specs.Product attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -758,9 +743,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.core.html#scanspec.core.Path">Path (class in scanspec.core)</a>
 </li>
+      <li><a href="_api/scanspec.plot.html#scanspec.plot.plot_spec">plot_spec() (in module scanspec.plot)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.plot.html#scanspec.plot.plot_spec">plot_spec() (in module scanspec.plot)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Polygon">Polygon (class in scanspec.specs)</a>
+</li>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Product">Product (class in scanspec.specs)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -768,12 +757,8 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.right">right (scanspec.specs.Concat attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Zip.right">(scanspec.specs.Zip attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Range">Range (class in scanspec.specs)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -814,28 +799,18 @@
 </li>
       <li><a href="_api/scanspec.core.html#scanspec.core.Slice">Slice (class in scanspec.core)</a>
 </li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse.snake">snake (scanspec.specs.Ellipse attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Polygon.snake">(scanspec.specs.Polygon attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="_api/scanspec.core.html#scanspec.core.SnakedDimension">SnakedDimension (class in scanspec.core)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Snake">Snake (class in scanspec.specs)</a>
+</li>
+      <li><a href="_api/scanspec.core.html#scanspec.core.SnakedDimension">SnakedDimension (class in scanspec.core)</a>
+</li>
       <li><a href="_api/scanspec.specs.html#scanspec.specs.Spec">Spec (class in scanspec.specs)</a>
 </li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.ConstantDuration.spec">spec (scanspec.specs.ConstantDuration attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Fly.spec">(scanspec.specs.Fly attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral">Spiral (class in scanspec.specs)</a>
 </li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Snake.spec">(scanspec.specs.Snake attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Squash">Squash (class in scanspec.specs)</a>
 </li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Squash.spec">(scanspec.specs.Squash attribute)</a>
-</li>
-      </ul></li>
       <li><a href="_api/scanspec.core.html#scanspec.core.squash_frames">squash_frames() (in module scanspec.core)</a>
 </li>
       <li><a href="_api/scanspec.core.html#scanspec.core.Midpoints.stack">stack (scanspec.core.Midpoints attribute)</a>
@@ -844,58 +819,12 @@
         <li><a href="_api/scanspec.core.html#scanspec.core.Path.stack">(scanspec.core.Path attribute)</a>
 </li>
       </ul></li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.start">start (scanspec.specs.Linspace attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.start">(scanspec.specs.Range attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.step">step (scanspec.specs.Range attribute)</a>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Static">Static (class in scanspec.specs)</a>
 </li>
       <li><a href="_api/scanspec.specs.html#scanspec.specs.step">step() (in module scanspec.specs)</a>
 </li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.stop">stop (scanspec.specs.Linspace attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.stop">(scanspec.specs.Range attribute)</a>
-</li>
-      </ul></li>
       <li><a href="_api/scanspec.core.html#scanspec.core.StrictConfig">StrictConfig (in module scanspec.core)</a>
 </li>
-  </ul></td>
-</tr></table>
-
-<h2 id="T">T</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Concat.type">type (scanspec.specs.Concat attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.ConstantDuration.type">(scanspec.specs.ConstantDuration attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse.type">(scanspec.specs.Ellipse attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Fly.type">(scanspec.specs.Fly attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Linspace.type">(scanspec.specs.Linspace attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Polygon.type">(scanspec.specs.Polygon attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Product.type">(scanspec.specs.Product attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Range.type">(scanspec.specs.Range attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Snake.type">(scanspec.specs.Snake attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.type">(scanspec.specs.Spiral attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Squash.type">(scanspec.specs.Squash attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.type">(scanspec.specs.Static attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Zip.type">(scanspec.specs.Zip attribute)</a>
-</li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -910,95 +839,17 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Static.value">value (scanspec.specs.Static attribute)</a>
-</li>
       <li><a href="_api/scanspec.specs.html#scanspec.specs.VARIABLE_DURATION">VARIABLE_DURATION (in module scanspec.specs)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse.vertical">vertical (scanspec.specs.Ellipse attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Polygon.vertical">(scanspec.specs.Polygon attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Polygon.vertices">vertices (scanspec.specs.Polygon attribute)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="X">X</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse.x_axis">x_axis (scanspec.specs.Ellipse attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Polygon.x_axis">(scanspec.specs.Polygon attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_axis">(scanspec.specs.Spiral attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse.x_centre">x_centre (scanspec.specs.Ellipse attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_centre">(scanspec.specs.Spiral attribute)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse.x_diameter">x_diameter (scanspec.specs.Ellipse attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_diameter">(scanspec.specs.Spiral attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse.x_step">x_step (scanspec.specs.Ellipse attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Polygon.x_step">(scanspec.specs.Polygon attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.x_step">(scanspec.specs.Spiral attribute)</a>
-</li>
-      </ul></li>
-  </ul></td>
-</tr></table>
-
-<h2 id="Y">Y</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse.y_axis">y_axis (scanspec.specs.Ellipse attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Polygon.y_axis">(scanspec.specs.Polygon attribute)</a>
-</li>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.y_axis">(scanspec.specs.Spiral attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse.y_centre">y_centre (scanspec.specs.Ellipse attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.y_centre">(scanspec.specs.Spiral attribute)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse.y_diameter">y_diameter (scanspec.specs.Ellipse attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Spiral.y_diameter">(scanspec.specs.Spiral attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="_api/scanspec.specs.html#scanspec.specs.Ellipse.y_step">y_step (scanspec.specs.Ellipse attribute)</a>
-
-      <ul>
-        <li><a href="_api/scanspec.specs.html#scanspec.specs.Polygon.y_step">(scanspec.specs.Polygon attribute)</a>
-</li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="Z">Z</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_api/scanspec.specs.html#scanspec.specs.Zip">Zip (class in scanspec.specs)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_api/scanspec.core.html#scanspec.core.Dimension.zip">zip() (scanspec.core.Dimension method)</a>
 
@@ -1038,8 +889,8 @@
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1051,7 +902,7 @@
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.16.1.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
 </p></div>
       
     </div>
