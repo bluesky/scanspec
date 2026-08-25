@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>scanspec.core &#8212; scanspec 1.0.1.dev3+ga59298826 documentation</title>
+    <title>scanspec.core &#8212; scanspec 1.0.1.dev4+gc3250fd53 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=4c0c868b"></script>
+    <script src="../_static/documentation_options.js?v=17b64383"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -635,9 +635,9 @@ element is whether there is a gap between the last frame and the first</p>
 </ul>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">"x"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;x&#39;: array([2, 1, 2])}</span>
+<span class="go">{'x': array([2, 1, 2])}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -656,10 +656,10 @@ the same order. The order is inherited from self, so other may be reordered.</p>
 </ul>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">frames2</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">])})</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">"x"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span> <span class="s2">"y"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">frames2</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">"y"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="s2">"x"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">frames2</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;x&#39;: array([1, 2, 3, 4, 5, 6]), &#39;y&#39;: array([6, 5, 4, 3, 2, 1])}</span>
+<span class="go">{'x': array([1, 2, 3, 4, 5, 6]), 'y': array([6, 5, 4, 3, 2, 1])}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -669,10 +669,10 @@ the same order. The order is inherited from self, so other may be reordered.</p>
 <span class="sig-name descname"><span class="pre">zip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">Dimension</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.core.Dimension" title="scanspec.core.Dimension"><span class="pre">Dimension</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#Dimension.zip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Dimension.zip" title="Link to this definition">#</a></dt>
 <dd><p>Return a new Dimension object merging self and other.</p>
 <p>Require both Dimension objects to not share axes.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">])})</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">"x"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">"y"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">fy</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;x&#39;: array([1, 2, 3]), &#39;y&#39;: array([5, 6, 7])}</span>
+<span class="go">{'x': array([1, 2, 3]), 'y': array([5, 6, 7])}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -694,14 +694,14 @@ moving</p>
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="../how-to/iterate-a-spec.html#iterate-a-spec"><span class="std std-ref">How to Iterate a Spec</span></a></p>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">SnakedDimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">SnakedDimension</span><span class="p">({</span><span class="s2">"x"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">"y"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mp</span> <span class="o">=</span> <span class="n">Midpoints</span><span class="p">([</span><span class="n">fy</span><span class="p">,</span> <span class="n">fx</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mp</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-<span class="go">{&#39;y&#39;: np.int64(3), &#39;x&#39;: np.int64(1)}</span>
-<span class="go">{&#39;y&#39;: np.int64(3), &#39;x&#39;: np.int64(2)}</span>
-<span class="go">{&#39;y&#39;: np.int64(4), &#39;x&#39;: np.int64(2)}</span>
-<span class="go">{&#39;y&#39;: np.int64(4), &#39;x&#39;: np.int64(1)}</span>
+<span class="go">{'y': np.int64(3), 'x': np.int64(1)}</span>
+<span class="go">{'y': np.int64(3), 'x': np.int64(2)}</span>
+<span class="go">{'y': np.int64(4), 'x': np.int64(2)}</span>
+<span class="go">{'y': np.int64(4), 'x': np.int64(1)}</span>
 </pre></div>
 </div>
 <dl class="py attribute">
@@ -773,15 +773,15 @@ produced</p>
 <dt class="sig sig-object py" id="scanspec.core.Path.consume">
 <span class="sig-name descname"><span class="pre">consume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#scanspec.core.Slice" title="scanspec.core.Slice"><span class="pre">Slice</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#scanspec.core.Axis" title="scanspec.core.Axis"><span class="pre">Axis</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scanspec/core.html#Path.consume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scanspec.core.Path.consume" title="Link to this definition">#</a></dt>
 <dd><p>Consume at most num frames from the Path and return as a Dimension object.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">SnakedDimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">SnakedDimension</span><span class="p">({</span><span class="s2">"x"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">"y"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">([</span><span class="n">fy</span><span class="p">,</span> <span class="n">fx</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;y&#39;: array([3, 3, 4]), &#39;x&#39;: array([1, 2, 2])}</span>
+<span class="go">{'y': array([3, 3, 4]), 'x': array([1, 2, 2])}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;y&#39;: array([4]), &#39;x&#39;: array([1])}</span>
+<span class="go">{'y': array([4]), 'x': array([1])}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span><span class="o">.</span><span class="n">consume</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;y&#39;: array([], dtype=int64), &#39;x&#39;: array([], dtype=int64)}</span>
+<span class="go">{'y': array([], dtype=int64), 'x': array([], dtype=int64)}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -824,9 +824,9 @@ produced</p>
 </ul>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span> <span class="o">=</span> <span class="n">SnakedDimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span> <span class="o">=</span> <span class="n">SnakedDimension</span><span class="p">({</span><span class="s2">"x"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">frames</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]))</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;x&#39;: array([1, 2, 3, 3, 2, 1])}</span>
+<span class="go">{'x': array([1, 2, 3, 3, 2, 1])}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -889,12 +889,12 @@ created must be either Pydantic dataclasses or BaseModels.</p>
 <span class="k">assert</span> <span class="n">my_sum</span> <span class="o">==</span> <span class="n">parse_obj_as</span><span class="p">(</span>
     <span class="n">Expression</span><span class="p">,</span>
     <span class="p">{</span>
-        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Add&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;IntLiteral&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
-        <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Subtract&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;IntLiteral&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
-            <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;IntLiteral&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Add"</span><span class="p">,</span>
+        <span class="s2">"left"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"IntLiteral"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">5</span><span class="p">},</span>
+        <span class="s2">"right"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Subtract"</span><span class="p">,</span>
+            <span class="s2">"left"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"IntLiteral"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span>
+            <span class="s2">"right"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"IntLiteral"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
         <span class="p">},</span>
     <span class="p">},</span>
 <span class="p">)</span>
@@ -952,10 +952,10 @@ as nesting the input Dimension stack within others</p></li>
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="../explanations/why-squash-can-change-path.html#why-squash-can-change-path"><span class="std std-ref">Why Squash (and Mask) can change the Path</span></a></p>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">SnakedDimension</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fx</span> <span class="o">=</span> <span class="n">SnakedDimension</span><span class="p">({</span><span class="s2">"x"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fy</span> <span class="o">=</span> <span class="n">Dimension</span><span class="p">({</span><span class="s2">"y"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">squash_frames</span><span class="p">([</span><span class="n">fy</span><span class="p">,</span> <span class="n">fx</span><span class="p">])</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;y&#39;: array([3, 3, 4, 4]), &#39;x&#39;: array([1, 2, 2, 1])}</span>
+<span class="go">{'y': array([3, 3, 4, 4]), 'x': array([1, 2, 2, 1])}</span>
 </pre></div>
 </div>
 </dd></dl>

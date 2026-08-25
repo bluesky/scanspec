@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>scanspec.specs &#8212; scanspec 1.0.1.dev3+ga59298826 documentation</title>
+    <title>scanspec.specs &#8212; scanspec 1.0.1.dev4+gc3250fd53 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=4c0c868b"></script>
+    <script src="../_static/documentation_options.js?v=17b64383"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -579,7 +579,7 @@ formed using <a class="reference internal" href="#scanspec.specs.Spec.concat" ti
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -623,7 +623,7 @@ formed using <a class="reference internal" href="#scanspec.specs.Spec.concat" ti
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">@</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">@</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -674,12 +674,12 @@ the fast axis.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ellipse</span><span class="p">,</span> <span class="n">Fly</span>
 
-<span class="c1"># An elliptical region centred at (0, 0) on axes &quot;x&quot; and &quot;y&quot;,</span>
+<span class="c1"># An elliptical region centred at (0, 0) on axes "x" and "y",</span>
 <span class="c1"># with 10x6 diameters and steps of 0.5 in both directions.</span>
 <span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span>
     <span class="n">Ellipse</span><span class="p">(</span>
-        <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
-        <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="s2">"x"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="s2">"y"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span>
         <span class="n">snake</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">vertical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
@@ -717,7 +717,7 @@ the fast axis.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -772,7 +772,7 @@ specific number of frames.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -803,7 +803,7 @@ specific number of frames.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="o">.</span><span class="n">bounded</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="o">.</span><span class="n">bounded</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -830,12 +830,12 @@ True, the y axis will be the fast axis.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Polygon</span><span class="p">,</span> <span class="n">Fly</span>
 
-<span class="c1"># A triangular region on axes &quot;x&quot; and &quot;y&quot;, stepped by 0.2 units</span>
+<span class="c1"># A triangular region on axes "x" and "y", stepped by 0.2 units</span>
 <span class="c1"># in both directions.</span>
 <span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span>
     <span class="n">Polygon</span><span class="p">(</span>
-        <span class="n">x_axis</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
-        <span class="n">y_axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span>
+        <span class="n">x_axis</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
+        <span class="n">y_axis</span><span class="o">=</span><span class="s2">"y"</span><span class="p">,</span>
         <span class="n">vertices</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">2.5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)],</span>
         <span class="n">x_step</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
         <span class="n">y_step</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
@@ -876,7 +876,7 @@ True, the y axis will be the fast axis.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -890,7 +890,7 @@ True, the y axis will be the fast axis.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -904,7 +904,7 @@ True, the y axis will be the fast axis.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="o">.</span><span class="n">bounded</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="o">.</span><span class="n">bounded</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -918,7 +918,7 @@ True, the y axis will be the fast axis.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span><span class="p">,</span> <span class="n">Product</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Product</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">~</span><span class="n">Linspace</span><span class="o">.</span><span class="n">bounded</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">gap</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Product</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">~</span><span class="n">Linspace</span><span class="o">.</span><span class="n">bounded</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">gap</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -970,7 +970,7 @@ True, the y axis will be the fast axis.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Range</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Range</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Range</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1001,7 +1001,7 @@ True, the y axis will be the fast axis.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Range</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Range</span><span class="o">.</span><span class="n">bounded</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Range</span><span class="o">.</span><span class="n">bounded</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1023,7 +1023,7 @@ True, the y axis will be the fast axis.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1150,7 +1150,7 @@ spiral spanning width of “x_range” and height of “y_range”</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Spiral</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Spiral</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Spiral</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1187,7 +1187,7 @@ spiral spanning width of “x_range” and height of “y_range”</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span><span class="p">,</span> <span class="n">Squash</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Squash</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Squash</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1231,7 +1231,7 @@ spiral spanning width of “x_range” and height of “y_range”</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_spec</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span><span class="p">,</span> <span class="n">Static</span>
 
-<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">Static</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+<span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">Static</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1275,7 +1275,7 @@ stack [l2, l1.zip(r1)].</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fly</span><span class="p">,</span> <span class="n">Linspace</span>
 
 <span class="n">spec</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span>
-    <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="n">Linspace</span><span class="p">(</span><span class="s2">"z"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">zip</span><span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 <span class="p">)</span>
 <span class="n">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
 </pre></div>

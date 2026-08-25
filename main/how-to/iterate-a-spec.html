@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>How to Iterate a Spec &#8212; scanspec 1.0.1.dev3+ga59298826 documentation</title>
+    <title>How to Iterate a Spec &#8212; scanspec 1.0.1.dev4+gc3250fd53 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=4c0c868b"></script>
+    <script src="../_static/documentation_options.js?v=17b64383"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -498,13 +498,13 @@
 frame. You can get these by using the <a class="reference internal" href="../_api/scanspec.specs.html#scanspec.specs.Spec.midpoints" title="scanspec.specs.Spec.midpoints"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Spec.midpoints()</span></code></a> method to produce a
 <a class="reference internal" href="../_api/scanspec.core.html#scanspec.core.Midpoints" title="scanspec.core.Midpoints"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Midpoints</span></code></a> iterator of scan <a class="reference internal" href="../explanations/technical-terms.html#point"><span class="std std-ref">Points</span></a>:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">Linspace</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">midpoints</span><span class="p">():</span>
 <span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 <span class="gp">...</span>
-<span class="go">{&#39;x&#39;: np.float64(1.0)}</span>
-<span class="go">{&#39;x&#39;: np.float64(1.5)}</span>
-<span class="go">{&#39;x&#39;: np.float64(2.0)}</span>
+<span class="go">{'x': np.float64(1.0)}</span>
+<span class="go">{'x': np.float64(1.5)}</span>
+<span class="go">{'x': np.float64(2.0)}</span>
 </pre></div>
 </div>
 <p>This is simple, but not particularly performant, as the numpy arrays of
@@ -521,11 +521,11 @@ method to produce a single <a class="reference internal" href="../_api/scanspec.
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span>
 <span class="go">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span><span class="o">.</span><span class="n">lower</span>
-<span class="go">{&#39;x&#39;: array([0.75, 1.25, 1.75])}</span>
+<span class="go">{'x': array([0.75, 1.25, 1.75])}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span><span class="o">.</span><span class="n">midpoints</span>
-<span class="go">{&#39;x&#39;: array([1. , 1.5, 2. ])}</span>
+<span class="go">{'x': array([1. , 1.5, 2. ])}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">segment</span><span class="o">.</span><span class="n">upper</span>
-<span class="go">{&#39;x&#39;: array([1.25, 1.75, 2.25])}</span>
+<span class="go">{'x': array([1.25, 1.75, 2.25])}</span>
 </pre></div>
 </div>
 </section>
@@ -575,9 +575,9 @@ as you need. You can also give a maximum size to <a class="reference internal" h
 something in the turnaround. For example, if we take the x axis of a grid scan,
 you can see it snakes back and forth:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scanspec.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Linspace</span><span class="p">,</span> <span class="n">Fly</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">@</span> <span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">grid</span> <span class="o">=</span> <span class="n">Fly</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">@</span> <span class="p">(</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="o">~</span><span class="n">Linspace</span><span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">frames</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chunk</span><span class="o">.</span><span class="n">midpoints</span><span class="p">[</span><span class="s2">"x"</span><span class="p">]</span>
 <span class="go">array([1. , 1.5, 2. , 2. , 1.5, 1. ])</span>
 </pre></div>
 </div>

@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.plot &#8212; scanspec 1.0.1.dev3+ga59298826 documentation</title>
+    <title>scanspec.plot &#8212; scanspec 1.0.1.dev4+gc3250fd53 documentation</title>
   
   
   
@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=4c0c868b"></script>
+    <script src="../../_static/documentation_options.js?v=17b64383"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -461,7 +461,7 @@
                 <article class="bd-article">
                   
   <h1>Source code for scanspec.plot</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;`plot_spec` to visualize a scan.&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""`plot_spec` to visualize a scan."""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Iterable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cycle</span>
@@ -478,7 +478,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">stack2dimension</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ellipse</span><span class="p">,</span> <span class="n">Polygon</span><span class="p">,</span> <span class="n">Spec</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;plot_spec&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"plot_spec"</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_plot_arrays</span><span class="p">(</span><span class="n">axes</span><span class="p">:</span> <span class="n">Axes</span><span class="p">,</span> <span class="n">arrays</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
@@ -529,14 +529,14 @@
         <span class="n">head</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">arrays</span><span class="p">)]</span>
         <span class="n">tail</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">arrays</span><span class="p">)]</span>
         <span class="n">axes</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
-            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">""</span><span class="p">,</span>
             <span class="nb">tuple</span><span class="p">(</span><span class="n">head</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span>
             <span class="nb">tuple</span><span class="p">(</span><span class="n">tail</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span>
-            <span class="n">arrowprops</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;lightgrey&quot;</span><span class="p">,</span> <span class="s2">&quot;arrowstyle&quot;</span><span class="p">:</span> <span class="s2">&quot;-|&gt;&quot;</span><span class="p">},</span>
+            <span class="n">arrowprops</span><span class="o">=</span><span class="p">{</span><span class="s2">"color"</span><span class="p">:</span> <span class="s2">"lightgrey"</span><span class="p">,</span> <span class="s2">"arrowstyle"</span><span class="p">:</span> <span class="s2">"-|&gt;"</span><span class="p">},</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
         <span class="n">arrows</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">arrays</span><span class="p">)]</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="n">Arrow3D</span><span class="p">(</span><span class="o">*</span><span class="n">arrows</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">mutation_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">arrowstyle</span><span class="o">=</span><span class="s2">&quot;-|&gt;&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightgrey&quot;</span><span class="p">)</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">Arrow3D</span><span class="p">(</span><span class="o">*</span><span class="n">arrows</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">mutation_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">arrowstyle</span><span class="o">=</span><span class="s2">"-|&gt;"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"lightgrey"</span><span class="p">)</span>
         <span class="n">axes</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 
 
@@ -552,14 +552,14 @@
     <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">sum</span><span class="p">((</span><span class="n">arr</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">arr</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">scaled_arrays</span><span class="p">))</span>
     <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="c1"># Can&#39;t make a spline that starts and ends in the same place, so add a small</span>
+        <span class="c1"># Can't make a spline that starts and ends in the same place, so add a small</span>
         <span class="c1"># delta</span>
         <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scaled_arrays</span><span class="p">,</span> <span class="n">ranges</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
                 <span class="n">s</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">r</span> <span class="o">*</span> <span class="mf">1e-7</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
         <span class="c1"># There are no duplicated points, plot a spline</span>
         <span class="n">t</span> <span class="o">/=</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="c1"># Scale the arrays so splines don&#39;t favour larger scaled axes</span>
+        <span class="c1"># Scale the arrays so splines don't favour larger scaled axes</span>
         <span class="n">tck</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">splprep</span><span class="p">(</span><span class="n">scaled_arrays</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="n">starts</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">index_colours</span><span class="p">)</span>
         <span class="n">stops</span> <span class="o">=</span> <span class="n">starts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
@@ -592,7 +592,7 @@
 <div class="viewcode-block" id="plot_spec">
 <a class="viewcode-back" href="../../_api/scanspec.plot.html#scanspec.plot.plot_spec">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spec</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot a spec, drawing the path taken through the scan.</span>
+<span class="w">    </span><span class="sd">"""Plot a spec, drawing the path taken through the scan.</span>
 
 <span class="sd">    Uses a different colour for each frame, grey for the turnarounds.</span>
 
@@ -600,8 +600,8 @@
 
 <span class="sd">        from scanspec.specs import Linspace, Ellipse</span>
 
-<span class="sd">        spec = Linspace(&quot;z&quot;, 1, 3, 3) * Ellipse(&quot;x&quot;, 1, 01.8, 0.2, &quot;y&quot;, 2, snake=True)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        spec = Linspace("z", 1, 3, 3) * Ellipse("x", 1, 01.8, 0.2, "y", 2, snake=True)</span>
+<span class="sd">    """</span>
     <span class="n">dims</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">calculate</span><span class="p">()</span>
     <span class="n">dim</span> <span class="o">=</span> <span class="n">stack2dimension</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
     <span class="n">axes</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">axes</span><span class="p">()</span>
@@ -610,7 +610,7 @@
     <span class="c1"># Setup axes</span>
     <span class="k">if</span> <span class="n">ndims</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
-        <span class="n">plt_axes</span><span class="p">:</span> <span class="n">Axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s2">&quot;3d&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">plt_axes</span><span class="p">:</span> <span class="n">Axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s2">"3d"</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="n">plt_axes</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plt_axes</span><span class="p">,</span> <span class="n">Axes3D</span><span class="p">):</span>
             <span class="n">plt_axes</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
@@ -618,8 +618,8 @@
             <span class="n">plt_axes</span><span class="o">.</span><span class="n">view_init</span><span class="p">(</span><span class="n">elev</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s2">&quot;Expected matplotlib to create an Axes3D object, &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;instead got: </span><span class="si">{</span><span class="n">plt_axes</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="s2">"Expected matplotlib to create an Axes3D object, "</span>
+                <span class="sa">f</span><span class="s2">"instead got: </span><span class="si">{</span><span class="n">plt_axes</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
     <span class="k">elif</span> <span class="n">ndims</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
@@ -632,7 +632,7 @@
     <span class="n">plt_axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># type: ignore</span>
 
     <span class="c1"># Title with dimension sizes</span>
-    <span class="n">title</span> <span class="o">=</span> <span class="n">title</span> <span class="ow">or</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dim[</span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">axes</span><span class="p">())</span><span class="si">}</span><span class="s2"> len=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="si">}</span><span class="s2">]&quot;</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">title</span> <span class="ow">or</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Dim[</span><span class="si">{</span><span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">axes</span><span class="p">())</span><span class="si">}</span><span class="s2"> len=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="si">}</span><span class="s2">]"</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 
     <span class="c1"># Plot regions</span>
@@ -674,7 +674,7 @@
 
         <span class="n">arrow_arr</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">turnaround</span><span class="p">:</span>
-            <span class="c1"># If we didn&#39;t move then plot a straight line from start to stop</span>
+            <span class="c1"># If we didn't move then plot a straight line from start to stop</span>
             <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">turnaround</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">turnaround</span><span class="p">:</span>
                     <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">4</span>
@@ -683,7 +683,7 @@
                     <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-=</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">4</span>
             <span class="c1"># Plot the turnaround</span>
             <span class="n">arrow_arr</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-                <span class="n">_plot_spline</span><span class="p">(</span><span class="n">plt_axes</span><span class="p">,</span> <span class="n">ranges</span><span class="p">,</span> <span class="n">turnaround</span><span class="p">,</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;lightgrey&quot;</span><span class="p">})</span>
+                <span class="n">_plot_spline</span><span class="p">(</span><span class="n">plt_axes</span><span class="p">,</span> <span class="n">ranges</span><span class="p">,</span> <span class="n">turnaround</span><span class="p">,</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">"lightgrey"</span><span class="p">})</span>
             <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="c1"># Plot the points</span>
@@ -698,25 +698,25 @@
             <span class="n">arrow_arr</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span> <span class="o">*</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">splines</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
             <span class="n">_plot_arrow</span><span class="p">(</span><span class="n">plt_axes</span><span class="p">,</span> <span class="n">arrow_arr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># First point isn&#39;t moving, put a right caret marker</span>
+            <span class="c1"># First point isn't moving, put a right caret marker</span>
             <span class="n">_plot_arrays</span><span class="p">(</span>
                 <span class="n">plt_axes</span><span class="p">,</span>
                 <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dim</span><span class="o">.</span><span class="n">lower</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">],</span>
                 <span class="n">marker</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-                <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightgrey&quot;</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="s2">"lightgrey"</span><span class="p">,</span>
             <span class="p">)</span>
 
     <span class="c1"># Plot the capture points</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">200</span><span class="p">:</span>
         <span class="n">arrays</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim</span><span class="o">.</span><span class="n">midpoints</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">]</span>
-        <span class="n">_plot_arrays</span><span class="p">(</span><span class="n">plt_axes</span><span class="p">,</span> <span class="n">arrays</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+        <span class="n">_plot_arrays</span><span class="p">(</span><span class="n">plt_axes</span><span class="p">,</span> <span class="n">arrays</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">"."</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"k"</span><span class="p">)</span>
 
     <span class="c1"># Plot the end</span>
     <span class="n">_plot_arrays</span><span class="p">(</span>
         <span class="n">plt_axes</span><span class="p">,</span>
         <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dim</span><span class="o">.</span><span class="n">upper</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">axes</span><span class="p">],</span>
-        <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
-        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightgrey&quot;</span><span class="p">,</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s2">"lightgrey"</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>  <span class="c1"># type: ignore</span></div>

@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Running a REST service for generating points &#8212; scanspec 1.0.1.dev3+ga59298826 documentation</title>
+    <title>Running a REST service for generating points &#8212; scanspec 1.0.1.dev4+gc3250fd53 documentation</title>
   
   
   
@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=4c0c868b"></script>
+    <script src="../_static/documentation_options.js?v=17b64383"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -512,26 +512,26 @@ which will allow you to send requests to the server using, for example, the <cod
 <section id="validating-a-spec">
 <h2>Validating a Spec<a class="headerlink" href="#validating-a-spec" title="Link to this heading">#</a></h2>
 <p>You can ensure a spec is valid by passing it to the <code class="docutils literal notranslate"><span class="pre">/valid</span></code> endpoint.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span><span class="s1">&#39;POST&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span><span class="s1">&#39;http://localhost:8080/valid&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s1">&#39;accept: application/json&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s1">&#39;Content-Type: application/json&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
-<span class="s1">  &quot;outer&quot;: {</span>
-<span class="s1">    &quot;axis&quot;: &quot;y&quot;,</span>
-<span class="s1">    &quot;start&quot;: 0,</span>
-<span class="s1">    &quot;stop&quot;: 10,</span>
-<span class="s1">    &quot;num&quot;: 3,</span>
-<span class="s1">    &quot;type&quot;: &quot;Linspace&quot;</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span><span class="s1">'POST'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s1">'http://localhost:8080/valid'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s1">'accept: application/json'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<span class="s1">  "outer": {</span>
+<span class="s1">    "axis": "y",</span>
+<span class="s1">    "start": 0,</span>
+<span class="s1">    "stop": 10,</span>
+<span class="s1">    "num": 3,</span>
+<span class="s1">    "type": "Linspace"</span>
 <span class="s1">  },</span>
-<span class="s1">  &quot;inner&quot;: {</span>
-<span class="s1">    &quot;axis&quot;: &quot;x&quot;,</span>
-<span class="s1">    &quot;start&quot;: 0,</span>
-<span class="s1">    &quot;stop&quot;: 10,</span>
-<span class="s1">    &quot;type&quot;: &quot;Linspace&quot;</span>
+<span class="s1">  "inner": {</span>
+<span class="s1">    "axis": "x",</span>
+<span class="s1">    "start": 0,</span>
+<span class="s1">    "stop": 10,</span>
+<span class="s1">    "type": "Linspace"</span>
 <span class="s1">  },</span>
-<span class="s1">  &quot;type&quot;: &quot;Product&quot;</span>
-<span class="s1">}&#39;</span>
+<span class="s1">  "type": "Product"</span>
+<span class="s1">}'</span>
 </pre></div>
 </div>
 <p>Should return a 422 error code because the inner axis is missing a parameter.</p>
@@ -540,36 +540,36 @@ which will allow you to send requests to the server using, for example, the <cod
 <h2>Generating Midpoints<a class="headerlink" href="#generating-midpoints" title="Link to this heading">#</a></h2>
 <p>There are several endpoints to inspect generated points. The most useful is <code class="docutils literal notranslate"><span class="pre">/midpoints</span></code>,
 which gives the middle coordinate of each scan point, organised by axis name.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span><span class="s1">&#39;POST&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span><span class="s1">&#39;http://localhost:8080/midpoints&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s1">&#39;accept: application/json&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s1">&#39;Content-Type: application/json&#39;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
-<span class="s1">  &quot;spec&quot;: {</span>
-<span class="s1">    &quot;outer&quot;: {</span>
-<span class="s1">      &quot;axis&quot;: &quot;y&quot;,</span>
-<span class="s1">      &quot;start&quot;: 0,</span>
-<span class="s1">      &quot;stop&quot;: 10,</span>
-<span class="s1">      &quot;num&quot;: 3,</span>
-<span class="s1">      &quot;type&quot;: &quot;Linspace&quot;</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span><span class="s1">'POST'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s1">'http://localhost:8080/midpoints'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s1">'accept: application/json'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<span class="s1">  "spec": {</span>
+<span class="s1">    "outer": {</span>
+<span class="s1">      "axis": "y",</span>
+<span class="s1">      "start": 0,</span>
+<span class="s1">      "stop": 10,</span>
+<span class="s1">      "num": 3,</span>
+<span class="s1">      "type": "Linspace"</span>
 <span class="s1">    },</span>
-<span class="s1">    &quot;inner&quot;: {</span>
-<span class="s1">      &quot;axis&quot;: &quot;x&quot;,</span>
-<span class="s1">      &quot;start&quot;: 0,</span>
-<span class="s1">      &quot;stop&quot;: 10,</span>
-<span class="s1">      &quot;num&quot;: 4,</span>
-<span class="s1">      &quot;type&quot;: &quot;Linspace&quot;</span>
+<span class="s1">    "inner": {</span>
+<span class="s1">      "axis": "x",</span>
+<span class="s1">      "start": 0,</span>
+<span class="s1">      "stop": 10,</span>
+<span class="s1">      "num": 4,</span>
+<span class="s1">      "type": "Linspace"</span>
 <span class="s1">    },</span>
-<span class="s1">    &quot;type&quot;: &quot;Product&quot;</span>
+<span class="s1">    "type": "Product"</span>
 <span class="s1">  },</span>
-<span class="s1">  &quot;max_frames&quot;: 1024,</span>
-<span class="s1">  &quot;format&quot;: &quot;FLOAT_LIST&quot;</span>
-<span class="s1">}&#39;</span>
+<span class="s1">  "max_frames": 1024,</span>
+<span class="s1">  "format": "FLOAT_LIST"</span>
+<span class="s1">}'</span>
 </pre></div>
 </div>
 <p>Should output:</p>
-<div class="highlight-JSON notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FLOAT_LIST&quot;</span><span class="p">,</span>
-<span class="nt">&quot;midpoints&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;x&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span>
+<div class="highlight-JSON notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">"format"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FLOAT_LIST"</span><span class="p">,</span>
+<span class="nt">"midpoints"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"x"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span>
 <span class="w">                    </span><span class="mf">3.333333333333333</span><span class="p">,</span>
 <span class="w">                    </span><span class="mf">6.666666666666667</span><span class="p">,</span>
 <span class="w">                    </span><span class="mf">10.000000000000002</span><span class="p">,</span>
@@ -581,7 +581,7 @@ which gives the middle coordinate of each scan point, organised by axis name.</p
 <span class="w">                    </span><span class="mf">3.333333333333333</span><span class="p">,</span>
 <span class="w">                    </span><span class="mf">6.666666666666667</span><span class="p">,</span>
 <span class="w">                    </span><span class="mf">10.000000000000002</span><span class="p">],</span>
-<span class="w">              </span><span class="nt">&quot;y&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">              </span><span class="nt">"y"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span>
 <span class="w">                    </span><span class="mf">0.0</span><span class="p">,</span>
 <span class="w">                    </span><span class="mf">0.0</span><span class="p">,</span>
 <span class="w">                    </span><span class="mf">0.0</span><span class="p">,</span>
@@ -593,8 +593,8 @@ which gives the middle coordinate of each scan point, organised by axis name.</p
 <span class="w">                    </span><span class="mf">10.0</span><span class="p">,</span>
 <span class="w">                    </span><span class="mf">10.0</span><span class="p">,</span>
 <span class="w">                    </span><span class="mf">10.0</span><span class="p">]},</span>
-<span class="nt">&quot;returned_frames&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span>
-<span class="nt">&quot;total_frames&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">}</span>
+<span class="nt">"returned_frames"</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span>
+<span class="nt">"total_frames"</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">}</span>
 </pre></div>
 </div>
 </section>
