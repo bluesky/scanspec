@@ -5,14 +5,16 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from math import isclose
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Never
+from typing import TypeVar as StdTypeVar
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict
+from typing_extensions import TypeVar
 
-AxisT = TypeVar("AxisT")
-DetectorT = TypeVar("DetectorT")
-MonitorT = TypeVar("MonitorT")
+AxisT = StdTypeVar("AxisT")
+DetectorT = StdTypeVar("DetectorT")
+MonitorT = TypeVar("MonitorT", default=Never)
 
 
 class TriggerRepeat(BaseModel):

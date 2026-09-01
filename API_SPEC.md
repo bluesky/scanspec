@@ -844,7 +844,8 @@ other.
 
 ```python
 # Step scan — single DetectorGroup, trigger_sequence derived automatically.
-spec: Acquire[str, str, Never] = Acquire(
+# (No explicit Acquire[...] annotation needed -- MonitorT infers to Never.)
+spec = Acquire(
     Product(Linspace("y", 0, 5, 50), Linspace("x", 0, 10, 100)),
     fly=False,              # default
     stream_name="primary",  # default
@@ -861,7 +862,8 @@ spec: Acquire[str, str, Never] = Acquire(
 
 # Flyscan — inner axis sweeps continuously; cameras are a ContinuousStream,
 # temperature a free-running MonitorStream. Still a single DetectorGroup.
-spec: Acquire[str, str, str] = Acquire(
+# (No explicit Acquire[...] annotation needed -- monitors= pins MonitorT.)
+spec = Acquire(
     Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100)),
     fly=True,
     detectors=[
@@ -897,18 +899,21 @@ monitors:
 diff_det = DetectorGroup(1, 1, 0.01, 0.001, ["diffraction"])
 spec_det = DetectorGroup(1, 1, 0.003, 0.001, ["spectroscopy"])
 
-diff_acq: Acquire[str, str, Never] = Acquire(
+diff_acq = Acquire(
     Static("e", 7.0), detectors=[diff_det], stream_name="diff",
 )
-spec_fwd: Acquire[str, str, Never] = Acquire(
+spec_fwd = Acquire(
     Linspace("e", 7.0, 7.1, 1000), fly=True, detectors=[spec_det], stream_name="spec",
 )
-spec_rev: Acquire[str, str, Never] = Acquire(
+spec_rev = Acquire(
     Linspace("e", 7.1, 7.0, 1000), fly=True, detectors=[spec_det], stream_name="spec",
 )
 
 # 200 iterations of: step to e=7.0 (1 diffraction frame), fly e 7.0->7.1
 # (1000 spectroscopy frames), fly e 7.1->7.0 (1000 spectroscopy frames).
+# Acquire[...] annotation IS needed here -- not for MonitorT (monitors=
+# pins that), but because DetectorT can't be inferred through the
+# Repeat(...concat...concat...) combinator chain feeding `spec=`.
 spec: Acquire[str, str, str] = Acquire(
     Repeat(diff_acq.concat(spec_fwd).concat(spec_rev), num=200),
     monitors=[MonitorStream("temperature", "tc1")],
@@ -925,9 +930,11 @@ scan = spec.compile()
 
 ### Generics and type inference
 
-Pyright infers `DetectorT` and `MonitorT` from the constructor arguments when
-both are constrained. The type parameters exist for static analysis only — no
-runtime generic parameterization is required by Pydantic.
+Pyright infers `DetectorT` from `detectors=`. `MonitorT` infers from
+`monitors=` when given; when omitted, it defaults to `Never` (a PEP 696
+`TypeVar` default) rather than needing an explicit annotation. The type
+parameters exist for static analysis only — no runtime generic
+parameterization is required by Pydantic.
 
 ```python
 # Pyright infers Acquire[str, str, str] — no annotation needed.
@@ -943,12 +950,18 @@ spec = Acquire(
     monitors=[MonitorStream("temp", "tc1")],
 )
 
-# Without monitors, MonitorT is unconstrained; annotate to pin Never.
-spec_no_mon: Acquire[str, str, Never] = Acquire(
+# Without monitors, MonitorT infers to Never — still no annotation needed.
+spec_no_mon = Acquire(
     motion,
     detectors=[DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])],
 )
 ```
+
+Explicit `Acquire[...]` annotation is still needed on the rare construction
+pyright can't see through at all — e.g. `spec=` built from a `Repeat`-of-
+`Concat`-of-`Acquire`s chain, where `DetectorT` (unrelated to `MonitorT`)
+can't be tracked through the combinators (see the multi-stream example
+above).
 
 See `tests/scanspec/v2/test_type_inference.py` for pyright assertions.
 
@@ -987,7 +1000,9 @@ energy_axis = Linspace("energy", 7.0, 7.1, 20)
 xy_motion   = Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100))
 full_motion = energy_axis * xy_motion   # 20 energy steps × 50 rows = 1000 windows
 
-spec: Acquire[str, str, str] = Acquire(
+# No explicit Acquire[...] annotation needed -- detectors=/monitors= pin
+# DetectorT/MonitorT directly (unlike the Repeat/Concat chain above).
+spec = Acquire(
     full_motion,
     fly=True,           # innermost dimension (x) sweeps continuously
     stream_name="primary",

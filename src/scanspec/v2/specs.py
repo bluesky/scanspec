@@ -28,10 +28,12 @@ from typing import (
     Never,
     Self,
     TypeAlias,
-    TypeVar,
     Union,
     cast,
     dataclass_transform,
+)
+from typing import (
+    TypeVar as StdTypeVar,
 )
 
 import numpy as np
@@ -45,6 +47,7 @@ from pydantic import (
     computed_field,
     model_validator,
 )
+from typing_extensions import TypeVar
 
 from .core import (
     ConcatSource,
@@ -63,10 +66,10 @@ from .core import (
     validate_trigger_sequence,
 )
 
-AxisT = TypeVar("AxisT")
-DetectorT = TypeVar("DetectorT")
-MonitorT = TypeVar("MonitorT")
-_BoundedAxisT = TypeVar("_BoundedAxisT")
+AxisT = StdTypeVar("AxisT")
+DetectorT = StdTypeVar("DetectorT")
+MonitorT = TypeVar("MonitorT", default=Never)
+_BoundedAxisT = StdTypeVar("_BoundedAxisT")
 
 
 def _discriminate_by_type(obj: Any) -> str | None:
@@ -188,9 +191,19 @@ class Spec(BaseModel, Generic[AxisT, DetectorT, MonitorT], metaclass=PosargsMeta
     Positional constructor args are supported on all subclasses via
     ``PosargsMeta``.  The ``type`` computed field is included in JSON
     serialisation and drives the discriminated-union deserialiser.
+
+    ``arbitrary_types_allowed`` is required because ``MonitorT`` defaults to
+    ``Never`` (PEP 696) so pyright can infer it when a bare ``Acquire(...)``
+    is constructed with no ``monitors=``; pydantic-core cannot generate a
+    schema for ``Never`` itself when a subclass is built unparametrized
+    (e.g. ``Zip(left=self, right=other)`` inside the combinator methods
+    below), and this is the fix pydantic's own error message recommends.
+    Concretely-parametrized construction (``Acquire[str, str, str](...)``,
+    or inference from a real ``monitors=`` value) is unaffected -- full
+    validation still applies there.
     """
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
     @computed_field
     @property

@@ -10,7 +10,7 @@ executed by pytest (``assert_type`` is a no-op at runtime in Python ≥ 3.11).
 
 from __future__ import annotations
 
-from typing import Any, assert_type
+from typing import Never, assert_type
 
 from scanspec.v2.core import DetectorGroup, MonitorStream
 from scanspec.v2.specs import Acquire, Linspace
@@ -46,13 +46,13 @@ def test_detector_t_and_monitor_t_inferred() -> None:
     assert_type(spec, Acquire[str, str, str])
 
 
-def test_no_monitors_requires_explicit_annotation() -> None:
-    """When monitors is omitted, MonitorT is unconstrained.
+def test_no_monitors_infers_never() -> None:
+    """When monitors is omitted, MonitorT infers to Never -- no annotation.
 
-    An explicit annotation of ``Acquire[str, str, Any]`` is needed to tell
-    pyright what MonitorT is.
+    MonitorT is a PEP 696 TypeVar with a ``default=Never``, so pyright fills
+    it in on its own when nothing constrains it from ``monitors=``.
     """
-    spec: Acquire[str, str, Any] = Acquire(
+    spec = Acquire(
         motion,
         detectors=[
             DetectorGroup(
@@ -64,4 +64,4 @@ def test_no_monitors_requires_explicit_annotation() -> None:
             )
         ],
     )
-    _ = spec  # acknowledge spec to silence unused-variable warning
+    assert_type(spec, Acquire[str, str, Never])
