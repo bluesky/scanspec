@@ -445,7 +445,7 @@ the exact set of `detector_names` this PandA sequence handles, the trigger
 type, and motor position outputs — all hardware configuration, not from spec.
 One SEQ block per `TriggerSequence`: the root config occupies the block; each
 parallel child (a multi-rate sub-group, ADR 0007 Decision 2) needs an
-additional SEQ block, wired by the caller — not shown here.
+additional SEQ block, wired by the caller — worked example below.
 
 ```python
 async def run_panda_flyscan(
@@ -492,6 +492,121 @@ async def run_panda_flyscan(
         await panda.seq.table.set(rows)
         await panda.wait_for_completion()
 ```
+
+#### Worked example: a chained pair of SEQ blocks (two children)
+
+Concrete instance of "each parallel child needs an additional SEQ block,
+wired by the caller": a SAXS+WAXS parent with two children, PandA and
+Tetramm (ADR 0007 Decision 2). The first child shares the parent's SEQ
+block (a block's two output channels fit a parent+one-child pair); each
+further child gets its own block, chained by wiring the previous block's
+own output line to also act as the next block's trigger input. SEQ1 and
+SEQ2 below are two SEQ blocks on the *same* physical PandA unit, not two
+separate PandA devices — how many concurrent chains a given PandA
+generation's block count can support is a hardware/driver-config detail
+out of scope here.
+
+Row-level field values below are illustrative only — generating the real
+N+1-row/2N-edge position-compare gate and composing it with a pause-
+checkpoint gate is a consumer-side (ophyd-async PandA driver) concern,
+ADR 0007 Assumptions A3/A4. What's pinned down here is the row
+*structure* each block needs: a 5-row centred-livetime cycle per parent
+repeat for the first block, and a 3-row mirror for the second.
+
+```python
+async def run_panda_flyscan_chained(
+    panda,  # one PandA device -- SEQ1 and SEQ2 are two of its SEQ blocks
+    window: Window[str, str],
+) -> None:
+    seq = next(
+        s for s in window.trigger_sequences
+        if s.detectors == frozenset({"saxs", "waxs"})
+    )
+    tr = seq.trigger_repeat
+    panda_child = next(c for c in seq.children if c.detectors == frozenset({"panda"}))
+    tetramm_child = next(c for c in seq.children if c.detectors == frozenset({"tetramm"}))
+    panda_rep = panda_child.repeats[0]
+    tetramm_rep = tetramm_child.repeats[0]
+
+    # SEQ1: parent (SAXS+WAXS) exposed on OA, first child (PandA) on OB.
+    # Pause can only be honoured while the parent is unexposed -- that's
+    # the only time everything downstream is also guaranteed unexposed,
+    # and parent-exposure-complete is what constitutes one logical scan
+    # step. Rows 1/2/5 have nothing to do in a time1 phase (valid at the
+    # hardware level when the corresponding time is 0), so time1/outa1/
+    # outb1 are left at their defaults in those rows.
+    seq1_rows = SeqTable.empty()
+    seq1_rows += SeqTable.row(  # 1: leading half of parent's deadtime
+        trigger=SeqTrigger.BITB_1, repeats=1,
+        time2=int(tr.deadtime / 2 * 1e6), outa2=False, outb2=False,
+    )
+    seq1_rows += SeqTable.row(  # 2: parent exposed; child's leading half-deadtime
+        trigger=SeqTrigger.IMMEDIATE, repeats=1,
+        time2=int(panda_rep.deadtime / 2 * 1e6), outa2=True, outb2=False,
+    )
+    seq1_rows += SeqTable.row(  # 3: collapsible middle -- child's full livetime+deadtime
+        trigger=SeqTrigger.IMMEDIATE, repeats=panda_rep.num - 1,
+        time1=int(panda_rep.livetime * 1e6), outa1=True, outb1=True,
+        time2=int(panda_rep.deadtime * 1e6), outa2=True, outb2=False,
+    )
+    seq1_rows += SeqTable.row(  # 4: child's last repeat -- half-deadtime trailing gap
+        trigger=SeqTrigger.IMMEDIATE, repeats=1,
+        time1=int(panda_rep.livetime * 1e6), outa1=True, outb1=True,
+        time2=int(panda_rep.deadtime / 2 * 1e6), outa2=True, outb2=False,
+    )
+    seq1_rows += SeqTable.row(  # 5: trailing half of parent's deadtime
+        trigger=SeqTrigger.IMMEDIATE, repeats=1,
+        time2=int(tr.deadtime / 2 * 1e6), outa2=False, outb2=False,
+    )
+    await panda.seq[1].table.set(seq1_rows)
+
+    # SEQ2: Tetramm alone -- nothing driven on OB, this block handles one
+    # detector group. BITA is wired to SEQ1.OA on the physical PandA: the
+    # same line that fires SAXS+WAXS also re-triggers this block every
+    # parent repeat, the instant the parent becomes exposed. SEQ2 never
+    # needs its own pause/checkpoint logic -- it physically can't run
+    # until the parent's already exposed, so the BITB gate above is
+    # entirely SEQ1's concern, not duplicated downstream.
+    seq2_rows = SeqTable.empty()
+    seq2_rows += SeqTable.row(  # A: leading half of Tetramm's own deadtime
+        trigger=SeqTrigger.BITA_1, repeats=1,
+        time2=int(tetramm_rep.deadtime / 2 * 1e6), outa2=False,
+    )
+    seq2_rows += SeqTable.row(  # B: collapsible middle
+        trigger=SeqTrigger.IMMEDIATE, repeats=tetramm_rep.num - 1,
+        time1=int(tetramm_rep.livetime * 1e6), outa1=True,
+        time2=int(tetramm_rep.deadtime * 1e6), outa2=False,
+    )
+    seq2_rows += SeqTable.row(  # C: last repeat -- half-deadtime trailing gap
+        trigger=SeqTrigger.IMMEDIATE, repeats=1,
+        time1=int(tetramm_rep.livetime * 1e6), outa1=True,
+        time2=int(tetramm_rep.deadtime / 2 * 1e6), outa2=False,
+    )
+    await panda.seq[2].table.set(seq2_rows)
+
+    await asyncio.gather(panda.seq[1].wait_for_completion(), panda.seq[2].wait_for_completion())
+```
+
+**SEQ1** (`tr = seq.trigger_repeat`, `panda_rep = panda_child.repeats[0]`):
+
+| Row | TRIG | REP | T1 | OA1 | OB1 | T2 | OA2 | OB2 |
+|---|---|---|---|---|---|---|---|---|
+| 1 | BITB | 1 | — | — | — | ½·`tr.deadtime` | 0 | 0 |
+| 2 | — | 1 | — | — | — | ½·`panda_rep.deadtime` | 1 | 0 |
+| 3 | — | `panda_rep.num − 1` | `panda_rep.livetime` | 1 | 1 | `panda_rep.deadtime` | 1 | 0 |
+| 4 | — | 1 | `panda_rep.livetime` | 1 | 1 | ½·`panda_rep.deadtime` | 1 | 0 |
+| 5 | — | 1 | — | — | — | ½·`tr.deadtime` | 0 | 0 |
+
+Loops to row 1 on the next `BITB` pulse for the next parent repeat.
+
+**SEQ2** (`tetramm_rep = tetramm_child.repeats[0]`), gated on `BITA` ←
+`SEQ1.OA`:
+
+| Row | TRIG | REP | T1 | OA1 | T2 | OA2 |
+|---|---|---|---|---|---|---|
+| A | BITA | 1 | — | — | ½·`tetramm_rep.deadtime` | 0 |
+| B | — | `tetramm_rep.num − 1` | `tetramm_rep.livetime` | 1 | `tetramm_rep.deadtime` | 0 |
+| C | — | 1 | `tetramm_rep.livetime` | 1 | ½·`tetramm_rep.deadtime` | 0 |
 
 ### 3. Flyscan — Motor record
 
