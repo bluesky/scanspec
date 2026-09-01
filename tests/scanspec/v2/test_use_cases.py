@@ -1,4 +1,4 @@
-"""End-to-end use-case tests for scanspec2."""
+"""End-to-end use-case tests for scanspec.v2."""
 
 from __future__ import annotations
 
@@ -7,16 +7,18 @@ from typing import Never, cast
 import numpy as np
 import pytest
 
-from scanspec2.core import (
+from scanspec.v2.core import (
     ContinuousStream,
     DetectorGroup,
     MonitorStream,
     Scan,
-    TriggerPattern,
+    TriggerChild,
+    TriggerRepeat,
+    TriggerSequence,
 )
-from scanspec2.specs import Acquire, Linspace, Product, Repeat, Spiral, Static
+from scanspec.v2.specs import Acquire, Linspace, Product, Repeat, Spiral, Static
 
-from .. import approx
+from ... import approx
 
 
 def test_linspace_step_scan():
@@ -36,7 +38,7 @@ def test_linspace_step_scan():
         # step scan: no detectors, duration is 0
         assert w.duration == approx(0.0)
         # no detectors configured on bare Linspace
-        assert w.trigger_groups == []
+        assert w.trigger_sequences == []
         # previous window linkage
         if i == 0:
             assert w.previous is None
@@ -45,7 +47,7 @@ def test_linspace_step_scan():
 
     # Step scan windows have no position function — positions() should error.
     with pytest.raises(RuntimeError, match="No position function"):
-        next(windows[0].positions(dt=1.0))
+        windows[0].positions(np.array([0.0]))
 
 
 def test_linspace_fly_scan():
@@ -74,14 +76,12 @@ def test_linspace_fly_scan():
     # index-based duration: 5 points
     assert w.duration == approx(5.0)
     # no detectors configured
-    assert w.trigger_groups == []
+    assert w.trigger_sequences == []
     assert w.previous is None
 
-    # Fly window positions: dt=1.0 → 5 points at integer indexes.
-    all_chunks = list(w.positions(dt=1.0))
-    assert len(all_chunks) == 1
-    full_x = np.concatenate([ch["x"] for ch in all_chunks])
-    # Positions at indexes [0,1,2,3,4]: boundary-to-boundary sweep
+    # Fly window positions: 5 points evenly spaced across the full duration
+    # (boundary-to-boundary sweep), caller-supplied times.
+    full_x = w.positions(np.linspace(0.0, w.duration, 5))["x"]
     assert full_x == approx([-0.125, 0.1875, 0.5, 0.8125, 1.125])
 
 
@@ -95,7 +95,7 @@ def test_spiral_step_scan():
 
     # Step scan windows should error on positions().
     with pytest.raises(RuntimeError, match="No position function"):
-        next(windows[0].positions(dt=1.0))
+        windows[0].positions(np.array([0.0]))
 
     x_pos = [w.static_axes["x"] for w in windows]
     y_pos = [w.static_axes["y"] for w in windows]
@@ -139,11 +139,10 @@ def test_spiral_fly_scan():
     assert w.moving_axes["y"].end_velocity == approx(2.586, abs=0.001)
 
     # Fly window should have a positions function for spiral trajectory.
-    # dt=1.0, duration=10.0 → 10 points in 1 chunk.
-    all_chunks = list(w.positions(dt=1.0))
-    assert len(all_chunks) == 1
-    full_x = np.concatenate([ch["x"] for ch in all_chunks])
-    full_y = np.concatenate([ch["y"] for ch in all_chunks])
+    # 10 points evenly spaced across the full duration, caller-supplied times.
+    result = w.positions(np.linspace(0.0, w.duration, 10))
+    full_x = result["x"]
+    full_y = result["y"]
     assert full_x == approx(
         [0.332, -0.981, -0.549, 0.946, 1.757, 1.255, -0.138, -1.590, -2.401, -2.259],
         abs=0.001,
@@ -231,11 +230,11 @@ def test_flagship_multi_stream_concat():
         assert w_diff.non_linear is False
         # duration from detector: 1 × (0.01 + 0.001) = 0.011
         assert w_diff.duration == approx(0.011)
-        # trigger_groups from diff_det
-        assert len(w_diff.trigger_groups) == 1
-        tg = w_diff.trigger_groups[0]
-        assert tg.detectors == ["diffraction"]
-        assert tg.trigger_patterns == [TriggerPattern(1, 0.01, 0.001)]
+        # trigger_sequences from diff_det
+        assert len(w_diff.trigger_sequences) == 1
+        ts = w_diff.trigger_sequences[0]
+        assert ts.detectors == frozenset({"diffraction"})
+        assert ts.trigger_repeat == TriggerRepeat(num=1, livetime=0.01, deadtime=0.001)
 
         # Window 1: fly e 7.0 → 7.1
         assert w_fwd.moving_axes != {}
@@ -245,11 +244,11 @@ def test_flagship_multi_stream_concat():
         assert w_fwd.non_linear is False  # linear Linspace
         # duration from detector: 1000 × (0.003 + 0.001) = 4.0
         assert w_fwd.duration == approx(4.0)
-        assert len(w_fwd.trigger_groups) == 1
-        assert w_fwd.trigger_groups[0].detectors == ["spectroscopy"]
-        assert w_fwd.trigger_groups[0].trigger_patterns == [
-            TriggerPattern(1000, 0.003, 0.001)
-        ]
+        assert len(w_fwd.trigger_sequences) == 1
+        assert w_fwd.trigger_sequences[0].detectors == frozenset({"spectroscopy"})
+        assert w_fwd.trigger_sequences[0].trigger_repeat == TriggerRepeat(
+            num=1000, livetime=0.003, deadtime=0.001
+        )
 
         # Window 2: fly e 7.1 → 7.0
         assert w_rev.moving_axes != {}
@@ -258,11 +257,11 @@ def test_flagship_multi_stream_concat():
         assert am_rev.start_position > am_rev.end_position
         assert w_rev.non_linear is False
         assert w_rev.duration == approx(4.0)
-        assert len(w_rev.trigger_groups) == 1
-        assert w_rev.trigger_groups[0].detectors == ["spectroscopy"]
-        assert w_rev.trigger_groups[0].trigger_patterns == [
-            TriggerPattern(1000, 0.003, 0.001)
-        ]
+        assert len(w_rev.trigger_sequences) == 1
+        assert w_rev.trigger_sequences[0].detectors == frozenset({"spectroscopy"})
+        assert w_rev.trigger_sequences[0].trigger_repeat == TriggerRepeat(
+            num=1000, livetime=0.003, deadtime=0.001
+        )
 
     # Previous chain is connected across all 600 windows
     assert windows[0].previous is None
@@ -282,8 +281,26 @@ def test_maximal_fly_step(fly: bool):
         fly=fly,
         detectors=[
             DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
-            DetectorGroup(10, 1, 0.0003, 8e-9, ["timestamp", "x_enc", "y_enc"]),
+            # Encoders trigger 10x per saxs/waxs repeat: period must divide the
+            # parent's 0.003s livetime exactly, so livetime = 0.003/10 - deadtime.
+            DetectorGroup(10, 1, 0.000299992, 8e-9, ["timestamp", "x_enc", "y_enc"]),
         ],
+        # Which DetectorGroup becomes the parent is no longer auto-derived;
+        # supplied explicitly, matching the assertions below.
+        trigger_sequence=TriggerSequence(
+            detectors=frozenset({"saxs", "waxs"}),
+            trigger_repeat=TriggerRepeat(
+                num=100 if fly else 1, livetime=0.003, deadtime=0.001
+            ),
+            children=[
+                TriggerChild(
+                    detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
+                    repeats=[
+                        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+                    ],
+                ),
+            ],
+        ),
         continuous_streams=[
             ContinuousStream(
                 "cameras",
@@ -320,36 +337,37 @@ def test_maximal_fly_step(fly: bool):
     else:
         assert len(windows) == 5000
 
-    # --- Trigger groups on every window ---
+    # --- Trigger sequences on every window ---
+    # Single TriggerSequence: SAXS/WAXS is the parent, encoders are
+    # parallel children that fire during each parent livetime.
     for w in windows:
-        assert len(w.trigger_groups) == 2
-        tg_saxs = w.trigger_groups[0]
-        tg_enc = w.trigger_groups[1]
-        assert tg_saxs.detectors == ["saxs", "waxs"]
-        assert tg_enc.detectors == ["timestamp", "x_enc", "y_enc"]
+        assert len(w.trigger_sequences) == 1
+        ts = w.trigger_sequences[0]
+        assert ts.detectors == frozenset({"saxs", "waxs"})
+        assert len(ts.children) == 1
+        assert ts.children[0].detectors == frozenset({"timestamp", "x_enc", "y_enc"})
+        assert ts.children[0].repeats == [
+            TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+        ]
 
         if fly:
-            # fly: repeats = inner_length × exposures_per_collection
-            assert tg_saxs.trigger_patterns == [TriggerPattern(100, 0.003, 0.001)]
-            assert tg_enc.trigger_patterns == [TriggerPattern(1000, 0.0003, 8e-9)]
+            assert ts.trigger_repeat == TriggerRepeat(
+                num=100, livetime=0.003, deadtime=0.001
+            )
         else:
-            # step: repeats = exposures_per_collection
-            assert tg_saxs.trigger_patterns == [TriggerPattern(1, 0.003, 0.001)]
-            assert tg_enc.trigger_patterns == [TriggerPattern(10, 0.0003, 8e-9)]
+            assert ts.trigger_repeat == TriggerRepeat(
+                num=1, livetime=0.003, deadtime=0.001
+            )
 
     # --- Duration ---
+    # Parent-only: children run inside parent livetime and don't extend.
     # saxs: repeats × (livetime + deadtime):
     #   fly: 100 × 0.004 = 0.4
     #   step: 1 × 0.004 = 0.004
-    # encoder: fly: 1000 × 0.0003008 ≈ 0.3008, step: 10 × 0.0003008 ≈ 0.003008
-    # per_point = max(total_dur) / inner_length (fly) or max(total_dur) (step)
     if fly:
-        # total_dur: max(0.4, 0.3008) = 0.4; per_point = 0.4 / 100 = 0.004
-        # window duration = 100 × 0.004 = 0.4
         for w in windows:
             assert w.duration == approx(0.4)
     else:
-        # total_dur: max(0.004, 0.003008) = 0.004; per_point = 0.004
         for w in windows:
             assert w.duration == approx(0.004)
 
@@ -383,10 +401,10 @@ def test_maximal_fly_step(fly: bool):
 
 
 def test_panda_sequence_table():
-    """Use case 2: PandA flyscan — build a sequence table from trigger_groups.
+    """Use case 2: PandA flyscan — build a sequence table from trigger_sequences.
 
-    The consumer receives a Scan, finds its trigger group by detector name,
-    and reads trigger_patterns + moving_axes to populate a PandA sequence table.
+    The consumer receives a Scan, finds its trigger sequence by detector name,
+    and reads trigger_repeat + moving_axes to populate a PandA sequence table.
     """
     spec: Acquire[str, str, Never] = Acquire(
         Product(Linspace("y", 0, 5, 3), ~Linspace("x", 0, 10, 50)),
@@ -399,17 +417,14 @@ def test_panda_sequence_table():
     det_key = frozenset(["saxs", "waxs"])
 
     for window in scan:
-        # Consumer locates its group by matching detector names
-        group = next(
-            g for g in window.trigger_groups if frozenset(g.detectors) == det_key
-        )
+        # Consumer locates its sequence by matching detector names
+        seq = next(s for s in window.trigger_sequences if s.detectors == det_key)
 
-        # Trigger patterns are baked — consumer reads them directly for SeqTable
-        assert len(group.trigger_patterns) == 1
-        pattern = group.trigger_patterns[0]
-        assert pattern.repeats == 50
-        assert pattern.livetime == approx(0.003)
-        assert pattern.deadtime == approx(0.001)
+        # Trigger repeat is baked — consumer reads it directly for SeqTable
+        tr = seq.trigger_repeat
+        assert tr.num == 50
+        assert tr.livetime == approx(0.003)
+        assert tr.deadtime == approx(0.001)
 
         # PandA needs start_velocity to pick compare axis
         assert len(window.moving_axes) == 1
@@ -418,8 +433,10 @@ def test_panda_sequence_table():
         assert am.start_velocity != 0.0
 
         # Consumer-side: time1 = int(livetime * 1e6), time2 = int(deadtime * 1e6)
-        time1 = int(pattern.livetime * 1e6)
-        time2 = int(pattern.deadtime * 1e6)
+        assert tr.livetime is not None
+        assert tr.deadtime is not None
+        time1 = int(tr.livetime * 1e6)
+        time2 = int(tr.deadtime * 1e6)
         assert time1 == 3000
         assert time2 == 1000
 
@@ -466,8 +483,9 @@ def test_motor_record_fly():
 def test_pmac_trajectory_positions():
     """Use case 4: PMAC — consume window.positions() in servo-rate chunks.
 
-    Consumer calls window.positions(dt, max_duration) to get chunked
-    position arrays for the trajectory scan.
+    Consumer generates and consumes one chunk of times at a time -- never
+    materializes the full servo-rate array, matching real PMAC usage where
+    duration/dt could be very large.
     """
     spec: Acquire[str, str, Never] = Acquire(
         Product(Linspace("y", 0, 1, 2), ~Linspace("x", 0, 10, 100)),
@@ -480,16 +498,40 @@ def test_pmac_trajectory_positions():
 
     for i, window in enumerate(windows):
         assert "x" in window.moving_axes
+        motion = window.moving_axes["x"]
 
-        # Consume positions in chunks — emulates PMAC servo-rate loading
+        # Consumer generates one chunk of times at a time -- emulates PMAC
+        # servo-rate loading, 5 samples per chunk, never holding the whole
+        # servo-rate array in memory at once.
+        dt = 0.01
+        chunk_size = 5
+        n_total = int(window.duration / dt)
         all_x: list[np.ndarray] = []
-        for arrays in window.positions(dt=0.01, max_duration=0.05):
+        start = 0
+        while start < n_total:
+            end = min(start + chunk_size, n_total)
+            chunk_times = np.arange(start, end) * dt
+            arrays = window.positions(chunk_times)
             assert "x" in arrays
             all_x.append(arrays["x"])
-
-        # Concatenate all chunks — should cover the full sweep
+            start = end
         full_x = np.concatenate(all_x)
-        assert len(full_x) > 0
+
+        # Chunking must not drop or duplicate samples, and must match a
+        # single direct call over the same times exactly. (This full-array
+        # call is verification-only -- the loop above is the pattern being
+        # demonstrated, and never materializes more than one chunk.)
+        full_times = np.arange(n_total) * dt
+        assert len(full_x) == n_total
+        np.testing.assert_allclose(full_x, window.positions(full_times)["x"])
+
+        # This is a linear (constant-velocity) sweep, so position at any
+        # time is start_position + velocity * t -- checked independently of
+        # how positions() itself computes it, not just shape/direction.
+        assert full_x[0] == approx(motion.start_position)
+        assert motion.start_velocity == approx(motion.end_velocity)
+        expected_last = motion.start_position + motion.start_velocity * full_times[-1]
+        assert full_x[-1] == approx(expected_last)
 
         # X direction alternates due to snake
         if i == 0:
@@ -553,8 +595,25 @@ def test_analysis_reshaping():
         fly=True,
         detectors=[
             DetectorGroup(1, 1, 0.003, 0.001, ["det1"]),
-            DetectorGroup(10, 1, 0.0003, 8e-9, ["enc"]),
+            # See test_maximal_fly_step for how this livetime is derived.
+            DetectorGroup(10, 1, 0.000299992, 8e-9, ["enc"]),
         ],
+        # Which DetectorGroup becomes the parent is no longer auto-derived;
+        # this test doesn't assert on trigger_sequences, so exact values
+        # only need to be physically valid (innermost dimension x has
+        # length 5, so parent num = 5).
+        trigger_sequence=TriggerSequence(
+            detectors=frozenset({"det1"}),
+            trigger_repeat=TriggerRepeat(num=5, livetime=0.003, deadtime=0.001),
+            children=[
+                TriggerChild(
+                    detectors=frozenset({"enc"}),
+                    repeats=[
+                        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
+                    ],
+                ),
+            ],
+        ),
     )
     scan = spec.compile()
 

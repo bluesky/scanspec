@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from abc import ABCMeta
 from collections.abc import Iterator, Sequence
+from math import isclose
 from typing import (
     TYPE_CHECKING,
     Annotated,
@@ -27,10 +28,12 @@ from typing import (
     Never,
     Self,
     TypeAlias,
-    TypeVar,
     Union,
     cast,
     dataclass_transform,
+)
+from typing import (
+    TypeVar as StdTypeVar,
 )
 
 import numpy as np
@@ -44,6 +47,7 @@ from pydantic import (
     computed_field,
     model_validator,
 )
+from typing_extensions import TypeVar
 
 from .core import (
     ConcatSource,
@@ -54,16 +58,18 @@ from .core import (
     LinearSource,
     MonitorStream,
     Scan,
-    TriggerGroup,
-    TriggerPattern,
+    TriggerRepeat,
+    TriggerSequence,
     WindowedStream,
     WindowGenerator,
+    trigger_sequences_duration,
+    validate_trigger_sequence,
 )
 
-AxisT = TypeVar("AxisT")
-DetectorT = TypeVar("DetectorT")
-MonitorT = TypeVar("MonitorT")
-_BoundedAxisT = TypeVar("_BoundedAxisT")
+AxisT = StdTypeVar("AxisT")
+DetectorT = StdTypeVar("DetectorT")
+MonitorT = TypeVar("MonitorT", default=Never)
+_BoundedAxisT = StdTypeVar("_BoundedAxisT")
 
 
 def _discriminate_by_type(obj: Any) -> str | None:
@@ -185,9 +191,19 @@ class Spec(BaseModel, Generic[AxisT, DetectorT, MonitorT], metaclass=PosargsMeta
     Positional constructor args are supported on all subclasses via
     ``PosargsMeta``.  The ``type`` computed field is included in JSON
     serialisation and drives the discriminated-union deserialiser.
+
+    ``arbitrary_types_allowed`` is required because ``MonitorT`` defaults to
+    ``Never`` (PEP 696) so pyright can infer it when a bare ``Acquire(...)``
+    is constructed with no ``monitors=``; pydantic-core cannot generate a
+    schema for ``Never`` itself when a subclass is built unparametrized
+    (e.g. ``Zip(left=self, right=other)`` inside the combinator methods
+    below), and this is the fix pydantic's own error message recommends.
+    Concretely-parametrized construction (``Acquire[str, str, str](...)``,
+    or inference from a real ``monitors=`` value) is unaffected -- full
+    validation still applies there.
     """
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
     @computed_field
     @property
@@ -330,7 +346,7 @@ class Range(Spec[AxisT, Never, Never]):
         step = abs(self.step)
         distance = abs(self.stop - self.start)
         num = int(distance // step) + 1
-        if np.isclose(step * num, distance):
+        if isclose(step * num, distance, rel_tol=1e-5, abs_tol=1e-8):
             num = num + 1
         return num
 
@@ -548,8 +564,9 @@ class Zip(Spec[AxisT, DetectorT, MonitorT]):
 
     - Both sides have the same number of generators with matching inner
       lengths: merge innermost generators dimension-by-dimension.
-    - Right has more generators than left: left-pad left with right's
-      extra outer generators.
+    - Left has more generators than right: left-pad right's generator list
+      with placeholders so positions align by innermost generator; left's
+      extra outer generators are left untouched.
     - Right has a single generator of length 1 (e.g. ``Static``): expand
       it to match left's innermost generator length.
     """
@@ -738,6 +755,58 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         return [gen]
 
 
+def _compute_active_stream_sets(
+    spec: Spec[AxisT, DetectorT, MonitorT],
+) -> list[frozenset[str]]:
+    """Walk the spec tree to find all distinct stream-name sets.
+
+    Returns a list of frozensets, one per simultaneously-active stream
+    combination.  Consumers use this to validate sequencer-table capacity
+    up front without iterating windows.
+    """
+
+    def _dedup(
+        items: list[frozenset[str]],
+    ) -> list[frozenset[str]]:
+        seen: set[frozenset[str]] = set()
+        result: list[frozenset[str]] = []
+        for s in items:
+            if s not in seen:
+                seen.add(s)
+                result.append(s)
+        return result
+
+    if isinstance(spec, Acquire):
+        if not spec.detectors:
+            return []
+        return [frozenset({spec.stream_name})]
+    if isinstance(spec, Concat):
+        return _dedup(
+            _compute_active_stream_sets(spec.left)
+            + _compute_active_stream_sets(spec.right)
+        )
+    # Repeat, Snake: single inner spec
+    inner_spec = getattr(spec, "spec", None)
+    if isinstance(inner_spec, Spec):
+        typed: Spec[AxisT, DetectorT, MonitorT] = cast(
+            Spec[AxisT, DetectorT, MonitorT], inner_spec
+        )
+        return _compute_active_stream_sets(typed)
+    # Product: outer and inner children
+    if isinstance(spec, Product):
+        return _dedup(
+            _compute_active_stream_sets(spec.outer)
+            + _compute_active_stream_sets(spec.inner)
+        )
+    # Zip: left and right children
+    if isinstance(spec, Zip):
+        return _dedup(
+            _compute_active_stream_sets(spec.left)
+            + _compute_active_stream_sets(spec.right)
+        )
+    return []
+
+
 class Acquire(Spec[AxisT, DetectorT, MonitorT]):
     """Outermost spec node: binds detector triggering to a motion spec."""
 
@@ -772,6 +841,37 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
             "trigger timing. For step scans without detectors, defaults to 0."
         ),
     )
+    trigger_sequence: TriggerSequence[DetectorT] | None = Field(
+        default=None,
+        description=(
+            "Caller-supplied trigger hierarchy for the windowed stream, "
+            "used as-is instead of auto-deriving one from `detectors`. "
+            "Required when `detectors` has more than one DetectorGroup -- "
+            "which one becomes the parent is otherwise ambiguous. "
+            "`detectors` is still required alongside it (arming-time "
+            "description); the two are cross-checked for the same "
+            "detector set, not derived from each other."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _validate_trigger_sequence_detectors_match(self) -> Self:
+        """If trigger_sequence is given, its detectors must match `detectors`."""
+        if self.trigger_sequence is None:
+            return self
+        from_detectors = {d for dg in self.detectors for d in dg.detectors}
+        from_sequence = set(self.trigger_sequence.detectors)
+        for child in self.trigger_sequence.children:
+            from_sequence |= set(child.detectors)
+        if from_detectors != from_sequence:
+            raise ValueError(
+                f"detectors and trigger_sequence describe different "
+                f"detector sets: only in detectors="
+                f"{sorted(str(d) for d in from_detectors - from_sequence)}, "
+                f"only in trigger_sequence="
+                f"{sorted(str(d) for d in from_sequence - from_detectors)}"
+            )
+        return self
 
     @model_validator(mode="after")
     def _validate_unique_detectors(self) -> Self:
@@ -803,12 +903,16 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile into a Scan with detector groups and generators."""
         scan = self.spec.compile()
-        trigger_groups = self._bake_trigger_groups(scan.generators)
-        duration = self._compute_duration(trigger_groups, scan.generators)
+        if self.trigger_sequence is not None:
+            validate_trigger_sequence(self.trigger_sequence)
+            trigger_sequences = [self.trigger_sequence]
+        else:
+            trigger_sequences = self._bake_trigger_sequence(scan.generators)
+        duration = self._compute_duration(trigger_sequences, scan.generators)
         if scan.generators:
             last = scan.generators[-1]
             last.fly = self.fly
-            last.trigger_groups = trigger_groups
+            last.trigger_sequences = trigger_sequences
             last.duration = duration
 
         # Only create a windowed stream when this Acquire has detectors.
@@ -831,45 +935,54 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
             scan.windowed_streams = [stream]
         scan.continuous_streams = list(self.continuous_streams)
         scan.monitors = list(self.monitors)
+        scan.active_stream_sets = _compute_active_stream_sets(self.spec)
+        if self.detectors:
+            scan.active_stream_sets = [frozenset({self.stream_name})]
         return scan
 
-    def _bake_trigger_groups(
+    def _bake_trigger_sequence(
         self,
         gens: list[WindowGenerator[AxisT]],
-    ) -> list[TriggerGroup[DetectorT]]:
-        """Convert DetectorGroups into TriggerGroups with TriggerPatterns."""
+    ) -> list[TriggerSequence[DetectorT]]:
+        """Wrap a single DetectorGroup into a trivial TriggerSequence.
+
+        Only handles the unambiguous case: zero or one DetectorGroup, where
+        there is no hierarchy decision to make.  With more than one, which
+        detector becomes the parent is ambiguous -- supply
+        ``Acquire(trigger_sequence=...)`` explicitly instead of relying on
+        auto-derivation.
+        """
         if not self.detectors:
             return []
+        if len(self.detectors) > 1:
+            raise ValueError(
+                "Acquire.detectors has more than one DetectorGroup; which "
+                "one should become the trigger-sequence parent is "
+                "ambiguous. Supply Acquire(trigger_sequence=...) "
+                "explicitly instead."
+            )
+        dg = self.detectors[0]
+        lt = dg.livetime
+        dt = dg.deadtime
+        if lt is None or dt is None:
+            raise ValueError(
+                f"livetime and deadtime must be set on DetectorGroup "
+                f"before compile(); got livetime={lt}, deadtime={dt}"
+            )
         inner_length = gens[-1].length if gens else 1
         fly = self.fly and bool(gens)
-        result: list[TriggerGroup[DetectorT]] = []
-        for dg in self.detectors:
-            if dg.livetime is None or dg.deadtime is None:
-                raise ValueError(
-                    f"livetime and deadtime must be set on DetectorGroup "
-                    f"before compile(); got livetime={dg.livetime}, "
-                    f"deadtime={dg.deadtime}"
-                )
-            if fly:
-                repeats = inner_length * dg.exposures_per_collection
-            else:
-                repeats = dg.exposures_per_collection
-            pattern = TriggerPattern(
-                repeats=repeats,
-                livetime=dg.livetime,
-                deadtime=dg.deadtime,
+        num = inner_length * dg.exposures_per_event if fly else dg.exposures_per_event
+        return [
+            TriggerSequence(
+                detectors=frozenset(dg.detectors),
+                trigger_repeat=TriggerRepeat(num=num, livetime=lt, deadtime=dt),
+                children=[],
             )
-            result.append(
-                TriggerGroup(
-                    detectors=list(dg.detectors),
-                    trigger_patterns=[pattern],
-                )
-            )
-        return result
+        ]
 
     def _compute_duration(
         self,
-        trigger_groups: list[TriggerGroup[DetectorT]],
+        trigger_sequences: list[TriggerSequence[DetectorT]],
         gens: list[WindowGenerator[AxisT]],
     ) -> float | None:
         """Derive per-point duration from trigger timing.
@@ -879,14 +992,9 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
         duration is ``per_point * inner_length``; ``Scan.__iter__``
         multiplies automatically.
         """
-        if not trigger_groups:
+        if not trigger_sequences:
             return self.duration
-        total_dur = 0.0
-        for tg in trigger_groups:
-            tg_dur = sum(
-                tp.repeats * (tp.livetime + tp.deadtime) for tp in tg.trigger_patterns
-            )
-            total_dur = max(total_dur, tg_dur)
+        total_dur = trigger_sequences_duration(trigger_sequences)
         fly = self.fly and bool(gens)
         inner_length = gens[-1].length if fly else 1
         per_point = total_dur / inner_length
