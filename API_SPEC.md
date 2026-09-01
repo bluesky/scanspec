@@ -427,6 +427,9 @@ async def run_step_scan(spec: Spec[str, str, str]) -> None:
         await move(window.static_axes)   # dict[str, float]
 
         # Single-rate case: one TriggerSequence per detector group, no children.
+        # Children require a real triggering system to fan out; this naive
+        # asyncio.gather consumer can't support them.
+        assert all(not seq.children for seq in window.trigger_sequences)
         await asyncio.gather(*(
             trigger_detectors(
                 seq.detectors, seq.trigger_repeat.livetime, seq.trigger_repeat.deadtime
