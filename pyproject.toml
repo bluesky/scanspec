@@ -27,17 +27,13 @@ service = ["fastapi>=0.100.0", "uvicorn"]
 # For development tests/docs
 [dependency-groups]
 dev = [
-<<<<<<< before updating
     # This syntax is supported since pip 21.2
     # https://github.com/pypa/pip/issues/10393
     "scanspec[plotting]",
     "scanspec[service]",
     "autodoc-pydantic",
-    "copier",
     "httpx",     # ophyd-async's own dependency, unrelated to starlette's TestClient
     "httpx2",    # starlette.testclient now requires this instead of httpx
-=======
->>>>>>> after updating
     "myst-parser",
     "pre-commit",
     "pydata-sphinx-theme>=0.12",
