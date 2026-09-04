@@ -10,6 +10,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 description = "Specify step and flyscan paths in a serializable, efficient and Pythonic way"
 dependencies = ["numpy", "click>=8.1", "pydantic>=2.0"]
@@ -31,7 +32,6 @@ dev = [
     "scanspec[plotting]",
     "scanspec[service]",
     "autodoc-pydantic",
-    "copier",
     "httpx",     # ophyd-async's own dependency, unrelated to starlette's TestClient
     "httpx2",    # starlette.testclient now requires this instead of httpx
     "myst-parser",
