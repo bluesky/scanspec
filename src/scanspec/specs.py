@@ -489,6 +489,10 @@ class Linspace(Spec[Axis]):
         spec = Fly(Linspace("x", 1, 2, 5))
     """
 
+    # Accept the old name "Line" as a discriminator tag so specs serialized
+    # before the Line -> Linspace rename can still be deserialized.
+    _discriminator_aliases = ("Line",)
+
     axis: Axis = Field(description="An identifier for what to move")
     start: float = Field(description="Midpoint of the first point of the line")
     stop: float = Field(description="Midpoint of the last point of the line")
