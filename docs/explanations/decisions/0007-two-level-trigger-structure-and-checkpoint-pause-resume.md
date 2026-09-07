@@ -374,23 +374,21 @@ the `Window.positions()` signature change described in Consequences item 2:
 the caller, not `Window.positions()`, now owns generating whatever row/edge
 instants its hardware needs and supplies them as an explicit time array.
 
-### A5 — `TriggerRepeat.livetime`/`deadtime` do not yet support unresolved values, unlike their ADR 0005 predecessor
+### A5 — ~~`TriggerRepeat.livetime`/`deadtime` do not yet support unresolved values, unlike their ADR 0005 predecessor~~ **Resolved**
 
 ADR 0005's `TriggerPattern.livetime`/`deadtime` were `float | None`, with
 `None` meaning the value is not yet known at authoring time and must be
 filled in by a downstream process (e.g. ophyd-async, which has visibility
 into a device's real limits) before `compile()` — `compile()` raised if
-either was still `None`. `TriggerRepeat.livetime`/`deadtime` (Decision §1)
-carry this forward as plain `float`, with no equivalent unresolved-value
-representation.
+either was still `None`. At the time this ADR was written,
+`TriggerRepeat.livetime`/`deadtime` (Decision §1) carried this forward as
+plain `float`, with no equivalent unresolved-value representation — a gap,
+not an intentional narrowing, since nothing in this ADR's Context or
+Decision revisits ADR 0005's requirement.
 
-This is a gap, not an intentional narrowing: nothing in this ADR's Context
-or Decision revisits or retracts ADR 0005's requirement, and `thoughts.md`'s
-original statement of the requirement ("we still need the ability to just
-specify duration and ophyd will fill in livetime and deadtime from it")
-covers both fields, not only `deadtime`. Restoring `float | None` parity —
-or an equivalent unresolved-value representation suited to the two-level
-`TriggerRepeat`/`TriggerSequence` structure — is unresolved and needs to be
-addressed before the `Acquire` authoring-surface redesign lands (Decision
-§1 and Consequences), since that redesign is exactly where a caller-supplied
-`TriggerSequence` would need to carry not-yet-resolved timing values.
+`TriggerRepeat.livetime`/`deadtime` are now `float | None` (`core.py`),
+with identical semantics to `DetectorGroup.livetime`/`deadtime` and ADR
+0005's `TriggerPattern`: `None` means not yet resolved, a downstream
+process fills it in before `compile()`, and `compile()`/
+`validate_trigger_sequence` raise if either is still `None` by then. No
+longer a prerequisite blocking the `Acquire` authoring-surface redesign.
