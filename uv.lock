@@ -1247,7 +1247,7 @@ wheels = [
 
 [[package]]
 name = "ophyd-async"
-version = "0.16"
+version = "0.12.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bluesky" },
@@ -1257,13 +1257,11 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-numpy" },
     { name = "pyyaml" },
-    { name = "scanspec" },
     { name = "stamina" },
-    { name = "velocity-profile" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/08/2d/cd178f31c4efb7f2a1b2787900d62b70b478111c5db51a625307f5fb9b15/ophyd_async-0.16.tar.gz", hash = "sha256:c8a3671c704da77c7a7b7c5343b972230f743b1029a100f6c5780123fb0df33d", size = 545367, upload-time = "2026-02-17T16:39:37.897Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/aa/9a/d7a5a810e85c0c4c632db20794baece23709693ea88492650e094fdb3ead/ophyd_async-0.12.3.tar.gz", hash = "sha256:4800fede1235ac14eb48462c98ca45ea544cf579a74b3c9012915cf91ea04e2f", size = 317183, upload-time = "2025-07-31T14:03:46.799Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c3/ab/0c92e9824c9e54df5a06b5759957fc23c30489c2aabef5653dd9057b3f61/ophyd_async-0.16-py3-none-any.whl", hash = "sha256:017d837767b63cdc20af1851275495b6bb0db195a887e0bd989dc7a17e0f0c79", size = 208499, upload-time = "2026-02-17T16:39:36.542Z" },
+    { url = "https://files.pythonhosted.org/packages/c8/cb/75a17d45ae070fa4af0b6bf79fb820b9d9137bf09f485a6728f71e4a062e/ophyd_async-0.12.3-py3-none-any.whl", hash = "sha256:3d0e98f9ab0169776dad24c072ef19ece6d53faa2933e55d3c139c525761b802", size = 180818, upload-time = "2025-07-31T14:03:45.61Z" },
 ]
 
 [[package]]
@@ -1947,6 +1945,7 @@ dependencies = [
     { name = "click" },
     { name = "numpy" },
     { name = "pydantic" },
+    { name = "typing-extensions" },
 ]
 
 [package.optional-dependencies]
@@ -1990,6 +1989,7 @@ requires-dist = [
     { name = "numpy" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "scipy", marker = "extra == 'plotting'" },
+    { name = "typing-extensions" },
     { name = "uvicorn", marker = "extra == 'service'" },
 ]
 provides-extras = ["plotting", "service"]
@@ -2507,18 +2507,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/71/57/1616c8274c3442d802621abf5deb230771c7a0fec9414cb6763900eb3868/uvicorn-0.37.0.tar.gz", hash = "sha256:4115c8add6d3fd536c8ee77f0e14a7fd2ebba939fed9b02583a97f80648f9e13", size = 80367, upload-time = "2025-09-23T13:33:47.486Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/85/cd/584a2ceb5532af99dd09e50919e3615ba99aa127e9850eafe5f31ddfdb9a/uvicorn-0.37.0-py3-none-any.whl", hash = "sha256:913b2b88672343739927ce381ff9e2ad62541f9f8289664fa1d1d3803fa2ce6c", size = 67976, upload-time = "2025-09-23T13:33:45.842Z" },
-]
-
-[[package]]
-name = "velocity-profile"
-version = "1.0.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f5/a0/edb76fc2b71a3cd0717a40184f512f8249a64443c472541939d915fab70d/velocity_profile-1.0.0.tar.gz", hash = "sha256:520a4dbc69519744c89438571ffe542f512ae528232f51e73cde9dbaaee2e086", size = 29716, upload-time = "2024-06-13T10:49:54.951Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/72/89/0265b2b79424ed05b8d1e9c8fca71e1b150478e5b0c19aa50b0ae397326e/velocity_profile-1.0.0-py3-none-any.whl", hash = "sha256:b9082aedb2863748e1e6e56e7a794cd5742addd571f6ba2e13f4f5b8a09422d9", size = 16858, upload-time = "2024-06-13T10:49:53.555Z" },
 ]
 
 [[package]]

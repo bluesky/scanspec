@@ -1,4 +1,4 @@
-"""Tests for scanspec2.specs — motion nodes, operator algebra, Acquire validation."""
+"""Tests for scanspec.v2.specs — motion nodes, operator algebra, Acquire validation."""
 
 from typing import Any
 
@@ -6,15 +6,26 @@ import numpy as np
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from scanspec2.core import ContinuousStream, DetectorGroup, MonitorStream
-from scanspec2.specs import (
+from scanspec.v2.core import (
+    ContinuousStream,
+    DetectorGroup,
+    MonitorStream,
+    TriggerChild,
+    TriggerRepeat,
+    TriggerSequence,
+)
+from scanspec.v2.specs import (
     Acquire,
     AnySpec,
     Concat,
+    Ellipse,
     Linspace,
+    Polygon,
     Product,
+    Range,
     Repeat,
     Snake,
+    Spiral,
     Static,
     Zip,
 )
@@ -172,6 +183,41 @@ def test_product_json_round_trip():
     assert isinstance(restored.inner.spec, Linspace)
 
 
+@pytest.mark.parametrize(
+    ("spec", "expected_type"),
+    [
+        pytest.param(Static("y", 3.0), Static, id="Static"),
+        pytest.param(Range("x", 0.0, 1.0, 0.25), Range, id="Range"),
+        pytest.param(Spiral("x", 0.0, 5.0, 2.0, "y", 10.0, 10.0), Spiral, id="Spiral"),
+        pytest.param(Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0), Ellipse, id="Ellipse"),
+        pytest.param(
+            Polygon("x", "y", [(0.0, 0.0), (5.0, 0.0), (2.5, 4.0)], 1.0),
+            Polygon,
+            id="Polygon",
+        ),
+        pytest.param(
+            Linspace("x", 0.0, 1.0, 10).zip(Linspace("y", 0.0, 1.0, 10)),
+            Zip,
+            id="Zip",
+        ),
+        pytest.param(
+            Linspace("x", 0.0, 5.0, 5).concat(Linspace("x", 5.0, 10.0, 5)),
+            Concat,
+            id="Concat",
+        ),
+        pytest.param(Repeat(Linspace("x", 0.0, 1.0, 10), 3), Repeat, id="Repeat"),
+        pytest.param(Snake(Linspace("x", 0.0, 1.0, 10)), Snake, id="Snake"),
+    ],
+)
+def test_motion_spec_json_round_trip(
+    spec: AnySpec[Any, Any, Any], expected_type: type
+) -> None:
+    ta: TypeAdapter[AnySpec[Any, Any, Any]] = TypeAdapter(AnySpec)
+    restored = ta.validate_json(ta.dump_json(spec))
+    assert isinstance(restored, expected_type)
+    assert restored == spec
+
+
 def test_acquire_json_round_trip():
     spec: Acquire[str, str, str] = Acquire(
         Linspace("x", 0.0, 10.0, 100),
@@ -192,6 +238,49 @@ def test_acquire_json_round_trip():
     assert isinstance(restored, Acquire)
     assert restored.detectors[0].detectors == ["saxs", "waxs"]
     assert restored.monitors[0].name == "temp"
+
+
+def test_acquire_json_round_trip_full():
+    """Round-trip an Acquire exercising every optional field, including a
+    trigger_sequence with a non-empty children list -- the newly-fixed path
+    (TriggerChild, not a frozenset-keyed dict) from this session's Slice 2,
+    only exercised in isolation elsewhere (test_core.py)."""
+    spec: Acquire[str, str, str] = Acquire(
+        Linspace("x", 0.0, 10.0, 100),
+        fly=True,
+        detectors=[
+            DetectorGroup(1, 1, 0.003, 0.001, ["saxs"]),
+            DetectorGroup(10, 1, 0.0003, 8e-9, ["encoder"]),
+        ],
+        trigger_sequence=TriggerSequence(
+            detectors=frozenset({"saxs"}),
+            trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
+            children=[
+                TriggerChild(
+                    detectors=frozenset({"encoder"}),
+                    repeats=[
+                        TriggerRepeat(num=10, livetime=0.0003, deadtime=8e-9),
+                    ],
+                ),
+            ],
+        ),
+        continuous_streams=[
+            ContinuousStream(
+                "cameras",
+                [DetectorGroup(1, 1, 0.048, 0.001, ["front_cam", "side_cam"])],
+            ),
+        ],
+        monitors=[MonitorStream("temp", "tc1")],
+        duration=0.5,
+    )
+    ta: TypeAdapter[AnySpec[Any, Any, Any]] = TypeAdapter(AnySpec)
+    restored = ta.validate_json(ta.dump_json(spec))
+    assert isinstance(restored, Acquire)
+    assert restored == spec
+    assert restored.trigger_sequence is not None
+    assert restored.trigger_sequence.children[0].detectors == frozenset({"encoder"})
+    assert restored.continuous_streams[0].name == "cameras"
+    assert restored.duration == 0.5
 
 
 # ---------------------------------------------------------------------------
@@ -304,7 +393,7 @@ def test_linspace_bounded_symmetric():
 
 
 def test_range_positional():
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     r = Range("x", 0.0, 1.0, 0.25)
     assert r.axis == "x"
@@ -314,28 +403,28 @@ def test_range_positional():
 
 
 def test_range_keyword():
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     r = Range(axis="x", start=0.0, stop=10.0, step=2.0)
     assert r.step == 2.0
 
 
 def test_range_zero_step_raises():
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     with pytest.raises(ValueError):
         Range("x", 0.0, 1.0, 0.0)
 
 
 def test_range_negative_step_raises():
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     with pytest.raises(ValueError):
         Range("x", 0.0, 1.0, -0.5)
 
 
 def test_range_type_field():
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     r = Range("x", 0.0, 1.0, 0.5)
     assert r.type == "Range"
@@ -347,7 +436,7 @@ def test_range_type_field():
 
 
 def test_range_bounded_many_points():
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     inst = Range.bounded("x", 0.0, 1.0, 0.25)
     assert isinstance(inst, Range)
@@ -367,7 +456,7 @@ def test_range_bounded_many_points():
 def test_range_bounded_one_point(
     lower: float, upper: float, step: float, expected_start: float
 ) -> None:
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     inst = Range.bounded("x", lower, upper, step)
     assert isinstance(inst, Range)
@@ -376,7 +465,7 @@ def test_range_bounded_one_point(
 
 def test_range_bounded_lower_equals_upper():
     """lower == upper must not crash and must produce a single point."""
-    from scanspec2.specs import Range
+    from scanspec.v2.specs import Range
 
     inst = Range.bounded("x", 5.0, 5.0, 0.5)
     assert isinstance(inst, Range)
@@ -386,13 +475,13 @@ def test_range_bounded_lower_equals_upper():
 
 
 def test_line_is_linspace():
-    from scanspec2.specs import Line
+    from scanspec.v2.specs import Line
 
     assert Line is Linspace
 
 
 def test_line_instantiation():
-    from scanspec2.specs import Line
+    from scanspec.v2.specs import Line
 
     ln = Line("x", 0.0, 10.0, 5)
     assert isinstance(ln, Linspace)
@@ -406,7 +495,7 @@ def test_line_instantiation():
 
 
 def test_spiral_positional():
-    from scanspec2.specs import Spiral
+    from scanspec.v2.specs import Spiral
 
     s = Spiral("x", 0.0, 5.0, 2.0, "y", 10.0, 10.0)
     assert s.x_diameter == 5.0
@@ -415,7 +504,7 @@ def test_spiral_positional():
 
 
 def test_spiral_y_diameter_defaults_to_x_diameter():
-    from scanspec2.specs import Spiral
+    from scanspec.v2.specs import Spiral
 
     s_implicit = Spiral("x", 0.0, 5.0, 2.0, "y", 10.0)
     s_explicit = Spiral("x", 0.0, 5.0, 2.0, "y", 10.0, y_diameter=5.0)
@@ -428,7 +517,7 @@ def test_spiral_y_diameter_defaults_to_x_diameter():
 
 @pytest.mark.parametrize("bad_value", [0.0, -1.0])
 def test_spiral_x_diameter_not_positive_raises(bad_value: float):
-    from scanspec2.specs import Spiral
+    from scanspec.v2.specs import Spiral
 
     with pytest.raises(ValueError):
         Spiral("x", 0.0, bad_value, 2.0, "y", 10.0)
@@ -436,7 +525,7 @@ def test_spiral_x_diameter_not_positive_raises(bad_value: float):
 
 @pytest.mark.parametrize("bad_value", [0.0, -1.0])
 def test_spiral_x_step_not_positive_raises(bad_value: float):
-    from scanspec2.specs import Spiral
+    from scanspec.v2.specs import Spiral
 
     with pytest.raises(ValueError):
         Spiral("x", 0.0, 5.0, bad_value, "y", 10.0)
@@ -444,7 +533,7 @@ def test_spiral_x_step_not_positive_raises(bad_value: float):
 
 @pytest.mark.parametrize("bad_value", [0.0, -1.0])
 def test_spiral_y_diameter_not_positive_raises(bad_value: float):
-    from scanspec2.specs import Spiral
+    from scanspec.v2.specs import Spiral
 
     with pytest.raises(ValueError):
         Spiral("x", 0.0, 5.0, 2.0, "y", 10.0, y_diameter=bad_value)
@@ -456,7 +545,7 @@ def test_spiral_y_diameter_not_positive_raises(bad_value: float):
 
 
 def test_ellipse_positional():
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     e = Ellipse("x", 5.0, 1.0, 0.5, "y", 0.0)
     assert e.x_axis == "x"
@@ -468,7 +557,7 @@ def test_ellipse_positional():
 
 
 def test_ellipse_y_diameter_defaults_to_x_diameter():
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     e_implicit = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0)
     e_explicit = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0, y_diameter=2.0)
@@ -480,7 +569,7 @@ def test_ellipse_y_diameter_defaults_to_x_diameter():
 
 
 def test_ellipse_y_step_defaults_to_x_step():
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     e_implicit = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0)
     e_explicit = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0, y_step=0.5)
@@ -492,14 +581,14 @@ def test_ellipse_y_step_defaults_to_x_step():
 
 
 def test_ellipse_vertical_default():
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     e = Ellipse("x", 0.0, 2.0, 0.5, "y", 0.0)
     assert e.vertical is False
 
 
 def test_ellipse_explicit_y_diameter_and_y_step():
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     e = Ellipse("x", 0.0, 4.0, 1.0, "y", 0.0, y_diameter=2.0, y_step=0.5)
     assert e.y_diameter == 2.0
@@ -508,7 +597,7 @@ def test_ellipse_explicit_y_diameter_and_y_step():
 
 @pytest.mark.parametrize("bad_value", [0.0, -1.0])
 def test_ellipse_x_step_not_positive_raises(bad_value: float):
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     with pytest.raises(ValueError):
         Ellipse("x", 0.0, 2.0, bad_value, "y", 0.0)
@@ -516,7 +605,7 @@ def test_ellipse_x_step_not_positive_raises(bad_value: float):
 
 @pytest.mark.parametrize("bad_value", [0.0, -1.0])
 def test_ellipse_x_diameter_not_positive_raises(bad_value: float):
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     with pytest.raises(ValueError):
         Ellipse("x", 0.0, bad_value, 1.0, "y", 0.0)
@@ -524,7 +613,7 @@ def test_ellipse_x_diameter_not_positive_raises(bad_value: float):
 
 @pytest.mark.parametrize("bad_value", [0.0, -1.0])
 def test_ellipse_y_diameter_not_positive_raises(bad_value: float):
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     with pytest.raises(ValueError):
         Ellipse("x", 0.0, 2.0, 1.0, "y", 0.0, y_diameter=bad_value)
@@ -532,7 +621,7 @@ def test_ellipse_y_diameter_not_positive_raises(bad_value: float):
 
 @pytest.mark.parametrize("bad_value", [0.0, -1.0])
 def test_ellipse_y_step_not_positive_raises(bad_value: float):
-    from scanspec2.specs import Ellipse
+    from scanspec.v2.specs import Ellipse
 
     with pytest.raises(ValueError):
         Ellipse("x", 0.0, 2.0, 1.0, "y", 0.0, y_step=bad_value)
@@ -544,7 +633,7 @@ def test_ellipse_y_step_not_positive_raises(bad_value: float):
 
 
 def test_polygon_positional():
-    from scanspec2.specs import Polygon
+    from scanspec.v2.specs import Polygon
 
     vertices = [(0.0, 0.0), (5.0, 0.0), (2.5, 4.0)]
     p = Polygon("x", "y", vertices, 1.0)
@@ -555,7 +644,7 @@ def test_polygon_positional():
 
 
 def test_polygon_y_step_defaults_to_x_step():
-    from scanspec2.specs import Polygon
+    from scanspec.v2.specs import Polygon
 
     p_implicit = Polygon("x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], 0.25)
     p_explicit = Polygon(
@@ -569,7 +658,7 @@ def test_polygon_y_step_defaults_to_x_step():
 
 
 def test_polygon_explicit_y_step():
-    from scanspec2.specs import Polygon
+    from scanspec.v2.specs import Polygon
 
     p = Polygon("x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], 0.5, 0.25)
     assert p.x_step == 0.5
@@ -577,7 +666,7 @@ def test_polygon_explicit_y_step():
 
 
 def test_polygon_vertical_default():
-    from scanspec2.specs import Polygon
+    from scanspec.v2.specs import Polygon
 
     p = Polygon("x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], 0.25)
     assert p.vertical is False
@@ -585,7 +674,7 @@ def test_polygon_vertical_default():
 
 @pytest.mark.parametrize("bad_value", [0.0, -1.0])
 def test_polygon_x_step_not_positive_raises(bad_value: float):
-    from scanspec2.specs import Polygon
+    from scanspec.v2.specs import Polygon
 
     with pytest.raises(ValueError):
         Polygon("x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], bad_value)
@@ -593,7 +682,7 @@ def test_polygon_x_step_not_positive_raises(bad_value: float):
 
 @pytest.mark.parametrize("bad_value", [0.0, -1.0])
 def test_polygon_y_step_not_positive_raises(bad_value: float):
-    from scanspec2.specs import Polygon
+    from scanspec.v2.specs import Polygon
 
     with pytest.raises(ValueError):
         Polygon("x", "y", [(0.0, 0.0), (1.0, 0.0), (0.5, 1.0)], 1.0, y_step=bad_value)
