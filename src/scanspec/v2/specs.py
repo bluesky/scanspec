@@ -58,6 +58,8 @@ from .core import (
     LinearSource,
     MonitorStream,
     Scan,
+    TriggerGroup,
+    TriggerPlan,
     TriggerRepeat,
     TriggerSequence,
     WindowedStream,
@@ -777,7 +779,7 @@ def _compute_active_stream_sets(
         return result
 
     if isinstance(spec, Acquire):
-        if not spec.detectors:
+        if spec.trigger_plan is None:
             return []
         return [frozenset({spec.stream_name})]
     if isinstance(spec, Concat):
@@ -807,6 +809,111 @@ def _compute_active_stream_sets(
     return []
 
 
+def _as_trigger_plan(
+    plan: TriggerPlan[DetectorT] | TriggerGroup[DetectorT],
+) -> TriggerPlan[DetectorT]:
+    """Normalize a bare TriggerGroup into a childless TriggerPlan.
+
+    Acquire.trigger_plan accepts either shape as input but does not
+    eagerly convert one into the other at construction time -- a bare
+    TriggerGroup is stored and serialized exactly as given, so JSON output
+    stays lossless (reflects what the caller actually wrote) rather than
+    canonical (always one wire shape). This is called instead at each real
+    point of use (compile(), unique-detector validation) that needs
+    root/children access.
+    """
+    if isinstance(plan, TriggerGroup):
+        return TriggerPlan(root=plan)
+    return plan
+
+
+def _resolved_timing(group: TriggerGroup[DetectorT]) -> tuple[float, float]:
+    """Return (livetime, deadtime), raising if either is unresolved."""
+    lt, dt = group.livetime, group.deadtime
+    if lt is None or dt is None:
+        raise ValueError(
+            f"livetime and deadtime must be set on TriggerGroup before "
+            f"compile(); got livetime={lt}, deadtime={dt}"
+        )
+    return lt, dt
+
+
+def _trigger_group_to_repeat(
+    group: TriggerGroup[DetectorT],
+    *,
+    parent_livetime: float | None,
+    inner_length: int,
+    fly: bool,
+) -> TriggerRepeat[DetectorT]:
+    """Resolve one caller-authored TriggerGroup into a compiled TriggerRepeat.
+
+    Root (``parent_livetime`` is ``None``): ``num`` is tied to the scan's own
+    geometry -- ``exposures_per_event``, scaled by ``inner_length`` for a fly
+    scan.
+
+    Child (``parent_livetime`` given): ``num`` is how many times its own
+    period fits inside the parent's livetime window -- independent of
+    ``inner_length``/``fly``, since the parent's own ``num`` already carries
+    that scaling. Derived, not caller-specified: a child's
+    ``exposures_per_collection``/``collections_per_event`` do not feed this.
+    """
+    lt, dt = _resolved_timing(group)
+    if parent_livetime is None:
+        num = group.exposures_per_event * (inner_length if fly else 1)
+    else:
+        child_period = lt + dt
+        ratio = parent_livetime / child_period
+        if not isclose(ratio, round(ratio), rel_tol=1e-3, abs_tol=1e-6):
+            raise ValueError(
+                f"Child detector(s) {sorted(str(d) for d in group.detectors)} "
+                f"do not trigger at an integer ratio of the parent rate: "
+                f"parent_livetime {parent_livetime} / child_period "
+                f"{child_period} = {ratio}"
+            )
+        num = round(ratio)
+    return TriggerRepeat(detectors=group.detectors, num=num, livetime=lt, deadtime=dt)
+
+
+def _trigger_group_to_detector_group(
+    group: TriggerGroup[DetectorT],
+) -> DetectorGroup[DetectorT]:
+    """Carry a TriggerGroup's shape/timing through unchanged -- no num involved.
+
+    Called only after the corresponding TriggerRepeat derivation has already
+    run (see Acquire.compile()), which guarantees livetime/deadtime are
+    resolved by this point.
+    """
+    return DetectorGroup(
+        exposures_per_collection=group.exposures_per_collection,
+        collections_per_event=group.collections_per_event,
+        livetime=group.livetime,
+        deadtime=group.deadtime,
+        detectors=list(group.detectors),
+    )
+
+
+def _trigger_plan_to_sequence(
+    plan: TriggerPlan[DetectorT],
+    *,
+    inner_length: int,
+    fly: bool,
+) -> TriggerSequence[DetectorT]:
+    """Derive a compiled TriggerSequence from a caller-authored TriggerPlan."""
+    parent = _trigger_group_to_repeat(
+        plan.root, parent_livetime=None, inner_length=inner_length, fly=fly
+    )
+    children = [
+        _trigger_group_to_repeat(
+            child,
+            parent_livetime=parent.livetime,
+            inner_length=inner_length,
+            fly=fly,
+        )
+        for child in plan.children
+    ]
+    return TriggerSequence(root=parent, children=children)
+
+
 class Acquire(Spec[AxisT, DetectorT, MonitorT]):
     """Outermost spec node: binds detector triggering to a motion spec."""
 
@@ -821,9 +928,17 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
         default="primary",
         description="Bluesky stream name.",
     )
-    detectors: Sequence[DetectorGroup[DetectorT]] = Field(
-        default_factory=tuple,
-        description="DetectorGroups for the windowed stream.",
+    trigger_plan: TriggerPlan[DetectorT] | TriggerGroup[DetectorT] | None = Field(
+        default=None,
+        description=(
+            "Caller-authored trigger hierarchy for the windowed stream. "
+            "compile() derives both the compiled TriggerSequence and the "
+            "list[DetectorGroup] the windowed stream needs from this. A "
+            "bare TriggerGroup is accepted for the trivial no-children "
+            "case, stored and serialized as-is rather than eagerly wrapped "
+            "-- see _as_trigger_plan(), called wherever root/children are "
+            "actually needed."
+        ),
     )
     continuous_streams: Sequence[ContinuousStream[DetectorT]] = Field(
         default_factory=tuple,
@@ -841,48 +956,19 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
             "trigger timing. For step scans without detectors, defaults to 0."
         ),
     )
-    trigger_sequence: TriggerSequence[DetectorT] | None = Field(
-        default=None,
-        description=(
-            "Caller-supplied trigger hierarchy for the windowed stream, "
-            "used as-is instead of auto-deriving one from `detectors`. "
-            "Required when `detectors` has more than one DetectorGroup -- "
-            "which one becomes the parent is otherwise ambiguous. "
-            "`detectors` is still required alongside it (arming-time "
-            "description); the two are cross-checked for the same "
-            "detector set, not derived from each other."
-        ),
-    )
-
-    @model_validator(mode="after")
-    def _validate_trigger_sequence_detectors_match(self) -> Self:
-        """If trigger_sequence is given, its detectors must match `detectors`."""
-        if self.trigger_sequence is None:
-            return self
-        from_detectors = {d for dg in self.detectors for d in dg.detectors}
-        from_sequence = set(self.trigger_sequence.detectors)
-        for child in self.trigger_sequence.children:
-            from_sequence |= set(child.detectors)
-        if from_detectors != from_sequence:
-            raise ValueError(
-                f"detectors and trigger_sequence describe different "
-                f"detector sets: only in detectors="
-                f"{sorted(str(d) for d in from_detectors - from_sequence)}, "
-                f"only in trigger_sequence="
-                f"{sorted(str(d) for d in from_sequence - from_detectors)}"
-            )
-        return self
 
     @model_validator(mode="after")
     def _validate_unique_detectors(self) -> Self:
         """All detector names must be globally unique within this Acquire."""
         seen: set[object] = set()
         duplicates: set[object] = set()
-        for dg in self.detectors:
-            for d in dg.detectors:
-                if d in seen:
-                    duplicates.add(d)
-                seen.add(d)
+        if self.trigger_plan is not None:
+            plan = _as_trigger_plan(self.trigger_plan)
+            for group in [plan.root, *plan.children]:
+                for d in group.detectors:
+                    if d in seen:
+                        duplicates.add(d)
+                    seen.add(d)
         for cs in self.continuous_streams:
             for dg in cs.detector_groups:
                 for d in dg.detectors:
@@ -903,11 +989,21 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile into a Scan with detector groups and generators."""
         scan = self.spec.compile()
-        if self.trigger_sequence is not None:
-            validate_trigger_sequence(self.trigger_sequence)
-            trigger_sequences = [self.trigger_sequence]
-        else:
-            trigger_sequences = self._bake_trigger_sequence(scan.generators)
+        trigger_sequences: list[TriggerSequence[DetectorT]] = []
+        detector_groups: list[DetectorGroup[DetectorT]] = []
+        if self.trigger_plan is not None:
+            plan = _as_trigger_plan(self.trigger_plan)
+            inner_length = scan.generators[-1].length if scan.generators else 1
+            fly = self.fly and bool(scan.generators)
+            trigger_sequences = [
+                _trigger_plan_to_sequence(plan, inner_length=inner_length, fly=fly)
+            ]
+            for ts in trigger_sequences:
+                validate_trigger_sequence(ts)
+            detector_groups = [
+                _trigger_group_to_detector_group(group)
+                for group in [plan.root, *plan.children]
+            ]
         duration = self._compute_duration(trigger_sequences, scan.generators)
         if scan.generators:
             last = scan.generators[-1]
@@ -917,7 +1013,7 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
 
         # Only create a windowed stream when this Acquire has detectors.
         # A monitor/continuous-only Acquire preserves inner streams.
-        if self.detectors:
+        if detector_groups:
             dims = [
                 Dimension(
                     axes=g.axes,
@@ -930,55 +1026,15 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
             stream = WindowedStream(
                 name=self.stream_name,
                 dimensions=dims,
-                detector_groups=list(self.detectors),
+                detector_groups=detector_groups,
             )
             scan.windowed_streams = [stream]
         scan.continuous_streams = list(self.continuous_streams)
         scan.monitors = list(self.monitors)
         scan.active_stream_sets = _compute_active_stream_sets(self.spec)
-        if self.detectors:
+        if detector_groups:
             scan.active_stream_sets = [frozenset({self.stream_name})]
         return scan
-
-    def _bake_trigger_sequence(
-        self,
-        gens: list[WindowGenerator[AxisT]],
-    ) -> list[TriggerSequence[DetectorT]]:
-        """Wrap a single DetectorGroup into a trivial TriggerSequence.
-
-        Only handles the unambiguous case: zero or one DetectorGroup, where
-        there is no hierarchy decision to make.  With more than one, which
-        detector becomes the parent is ambiguous -- supply
-        ``Acquire(trigger_sequence=...)`` explicitly instead of relying on
-        auto-derivation.
-        """
-        if not self.detectors:
-            return []
-        if len(self.detectors) > 1:
-            raise ValueError(
-                "Acquire.detectors has more than one DetectorGroup; which "
-                "one should become the trigger-sequence parent is "
-                "ambiguous. Supply Acquire(trigger_sequence=...) "
-                "explicitly instead."
-            )
-        dg = self.detectors[0]
-        lt = dg.livetime
-        dt = dg.deadtime
-        if lt is None or dt is None:
-            raise ValueError(
-                f"livetime and deadtime must be set on DetectorGroup "
-                f"before compile(); got livetime={lt}, deadtime={dt}"
-            )
-        inner_length = gens[-1].length if gens else 1
-        fly = self.fly and bool(gens)
-        num = inner_length * dg.exposures_per_event if fly else dg.exposures_per_event
-        return [
-            TriggerSequence(
-                detectors=frozenset(dg.detectors),
-                trigger_repeat=TriggerRepeat(num=num, livetime=lt, deadtime=dt),
-                children=[],
-            )
-        ]
 
     def _compute_duration(
         self,

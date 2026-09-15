@@ -12,9 +12,9 @@ from scanspec.v2.core import (
     ConcatSource,
     DetectorGroup,
     Scan,
-    TriggerChild,
+    TriggerGroup,
+    TriggerPlan,
     TriggerRepeat,
-    TriggerSequence,
     Window,
     WindowGenerator,
 )
@@ -157,9 +157,15 @@ def test_snake_with_concat_children():
     WindowGenerator required different args for children vs non-children
     generators.  With mutation (just set .snake = True), no branch is needed.
     """
-    dg: DetectorGroup[str] = DetectorGroup(1, 1, 0.001, 0.001, ["det"])
-    acq1: Acquire[str, str, Never] = Acquire(Linspace("x", 0, 5, 3), detectors=[dg])
-    acq2: Acquire[str, str, Never] = Acquire(Linspace("x", 10, 15, 2), detectors=[dg])
+    tg = TriggerGroup(
+        detectors=frozenset({"det"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.001,
+        deadtime=0.001,
+    )
+    acq1: Acquire[str, str, Never] = Acquire(Linspace("x", 0, 5, 3), trigger_plan=tg)
+    acq2: Acquire[str, str, Never] = Acquire(Linspace("x", 10, 15, 2), trigger_plan=tg)
     spec = ~acq1.concat(acq2)
     sc = spec.compile()
     g = gens(sc)
@@ -303,9 +309,15 @@ def test_repeat_prepends_outer_dimension():
 
 
 def test_acquire_compile_stream_name():
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     spec: Acquire[str, str, Never] = Acquire(
-        Linspace("x", 0.0, 10.0, 5), stream_name="custom", detectors=[det]
+        Linspace("x", 0.0, 10.0, 5), stream_name="custom", trigger_plan=tg
     )
     sc = spec.compile()
     assert sc.windowed_streams[0].name == "custom"
@@ -376,24 +388,26 @@ def test_maximal_example_dimensions():
         full_motion,
         fly=True,
         stream_name="primary",
-        detectors=[
-            DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
-            # See test_maximal_fly_step (test_use_cases.py) for how this
-            # livetime is derived.
-            DetectorGroup(10, 1, 0.000299992, 8e-9, ["timestamp", "x_enc", "y_enc"]),
-        ],
-        # Multiple DetectorGroups at different rates -- which becomes the
-        # trigger-sequence parent is no longer auto-derived, so it's given
-        # explicitly (inner_length=100, the innermost `x` dimension).
-        trigger_sequence=TriggerSequence(
-            detectors=frozenset({"saxs", "waxs"}),
-            trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
+        # Multiple TriggerGroups at different rates -- which becomes root is
+        # still caller-decided (inner_length=100, the innermost `x`
+        # dimension, drives the derived root num=100).
+        trigger_plan=TriggerPlan(
+            root=TriggerGroup(
+                detectors=frozenset({"saxs", "waxs"}),
+                exposures_per_collection=1,
+                collections_per_event=1,
+                livetime=0.003,
+                deadtime=0.001,
+            ),
             children=[
-                TriggerChild(
+                # See test_maximal_fly_step (test_use_cases.py) for how this
+                # livetime is derived.
+                TriggerGroup(
                     detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
-                    repeats=[
-                        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-                    ],
+                    exposures_per_collection=10,
+                    collections_per_event=1,
+                    livetime=0.000299992,
+                    deadtime=8e-9,
                 ),
             ],
         ),
@@ -552,9 +566,15 @@ def test_fly_scan_velocity_uses_real_seconds_not_index_units():
     index-step instead of per real second would be off by exactly
     1/0.004 = 250x.
     """
-    det = DetectorGroup(1, 1, 0.003, 0.001, ["det"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 100), fly=True, detectors=[det]
+        Linspace("x", 0.0, 10.0, 100), fly=True, trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]
     w = windows(sc)[0]
     am = w.moving_axes["x"]
@@ -578,11 +598,17 @@ def test_fly_scan_reversed_velocity_has_correct_sign():
     detector-derived duration (not the masking 1.0s/index default) combined
     with a reversed window -- the sign bug only manifested when both apply.
     """
-    det = DetectorGroup(1, 1, 0.003, 0.001, ["det"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Product(Linspace("y", 0.0, 1.0, 2), ~Linspace("x", 0.0, 10.0, 100)),
         fly=True,
-        detectors=[det],
+        trigger_plan=tg,
     ).compile()  # type: ignore[reportArgumentType]
     ws = windows(sc)
     assert len(ws) == 2
@@ -605,9 +631,15 @@ def test_window_positions_times_maps_real_seconds_to_physical_position():
     """window.positions(times) must return the correct physical position at
     each given real-second time -- not the position at index==time.
     """
-    det = DetectorGroup(1, 1, 0.003, 0.001, ["det"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 100), fly=True, detectors=[det]
+        Linspace("x", 0.0, 10.0, 100), fly=True, trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]
     w = windows(sc)[0]
     assert w.duration == pytest.approx(0.4)  # type: ignore[reportUnknownMemberType]
@@ -676,16 +708,22 @@ def test_with_start_does_not_mutate_original():
 
 
 def test_with_start_trigger_index_truncates():
-    det = DetectorGroup(1, 1, 0.003, 0.001, ["det"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 10), fly=True, detectors=[det]
+        Linspace("x", 0.0, 10.0, 10), fly=True, trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]
     resumed = sc.with_start(window=0, trigger_index=3)
     windows_list = list(resumed)
     assert len(windows_list) == 1
     ts = windows_list[0].trigger_sequences[0]
-    assert ts.trigger_repeat.num == 7  # 10 - 3 = 7
-    assert ts.detectors == frozenset({"det"})
+    assert ts.root.num == 7  # 10 - 3 = 7
+    assert ts.root.detectors == frozenset({"det"})
 
 
 # ---------------------------------------------------------------------------
@@ -784,104 +822,145 @@ def test_snake_fly_xyz():
 
 
 def test_step_scan_trigger_sequences():
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), detectors=[det]
+        Linspace("x", 0.0, 10.0, 5), trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     assert len(ws) == 5
     for w in ws:
         assert len(w.trigger_sequences) == 1
         ts = w.trigger_sequences[0]
-        assert ts.detectors == frozenset({"det1"})
-        assert ts.trigger_repeat == TriggerRepeat(num=1, livetime=0.01, deadtime=0.001)
+        assert ts.root.detectors == frozenset({"det1"})
+        assert ts.root == TriggerRepeat(
+            detectors=frozenset({"det1"}), num=1, livetime=0.01, deadtime=0.001
+        )
 
 
 def test_fly_scan_trigger_sequences():
-    det = DetectorGroup(1, 1, 0.003, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), fly=True, detectors=[det]
+        Linspace("x", 0.0, 10.0, 5), fly=True, trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     assert len(ws) == 1
     ts = ws[0].trigger_sequences[0]
-    assert ts.detectors == frozenset({"det1"})
+    assert ts.root.detectors == frozenset({"det1"})
     # fly: num = length * exposures_per_collection = 5 * 1
-    assert ts.trigger_repeat == TriggerRepeat(num=5, livetime=0.003, deadtime=0.001)
+    assert ts.root == TriggerRepeat(
+        detectors=frozenset({"det1"}), num=5, livetime=0.003, deadtime=0.001
+    )
 
 
 def test_multirate_trigger_sequences():
-    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
-    # Encoder triggers 10x per saxs repeat: period must divide the parent's
-    # 0.003s livetime exactly, so livetime = 0.003/10 - deadtime.
-    det2 = DetectorGroup(10, 1, 0.000299992, 8e-9, ["encoder"])
-    # Which DetectorGroup becomes the parent is no longer auto-derived --
-    # supplied explicitly, matching the two DetectorGroups above.
-    trigger_sequence = TriggerSequence(
-        detectors=frozenset({"saxs"}),
-        trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
+    trigger_plan = TriggerPlan(
+        root=TriggerGroup(
+            detectors=frozenset({"saxs"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+        ),
         children=[
-            TriggerChild(
+            # Encoder triggers 10x per saxs repeat: period must divide the
+            # root's 0.003s livetime exactly, so livetime = 0.003/10 - deadtime.
+            TriggerGroup(
                 detectors=frozenset({"encoder"}),
-                repeats=[
-                    TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-                ],
+                exposures_per_collection=10,
+                collections_per_event=1,
+                livetime=0.000299992,
+                deadtime=8e-9,
             ),
         ],
     )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 100),
         fly=True,
-        detectors=[det1, det2],
-        trigger_sequence=trigger_sequence,
+        trigger_plan=trigger_plan,
     ).compile()  # type: ignore[reportArgumentType]
     ws = windows(sc)
     tss = ws[0].trigger_sequences
     assert len(tss) == 1  # single TriggerSequence with children
     ts = tss[0]
-    assert ts.detectors == frozenset({"saxs"})
-    assert ts.trigger_repeat == TriggerRepeat(num=100, livetime=0.003, deadtime=0.001)
+    assert ts.root.detectors == frozenset({"saxs"})
+    assert ts.root == TriggerRepeat(
+        detectors=frozenset({"saxs"}), num=100, livetime=0.003, deadtime=0.001
+    )
     assert len(ts.children) == 1
-    assert ts.children[0].detectors == frozenset({"encoder"})
-    assert ts.children[0].repeats == [
-        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-    ]
+    assert ts.children[0] == TriggerRepeat(
+        detectors=frozenset({"encoder"}),
+        num=10,
+        livetime=0.000299992,
+        deadtime=8e-9,
+    )
 
 
 def test_collections_per_event_multiplies_parent_num():
     # exposures_per_event = exposures_per_collection * collections_per_event = 2 * 3 = 6
-    det_step = DetectorGroup(2, 3, 0.01, 0.001, ["det1"])
+    tg_step = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=2,
+        collections_per_event=3,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     step_scan: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), detectors=[det_step]
+        Linspace("x", 0.0, 10.0, 5), trigger_plan=tg_step
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     for w in windows(step_scan):
         ts = w.trigger_sequences[0]
-        assert ts.trigger_repeat == TriggerRepeat(num=6, livetime=0.01, deadtime=0.001)
+        assert ts.root == TriggerRepeat(
+            detectors=frozenset({"det1"}), num=6, livetime=0.01, deadtime=0.001
+        )
 
-    det_fly = DetectorGroup(2, 3, 0.003, 0.001, ["det1"])
+    tg_fly = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=2,
+        collections_per_event=3,
+        livetime=0.003,
+        deadtime=0.001,
+    )
     fly_scan: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 100), fly=True, detectors=[det_fly]
+        Linspace("x", 0.0, 10.0, 100), fly=True, trigger_plan=tg_fly
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ts = windows(fly_scan)[0].trigger_sequences[0]
     # fly: num = length * exposures_per_event = 100 * 6
-    assert ts.trigger_repeat == TriggerRepeat(num=600, livetime=0.003, deadtime=0.001)
+    assert ts.root == TriggerRepeat(
+        detectors=frozenset({"det1"}), num=600, livetime=0.003, deadtime=0.001
+    )
 
 
 def test_non_integer_rate_ratio_raises():
-    # child_period = 0.004 -> parent_lt/child_period = 0.75, not an integer.
-    # Now checked by validate_trigger_sequence at compile() time, against a
-    # caller-supplied trigger_sequence rather than auto-derivation.
-    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
-    det2 = DetectorGroup(10, 1, 0.003, 0.001, ["enc"])
-    trigger_sequence = TriggerSequence(
-        detectors=frozenset({"saxs"}),
-        trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
+    # child_period = 0.004 -> root_livetime/child_period = 0.75, not an
+    # integer. Checked inline during TriggerGroup -> TriggerRepeat
+    # derivation, at compile() time.
+    trigger_plan = TriggerPlan(
+        root=TriggerGroup(
+            detectors=frozenset({"saxs"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+        ),
         children=[
-            TriggerChild(
+            TriggerGroup(
                 detectors=frozenset({"enc"}),
-                repeats=[
-                    TriggerRepeat(num=10, livetime=0.003, deadtime=0.001),
-                ],
+                exposures_per_collection=10,
+                collections_per_event=1,
+                livetime=0.003,
+                deadtime=0.001,
             ),
         ],
     )
@@ -889,43 +968,16 @@ def test_non_integer_rate_ratio_raises():
         Acquire(  # type: ignore[reportUnknownVariableType]
             Linspace("x", 0.0, 10.0, 100),
             fly=True,
-            detectors=[det1, det2],
-            trigger_sequence=trigger_sequence,
+            trigger_plan=trigger_plan,
         ).compile()  # type: ignore[reportArgumentType]
 
 
-def test_child_duration_exceeds_parent_livetime_raises():
-    # child_period = 0.0003 -> parent_lt/child_period = 10 (clean ratio), but
-    # num=11 makes total child duration 0.0033 > the 0.003 parent livetime.
-    # Now checked by validate_trigger_sequence at compile() time, against a
-    # caller-supplied trigger_sequence rather than auto-derivation.
-    det1 = DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])
-    det2 = DetectorGroup(11, 1, 0.0002, 0.0001, ["enc"])
-    trigger_sequence = TriggerSequence(
-        detectors=frozenset({"saxs"}),
-        trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
-        children=[
-            TriggerChild(
-                detectors=frozenset({"enc"}),
-                repeats=[
-                    TriggerRepeat(num=11, livetime=0.0002, deadtime=0.0001),
-                ],
-            ),
-        ],
-    )
-    with pytest.raises(ValueError, match="exceeds parent livetime"):
-        Acquire(  # type: ignore[reportUnknownVariableType]
-            Linspace("x", 0.0, 10.0, 100),
-            fly=True,
-            detectors=[det1, det2],
-            trigger_sequence=trigger_sequence,
-        ).compile()  # type: ignore[reportArgumentType]
-
-
-# Spacer/overlap/ratio/duration checks live in core.validate_trigger_sequence,
-# exercised above via Acquire(trigger_sequence=...). _bake_trigger_sequence
-# only handles the unambiguous single-DetectorGroup case (see
-# test_fly_scan_trigger_sequences).
+# Spacer/overlap/duration checks live in core.validate_trigger_sequence,
+# exercised above via Acquire(trigger_plan=...) and directly in test_core.py
+# for scenarios TriggerPlan authoring can no longer produce (e.g. a clean
+# ratio with an inconsistent hand-set num -- only reachable by
+# hand-constructing TriggerRepeat/TriggerSequence directly, bypassing
+# TriggerPlan and compile() entirely).
 
 
 # ---------------------------------------------------------------------------
@@ -934,21 +986,33 @@ def test_child_duration_exceeds_parent_livetime_raises():
 
 
 def test_active_stream_sets_single_acquire():
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), detectors=[det]
+        Linspace("x", 0.0, 10.0, 5), trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]
     assert sc.active_stream_sets == [frozenset({"primary"})]
 
 
 def test_active_stream_sets_concat_different_names():
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det"])
-    # Outer Acquire has no detectors (monitor-only wrapper),
+    tg = TriggerGroup(
+        detectors=frozenset({"det"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
+    # Outer Acquire has no trigger_plan (monitor-only wrapper),
     # so only the inner Acquires' stream names are active.
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Concat(
-            Acquire(Linspace("x", 0.0, 5.0, 3), detectors=[det], stream_name="diff"),
-            Acquire(Linspace("x", 5.0, 10.0, 5), detectors=[det], stream_name="spec"),
+            Acquire(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="diff"),
+            Acquire(Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="spec"),
         ),
     ).compile()  # type: ignore[reportArgumentType]
     assert sc.active_stream_sets == [
@@ -958,12 +1022,18 @@ def test_active_stream_sets_concat_different_names():
 
 
 def test_active_stream_sets_concat_same_name_deduplicates():
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Concat(
-            Acquire(Linspace("x", 0.0, 5.0, 3), detectors=[det], stream_name="primary"),
+            Acquire(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="primary"),
             Acquire(
-                Linspace("x", 5.0, 10.0, 5), detectors=[det], stream_name="primary"
+                Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="primary"
             ),
         ),
     ).compile()  # type: ignore[reportArgumentType]
@@ -973,13 +1043,19 @@ def test_active_stream_sets_concat_same_name_deduplicates():
 
 
 def test_active_stream_sets_detector_less_outer_acquire():
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Concat(
-            Acquire(Linspace("x", 0.0, 5.0, 3), detectors=[det], stream_name="diff"),
-            Acquire(Linspace("x", 5.0, 10.0, 5), detectors=[det], stream_name="spec"),
+            Acquire(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="diff"),
+            Acquire(Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="spec"),
         ),
-        # Outer Acquire has no detectors (monitor/continuous-only wrapper)
+        # Outer Acquire has no trigger_plan (monitor/continuous-only wrapper)
     ).compile()  # type: ignore[reportArgumentType]
     assert sc.active_stream_sets == [
         frozenset({"diff"}),
@@ -988,9 +1064,15 @@ def test_active_stream_sets_detector_less_outer_acquire():
 
 
 def test_duration_derived_from_detectors():
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), detectors=[det]
+        Linspace("x", 0.0, 10.0, 5), trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     # step: 1 × (0.01 + 0.001) = 0.011
@@ -999,9 +1081,15 @@ def test_duration_derived_from_detectors():
 
 
 def test_duration_derived_from_fly_detectors():
-    det = DetectorGroup(1, 1, 0.003, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), fly=True, detectors=[det]
+        Linspace("x", 0.0, 10.0, 5), fly=True, trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     # fly: 5 × (0.003 + 0.001) = 0.02
@@ -1009,11 +1097,17 @@ def test_duration_derived_from_fly_detectors():
 
 
 def test_explicit_duration_must_be_ge_derived():
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     with pytest.raises(ValueError, match="less than"):
         Acquire(
             Linspace("x", 0.0, 10.0, 5),
-            detectors=[det],
+            trigger_plan=tg,
             duration=0.005,  # too small
         ).compile()
 
@@ -1092,10 +1186,16 @@ def test_anyspec_extension():
 
 
 def test_explicit_duration_overrides_when_larger():
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5),
-        detectors=[det],
+        trigger_plan=tg,
         duration=0.05,  # larger than derived 0.011
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -1104,15 +1204,27 @@ def test_explicit_duration_overrides_when_larger():
 
 
 def test_none_livetime_raises():
-    det = DetectorGroup(1, 1, None, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=None,
+        deadtime=0.001,
+    )
     with pytest.raises(ValueError, match="livetime"):
-        Acquire(Linspace("x", 0.0, 10.0, 5), detectors=[det]).compile()
+        Acquire(Linspace("x", 0.0, 10.0, 5), trigger_plan=tg).compile()
 
 
 def test_none_deadtime_raises():
-    det = DetectorGroup(1, 1, 0.01, None, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=None,
+    )
     with pytest.raises(ValueError, match="deadtime"):
-        Acquire(Linspace("x", 0.0, 10.0, 5), detectors=[det]).compile()
+        Acquire(Linspace("x", 0.0, 10.0, 5), trigger_plan=tg).compile()
 
 
 # ---------------------------------------------------------------------------
@@ -1122,14 +1234,20 @@ def test_none_deadtime_raises():
 
 def test_concat_fly_step_windows():
     """Concat of step + fly Acquires: 2 windows (1 step + 1 fly)."""
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     step_acq: Acquire[str, str, Never] = Acquire(
-        Static("x", 5.0), detectors=[det], stream_name="s1"
+        Static("x", 5.0), trigger_plan=tg, stream_name="s1"
     )
     fly_acq: Acquire[str, str, Never] = Acquire(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
-        detectors=[det],
+        trigger_plan=tg,
         stream_name="s2",
     )
     sc = step_acq.concat(fly_acq).compile()
@@ -1144,15 +1262,27 @@ def test_concat_fly_step_windows():
 
 def test_concat_different_streams():
     """Two Acquires with different stream names."""
-    det1 = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
-    det2 = DetectorGroup(1, 1, 0.003, 0.001, ["det2"])
+    tg1 = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
+    tg2 = TriggerGroup(
+        detectors=frozenset({"det2"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+    )
     a1: Acquire[str, str, Never] = Acquire(
-        Static("x", 5.0), detectors=[det1], stream_name="diff"
+        Static("x", 5.0), trigger_plan=tg1, stream_name="diff"
     )
     a2: Acquire[str, str, Never] = Acquire(
         Linspace("x", 0.0, 10.0, 100),
         fly=True,
-        detectors=[det2],
+        trigger_plan=tg2,
         stream_name="spec",
     )
     sc = a1.concat(a2).compile()
@@ -1162,17 +1292,23 @@ def test_concat_different_streams():
 
 def test_concat_same_stream_sums_inner():
     """Two Acquires with same stream name → inner length summed."""
-    det = DetectorGroup(1, 1, 0.003, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+    )
     a1: Acquire[str, str, Never] = Acquire(
         Linspace("x", 0.0, 5.0, 500),
         fly=True,
-        detectors=[det],
+        trigger_plan=tg,
         stream_name="primary",
     )
     a2: Acquire[str, str, Never] = Acquire(
         Linspace("x", 5.0, 0.0, 500),
         fly=True,
-        detectors=[det],
+        trigger_plan=tg,
         stream_name="primary",
     )
     sc = a1.concat(a2).compile()
@@ -1184,14 +1320,20 @@ def test_concat_same_stream_sums_inner():
 
 def test_repeat_concat_windows():
     """Repeat wrapping a concat: n_repeat x groups_per_concat."""
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     a1: Acquire[str, str, Never] = Acquire(
-        Static("x", 5.0), detectors=[det], stream_name="s1"
+        Static("x", 5.0), trigger_plan=tg, stream_name="s1"
     )
     a2: Acquire[str, str, Never] = Acquire(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
-        detectors=[det],
+        trigger_plan=tg,
         stream_name="s2",
     )
     sc = Repeat(a1.concat(a2), num=3).compile()
@@ -1206,14 +1348,20 @@ def test_repeat_concat_windows():
 
 def test_repeat_concat_streams_have_outer_dim():
     """Repeat wrapping concat: windowed_streams get outer repeat dim."""
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     a1: Acquire[str, str, Never] = Acquire(
-        Static("x", 5.0), detectors=[det], stream_name="s1"
+        Static("x", 5.0), trigger_plan=tg, stream_name="s1"
     )
     a2: Acquire[str, str, Never] = Acquire(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
-        detectors=[det],
+        trigger_plan=tg,
         stream_name="s2",
     )
     sc = Repeat(a1.concat(a2), num=10).compile()
@@ -1224,12 +1372,18 @@ def test_repeat_concat_streams_have_outer_dim():
 
 def test_concat_previous_chain():
     """Previous chain across all windows from grouped concat."""
-    det = DetectorGroup(1, 1, 0.01, 0.001, ["det1"])
+    tg = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
     a1: Acquire[str, str, Never] = Acquire(
-        Static("x", 5.0), detectors=[det], stream_name="s1"
+        Static("x", 5.0), trigger_plan=tg, stream_name="s1"
     )
     a2: Acquire[str, str, Never] = Acquire(
-        Static("x", 10.0), detectors=[det], stream_name="s2"
+        Static("x", 10.0), trigger_plan=tg, stream_name="s2"
     )
     sc = Repeat(a1.concat(a2), num=3).compile()
     ws = windows(sc)

@@ -10,9 +10,8 @@ from scanspec.v2.core import (
     ContinuousStream,
     DetectorGroup,
     MonitorStream,
-    TriggerChild,
-    TriggerRepeat,
-    TriggerSequence,
+    TriggerGroup,
+    TriggerPlan,
 )
 from scanspec.v2.specs import (
     Acquire,
@@ -221,46 +220,46 @@ def test_motion_spec_json_round_trip(
 def test_acquire_json_round_trip():
     spec: Acquire[str, str, str] = Acquire(
         Linspace("x", 0.0, 10.0, 100),
-        detectors=[
-            DetectorGroup(
-                exposures_per_collection=1,
-                collections_per_event=1,
-                livetime=0.003,
-                deadtime=0.001,
-                detectors=["saxs", "waxs"],
-            )
-        ],
+        trigger_plan=TriggerGroup(
+            detectors=frozenset({"saxs", "waxs"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+        ),
         monitors=[MonitorStream("temp", "tc1")],
     )
     ta: TypeAdapter[AnySpec[Any, Any, Any]] = TypeAdapter(AnySpec)
     json_bytes = ta.dump_json(spec)
     restored = ta.validate_json(json_bytes)
     assert isinstance(restored, Acquire)
-    assert restored.detectors[0].detectors == ["saxs", "waxs"]
+    # A bare TriggerGroup is stored and serialized as-is, not wrapped.
+    assert isinstance(restored.trigger_plan, TriggerGroup)
+    assert restored.trigger_plan.detectors == frozenset({"saxs", "waxs"})
     assert restored.monitors[0].name == "temp"
 
 
 def test_acquire_json_round_trip_full():
     """Round-trip an Acquire exercising every optional field, including a
-    trigger_sequence with a non-empty children list -- the newly-fixed path
-    (TriggerChild, not a frozenset-keyed dict) from this session's Slice 2,
-    only exercised in isolation elsewhere (test_core.py)."""
+    trigger_plan with a non-empty children list."""
     spec: Acquire[str, str, str] = Acquire(
         Linspace("x", 0.0, 10.0, 100),
         fly=True,
-        detectors=[
-            DetectorGroup(1, 1, 0.003, 0.001, ["saxs"]),
-            DetectorGroup(10, 1, 0.0003, 8e-9, ["encoder"]),
-        ],
-        trigger_sequence=TriggerSequence(
-            detectors=frozenset({"saxs"}),
-            trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
+        trigger_plan=TriggerPlan(
+            root=TriggerGroup(
+                detectors=frozenset({"saxs"}),
+                exposures_per_collection=1,
+                collections_per_event=1,
+                livetime=0.003,
+                deadtime=0.001,
+            ),
             children=[
-                TriggerChild(
+                TriggerGroup(
                     detectors=frozenset({"encoder"}),
-                    repeats=[
-                        TriggerRepeat(num=10, livetime=0.0003, deadtime=8e-9),
-                    ],
+                    exposures_per_collection=10,
+                    collections_per_event=1,
+                    livetime=0.0003,
+                    deadtime=0.0,
                 ),
             ],
         ),
@@ -277,8 +276,8 @@ def test_acquire_json_round_trip_full():
     restored = ta.validate_json(ta.dump_json(spec))
     assert isinstance(restored, Acquire)
     assert restored == spec
-    assert restored.trigger_sequence is not None
-    assert restored.trigger_sequence.children[0].detectors == frozenset({"encoder"})
+    assert isinstance(restored.trigger_plan, TriggerPlan)
+    assert restored.trigger_plan.children[0].detectors == frozenset({"encoder"})
     assert restored.continuous_streams[0].name == "cameras"
     assert restored.duration == 0.5
 
@@ -288,24 +287,48 @@ def test_acquire_json_round_trip_full():
 # ---------------------------------------------------------------------------
 
 
-def test_acquire_duplicate_detector_in_same_group():
+def test_acquire_duplicate_detector_in_same_continuous_group():
+    """A duplicate name within one DetectorGroup's list still raises.
+
+    Only reachable via continuous_streams now: the windowed authoring path's
+    TriggerGroup.detectors is a frozenset, which structurally dedupes rather
+    than preserving a duplicate to be caught by validation.
+    """
     with pytest.raises(ValueError):
         Acquire(
             Linspace("x", 0.0, 1.0, 10),
-            detectors=[
-                DetectorGroup(1, 1, 0.01, 0.001, ["det1", "det1"]),
+            continuous_streams=[
+                ContinuousStream(
+                    "cameras", [DetectorGroup(1, 1, 0.01, 0.001, ["det1", "det1"])]
+                )
             ],
         )
 
 
 def test_acquire_duplicate_detector_across_groups():
+    # Raised by TriggerPlan's own disjointness check at construction time,
+    # before Acquire(...) is even reached.
     with pytest.raises(ValueError, match="det1"):
         Acquire(
             Linspace("x", 0.0, 1.0, 10),
-            detectors=[
-                DetectorGroup(1, 1, 0.01, 0.001, ["det1"]),
-                DetectorGroup(1, 1, 0.01, 0.001, ["det1"]),
-            ],
+            trigger_plan=TriggerPlan(
+                root=TriggerGroup(
+                    detectors=frozenset({"det1"}),
+                    exposures_per_collection=1,
+                    collections_per_event=1,
+                    livetime=0.01,
+                    deadtime=0.001,
+                ),
+                children=[
+                    TriggerGroup(
+                        detectors=frozenset({"det1"}),
+                        exposures_per_collection=1,
+                        collections_per_event=1,
+                        livetime=0.01,
+                        deadtime=0.001,
+                    ),
+                ],
+            ),
         )
 
 
@@ -313,7 +336,13 @@ def test_acquire_duplicate_between_windowed_and_continuous():
     with pytest.raises(ValueError, match="cam1"):
         Acquire(
             Linspace("x", 0.0, 1.0, 10),
-            detectors=[DetectorGroup(1, 1, 0.01, 0.001, ["cam1"])],
+            trigger_plan=TriggerGroup(
+                detectors=frozenset({"cam1"}),
+                exposures_per_collection=1,
+                collections_per_event=1,
+                livetime=0.01,
+                deadtime=0.001,
+            ),
             continuous_streams=[
                 ContinuousStream(
                     "cameras", [DetectorGroup(1, 1, 0.05, 0.005, ["cam1"])]
@@ -326,15 +355,21 @@ def test_acquire_duplicate_with_monitor():
     with pytest.raises(ValueError, match="tc1"):
         Acquire(
             Linspace("x", 0.0, 1.0, 10),
-            detectors=[DetectorGroup(1, 1, 0.01, 0.001, ["tc1"])],
+            trigger_plan=TriggerGroup(
+                detectors=frozenset({"tc1"}),
+                exposures_per_collection=1,
+                collections_per_event=1,
+                livetime=0.01,
+                deadtime=0.001,
+            ),
             monitors=[MonitorStream("temp", "tc1")],
         )
 
 
-def test_acquire_valid_no_detectors():
-    # Empty detectors list is allowed — validation only checks uniqueness.
+def test_acquire_valid_no_trigger_plan():
+    # No trigger_plan is allowed -- validation only checks uniqueness.
     a: Acquire[str, Any, Any] = Acquire(Linspace("x", 0.0, 1.0, 10))
-    assert a.detectors == ()
+    assert a.trigger_plan is None
 
 
 def test_acquire_defaults():

@@ -12,9 +12,9 @@ from scanspec.v2.core import (
     DetectorGroup,
     MonitorStream,
     Scan,
-    TriggerChild,
+    TriggerGroup,
+    TriggerPlan,
     TriggerRepeat,
-    TriggerSequence,
 )
 from scanspec.v2.specs import Acquire, Linspace, Product, Repeat, Spiral, Static
 
@@ -163,24 +163,36 @@ def test_flagship_multi_stream_concat():
 
     600 windows total: 200 × (1 step + 1 fly + 1 fly).
     """
-    diff_det = DetectorGroup(1, 1, 0.01, 0.001, ["diffraction"])
-    spec_det = DetectorGroup(1, 1, 0.003, 0.001, ["spectroscopy"])
+    diff_group = TriggerGroup(
+        detectors=frozenset({"diffraction"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
+    spec_group = TriggerGroup(
+        detectors=frozenset({"spectroscopy"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+    )
 
     diff_acq: Acquire[str, str, Never] = Acquire(
         Static("e", 7.0),
-        detectors=[diff_det],
+        trigger_plan=diff_group,
         stream_name="diff",
     )
     spec_fwd: Acquire[str, str, Never] = Acquire(
         Linspace("e", 7.0, 7.1, 1000),
         fly=True,
-        detectors=[spec_det],
+        trigger_plan=spec_group,
         stream_name="spec",
     )
     spec_rev: Acquire[str, str, Never] = Acquire(
         Linspace("e", 7.1, 7.0, 1000),
         fly=True,
-        detectors=[spec_det],
+        trigger_plan=spec_group,
         stream_name="spec",
     )
     spec: Repeat[str, str, Never] = Repeat(
@@ -230,11 +242,13 @@ def test_flagship_multi_stream_concat():
         assert w_diff.non_linear is False
         # duration from detector: 1 × (0.01 + 0.001) = 0.011
         assert w_diff.duration == approx(0.011)
-        # trigger_sequences from diff_det
+        # trigger_sequences from diff_group
         assert len(w_diff.trigger_sequences) == 1
         ts = w_diff.trigger_sequences[0]
-        assert ts.detectors == frozenset({"diffraction"})
-        assert ts.trigger_repeat == TriggerRepeat(num=1, livetime=0.01, deadtime=0.001)
+        assert ts.root.detectors == frozenset({"diffraction"})
+        assert ts.root == TriggerRepeat(
+            detectors=frozenset({"diffraction"}), num=1, livetime=0.01, deadtime=0.001
+        )
 
         # Window 1: fly e 7.0 → 7.1
         assert w_fwd.moving_axes != {}
@@ -245,9 +259,12 @@ def test_flagship_multi_stream_concat():
         # duration from detector: 1000 × (0.003 + 0.001) = 4.0
         assert w_fwd.duration == approx(4.0)
         assert len(w_fwd.trigger_sequences) == 1
-        assert w_fwd.trigger_sequences[0].detectors == frozenset({"spectroscopy"})
-        assert w_fwd.trigger_sequences[0].trigger_repeat == TriggerRepeat(
-            num=1000, livetime=0.003, deadtime=0.001
+        assert w_fwd.trigger_sequences[0].root.detectors == frozenset({"spectroscopy"})
+        assert w_fwd.trigger_sequences[0].root == TriggerRepeat(
+            detectors=frozenset({"spectroscopy"}),
+            num=1000,
+            livetime=0.003,
+            deadtime=0.001,
         )
 
         # Window 2: fly e 7.1 → 7.0
@@ -258,9 +275,12 @@ def test_flagship_multi_stream_concat():
         assert w_rev.non_linear is False
         assert w_rev.duration == approx(4.0)
         assert len(w_rev.trigger_sequences) == 1
-        assert w_rev.trigger_sequences[0].detectors == frozenset({"spectroscopy"})
-        assert w_rev.trigger_sequences[0].trigger_repeat == TriggerRepeat(
-            num=1000, livetime=0.003, deadtime=0.001
+        assert w_rev.trigger_sequences[0].root.detectors == frozenset({"spectroscopy"})
+        assert w_rev.trigger_sequences[0].root == TriggerRepeat(
+            detectors=frozenset({"spectroscopy"}),
+            num=1000,
+            livetime=0.003,
+            deadtime=0.001,
         )
 
     # Previous chain is connected across all 600 windows
@@ -279,25 +299,27 @@ def test_maximal_fly_step(fly: bool):
     spec = Acquire(
         Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100)),
         fly=fly,
-        detectors=[
-            DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
-            # Encoders trigger 10x per saxs/waxs repeat: period must divide the
-            # parent's 0.003s livetime exactly, so livetime = 0.003/10 - deadtime.
-            DetectorGroup(10, 1, 0.000299992, 8e-9, ["timestamp", "x_enc", "y_enc"]),
-        ],
-        # Which DetectorGroup becomes the parent is no longer auto-derived;
-        # supplied explicitly, matching the assertions below.
-        trigger_sequence=TriggerSequence(
-            detectors=frozenset({"saxs", "waxs"}),
-            trigger_repeat=TriggerRepeat(
-                num=100 if fly else 1, livetime=0.003, deadtime=0.001
+        # Which TriggerGroup becomes the parent is still caller-decided (root
+        # vs children); num is now auto-derived by compile() from timing,
+        # not hand-computed.
+        trigger_plan=TriggerPlan(
+            root=TriggerGroup(
+                detectors=frozenset({"saxs", "waxs"}),
+                exposures_per_collection=1,
+                collections_per_event=1,
+                livetime=0.003,
+                deadtime=0.001,
             ),
             children=[
-                TriggerChild(
+                # Encoders trigger 10x per saxs/waxs repeat: period must
+                # divide the parent's 0.003s livetime exactly, so livetime =
+                # 0.003/10 - deadtime.
+                TriggerGroup(
                     detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
-                    repeats=[
-                        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-                    ],
+                    exposures_per_collection=10,
+                    collections_per_event=1,
+                    livetime=0.000299992,
+                    deadtime=8e-9,
                 ),
             ],
         ),
@@ -343,20 +365,29 @@ def test_maximal_fly_step(fly: bool):
     for w in windows:
         assert len(w.trigger_sequences) == 1
         ts = w.trigger_sequences[0]
-        assert ts.detectors == frozenset({"saxs", "waxs"})
+        assert ts.root.detectors == frozenset({"saxs", "waxs"})
         assert len(ts.children) == 1
         assert ts.children[0].detectors == frozenset({"timestamp", "x_enc", "y_enc"})
-        assert ts.children[0].repeats == [
-            TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-        ]
+        assert ts.children[0] == TriggerRepeat(
+            detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
+            num=10,
+            livetime=0.000299992,
+            deadtime=8e-9,
+        )
 
         if fly:
-            assert ts.trigger_repeat == TriggerRepeat(
-                num=100, livetime=0.003, deadtime=0.001
+            assert ts.root == TriggerRepeat(
+                detectors=frozenset({"saxs", "waxs"}),
+                num=100,
+                livetime=0.003,
+                deadtime=0.001,
             )
         else:
-            assert ts.trigger_repeat == TriggerRepeat(
-                num=1, livetime=0.003, deadtime=0.001
+            assert ts.root == TriggerRepeat(
+                detectors=frozenset({"saxs", "waxs"}),
+                num=1,
+                livetime=0.003,
+                deadtime=0.001,
             )
 
     # --- Duration ---
@@ -409,19 +440,23 @@ def test_panda_sequence_table():
     spec: Acquire[str, str, Never] = Acquire(
         Product(Linspace("y", 0, 5, 3), ~Linspace("x", 0, 10, 50)),
         fly=True,
-        detectors=[
-            DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
-        ],
+        trigger_plan=TriggerGroup(
+            detectors=frozenset({"saxs", "waxs"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+        ),
     )
     scan = spec.compile()
     det_key = frozenset(["saxs", "waxs"])
 
     for window in scan:
         # Consumer locates its sequence by matching detector names
-        seq = next(s for s in window.trigger_sequences if s.detectors == det_key)
+        seq = next(s for s in window.trigger_sequences if s.root.detectors == det_key)
 
         # Trigger repeat is baked — consumer reads it directly for SeqTable
-        tr = seq.trigger_repeat
+        tr = seq.root
         assert tr.num == 50
         assert tr.livetime == approx(0.003)
         assert tr.deadtime == approx(0.001)
@@ -450,7 +485,13 @@ def test_motor_record_fly():
     spec: Acquire[str, str, Never] = Acquire(
         Linspace("x", 0, 10, 100),
         fly=True,
-        detectors=[DetectorGroup(1, 1, 0.003, 0.001, ["det1"])],
+        trigger_plan=TriggerGroup(
+            detectors=frozenset({"det1"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+        ),
     )
     scan = spec.compile()
     windows = list(scan)
@@ -490,7 +531,13 @@ def test_pmac_trajectory_positions():
     spec: Acquire[str, str, Never] = Acquire(
         Product(Linspace("y", 0, 1, 2), ~Linspace("x", 0, 10, 100)),
         fly=True,
-        detectors=[DetectorGroup(1, 1, 0.003, 0.001, ["det1"])],
+        trigger_plan=TriggerGroup(
+            detectors=frozenset({"det1"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+        ),
     )
     scan = spec.compile()
     windows = list(scan)
@@ -593,24 +640,25 @@ def test_analysis_reshaping():
     spec: Acquire[str, str, Never] = Acquire(
         Product(Linspace("y", 0, 5, 3), ~Linspace("x", 0, 10, 5)),
         fly=True,
-        detectors=[
-            DetectorGroup(1, 1, 0.003, 0.001, ["det1"]),
-            # See test_maximal_fly_step for how this livetime is derived.
-            DetectorGroup(10, 1, 0.000299992, 8e-9, ["enc"]),
-        ],
-        # Which DetectorGroup becomes the parent is no longer auto-derived;
-        # this test doesn't assert on trigger_sequences, so exact values
+        # This test doesn't assert on trigger_sequences, so exact values
         # only need to be physically valid (innermost dimension x has
-        # length 5, so parent num = 5).
-        trigger_sequence=TriggerSequence(
-            detectors=frozenset({"det1"}),
-            trigger_repeat=TriggerRepeat(num=5, livetime=0.003, deadtime=0.001),
+        # length 5, so parent num = 5 × exposures_per_event(1) = 5).
+        trigger_plan=TriggerPlan(
+            root=TriggerGroup(
+                detectors=frozenset({"det1"}),
+                exposures_per_collection=1,
+                collections_per_event=1,
+                livetime=0.003,
+                deadtime=0.001,
+            ),
             children=[
-                TriggerChild(
+                # See test_maximal_fly_step for how this livetime is derived.
+                TriggerGroup(
                     detectors=frozenset({"enc"}),
-                    repeats=[
-                        TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-                    ],
+                    exposures_per_collection=10,
+                    collections_per_event=1,
+                    livetime=0.000299992,
+                    deadtime=8e-9,
                 ),
             ],
         ),

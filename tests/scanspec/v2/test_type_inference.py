@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Never, assert_type
 
-from scanspec.v2.core import DetectorGroup, MonitorStream
+from scanspec.v2.core import MonitorStream, TriggerGroup
 from scanspec.v2.specs import Acquire, Linspace
 
 # ---------------------------------------------------------------------------
@@ -28,19 +28,17 @@ def test_detector_t_and_monitor_t_inferred() -> None:
     AxisT must be provided as an explicit annotation: ``Acquire.spec`` is typed
     as the ``MotionSpec`` union (``Union[Linspace[Any], ...]``), so AxisT cannot
     be bound by the synthesised constructor.  DetectorT and MonitorT are still
-    inferred from the ``detectors`` / ``monitors`` list element types.
+    inferred from the ``trigger_plan`` / ``monitors`` argument types.
     """
     spec = Acquire(
         motion,
-        detectors=[
-            DetectorGroup(
-                exposures_per_collection=1,
-                collections_per_event=1,
-                livetime=0.003,
-                deadtime=0.001,
-                detectors=["saxs", "waxs"],
-            )
-        ],
+        trigger_plan=TriggerGroup(
+            detectors=frozenset({"saxs", "waxs"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+        ),
         monitors=[MonitorStream("dcm_temp", "dcm_temperature")],
     )
     assert_type(spec, Acquire[str, str, str])
@@ -54,14 +52,12 @@ def test_no_monitors_infers_never() -> None:
     """
     spec = Acquire(
         motion,
-        detectors=[
-            DetectorGroup(
-                exposures_per_collection=1,
-                collections_per_event=1,
-                livetime=0.003,
-                deadtime=0.001,
-                detectors=["saxs"],
-            )
-        ],
+        trigger_plan=TriggerGroup(
+            detectors=frozenset({"saxs"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+        ),
     )
     assert_type(spec, Acquire[str, str, Never])

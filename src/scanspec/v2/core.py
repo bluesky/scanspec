@@ -5,11 +5,11 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from math import isclose
-from typing import Any, Generic, Never
+from typing import Any, Generic, Never, Self
 from typing import TypeVar as StdTypeVar
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 from typing_extensions import TypeVar
 
 AxisT = StdTypeVar("AxisT")
@@ -17,65 +17,106 @@ DetectorT = StdTypeVar("DetectorT")
 MonitorT = TypeVar("MonitorT", default=Never)
 
 
-class TriggerRepeat(BaseModel):
-    """Timing parameters for one repeating trigger block.
+@dataclass(frozen=True)
+class TriggerRepeat(Generic[DetectorT]):
+    """One resolved, repeating trigger block within a TriggerSequence.
 
-    num:      number of times this block repeats within a TriggerSequence.
-    livetime: detector exposure time in seconds. None means not yet
-        resolved -- a downstream process (e.g. ophyd-async) fills it in
-        before compile(); must be resolved by then.
-    deadtime: detector readout/spacing time in seconds. Same None
-        semantics as livetime.
+    detectors: the set of detectors this block fires.
+    num:       number of times this block repeats.
+    livetime:  detector exposure time in seconds.
+    deadtime:  detector readout/spacing time in seconds.
 
     Centred-livetime semantics apply: execution order per repeat is
     ``½·deadtime → livetime → ½·deadtime``.
 
-    A pydantic BaseModel (not a plain dataclass, unlike most compiled
-    output -- ADR 0003 Decision 6) because it doubles as caller-authored
-    input to ``Acquire.trigger_sequence`` and must survive a JSON round
-    trip, e.g. sent to ophyd-async to have unresolved timing filled in.
+    Pure compiled output -- unlike its ADR 0007 predecessor, no longer
+    caller-authored, so no pydantic/round-trip requirement (the round trip
+    for unresolved timing now happens entirely on TriggerGroup/TriggerPlan,
+    before compile() -- see ADR 0008).
     """
-
-    model_config = ConfigDict(frozen=True)
-
-    num: int
-    livetime: float | None
-    deadtime: float | None
-
-
-class TriggerChild(BaseModel, Generic[DetectorT]):
-    """One parallel child within a TriggerSequence.
-
-    ``detectors`` names the child's own detector set explicitly (rather
-    than keying a dict by it) so the whole structure serializes to JSON
-    cleanly -- a ``frozenset`` is not a valid JSON object key, but is a
-    perfectly ordinary field value.
-    """
-
-    model_config = ConfigDict(frozen=True)
 
     detectors: frozenset[DetectorT]
-    repeats: list[TriggerRepeat]
+    num: int
+    livetime: float
+    deadtime: float
 
 
-class TriggerSequence(BaseModel, Generic[DetectorT]):
+@dataclass(frozen=True)
+class TriggerSequence(Generic[DetectorT]):
     """Detector triggering description for one sequential entry in a window.
 
-    ``detectors`` is the set of detectors triggered by ``trigger_repeat``.
-    ``children`` is a list of parallel children, each firing during *every*
-    parent repeat; each child's own ``repeats`` list executes sequentially.
-    All child detector sets must be disjoint from each other and from
-    ``detectors``.
+    ``root`` fires first; ``children`` fire in parallel with each other
+    during every root repeat. All child detector sets must be disjoint
+    from each other and from ``root.detectors``.
 
     ``Window.trigger_sequences`` is an ordered list; entries execute one after
     another within the window.
     """
 
+    root: TriggerRepeat[DetectorT]
+    children: list[TriggerRepeat[DetectorT]]
+
+
+class TriggerGroup(BaseModel, Generic[DetectorT]):
+    """Authoring-time detector group: identity plus trigger-timing intent.
+
+    Lives on TriggerPlan.root / TriggerPlan.children. livetime/deadtime may
+    be left unresolved (None) at authoring time -- a downstream process
+    (e.g. ophyd-async) fills them in before compile(), which requires both
+    concrete.
+    """
+
     model_config = ConfigDict(frozen=True)
 
     detectors: frozenset[DetectorT]
-    trigger_repeat: TriggerRepeat
-    children: list[TriggerChild[DetectorT]]
+    exposures_per_collection: int
+    collections_per_event: int
+    livetime: float | None
+    deadtime: float | None
+
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
+
+
+class TriggerPlan(BaseModel, Generic[DetectorT]):
+    """Caller-authored trigger hierarchy for one Acquire's windowed stream.
+
+    Replaces Acquire.detectors + Acquire.trigger_sequence: the caller
+    authors the detector/timing hierarchy once, and compile() derives both
+    the compiled TriggerSequence tree and the list[DetectorGroup] the
+    windowed stream needs, instead of requiring the caller to hand-write
+    and keep both in sync.
+
+    root/children mirror TriggerSequence's own root/children shape one
+    level up: children fire during every root repeat, in parallel with each
+    other, each at its own integer-multiple rate. Detector sets across root
+    and all children must be disjoint -- checked here structurally at
+    construction time, since timing may still be unresolved. Physical
+    checks (integer-ratio rates, child duration fitting inside the root's
+    livetime, concrete timing) happen at compile() time against the derived
+    TriggerSequence, unchanged from before.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    root: TriggerGroup[DetectorT]
+    children: list[TriggerGroup[DetectorT]] = []
+
+    @model_validator(mode="after")
+    def _disjoint_detectors(self) -> Self:
+        """All detector sets (root + each child) must be pairwise disjoint."""
+        seen: set[DetectorT] = set(self.root.detectors)
+        for child in self.children:
+            overlap = seen & child.detectors
+            if overlap:
+                raise ValueError(
+                    f"Detector(s) {sorted(str(d) for d in overlap)} appear "
+                    f"in more than one TriggerGroup within this TriggerPlan"
+                )
+            seen |= child.detectors
+        return self
 
 
 @dataclass
@@ -396,9 +437,12 @@ class Window(Generic[AxisT, DetectorT]):
 class DetectorGroup(Generic[DetectorT]):
     """Upfront description of a set of detectors sharing trigger parameters.
 
-    Lives on Acquire.detectors. Used to configure detectors before the scan
-    starts. Static livetime/deadtime are resolved into ``TriggerRepeat``
-    instances when ``Acquire.compile()`` is called.
+    For a windowed stream this is pure compiled output, derived by
+    ``Acquire.compile()`` from a caller-authored ``TriggerGroup`` (see ADR
+    0008) -- it is no longer directly caller-authored there. For a
+    continuous stream it is still directly caller-authored, on
+    ``Acquire.continuous_streams``; static livetime/deadtime describe the
+    stream's own fixed rate.
 
     exposures_per_collection: exposures the detector accumulates per collection.
     collections_per_event:    collections that form one event in the stream.
@@ -504,8 +548,7 @@ def _truncate_trigger_sequence(
     """Remove *trigger_index* completed root-level repeats from *sequences*.
 
     Walks the sequential list, skipping fully-completed sequences and
-    truncating the in-progress one.  ``detectors`` and ``children`` are
-    carried unchanged.
+    truncating the in-progress one.  ``children`` is carried unchanged.
 
     Blank/spacer sequences (``livetime == 0.0``) are never counted and never
     truncated -- they always pass through whole.  A gap only ever needs to be
@@ -517,10 +560,10 @@ def _truncate_trigger_sequence(
     result: list[TriggerSequence[DetectorT]] = []
     remaining = trigger_index
     for seq in sequences:
-        if seq.trigger_repeat.livetime == 0.0:
+        if seq.root.livetime == 0.0:
             result.append(seq)
             continue
-        num = seq.trigger_repeat.num
+        num = seq.root.num
         if remaining <= 0:
             result.append(seq)
         elif remaining >= num:
@@ -528,11 +571,11 @@ def _truncate_trigger_sequence(
         else:
             result.append(
                 TriggerSequence(
-                    detectors=seq.detectors,
-                    trigger_repeat=TriggerRepeat(
+                    root=TriggerRepeat(
+                        detectors=seq.root.detectors,
                         num=num - remaining,
-                        livetime=seq.trigger_repeat.livetime,
-                        deadtime=seq.trigger_repeat.deadtime,
+                        livetime=seq.root.livetime,
+                        deadtime=seq.root.deadtime,
                     ),
                     children=seq.children,
                 )
@@ -542,32 +585,26 @@ def _truncate_trigger_sequence(
 
 
 def validate_trigger_sequence(seq: TriggerSequence[DetectorT]) -> None:
-    """Check that *seq* is fully resolved and physically valid.
+    """Check that *seq* is physically valid.
 
     Not specific to ``Acquire`` -- also required for manually-constructed
     ``Window``s (ADR 0007 Assumption A1), so lives here rather than as a
-    private method.
+    private method. Unresolved (``None``) timing is rejected earlier, on
+    the caller-authored ``TriggerGroup``/``TriggerPlan``, before a
+    ``TriggerSequence`` can exist at all (ADR 0008) -- ``TriggerRepeat``'s
+    ``livetime``/``deadtime`` are always concrete by the time this runs.
 
     Raises ``ValueError`` if:
 
-    - the root ``trigger_repeat``'s ``livetime``/``deadtime`` is ``None``
-      (not yet resolved).
     - a child detector set overlaps the parent's or another child's.
-    - a child repeat's ``livetime``/``deadtime`` is ``None``.
     - a child does not trigger at an integer ratio of the parent rate.
     - a child's total duration exceeds the parent's livetime.
     """
-    parent = seq.trigger_repeat
-    if parent.livetime is None or parent.deadtime is None:
-        raise ValueError(
-            f"trigger_repeat.livetime/deadtime must be resolved (not None) "
-            f"before compile(); got livetime={parent.livetime}, "
-            f"deadtime={parent.deadtime}"
-        )
+    parent = seq.root
     parent_lt = parent.livetime
 
     for i, child in enumerate(seq.children):
-        overlap = seq.detectors & child.detectors
+        overlap = parent.detectors & child.detectors
         if overlap:
             raise ValueError(
                 f"Detector(s) {sorted(str(d) for d in overlap)} appear in "
@@ -581,48 +618,27 @@ def validate_trigger_sequence(seq: TriggerSequence[DetectorT]) -> None:
                 )
 
     for child in seq.children:
-        child_dur = 0.0
-        for r in child.repeats:
-            if r.livetime is None or r.deadtime is None:
-                raise ValueError(
-                    f"Child {sorted(str(d) for d in child.detectors)}: "
-                    f"livetime/deadtime must be resolved (not None) before "
-                    f"compile(); got livetime={r.livetime}, "
-                    f"deadtime={r.deadtime}"
-                )
-            child_period = r.livetime + r.deadtime
-            ratio = parent_lt / child_period
-            if not isclose(ratio, round(ratio), rel_tol=1e-3, abs_tol=1e-6):
-                raise ValueError(
-                    f"Child detector(s) {sorted(str(d) for d in child.detectors)} "
-                    f"do not trigger at an integer ratio of the parent "
-                    f"rate: parent_livetime {parent_lt} / child_period "
-                    f"{child_period} = {ratio}"
-                )
-            child_dur += r.num * child_period
-        if child_dur > parent_lt:
+        child_period = child.livetime + child.deadtime
+        ratio = parent_lt / child_period
+        if not isclose(ratio, round(ratio), rel_tol=1e-3, abs_tol=1e-6):
+            raise ValueError(
+                f"Child detector(s) {sorted(str(d) for d in child.detectors)} "
+                f"do not trigger at an integer ratio of the parent "
+                f"rate: parent_livetime {parent_lt} / child_period "
+                f"{child_period} = {ratio}"
+            )
+        child_dur = child.num * child_period
+        if child_dur > parent_lt and not isclose(
+            child_dur, parent_lt, rel_tol=1e-3, abs_tol=1e-6
+        ):
             raise ValueError(
                 f"Child total duration {child_dur} exceeds parent livetime {parent_lt}"
             )
 
 
 def trigger_sequences_duration(seqs: list[TriggerSequence[DetectorT]]) -> float:
-    """Total duration of *seqs*: sum of ``num * (livetime + deadtime)``.
-
-    Requires every ``TriggerRepeat`` to be resolved (see
-    ``validate_trigger_sequence``); raises ``ValueError`` otherwise.
-    """
-    total = 0.0
-    for ts in seqs:
-        r = ts.trigger_repeat
-        if r.livetime is None or r.deadtime is None:
-            raise ValueError(
-                f"trigger_repeat.livetime/deadtime must be resolved before "
-                f"computing duration; got livetime={r.livetime}, "
-                f"deadtime={r.deadtime}"
-            )
-        total += r.num * (r.livetime + r.deadtime)
-    return total
+    """Total duration of *seqs*: sum of ``num * (livetime + deadtime)``."""
+    return sum(ts.root.num * (ts.root.livetime + ts.root.deadtime) for ts in seqs)
 
 
 class Scan(Generic[AxisT, DetectorT, MonitorT]):
