@@ -87,7 +87,7 @@ class TriggerPlan(BaseModel, Generic[DetectorT]):
     windowed stream needs, instead of requiring the caller to hand-write
     and keep both in sync.
 
-    root/children mirror TriggerSequence's own parent/children shape one
+    root/children mirror TriggerSequence's own root/children shape one
     level up: children fire during every root repeat, in parallel with each
     other, each at its own integer-multiple rate. Detector sets across root
     and all children must be disjoint -- checked here structurally at
@@ -101,11 +101,6 @@ class TriggerPlan(BaseModel, Generic[DetectorT]):
 
     root: TriggerGroup[DetectorT]
     children: list[TriggerGroup[DetectorT]] = []
-
-    @classmethod
-    def single(cls, root: TriggerGroup[DetectorT]) -> Self:
-        """Sugar for the common no-children case: TriggerPlan(root=root)."""
-        return cls(root=root)
 
     @model_validator(mode="after")
     def _disjoint_detectors(self) -> Self: ...  # structural check only
@@ -124,24 +119,34 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
     spec: AnySpec[AxisT, Any, Any]
     fly: bool = False
     stream_name: str = "primary"
-    trigger_plan: TriggerPlan[DetectorT] | None = None
+    trigger_plan: TriggerPlan[DetectorT] | TriggerGroup[DetectorT] | None = None
     continuous_streams: Sequence[ContinuousStream[DetectorT]] = ()  # unchanged
     monitors: Sequence[MonitorStream[MonitorT]] = ()                # unchanged
     duration: float | None = None
 ```
 
-A bare `TriggerGroup` passed as `trigger_plan` is eagerly normalized (a
-`mode="before"` validator) into `TriggerPlan(root=that_group)` before
-pydantic's own field validation runs. The field's annotated type stays
-`TriggerPlan[DetectorT] | None` — no union fan-out — and the stored/
-serialized form is always the wrapped `TriggerPlan` shape regardless of
-which form the caller used to construct it, so there is exactly one
-canonical wire format for a given plan, not two.
+A bare `TriggerGroup` is accepted for the trivial no-children case. It is
+stored and serialized exactly as given rather than eagerly wrapped into a
+`TriggerPlan` — JSON output stays lossless (reflects what the caller
+actually wrote) rather than canonical (one fixed wire shape regardless of
+input). A small helper, `_as_trigger_plan(x) -> TriggerPlan`, is called
+instead at each real point of use (`compile()`, `_validate_unique_detectors`)
+that needs `root`/`children` access, narrowing the type honestly at a real
+function boundary rather than the field silently lying about what it can
+hold. This also means the field's own type is widened to include
+`TriggerGroup[DetectorT]` directly — an earlier eager-normalization design
+kept the field's type as plain `TriggerPlan[DetectorT] | None` for a
+canonical wire format, but that made the annotation inaccurate at every
+internal read site (pydantic's `mode="before"` normalization is invisible
+to a type checker), forcing a defensive cast wherever `trigger_plan` was
+read. Lossless storage plus a single, explicit normalization point resolves
+that cleanly.
 
 `_validate_trigger_sequence_detectors_match` is deleted: with one field
 instead of two, there is nothing left to cross-check for drift.
 `_validate_unique_detectors` is retargeted to walk
-`trigger_plan.root`/`trigger_plan.children` instead of `self.detectors`.
+`_as_trigger_plan(trigger_plan).root`/`.children` instead of
+`self.detectors`.
 
 ### 3. `compile()` derives two structures from `trigger_plan`, neither lossy
 
@@ -149,9 +154,22 @@ Two module-level derivation functions (not methods on `TriggerPlan`, since
 they need `inner_length`/`fly` from the compiled motion generators — the
 same reason `_bake_trigger_sequence` takes `gens` today):
 
-- `TriggerGroup -> TriggerRepeat`: same `num` formula as today
-  (`exposures_per_event * inner_length if fly else exposures_per_event`),
-  reading from `TriggerGroup` instead of `DetectorGroup`. Feeds
+- `TriggerGroup -> TriggerRepeat`: `num` is derived differently for the
+  root than for a child, since the two answer different questions.
+  - **Root**: same formula as today's `_bake_trigger_sequence`
+    (`exposures_per_event * inner_length if fly else exposures_per_event`)
+    — tied to the scan's own geometry.
+  - **Child**: `num = round(root_livetime / child_period)`, where
+    `child_period = child.livetime + child.deadtime` — how many times the
+    child's own period fits inside the root's livetime window, independent
+    of `inner_length`/`fly` (the root's own `num` already carries that
+    scaling). A child's `exposures_per_collection`/`collections_per_event`
+    do not feed this at all; the same `isclose` integer-ratio tolerance
+    `validate_trigger_sequence` already used defensively is applied here to
+    reject a rate that doesn't actually divide evenly, rather than merely
+    cross-checking a caller-supplied count after the fact.
+
+  Both cases read from `TriggerGroup` instead of `DetectorGroup`. Feeds
   `WindowGenerator`/`Window.trigger_sequences`.
 - `TriggerGroup -> DetectorGroup`: no `num` involved at all — both shape
   factors pass through unchanged. Feeds `WindowedStream.detector_groups`.
@@ -211,21 +229,28 @@ class TriggerRepeat(Generic[DetectorT]):
 class TriggerSequence(Generic[DetectorT]):
     """Detector triggering description for one sequential entry in a window.
 
-    parent fires first; children fire in parallel with each other during
-    every parent repeat. All child detector sets must be disjoint from each
-    other and from parent.detectors.
+    root fires first; children fire in parallel with each other during
+    every root repeat. All child detector sets must be disjoint from each
+    other and from root.detectors.
 
     Window.trigger_sequences is an ordered list; entries execute one after
     another within the window.
     """
 
-    parent: TriggerRepeat[DetectorT]
+    root: TriggerRepeat[DetectorT]
     children: list[TriggerRepeat[DetectorT]]
 ```
 
 `TriggerSequence`'s own `detectors` field is dropped — it was always
-identical to `parent.detectors` once `TriggerRepeat` carries detector
-identity, so keeping both was redundant.
+identical to `root.detectors` once `TriggerRepeat` carries detector
+identity, so keeping both was redundant. The field is named `root` (not
+`parent`, an earlier choice) specifically because a field named `parent` on
+a container reads as "the thing that owns this," not "the primary entry
+held alongside `children`" — `root` can't be misread that way, and it
+matches `TriggerPlan.root` exactly, reinforcing that `TriggerPlan` and
+`TriggerSequence` are the same shape before and after `compile()`.
+Relational "parent"/"child" language remains fine in prose and local
+variable names describing how `root` and `children` relate to each other.
 
 ### 6. Compiled `TriggerRepeat`/`TriggerSequence` become plain dataclasses
 
@@ -241,10 +266,14 @@ That round trip now happens entirely on `TriggerGroup`/`TriggerPlan`, before
 once a `TriggerRepeat`/`TriggerSequence` exists, there is no remaining
 ambiguity for a round trip to preserve. `TriggerRepeat.livetime`/`deadtime`
 drop `| None` and become plain `float`. With no round-trip requirement
-left, `TriggerRepeat` and `TriggerSequence` revert to plain
-`@dataclass(frozen=True)`, matching every other compiled-output type
-(`DetectorGroup`, `WindowGenerator`, `Window`, `Scan`, `WindowedStream`).
-This supersedes ADR 0007 Decision 1's pydantic carve-out for these types.
+left, `TriggerRepeat` and `TriggerSequence` revert to plain dataclasses,
+like `DetectorGroup` and the rest of the compiled-output shapes — `frozen=
+True` specifically because instances are shared by reference across
+multiple `Window`s (e.g. `_truncate_trigger_sequence` always constructs a
+new `TriggerSequence`/`TriggerRepeat` rather than mutating one in place),
+where accidental mutation of a shared instance would silently affect every
+`Window` holding it. This supersedes ADR 0007 Decision 1's pydantic
+carve-out for these types.
 
 ## Consequences
 
@@ -255,12 +284,13 @@ This supersedes ADR 0007 Decision 1's pydantic carve-out for these types.
 2. **`TriggerRepeat`, `TriggerSequence`** (`core.py`): convert to plain
    `@dataclass(frozen=True)`; add `detectors` to `TriggerRepeat`; drop
    `| None` from `livetime`/`deadtime`; drop `TriggerSequence.detectors`;
-   rename `TriggerSequence.trigger_repeat` to `parent`. Remove
+   rename `TriggerSequence.trigger_repeat` to `root`. Remove
    `TriggerChild` entirely.
 3. **`Acquire`** (`specs.py`): replace `detectors`/`trigger_sequence` fields
-   with `trigger_plan: TriggerPlan[DetectorT] | None`, plus the
-   `mode="before"` bare-`TriggerGroup`-normalization validator (Decision 2).
-   Delete `_validate_trigger_sequence_detectors_match`. Retarget
+   with `trigger_plan: TriggerPlan[DetectorT] | TriggerGroup[DetectorT] |
+   None`, plus a module-level `_as_trigger_plan()` helper called at each
+   real point of use (Decision 2). Delete
+   `_validate_trigger_sequence_detectors_match`. Retarget
    `_validate_unique_detectors` to walk `trigger_plan`.
 4. **`compile()`** (`specs.py`): add the two module-level derivation
    functions from Decision 3, replacing `_bake_trigger_sequence`'s
@@ -271,7 +301,13 @@ This supersedes ADR 0007 Decision 1's pydantic carve-out for these types.
    `trigger_sequences_duration`** (`core.py`): drop the inner
    `for r in child.repeats` loop everywhere it appears — children are now a
    flat `list[TriggerRepeat]`, not `list[TriggerChild]`. Field accesses move
-   from `.trigger_repeat`/`.detectors` to `.parent`/`.parent.detectors`.
+   from `.trigger_repeat`/`.detectors` to `.root`/`.root.detectors`. The
+   unresolved-timing (`None`) checks in `validate_trigger_sequence` and
+   `trigger_sequences_duration` are removed — no longer reachable once
+   `TriggerRepeat.livetime`/`deadtime` are plain `float` — and
+   `validate_trigger_sequence`'s duration check gains an `isclose` tolerance
+   to match the ratio check beside it, since derived `num` values land
+   `child_dur` right at the floating-point boundary of `root`'s livetime.
 6. **Tests**: update every construction of `TriggerRepeat`/`TriggerChild`/
    `TriggerSequence` (`tests/scanspec/v2/test_specs.py`,
    `test_use_cases.py`, `test_compile.py`, `test_core.py`) to the new
@@ -299,6 +335,6 @@ This supersedes ADR 0007 Decision 1's pydantic carve-out for these types.
 Two-level depth cap (root + one layer of children, no self-nesting),
 centred-livetime semantics, checkpoint/pause-resume on root-level repeats,
 and `Scan.active_stream_sets` are all unaffected by this decision — they
-operate on `TriggerSequence`, whose *shape* (parent + children) is
+operate on `TriggerSequence`, whose *shape* (root + children) is
 unchanged, only its field names and the removal of the dead child-repeats
 list.
