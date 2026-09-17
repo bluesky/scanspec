@@ -20,7 +20,7 @@ Three type parameters are used throughout:
   Only appears on `Spec` and `Scan` — never on `Window`.
 
 `Spec[AxisT, DetectorT, MonitorT]` — base class for all scan specs.
-`Acquire[AxisT, DetectorT, MonitorT]` — concrete `Spec` subclass: wraps a motion spec + produces a single stream.
+`Sync[AxisT, DetectorT, MonitorT]` — concrete `Spec` subclass: wraps a motion spec + produces a single stream.
 `Scan[AxisT, DetectorT, MonitorT]` — compiled output of `spec.compile()`; iterable, yielding `Window` objects.
 `WindowedStream[AxisT, DetectorT]` — one named detector stream within a `Scan`: dimensions + detector groups.
 `ContinuousStream[DetectorT]` — constant-rate detector stream with no scan dimensions (e.g. cameras at 20 Hz).
@@ -97,7 +97,7 @@ class TriggerSequence(BaseModel, Generic[DetectorT]):
     TriggerRepeat/TriggerChild/TriggerSequence are pydantic BaseModels, not
     plain dataclasses like most compiled output (ADR 0003 Decision 6
     carve-out): TriggerSequence doubles as caller-authored input to
-    Acquire.trigger_sequence and must survive a JSON round trip, including
+    Sync.trigger_sequence and must survive a JSON round trip, including
     partially-unresolved timing.
     """
     model_config = ConfigDict(frozen=True)
@@ -211,9 +211,9 @@ class Dimension(Generic[AxisT]):
 class DetectorGroup(Generic[DetectorT]):
     """Upfront description of a set of detectors sharing trigger parameters.
 
-    Lives on Acquire.detectors. Used to configure detectors before the scan
+    Lives on Sync.detectors. Used to configure detectors before the scan
     starts. Static livetime/deadtime are resolved into TriggerRepeat
-    instances when Acquire.compile() is called.
+    instances when Sync.compile() is called.
 
     exposures_per_collection: exposures the detector accumulates per collection.
     collections_per_event: collections that form one event in the stream.
@@ -287,8 +287,8 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
     for analysis via ``scan.windowed_streams``.
     """
     # One or more named window-aligned detector streams, each with its own
-    # dimensions.  A single Acquire always produces exactly one stream;
-    # Concat of Acquires with different stream_names produces one per name.
+    # dimensions.  A single Sync always produces exactly one stream;
+    # Concat of Syncs with different stream_names produces one per name.
     windowed_streams: list[WindowedStream[AxisT, DetectorT]]
 
     # Groups of continuously-acquired detectors sharing timing (no scan dims).
@@ -301,7 +301,7 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
 
     # Every combination of stream names simultaneously active in some
     # window, so a consumer can validate sequencer-table capacity up front,
-    # without iterating.  A detector-bearing Acquire contributes its own
+    # without iterating.  A detector-bearing Sync contributes its own
     # singleton; Concat/Product/Zip union and deduplicate their children's
     # lists; Repeat/Snake pass their single inner spec's value through.
     active_stream_sets: list[frozenset[str]]
@@ -340,10 +340,10 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
 
 `Spec` is the base class for all scan specs. Calling `spec.compile()`
 compiles it into a `Scan`.
-`Acquire` is the concrete subclass for single-stream scans (see Construction).
+`Sync` is the concrete subclass for single-stream scans (see Construction).
 
 ```python
-spec: Spec[str, str, str]  # provided by orchestrator — typically an Acquire
+spec: Spec[str, str, str]  # provided by orchestrator — typically an Sync
 
 # Compile once — O(spec complexity), no position arrays allocated.
 scan: Scan[str, str, str] = spec.compile()
@@ -737,7 +737,7 @@ for stream in scan.windowed_streams:
         for axis in dim.axes:
             coords[axis] = next(dim.setpoints(axis))   # np.ndarray
 
-# Example: 2D grid flyscan (Acquire with single stream "primary")
+# Example: 2D grid flyscan (Sync with single stream "primary")
 # scan.has_moving_axes == True
 # scan.windowed_streams[0].name == "primary"
 # scan.windowed_streams[0].dimensions == [
@@ -763,10 +763,10 @@ y_coords = next(scan.windowed_streams[0].dimensions[0].setpoints("y"))   # shape
 - All `DetectorGroup`s within a single `WindowedStream` must have trigger ratios
   that are integer multiples of each other.
 - Detector names must be disjoint across `detectors`, `continuous_streams`,
-  and `monitors` within an `Acquire` (checked at construction time).
-- If `trigger_sequence` is supplied on `Acquire`, its total detector set
+  and `monitors` within an `Sync` (checked at construction time).
+- If `trigger_sequence` is supplied on `Sync`, its total detector set
   (root `detectors` union every child's `detectors`) must exactly match
-  `Acquire.detectors`' detector set (checked at construction time).
+  `Sync.detectors`' detector set (checked at construction time).
 - `TriggerSequence` child detector sets must be disjoint from each other and
   from the parent's `detectors`; each child must trigger at an integer ratio
   of the parent rate; each child's total duration must not exceed the
@@ -785,7 +785,7 @@ The composable motion nodes — `Linspace`, `Static`, `Range`, `Spiral`,
 `Ellipse`, `Polygon`, `Product`, `Zip`, `Concat`,
 `Repeat`, `Snake` — use only `AxisT` and have no knowledge of
 `DetectorT` or `MonitorT`. Assemble the full motion tree before wrapping it
-in `Acquire`.
+in `Sync`.
 
 ```python
 # Primitive specs
@@ -808,17 +808,17 @@ Operators available on any spec node:
 | `a.zip(b)` | `Zip(a, b)` | interleave axes of a and b |
 | `a.concat(b)` | `Concat(a, b)` | concatenate a then b |
 
-`Concat` is also how detector-bearing `Acquire`s combine into a multi-stream
+`Concat` is also how detector-bearing `Sync`s combine into a multi-stream
 scan (see "Multi-stream scans" below) — `left`/`right` may each carry their
 own detector configuration. `Product` and `Zip`, by contrast, only merge
 motion generators: they reject nested specs carrying `continuous_streams` or
-`monitors` outright, and silently drop a nested `Acquire`'s
+`monitors` outright, and silently drop a nested `Sync`'s
 `windowed_streams` rather than merging them — nest detector-bearing specs
 only inside `Concat`/`Repeat`, never `Product`/`Zip`.
 
-### Attaching triggering to motion — `Acquire`
+### Attaching triggering to motion — `Sync`
 
-`Acquire` is a `Spec` subclass that is always the outermost construction node
+`Sync` is a `Spec` subclass that is always the outermost construction node
 for a given windowed stream. It takes a pure motion spec
 (`Spec[AxisT, Never, Never]`) and binds detector triggering, monitor
 configuration, and fly/step mode, producing a `Spec[AxisT, DetectorT,
@@ -836,7 +836,7 @@ When `duration` is `None` (default), fly windows fall back to index-unit duratio
 the windowed stream's trigger structure as-is, instead of deriving one from
 `detectors`. It is **required** once `detectors` has more than one
 `DetectorGroup` — which group becomes the parent of a multi-rate structure is
-otherwise ambiguous, so `Acquire.compile()` raises `ValueError` rather than
+otherwise ambiguous, so `Sync.compile()` raises `ValueError` rather than
 guessing. `detectors` is still required alongside it (it is the arming-time
 description consumed by `WindowedStream.detector_groups`); the two are
 cross-checked for describing the same detector set, not derived from each
@@ -844,8 +844,8 @@ other.
 
 ```python
 # Step scan — single DetectorGroup, trigger_sequence derived automatically.
-# (No explicit Acquire[...] annotation needed -- MonitorT infers to Never.)
-spec = Acquire(
+# (No explicit Sync[...] annotation needed -- MonitorT infers to Never.)
+spec = Sync(
     Product(Linspace("y", 0, 5, 50), Linspace("x", 0, 10, 100)),
     fly=False,              # default
     stream_name="primary",  # default
@@ -862,8 +862,8 @@ spec = Acquire(
 
 # Flyscan — inner axis sweeps continuously; cameras are a ContinuousStream,
 # temperature a free-running MonitorStream. Still a single DetectorGroup.
-# (No explicit Acquire[...] annotation needed -- monitors= pins MonitorT.)
-spec = Acquire(
+# (No explicit Sync[...] annotation needed -- monitors= pins MonitorT.)
+spec = Sync(
     Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100)),
     fly=True,
     detectors=[
@@ -880,41 +880,41 @@ spec = Acquire(
 )
 ```
 
-A single `Acquire.compile()` always produces a `Scan` with exactly one
+A single `Sync.compile()` always produces a `Scan` with exactly one
 windowed stream. All detector groups within that stream must trigger at
 integer-multiple rates of each other (see multi-rate example below and the
 maximal example).
 
-### Multi-stream scans — `Concat` of `Acquire`s
+### Multi-stream scans — `Concat` of `Sync`s
 
 Two streams with different dimensionality (e.g. diffraction `[N]` and
-spectroscopy `[N, 2, 1000]`) are expressed as a `Concat` of `Acquire`s with
+spectroscopy `[N, 2, 1000]`) are expressed as a `Concat` of `Sync`s with
 different `stream_name`s — not a separate `Spec` subclass. `Concat.compile()`
 merges `windowed_streams` by name (summing the innermost dimension's length
 for repeated names) rather than requiring a single stream. Wrap in `Repeat`
-to interleave the pattern, and an outer `Acquire` to carry scan-wide
+to interleave the pattern, and an outer `Sync` to carry scan-wide
 monitors:
 
 ```python
 diff_det = DetectorGroup(1, 1, 0.01, 0.001, ["diffraction"])
 spec_det = DetectorGroup(1, 1, 0.003, 0.001, ["spectroscopy"])
 
-diff_acq = Acquire(
+diff_acq = Sync(
     Static("e", 7.0), detectors=[diff_det], stream_name="diff",
 )
-spec_fwd = Acquire(
+spec_fwd = Sync(
     Linspace("e", 7.0, 7.1, 1000), fly=True, detectors=[spec_det], stream_name="spec",
 )
-spec_rev = Acquire(
+spec_rev = Sync(
     Linspace("e", 7.1, 7.0, 1000), fly=True, detectors=[spec_det], stream_name="spec",
 )
 
 # 200 iterations of: step to e=7.0 (1 diffraction frame), fly e 7.0->7.1
 # (1000 spectroscopy frames), fly e 7.1->7.0 (1000 spectroscopy frames).
-# Acquire[...] annotation IS needed here -- not for MonitorT (monitors=
+# Sync[...] annotation IS needed here -- not for MonitorT (monitors=
 # pins that), but because DetectorT can't be inferred through the
 # Repeat(...concat...concat...) combinator chain feeding `spec=`.
-spec: Acquire[str, str, str] = Acquire(
+spec: Sync[str, str, str] = Sync(
     Repeat(diff_acq.concat(spec_fwd).concat(spec_rev), num=200),
     monitors=[MonitorStream("temperature", "tc1")],
 )
@@ -937,8 +937,8 @@ parameters exist for static analysis only — no runtime generic
 parameterization is required by Pydantic.
 
 ```python
-# Pyright infers Acquire[str, str, str] — no annotation needed.
-spec = Acquire(
+# Pyright infers Sync[str, str, str] — no annotation needed.
+spec = Sync(
     motion,
     detectors=[DetectorGroup(
         exposures_per_collection=1,
@@ -951,15 +951,15 @@ spec = Acquire(
 )
 
 # Without monitors, MonitorT infers to Never — still no annotation needed.
-spec_no_mon = Acquire(
+spec_no_mon = Sync(
     motion,
     detectors=[DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])],
 )
 ```
 
-Explicit `Acquire[...]` annotation is still needed on the rare construction
+Explicit `Sync[...]` annotation is still needed on the rare construction
 pyright can't see through at all — e.g. `spec=` built from a `Repeat`-of-
-`Concat`-of-`Acquire`s chain, where `DetectorT` (unrelated to `MonitorT`)
+`Concat`-of-`Sync`s chain, where `DetectorT` (unrelated to `MonitorT`)
 can't be tracked through the combinators (see the multi-stream example
 above).
 
@@ -967,7 +967,7 @@ See `tests/scanspec/v2/test_type_inference.py` for pyright assertions.
 
 ### `spec.compile()` — producing `Scan`
 
-`scan = spec.compile()` (or `acquire.compile()` for `Acquire`) compiles
+`scan = spec.compile()` (or `acquire.compile()` for `Sync`) compiles
 the spec into a `Scan`. This is O(spec complexity) — no position
 arrays are allocated.
 
@@ -976,7 +976,7 @@ arrays are allocated.
 ```python
 scan: Scan[str, str, str] = acquire.compile()
 
-# For a single Acquire, exactly one windowed stream is produced.
+# For a single Sync, exactly one windowed stream is produced.
 assert len(scan.windowed_streams) == 1
 assert scan.windowed_streams[0].name == "primary"
 assert scan.has_moving_axes == True                  # flyscan — innermost sweeps
@@ -1000,9 +1000,9 @@ energy_axis = Linspace("energy", 7.0, 7.1, 20)
 xy_motion   = Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100))
 full_motion = energy_axis * xy_motion   # 20 energy steps × 50 rows = 1000 windows
 
-# No explicit Acquire[...] annotation needed -- detectors=/monitors= pin
+# No explicit Sync[...] annotation needed -- detectors=/monitors= pin
 # DetectorT/MonitorT directly (unlike the Repeat/Concat chain above).
-spec = Acquire(
+spec = Sync(
     full_motion,
     fly=True,           # innermost dimension (x) sweeps continuously
     stream_name="primary",
@@ -1092,10 +1092,10 @@ spec = Acquire(
 
 ### Validation
 
-**At `Acquire` construction time** (raises `ValueError` immediately):
+**At `Sync` construction time** (raises `ValueError` immediately):
 
 - If `trigger_sequence` is given, its total detector set (root `detectors`
-  union every child's `detectors`) must exactly match `Acquire.detectors`'
+  union every child's `detectors`) must exactly match `Sync.detectors`'
   detector set.
 - Detector names must be globally unique across `detectors`,
   `continuous_streams`, and `monitors`.
@@ -1122,18 +1122,18 @@ spec = Acquire(
 
 A spec serializes to JSON using pydantic's discriminated union on the motion
 tree (each node has a `type` literal field: `"Linspace"`, `"Product"`, etc.).
-`Acquire` wraps the motion tree and serializes its own fields inline,
+`Sync` wraps the motion tree and serializes its own fields inline,
 including `trigger_sequence` — `TriggerRepeat`/`TriggerChild`/`TriggerSequence`
 are pydantic `BaseModel`s and round-trip natively: `frozenset` fields become
 plain JSON arrays, and `children` is an ordinary list rather than a dict
 keyed by `frozenset` (which JSON cannot represent). A full round trip via
 `model_dump_json()`/`model_validate_json()` (or the `AnySpec` `TypeAdapter`
-as part of a full `Acquire`) is supported end to end, including
+as part of a full `Sync`) is supported end to end, including
 partially-unresolved timing (`livetime`/`deadtime` still `None`).
 
 ```json
 {
-  "type": "Acquire",
+  "type": "Sync",
   "spec": {
     "type": "Product",
     "outer": {"type": "Linspace", "axis": "y", "start": 0, "stop": 5, "num": 50},

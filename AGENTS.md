@@ -34,12 +34,12 @@ Branch flow: feature branches → PRs against `bluesky/scanspec:v2-dev` →
 
 ## Known churn — check before building on these
 
-- `Acquire.detectors: Sequence[DetectorGroup]` may be replaced —
-  `_bake_trigger_sequence` currently guesses the parent/child hierarchy by
-  ranking `DetectorGroup`s by duration; the maintainer wants `Acquire` to
-  stop making that decision, with the caller supplying an already-built
-  hierarchy instead. Not yet designed (PRD §11). Avoid new code that
-  deepens coupling to the current auto-ranking logic.
+- `Sync.trigger_plan` now takes an already-built `TriggerGroup`/`TriggerPlan`
+  hierarchy directly from the caller (ADR 0008) — the old auto-ranking of
+  `DetectorGroup`s by duration is gone. Still unsettled: whether `num`,
+  `livetime`, and `deadtime` become independently optional on
+  `TriggerGroup`, deferring more of that inference to `ophyd-async`
+  (unconfirmed by the maintainer as of ADR 0008; tracked separately).
 - Naming that the docs sometimes get wrong: the code uses
   `Window.non_linear` (not `non_linear_move`), `Scan.has_moving_axes` /
   `Scan.non_linear` (there is no `Scan.fly`), and

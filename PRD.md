@@ -85,7 +85,7 @@ All are in scope for 2.0; they may be delivered in stages.
    **Scope**: this is an execution/representation requirement only — the
    compiled `TriggerSequence`/`TriggerRepeat` model (§4.2/§4.3) must be
    *able* to express variable spacing, including via manual `Window`
-   construction. A first-class `DetectorGroup`/`Acquire` authoring surface
+   construction. A first-class `DetectorGroup`/`Sync` authoring surface
    for spec authors is not required for 2.0; the design must simply not
    preclude adding one later.
 
@@ -142,14 +142,26 @@ per sweep (e.g. 50 row windows for a 50×100 grid).
 
 ### 3.1 Construction (`src/scanspec/v2/specs.py`)
 
-Motion is composed first, then `Acquire` attaches acquisition:
+Motion is composed first, `Sync` attaches trigger timing, and — only at the
+very outermost level, if needed — `Monitors`/`ContinuousStreams` attach
+whole-scan acquisition (ADR 0009):
 
 ```python
 motion = Linspace("y", 0, 5, 50) * ~Linspace("x", 0, 10, 100)   # snaked grid
-spec = Acquire(motion, fly=True, detectors=[
-    DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
-    DetectorGroup(10, 1, 0.000299992, 8e-9, ["timestamp", "x_enc", "y_enc"]),
-])
+spec = Sync(motion, fly=True, trigger_plan=TriggerPlan(
+    root=TriggerGroup(
+        detectors=frozenset({"saxs", "waxs"}),
+        exposures_per_collection=1, collections_per_event=1,
+        livetime=0.003, deadtime=0.001,
+    ),
+    children=[
+        TriggerGroup(
+            detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
+            exposures_per_collection=10, collections_per_event=1,
+            livetime=0.000299992, deadtime=8e-9,
+        ),
+    ],
+))
 scan = spec.compile()
 ```
 
@@ -158,26 +170,35 @@ scan = spec.compile()
   extreme bounds.
 - Combinators: `Product` (`a * b`, b fast), `Snake` (`~a`), `Zip`
   (`a.zip(b)`), `Concat` (`a.concat(b)`), `Repeat(a, n)`.
-- **`Acquire` is the only place `fly=True/False` appears.** It binds a
+- **`Sync` is the only place `fly=True/False` appears.** It binds a
   motion spec to one named windowed stream (`stream_name="primary"` by
-  default), plus `continuous_streams` and `monitors`. `fly=True` means the
-  innermost motion dimension sweeps continuously; all outer dimensions step.
-- **Multi-stream scans are `Concat`s of `Acquire`s** with different
-  `stream_name`s, optionally wrapped in `Repeat` and an outer `Acquire`
+  default) via `trigger_plan` (a `TriggerGroup`/`TriggerPlan`, ADR 0008).
+  `fly=True` means the innermost motion dimension sweeps continuously; all
+  outer dimensions step.
+- **`Monitors`/`ContinuousStreams` are separate outermost wrapper specs**
+  (ADR 0009), not fields on `Sync` — they attach scan-wide, not
+  frame-coupled, acquisition (§2.3) after the rest of the tree has
+  compiled. The two wrappers commute (nesting order between them doesn't
+  matter) and may be used independently.
+- **Multi-stream scans are `Concat`s of `Sync`s** with different
+  `stream_name`s, optionally wrapped in `Repeat` and an outer `Monitors`
   carrying scan-wide monitors. This is how the flagship pattern (§2.6) is
   expressed:
 
   ```python
-  diff = Acquire(Static("e", 7.0), detectors=[diff_det], stream_name="diff")
-  up   = Acquire(Linspace("e", 7.0, 7.1, 1000), fly=True, detectors=[spec_det], stream_name="spec")
-  down = Acquire(Linspace("e", 7.1, 7.0, 1000), fly=True, detectors=[spec_det], stream_name="spec")
-  spec = Acquire(Repeat(diff.concat(up).concat(down), num=200),
-                 monitors=[MonitorStream("temperature", "tc1")])
+  diff = Sync(Static("e", 7.0), trigger_plan=diff_group, stream_name="diff")
+  up   = Sync(Linspace("e", 7.0, 7.1, 1000), fly=True, trigger_plan=spec_group, stream_name="spec")
+  down = Sync(Linspace("e", 7.1, 7.0, 1000), fly=True, trigger_plan=spec_group, stream_name="spec")
+  spec = Monitors(
+      Repeat(diff.concat(up).concat(down), num=200),
+      monitors=[MonitorStream("temperature", "tc1")],
+  )
   ```
 
 - `Concat`/`Product`/`Zip` **reject** specs carrying continuous streams or
-  monitors: those run in parallel to the *entire* scan, so they may only
-  appear on a top-level `Acquire`.
+  monitors: those run in parallel to the *entire* scan, so they may only be
+  attached via the outermost `ContinuousStreams`/`Monitors` wrapper, never
+  nested inside a combinator.
 - `Snake` operates on a single-dimension spec (deviation from 1.x). `Zip`
   supports exactly the cases 1.x supported. `Squash` is not needed and was
   dropped — dimensions are never merged.
@@ -194,7 +215,7 @@ O(spec complexity). It holds:
   `LinearSource` (uniform spacing, 1.x fence/post convention),
   `FunctionSource` (arbitrary `fn(indexes) → dict[axis, array]`; spirals and
   masked grids), or `ConcatSource` (sequential children; how concat-of-
-  acquires alternates trigger sequences per window).
+  Syncs alternates trigger sequences per window).
 - `windowed_streams: list[WindowedStream]` — per stream: `name`,
   `dimensions` (its own shape — streams can differ), `detector_groups`.
   Used to **arm** detectors before the scan and to **reshape** data after.
@@ -253,7 +274,7 @@ centre to avoid the velocity singularity at r=0.
 
 Two deliberately separate concepts:
 
-- **`DetectorGroup`** (on `Acquire.detectors`, surfaced via
+- **`DetectorGroup`** (on `Sync.detectors`, surfaced via
   `WindowedStream.detector_groups`) — *arming-time* description:
   `exposures_per_collection`, `collections_per_event`, `livetime`,
   `deadtime`, `detectors`. `exposures_per_event = exposures_per_collection ×
@@ -283,7 +304,7 @@ of windows (flagship pattern: diffraction fires only in hold windows).
 
 Window `duration` is derived from the root `TriggerSequence`s — the sum of
 `num × (livetime + deadtime)` across them, since faster children run inside
-the parent livetime and do not extend it; an explicit `Acquire(duration=...)`
+the parent livetime and do not extend it; an explicit `Sync(duration=...)`
 must be ≥ the derived value. Detector-less step scans have `duration = 0`;
 detector-less fly scans require a supplied duration.
 
@@ -333,7 +354,7 @@ TriggerSequence(
 `TriggerRepeat`/`TriggerChild`/`TriggerSequence` are pydantic `BaseModel`s,
 not plain dataclasses like most compiled output (ADR 0003 Decision 6
 carve-out) — `TriggerSequence` is also caller-authored input to
-`Acquire.trigger_sequence` and must survive a JSON round trip (e.g. sent to
+`Sync.trigger_sequence` and must survive a JSON round trip (e.g. sent to
 ophyd-async to have unresolved `livetime`/`deadtime` filled in). `children`
 is a list of named entries rather than a dict keyed by the child's
 `frozenset` of detectors specifically so this round-trips: a `frozenset`
@@ -360,10 +381,10 @@ via manual `Window` construction.
 ADR 0007 also adds `Scan.active_stream_sets: list[frozenset[str]]` — every
 combination of stream names simultaneously active in some window — so a
 consumer can validate sequencer-table capacity **up front, without
-iterating**: `Acquire` contributes its own singleton (or nothing, if it has
+iterating**: `Sync` contributes its own singleton (or nothing, if it has
 no detectors); `Concat`, `Product`, and `Zip` all union and deduplicate their
 children's lists; `Repeat` and `Snake` pass their single inner spec's value
-through unchanged. `Concat` of two same-named `Acquire`s dedupes to one
+through unchanged. `Concat` of two same-named `Sync`s dedupes to one
 singleton — confirmed by
 `test_active_stream_sets_concat_same_name_deduplicates`. A SEQ block has 6
 outputs, so independent streams can reuse different outputs of the same
@@ -472,7 +493,7 @@ branch: `v2-dev`.
 
 **Implemented and passing**: all core data structures; all motion primitives
 (`Linspace`+`bounded`, `Static`, `Range`+`bounded`, `Spiral`, `Ellipse`,
-`Polygon`, `Line`); all combinators; `Acquire`; serialization via dynamic
+`Polygon`, `Line`); all combinators; `Sync`; serialization via dynamic
 discriminated union with out-of-package subclass support; centred-livetime
 semantics; the ADR 0007 trigger model (`TriggerRepeat`/`TriggerSequence`,
 `positions(times: np.ndarray)`, `Scan.active_stream_sets`) — this has fully
@@ -534,7 +555,7 @@ are `float | None`, and `TriggerSequence` round-trips through JSON
   `Scan.fly`/`Scan.motion_dims` field (removed in favour of
   `has_moving_axes`/`non_linear` and `windowed_streams`). Its "Open
   questions §1" (multi-stream `Spec` subclass) is also already resolved —
-  by `Concat` of `Acquire`s with different `stream_name`s (§3.1).
+  by `Concat` of `Sync`s with different `stream_name`s (§3.1).
 - `docs/` (user-facing Sphinx docs) still document 1.x only; they are
   rewritten as part of the final migration, not before.
 
@@ -547,7 +568,7 @@ are `float | None`, and `TriggerSequence` round-trips through JSON
 2. ~~User-facing surface for variable-spacing trigger patterns~~ **Resolved:
    not needed.** The compiled `TriggerSequence`/`TriggerRepeat` structure
    must be able to express it (already true via manual `Window`
-   construction, §4.3), but no dedicated `DetectorGroup`/`Acquire` authoring
+   construction, §4.3), but no dedicated `DetectorGroup`/`Sync` authoring
    surface is required — hand-built `Window`s remain the accepted way to
    construct this pattern.
 3. ~~Does a child `DetectorGroup`'s `livetime` already exclude its own

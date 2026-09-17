@@ -81,9 +81,9 @@ class TriggerGroup(BaseModel, Generic[DetectorT]):
 
 
 class TriggerPlan(BaseModel, Generic[DetectorT]):
-    """Caller-authored trigger hierarchy for one Acquire's windowed stream.
+    """Caller-authored trigger hierarchy for one Sync's windowed stream.
 
-    Replaces Acquire.detectors + Acquire.trigger_sequence: the caller
+    Replaces Sync.detectors + Sync.trigger_sequence: the caller
     authors the detector/timing hierarchy once, and compile() derives both
     the compiled TriggerSequence tree and the list[DetectorGroup] the
     windowed stream needs, instead of requiring the caller to hand-write
@@ -438,11 +438,11 @@ class DetectorGroup(Generic[DetectorT]):
     """Upfront description of a set of detectors sharing trigger parameters.
 
     For a windowed stream this is pure compiled output, derived by
-    ``Acquire.compile()`` from a caller-authored ``TriggerGroup`` (see ADR
+    ``Sync.compile()`` from a caller-authored ``TriggerGroup`` (see ADR
     0008) -- it is no longer directly caller-authored there. For a
     continuous stream it is still directly caller-authored, on
-    ``Acquire.continuous_streams``; static livetime/deadtime describe the
-    stream's own fixed rate.
+    ``ContinuousStreams.continuous_streams`` (ADR 0009); static
+    livetime/deadtime describe the stream's own fixed rate.
 
     exposures_per_collection: exposures the detector accumulates per collection.
     collections_per_event:    collections that form one event in the stream.
@@ -587,7 +587,7 @@ def _truncate_trigger_sequence(
 def validate_trigger_sequence(seq: TriggerSequence[DetectorT]) -> None:
     """Check that *seq* is physically valid.
 
-    Not specific to ``Acquire`` -- also required for manually-constructed
+    Not specific to ``Sync`` -- also required for manually-constructed
     ``Window``s (ADR 0007 Assumption A1), so lives here rather than as a
     private method. Unresolved (``None``) timing is rejected earlier, on
     the caller-authored ``TriggerGroup``/``TriggerPlan``, before a

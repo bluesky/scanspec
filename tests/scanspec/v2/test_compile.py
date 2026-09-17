@@ -19,13 +19,13 @@ from scanspec.v2.core import (
     WindowGenerator,
 )
 from scanspec.v2.specs import (
-    Acquire,
     Concat,
     Linspace,
     Product,
     Repeat,
     Snake,
     Static,
+    Sync,
 )
 
 # ---------------------------------------------------------------------------
@@ -151,7 +151,7 @@ def test_snake_multiple_generators_raises():
 
 
 def test_snake_with_concat_children():
-    """Snake on a Concat'd Acquire sets snake on the concat generator (children).
+    """Snake on a Concat'd Sync sets snake on the concat generator (children).
 
     The old Snake.compile had an if/else branch because reconstructing a
     WindowGenerator required different args for children vs non-children
@@ -164,8 +164,8 @@ def test_snake_with_concat_children():
         livetime=0.001,
         deadtime=0.001,
     )
-    acq1: Acquire[str, str, Never] = Acquire(Linspace("x", 0, 5, 3), trigger_plan=tg)
-    acq2: Acquire[str, str, Never] = Acquire(Linspace("x", 10, 15, 2), trigger_plan=tg)
+    acq1: Sync[str, str, Never] = Sync(Linspace("x", 0, 5, 3), trigger_plan=tg)
+    acq2: Sync[str, str, Never] = Sync(Linspace("x", 10, 15, 2), trigger_plan=tg)
     spec = ~acq1.concat(acq2)
     sc = spec.compile()
     g = gens(sc)
@@ -304,11 +304,11 @@ def test_repeat_prepends_outer_dimension():
 
 
 # ---------------------------------------------------------------------------
-# Acquire
+# Sync
 # ---------------------------------------------------------------------------
 
 
-def test_acquire_compile_stream_name():
+def test_sync_compile_stream_name():
     tg = TriggerGroup(
         detectors=frozenset({"det1"}),
         exposures_per_collection=1,
@@ -316,28 +316,32 @@ def test_acquire_compile_stream_name():
         livetime=0.01,
         deadtime=0.001,
     )
-    spec: Acquire[str, str, Never] = Acquire(
+    spec: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 5), stream_name="custom", trigger_plan=tg
     )
     sc = spec.compile()
     assert sc.windowed_streams[0].name == "custom"
 
 
-def test_acquire_compile_fly_flag():
-    spec: Acquire[str, Never, Never] = Acquire(Linspace("x", 0.0, 10.0, 5), fly=True)
+def test_sync_compile_fly_flag():
+    spec: Sync[str, Never, Never] = Sync(Linspace("x", 0.0, 10.0, 5), fly=True)
     sc = spec.compile()
     assert sc.generators[-1].fly is True
 
 
-def test_acquire_compile_continuous_streams_and_monitors():
+def test_sync_compile_continuous_streams_and_monitors():
     from scanspec.v2.core import ContinuousStream, DetectorGroup, MonitorStream
+    from scanspec.v2.specs import ContinuousStreams, Monitors
 
-    spec = Acquire(
-        Linspace("x", 0.0, 10.0, 5),
+    sync: Sync[str, str, str] = Sync(Linspace("x", 0.0, 10.0, 5))
+    spec = ContinuousStreams(
+        Monitors(
+            sync,
+            monitors=[MonitorStream("temp", "tc1")],
+        ),
         continuous_streams=[
             ContinuousStream("cam", [DetectorGroup(1, 1, 0.048, 0.001, ["cam1"])])
         ],
-        monitors=[MonitorStream("temp", "tc1")],
     )
     sc = spec.compile()
     assert len(sc.continuous_streams) == 1
@@ -379,12 +383,13 @@ def test_three_level_product():
 
 def test_maximal_example_dimensions():
     from scanspec.v2.core import ContinuousStream, DetectorGroup, MonitorStream
+    from scanspec.v2.specs import ContinuousStreams, Monitors
 
     energy = Linspace("energy", 7.0, 7.1, 20)
     xy = Product(Linspace("y", 0.0, 5.0, 50), ~Linspace("x", 0.0, 10.0, 100))
     full_motion = energy * xy
 
-    spec = Acquire(
+    sync: Sync[str, str, str] = Sync(
         full_motion,
         fly=True,
         stream_name="primary",
@@ -411,13 +416,18 @@ def test_maximal_example_dimensions():
                 ),
             ],
         ),
+    )
+    spec = ContinuousStreams(
+        Monitors(
+            sync,
+            monitors=[MonitorStream("dcm_temp", "dcm_temperature")],
+        ),
         continuous_streams=[
             ContinuousStream(
                 "cameras",
                 [DetectorGroup(1, 1, 0.048, 0.001, ["front_cam", "side_cam"])],
             ),
         ],
-        monitors=[MonitorStream("dcm_temp", "dcm_temperature")],
     )
     sc = spec.compile()
 
@@ -511,7 +521,7 @@ def test_step_scan_no_moving_axes():
 
 
 def test_fly_scan_window_count():
-    sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("y", 0.0, 4.0, 3) * ~Linspace("x", 0.0, 10.0, 5), fly=True
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -519,7 +529,7 @@ def test_fly_scan_window_count():
 
 
 def test_fly_scan_moving_axes():
-    sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("y", 0.0, 4.0, 3) * ~Linspace("x", 0.0, 10.0, 5), fly=True
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -530,7 +540,7 @@ def test_fly_scan_moving_axes():
 
 
 def test_fly_scan_static_axes_delta():
-    sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("y", 0.0, 4.0, 3) * Linspace("x", 0.0, 10.0, 5), fly=True
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -547,7 +557,7 @@ def test_fly_scan_forward_sweep_kinematics():
     # Boundary convention: sweep from f(-0.5) to f(4.5)
     # f(i) = 0 + i * 10/4 = 2.5*i
     # f(-0.5)= -1.25, f(4.5)=11.25
-    sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5), fly=True
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -573,7 +583,7 @@ def test_fly_scan_velocity_uses_real_seconds_not_index_units():
         livetime=0.003,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 100), fly=True, trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]
     w = windows(sc)[0]
@@ -605,7 +615,7 @@ def test_fly_scan_reversed_velocity_has_correct_sign():
         livetime=0.003,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Product(Linspace("y", 0.0, 1.0, 2), ~Linspace("x", 0.0, 10.0, 100)),
         fly=True,
         trigger_plan=tg,
@@ -638,7 +648,7 @@ def test_window_positions_times_maps_real_seconds_to_physical_position():
         livetime=0.003,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 100), fly=True, trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]
     w = windows(sc)[0]
@@ -660,7 +670,7 @@ def test_window_positions_times_maps_real_seconds_to_physical_position():
 
 
 def test_fly_scan_snake_reverses_direction():
-    sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("y", 0.0, 2.0, 2) * ~Linspace("x", 0.0, 10.0, 5), fly=True
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -673,7 +683,7 @@ def test_fly_scan_snake_reverses_direction():
 
 
 def test_fly_scan_previous_link():
-    sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("y", 0.0, 4.0, 3) * Linspace("x", 0.0, 10.0, 5), fly=True
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -715,7 +725,7 @@ def test_with_start_trigger_index_truncates():
         livetime=0.003,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 10), fly=True, trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]
     resumed = sc.with_start(window=0, trigger_index=3)
@@ -774,7 +784,7 @@ def test_snake_step_xyz():
 
 def test_snake_fly_y_snakex():
     """Fly scan: y(3) * ~x(4) — 3 windows, x alternates direction."""
-    spec: Acquire[str, Never, Never] = Acquire(
+    spec: Sync[str, Never, Never] = Sync(
         Linspace("y", 0.0, 2.0, 3) * ~Linspace("x", 0.0, 3.0, 4),
         fly=True,
     )
@@ -789,7 +799,7 @@ def test_snake_fly_y_snakex():
 
 def test_snake_fly_xyz():
     """Fly scan: z(2) * ~y(3) * ~x(4) — 6 windows, both y and x snake."""
-    spec: Acquire[str, Never, Never] = Acquire(
+    spec: Sync[str, Never, Never] = Sync(
         Linspace("z", 0.0, 1.0, 2)
         * ~Linspace("y", 0.0, 2.0, 3)
         * ~Linspace("x", 0.0, 3.0, 4),
@@ -829,7 +839,7 @@ def test_step_scan_trigger_sequences():
         livetime=0.01,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5), trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -851,7 +861,7 @@ def test_fly_scan_trigger_sequences():
         livetime=0.003,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5), fly=True, trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -885,7 +895,7 @@ def test_multirate_trigger_sequences():
             ),
         ],
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 100),
         fly=True,
         trigger_plan=trigger_plan,
@@ -916,7 +926,7 @@ def test_collections_per_event_multiplies_parent_num():
         livetime=0.01,
         deadtime=0.001,
     )
-    step_scan: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    step_scan: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5), trigger_plan=tg_step
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     for w in windows(step_scan):
@@ -932,7 +942,7 @@ def test_collections_per_event_multiplies_parent_num():
         livetime=0.003,
         deadtime=0.001,
     )
-    fly_scan: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    fly_scan: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 100), fly=True, trigger_plan=tg_fly
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ts = windows(fly_scan)[0].trigger_sequences[0]
@@ -965,7 +975,7 @@ def test_non_integer_rate_ratio_raises():
         ],
     )
     with pytest.raises(ValueError, match="integer ratio"):
-        Acquire(  # type: ignore[reportUnknownVariableType]
+        Sync(  # type: ignore[reportUnknownVariableType]
             Linspace("x", 0.0, 10.0, 100),
             fly=True,
             trigger_plan=trigger_plan,
@@ -973,7 +983,7 @@ def test_non_integer_rate_ratio_raises():
 
 
 # Spacer/overlap/duration checks live in core.validate_trigger_sequence,
-# exercised above via Acquire(trigger_plan=...) and directly in test_core.py
+# exercised above via Sync(trigger_plan=...) and directly in test_core.py
 # for scenarios TriggerPlan authoring can no longer produce (e.g. a clean
 # ratio with an inconsistent hand-set num -- only reachable by
 # hand-constructing TriggerRepeat/TriggerSequence directly, bypassing
@@ -985,7 +995,7 @@ def test_non_integer_rate_ratio_raises():
 # ---------------------------------------------------------------------------
 
 
-def test_active_stream_sets_single_acquire():
+def test_active_stream_sets_single_sync():
     tg = TriggerGroup(
         detectors=frozenset({"det"}),
         exposures_per_collection=1,
@@ -993,7 +1003,7 @@ def test_active_stream_sets_single_acquire():
         livetime=0.01,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5), trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]
     assert sc.active_stream_sets == [frozenset({"primary"})]
@@ -1007,12 +1017,12 @@ def test_active_stream_sets_concat_different_names():
         livetime=0.01,
         deadtime=0.001,
     )
-    # Outer Acquire has no trigger_plan (monitor-only wrapper),
-    # so only the inner Acquires' stream names are active.
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    # Outer Sync has no trigger_plan (monitor-only wrapper),
+    # so only the inner Syncs' stream names are active.
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Concat(
-            Acquire(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="diff"),
-            Acquire(Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="spec"),
+            Sync(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="diff"),
+            Sync(Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="spec"),
         ),
     ).compile()  # type: ignore[reportArgumentType]
     assert sc.active_stream_sets == [
@@ -1029,12 +1039,10 @@ def test_active_stream_sets_concat_same_name_deduplicates():
         livetime=0.01,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Concat(
-            Acquire(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="primary"),
-            Acquire(
-                Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="primary"
-            ),
+            Sync(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="primary"),
+            Sync(Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="primary"),
         ),
     ).compile()  # type: ignore[reportArgumentType]
     assert sc.active_stream_sets == [
@@ -1042,7 +1050,7 @@ def test_active_stream_sets_concat_same_name_deduplicates():
     ]
 
 
-def test_active_stream_sets_detector_less_outer_acquire():
+def test_active_stream_sets_detector_less_outer_sync():
     tg = TriggerGroup(
         detectors=frozenset({"det"}),
         exposures_per_collection=1,
@@ -1050,12 +1058,12 @@ def test_active_stream_sets_detector_less_outer_acquire():
         livetime=0.01,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Concat(
-            Acquire(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="diff"),
-            Acquire(Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="spec"),
+            Sync(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="diff"),
+            Sync(Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="spec"),
         ),
-        # Outer Acquire has no trigger_plan (monitor/continuous-only wrapper)
+        # Outer Sync has no trigger_plan (monitor/continuous-only wrapper)
     ).compile()  # type: ignore[reportArgumentType]
     assert sc.active_stream_sets == [
         frozenset({"diff"}),
@@ -1071,7 +1079,7 @@ def test_duration_derived_from_detectors():
         livetime=0.01,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5), trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -1088,7 +1096,7 @@ def test_duration_derived_from_fly_detectors():
         livetime=0.003,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5), fly=True, trigger_plan=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -1105,7 +1113,7 @@ def test_explicit_duration_must_be_ge_derived():
         deadtime=0.001,
     )
     with pytest.raises(ValueError, match="less than"):
-        Acquire(
+        Sync(
             Linspace("x", 0.0, 10.0, 5),
             trigger_plan=tg,
             duration=0.005,  # too small
@@ -1118,7 +1126,7 @@ def test_explicit_duration_must_be_ge_derived():
 
 
 def test_scan_has_moving_axes_fly():
-    sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0, 10, 5), fly=True
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     assert sc.has_moving_axes is True
@@ -1134,7 +1142,7 @@ def test_scan_has_moving_axes_step():
 def test_scan_non_linear_spiral():
     from scanspec.v2.specs import Spiral
 
-    sc: Scan[str, Never, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Spiral("x", 0, 5, 2, "y", 10, 10), fly=True
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     assert sc.has_moving_axes is True
@@ -1193,7 +1201,7 @@ def test_explicit_duration_overrides_when_larger():
         livetime=0.01,
         deadtime=0.001,
     )
-    sc: Scan[str, str, Never] = Acquire(  # type: ignore[reportUnknownVariableType]
+    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5),
         trigger_plan=tg,
         duration=0.05,  # larger than derived 0.011
@@ -1212,7 +1220,7 @@ def test_none_livetime_raises():
         deadtime=0.001,
     )
     with pytest.raises(ValueError, match="livetime"):
-        Acquire(Linspace("x", 0.0, 10.0, 5), trigger_plan=tg).compile()
+        Sync(Linspace("x", 0.0, 10.0, 5), trigger_plan=tg).compile()
 
 
 def test_none_deadtime_raises():
@@ -1224,7 +1232,7 @@ def test_none_deadtime_raises():
         deadtime=None,
     )
     with pytest.raises(ValueError, match="deadtime"):
-        Acquire(Linspace("x", 0.0, 10.0, 5), trigger_plan=tg).compile()
+        Sync(Linspace("x", 0.0, 10.0, 5), trigger_plan=tg).compile()
 
 
 # ---------------------------------------------------------------------------
@@ -1233,7 +1241,7 @@ def test_none_deadtime_raises():
 
 
 def test_concat_fly_step_windows():
-    """Concat of step + fly Acquires: 2 windows (1 step + 1 fly)."""
+    """Concat of step + fly Syncs: 2 windows (1 step + 1 fly)."""
     tg = TriggerGroup(
         detectors=frozenset({"det1"}),
         exposures_per_collection=1,
@@ -1241,10 +1249,10 @@ def test_concat_fly_step_windows():
         livetime=0.01,
         deadtime=0.001,
     )
-    step_acq: Acquire[str, str, Never] = Acquire(
+    step_acq: Sync[str, str, Never] = Sync(
         Static("x", 5.0), trigger_plan=tg, stream_name="s1"
     )
-    fly_acq: Acquire[str, str, Never] = Acquire(
+    fly_acq: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
         trigger_plan=tg,
@@ -1261,7 +1269,7 @@ def test_concat_fly_step_windows():
 
 
 def test_concat_different_streams():
-    """Two Acquires with different stream names."""
+    """Two Syncs with different stream names."""
     tg1 = TriggerGroup(
         detectors=frozenset({"det1"}),
         exposures_per_collection=1,
@@ -1276,10 +1284,10 @@ def test_concat_different_streams():
         livetime=0.003,
         deadtime=0.001,
     )
-    a1: Acquire[str, str, Never] = Acquire(
+    a1: Sync[str, str, Never] = Sync(
         Static("x", 5.0), trigger_plan=tg1, stream_name="diff"
     )
-    a2: Acquire[str, str, Never] = Acquire(
+    a2: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 100),
         fly=True,
         trigger_plan=tg2,
@@ -1291,7 +1299,7 @@ def test_concat_different_streams():
 
 
 def test_concat_same_stream_sums_inner():
-    """Two Acquires with same stream name → inner length summed."""
+    """Two Syncs with same stream name → inner length summed."""
     tg = TriggerGroup(
         detectors=frozenset({"det1"}),
         exposures_per_collection=1,
@@ -1299,13 +1307,13 @@ def test_concat_same_stream_sums_inner():
         livetime=0.003,
         deadtime=0.001,
     )
-    a1: Acquire[str, str, Never] = Acquire(
+    a1: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 5.0, 500),
         fly=True,
         trigger_plan=tg,
         stream_name="primary",
     )
-    a2: Acquire[str, str, Never] = Acquire(
+    a2: Sync[str, str, Never] = Sync(
         Linspace("x", 5.0, 0.0, 500),
         fly=True,
         trigger_plan=tg,
@@ -1327,10 +1335,10 @@ def test_repeat_concat_windows():
         livetime=0.01,
         deadtime=0.001,
     )
-    a1: Acquire[str, str, Never] = Acquire(
+    a1: Sync[str, str, Never] = Sync(
         Static("x", 5.0), trigger_plan=tg, stream_name="s1"
     )
-    a2: Acquire[str, str, Never] = Acquire(
+    a2: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
         trigger_plan=tg,
@@ -1355,10 +1363,10 @@ def test_repeat_concat_streams_have_outer_dim():
         livetime=0.01,
         deadtime=0.001,
     )
-    a1: Acquire[str, str, Never] = Acquire(
+    a1: Sync[str, str, Never] = Sync(
         Static("x", 5.0), trigger_plan=tg, stream_name="s1"
     )
-    a2: Acquire[str, str, Never] = Acquire(
+    a2: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
         trigger_plan=tg,
@@ -1379,10 +1387,10 @@ def test_concat_previous_chain():
         livetime=0.01,
         deadtime=0.001,
     )
-    a1: Acquire[str, str, Never] = Acquire(
+    a1: Sync[str, str, Never] = Sync(
         Static("x", 5.0), trigger_plan=tg, stream_name="s1"
     )
-    a2: Acquire[str, str, Never] = Acquire(
+    a2: Sync[str, str, Never] = Sync(
         Static("x", 10.0), trigger_plan=tg, stream_name="s2"
     )
     sc = Repeat(a1.concat(a2), num=3).compile()
@@ -1399,33 +1407,36 @@ def test_concat_previous_chain():
 
 def test_concat_rejects_continuous_streams():
     from scanspec.v2.core import ContinuousStream
+    from scanspec.v2.specs import ContinuousStreams
 
-    a: Acquire[str, str, Never] = Acquire(
-        Linspace("x", 0, 1, 5),
+    a: ContinuousStreams[str, str, Never] = ContinuousStreams(
+        Sync(Linspace("x", 0, 1, 5)),
         continuous_streams=[
             ContinuousStream("cam", [DetectorGroup(1, 1, 0.01, 0.001, ["c1"])])
         ],
     )
     with pytest.raises(ValueError, match="Concat does not accept.*continuous"):
-        a.concat(Acquire(Linspace("x", 1, 2, 5))).compile()
+        a.concat(Sync(Linspace("x", 1, 2, 5))).compile()  # type: ignore[reportArgumentType]
 
 
 def test_concat_rejects_monitors():
     from scanspec.v2.core import MonitorStream
+    from scanspec.v2.specs import Monitors
 
-    a: Acquire[str, Never, str] = Acquire(
-        Linspace("x", 0, 1, 5),
+    a: Monitors[str, Never, str] = Monitors(
+        Sync(Linspace("x", 0, 1, 5)),
         monitors=[MonitorStream("temp", "tc1")],
     )
     with pytest.raises(ValueError, match="Concat does not accept.*monitors"):
-        a.concat(Acquire(Linspace("x", 1, 2, 5))).compile()
+        a.concat(Sync(Linspace("x", 1, 2, 5))).compile()  # type: ignore[reportArgumentType]
 
 
 def test_product_rejects_continuous_streams():
     from scanspec.v2.core import ContinuousStream
+    from scanspec.v2.specs import ContinuousStreams
 
-    a: Acquire[str, str, Never] = Acquire(
-        Linspace("x", 0, 1, 5),
+    a: ContinuousStreams[str, str, Never] = ContinuousStreams(
+        Sync(Linspace("x", 0, 1, 5)),
         continuous_streams=[
             ContinuousStream("cam", [DetectorGroup(1, 1, 0.01, 0.001, ["c1"])])
         ],
@@ -1436,13 +1447,75 @@ def test_product_rejects_continuous_streams():
 
 def test_zip_rejects_monitors():
     from scanspec.v2.core import MonitorStream
+    from scanspec.v2.specs import Monitors
 
-    a: Acquire[str, Never, str] = Acquire(
-        Linspace("x", 0, 1, 5),
+    a: Monitors[str, Never, str] = Monitors(
+        Sync(Linspace("x", 0, 1, 5)),
         monitors=[MonitorStream("temp", "tc1")],
     )
     with pytest.raises(ValueError, match="Zip does not accept.*monitors"):
         Linspace("y", 0, 1, 5).zip(a).compile()  # type: ignore[reportArgumentType]
+
+
+# ---------------------------------------------------------------------------
+# Monitors/ContinuousStreams wrappers (ADR 0009)
+# ---------------------------------------------------------------------------
+
+
+def test_monitors_rejects_double_wrapping():
+    from scanspec.v2.core import MonitorStream
+    from scanspec.v2.specs import Monitors
+
+    inner: Monitors[str, Never, str] = Monitors(
+        Sync(Linspace("x", 0, 1, 5)),
+        monitors=[MonitorStream("temp", "tc1")],
+    )
+    with pytest.raises(ValueError, match="already has monitors attached"):
+        Monitors(inner, monitors=[MonitorStream("temp2", "tc2")]).compile()
+
+
+def test_continuous_streams_rejects_double_wrapping():
+    from scanspec.v2.core import ContinuousStream
+    from scanspec.v2.specs import ContinuousStreams
+
+    inner: ContinuousStreams[str, str, Never] = ContinuousStreams(
+        Sync(Linspace("x", 0, 1, 5)),
+        continuous_streams=[
+            ContinuousStream("cam1", [DetectorGroup(1, 1, 0.01, 0.001, ["c1"])])
+        ],
+    )
+    with pytest.raises(ValueError, match="already has continuous_streams attached"):
+        ContinuousStreams(
+            inner,
+            continuous_streams=[
+                ContinuousStream("cam2", [DetectorGroup(1, 1, 0.01, 0.001, ["c2"])])
+            ],
+        ).compile()
+
+
+def test_continuous_streams_and_monitors_wrappers_commute():
+    """Nesting order between ContinuousStreams and Monitors doesn't matter --
+    each only ever touches its own field on the compiled Scan (ADR 0009)."""
+    from scanspec.v2.core import ContinuousStream, MonitorStream
+    from scanspec.v2.specs import ContinuousStreams, Monitors
+
+    cs = [ContinuousStream("cam", [DetectorGroup(1, 1, 0.01, 0.001, ["c1"])])]
+    mons = [MonitorStream("temp", "tc1")]
+
+    sync_a: Sync[str, str, str] = Sync(Linspace("x", 0.0, 1.0, 5))
+    outer_continuous = ContinuousStreams(
+        Monitors(sync_a, monitors=mons),
+        continuous_streams=cs,
+    ).compile()
+    sync_b: Sync[str, str, str] = Sync(Linspace("x", 0.0, 1.0, 5))
+    outer_monitors = Monitors(
+        ContinuousStreams(sync_b, continuous_streams=cs),
+        monitors=mons,
+    ).compile()
+
+    assert outer_continuous.continuous_streams == outer_monitors.continuous_streams
+    assert outer_continuous.monitors == outer_monitors.monitors
+    assert outer_continuous.windowed_streams == outer_monitors.windowed_streams
 
 
 # ---------------------------------------------------------------------------

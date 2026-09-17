@@ -1,4 +1,4 @@
-"""Tests for scanspec.v2.specs — motion nodes, operator algebra, Acquire validation."""
+"""Tests for scanspec.v2.specs — motion nodes, operator algebra, Sync validation."""
 
 from typing import Any
 
@@ -14,11 +14,12 @@ from scanspec.v2.core import (
     TriggerPlan,
 )
 from scanspec.v2.specs import (
-    Acquire,
     AnySpec,
     Concat,
+    ContinuousStreams,
     Ellipse,
     Linspace,
+    Monitors,
     Polygon,
     Product,
     Range,
@@ -26,6 +27,7 @@ from scanspec.v2.specs import (
     Snake,
     Spiral,
     Static,
+    Sync,
     Zip,
 )
 
@@ -217,51 +219,60 @@ def test_motion_spec_json_round_trip(
     assert restored == spec
 
 
-def test_acquire_json_round_trip():
-    spec: Acquire[str, str, str] = Acquire(
-        Linspace("x", 0.0, 10.0, 100),
-        trigger_plan=TriggerGroup(
-            detectors=frozenset({"saxs", "waxs"}),
-            exposures_per_collection=1,
-            collections_per_event=1,
-            livetime=0.003,
-            deadtime=0.001,
+def test_sync_json_round_trip():
+    spec: Monitors[str, str, str] = Monitors(
+        Sync(
+            Linspace("x", 0.0, 10.0, 100),
+            trigger_plan=TriggerGroup(
+                detectors=frozenset({"saxs", "waxs"}),
+                exposures_per_collection=1,
+                collections_per_event=1,
+                livetime=0.003,
+                deadtime=0.001,
+            ),
         ),
         monitors=[MonitorStream("temp", "tc1")],
     )
     ta: TypeAdapter[AnySpec[Any, Any, Any]] = TypeAdapter(AnySpec)
     json_bytes = ta.dump_json(spec)
     restored = ta.validate_json(json_bytes)
-    assert isinstance(restored, Acquire)
+    assert isinstance(restored, Monitors)
+    assert isinstance(restored.spec, Sync)
     # A bare TriggerGroup is stored and serialized as-is, not wrapped.
-    assert isinstance(restored.trigger_plan, TriggerGroup)
-    assert restored.trigger_plan.detectors == frozenset({"saxs", "waxs"})
+    assert isinstance(restored.spec.trigger_plan, TriggerGroup)
+    assert restored.spec.trigger_plan.detectors == frozenset({"saxs", "waxs"})
     assert restored.monitors[0].name == "temp"
 
 
-def test_acquire_json_round_trip_full():
-    """Round-trip an Acquire exercising every optional field, including a
+def test_sync_json_round_trip_full():
+    """Round-trip a wrapped Sync exercising every optional field, including a
     trigger_plan with a non-empty children list."""
-    spec: Acquire[str, str, str] = Acquire(
-        Linspace("x", 0.0, 10.0, 100),
-        fly=True,
-        trigger_plan=TriggerPlan(
-            root=TriggerGroup(
-                detectors=frozenset({"saxs"}),
-                exposures_per_collection=1,
-                collections_per_event=1,
-                livetime=0.003,
-                deadtime=0.001,
-            ),
-            children=[
-                TriggerGroup(
-                    detectors=frozenset({"encoder"}),
-                    exposures_per_collection=10,
-                    collections_per_event=1,
-                    livetime=0.0003,
-                    deadtime=0.0,
+    spec: ContinuousStreams[str, str, str] = ContinuousStreams(
+        Monitors(
+            Sync(
+                Linspace("x", 0.0, 10.0, 100),
+                fly=True,
+                trigger_plan=TriggerPlan(
+                    root=TriggerGroup(
+                        detectors=frozenset({"saxs"}),
+                        exposures_per_collection=1,
+                        collections_per_event=1,
+                        livetime=0.003,
+                        deadtime=0.001,
+                    ),
+                    children=[
+                        TriggerGroup(
+                            detectors=frozenset({"encoder"}),
+                            exposures_per_collection=10,
+                            collections_per_event=1,
+                            livetime=0.0003,
+                            deadtime=0.0,
+                        ),
+                    ],
                 ),
-            ],
+                duration=0.5,
+            ),
+            monitors=[MonitorStream("temp", "tc1")],
         ),
         continuous_streams=[
             ContinuousStream(
@@ -269,47 +280,53 @@ def test_acquire_json_round_trip_full():
                 [DetectorGroup(1, 1, 0.048, 0.001, ["front_cam", "side_cam"])],
             ),
         ],
-        monitors=[MonitorStream("temp", "tc1")],
-        duration=0.5,
     )
     ta: TypeAdapter[AnySpec[Any, Any, Any]] = TypeAdapter(AnySpec)
     restored = ta.validate_json(ta.dump_json(spec))
-    assert isinstance(restored, Acquire)
+    assert isinstance(restored, ContinuousStreams)
     assert restored == spec
-    assert isinstance(restored.trigger_plan, TriggerPlan)
-    assert restored.trigger_plan.children[0].detectors == frozenset({"encoder"})
+    assert isinstance(restored.spec, Monitors)
+    assert isinstance(restored.spec.spec, Sync)
+    assert isinstance(restored.spec.spec.trigger_plan, TriggerPlan)
+    assert restored.spec.spec.trigger_plan.children[0].detectors == frozenset(
+        {"encoder"}
+    )
     assert restored.continuous_streams[0].name == "cameras"
-    assert restored.duration == 0.5
+    assert restored.spec.spec.duration == 0.5
 
 
 # ---------------------------------------------------------------------------
-# Acquire — validation
+# Sync — validation
 # ---------------------------------------------------------------------------
 
 
-def test_acquire_duplicate_detector_in_same_continuous_group():
+def test_sync_duplicate_detector_in_same_continuous_group():
     """A duplicate name within one DetectorGroup's list still raises.
 
     Only reachable via continuous_streams now: the windowed authoring path's
     TriggerGroup.detectors is a frozenset, which structurally dedupes rather
-    than preserving a duplicate to be caught by validation.
+    than preserving a duplicate to be caught by validation. Raised by
+    ContinuousStreams.compile() (ADR 0009) -- continuous_streams is no
+    longer a Sync field, so this is only caught at compile() time now, not
+    at construction time.
     """
+    spec = ContinuousStreams(
+        Sync(Linspace("x", 0.0, 1.0, 10)),
+        continuous_streams=[
+            ContinuousStream(
+                "cameras", [DetectorGroup(1, 1, 0.01, 0.001, ["det1", "det1"])]
+            )
+        ],
+    )
     with pytest.raises(ValueError):
-        Acquire(
-            Linspace("x", 0.0, 1.0, 10),
-            continuous_streams=[
-                ContinuousStream(
-                    "cameras", [DetectorGroup(1, 1, 0.01, 0.001, ["det1", "det1"])]
-                )
-            ],
-        )
+        spec.compile()
 
 
-def test_acquire_duplicate_detector_across_groups():
+def test_sync_duplicate_detector_across_groups():
     # Raised by TriggerPlan's own disjointness check at construction time,
-    # before Acquire(...) is even reached.
+    # before Sync(...) is even reached -- unaffected by the ADR 0009 pull-out.
     with pytest.raises(ValueError, match="det1"):
-        Acquire(
+        Sync(
             Linspace("x", 0.0, 1.0, 10),
             trigger_plan=TriggerPlan(
                 root=TriggerGroup(
@@ -332,9 +349,9 @@ def test_acquire_duplicate_detector_across_groups():
         )
 
 
-def test_acquire_duplicate_between_windowed_and_continuous():
-    with pytest.raises(ValueError, match="cam1"):
-        Acquire(
+def test_sync_duplicate_between_windowed_and_continuous():
+    spec = ContinuousStreams(
+        Sync(
             Linspace("x", 0.0, 1.0, 10),
             trigger_plan=TriggerGroup(
                 detectors=frozenset({"cam1"}),
@@ -343,50 +360,66 @@ def test_acquire_duplicate_between_windowed_and_continuous():
                 livetime=0.01,
                 deadtime=0.001,
             ),
-            continuous_streams=[
-                ContinuousStream(
-                    "cameras", [DetectorGroup(1, 1, 0.05, 0.005, ["cam1"])]
-                )
-            ],
-        )
+        ),
+        continuous_streams=[
+            ContinuousStream("cameras", [DetectorGroup(1, 1, 0.05, 0.005, ["cam1"])])
+        ],
+    )
+    with pytest.raises(ValueError, match="cam1"):
+        spec.compile()
 
 
-def test_acquire_duplicate_with_monitor():
+def test_sync_duplicate_with_monitor():
+    # Explicit annotation: MonitorT can't be inferred from Sync's own call
+    # (monitors is no longer a Sync field, ADR 0009) -- without it, Sync's
+    # MonitorT defaults to Never, conflicting with Monitors' str-typed
+    # monitors= below.
+    sync: Sync[str, str, str] = Sync(
+        Linspace("x", 0.0, 1.0, 10),
+        trigger_plan=TriggerGroup(
+            detectors=frozenset({"tc1"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.01,
+            deadtime=0.001,
+        ),
+    )
+    spec = Monitors(sync, monitors=[MonitorStream("temp", "tc1")])
     with pytest.raises(ValueError, match="tc1"):
-        Acquire(
-            Linspace("x", 0.0, 1.0, 10),
-            trigger_plan=TriggerGroup(
-                detectors=frozenset({"tc1"}),
-                exposures_per_collection=1,
-                collections_per_event=1,
-                livetime=0.01,
-                deadtime=0.001,
-            ),
-            monitors=[MonitorStream("temp", "tc1")],
-        )
+        spec.compile()
 
 
-def test_acquire_valid_no_trigger_plan():
+def test_sync_valid_no_trigger_plan():
     # No trigger_plan is allowed -- validation only checks uniqueness.
-    a: Acquire[str, Any, Any] = Acquire(Linspace("x", 0.0, 1.0, 10))
+    a: Sync[str, Any, Any] = Sync(Linspace("x", 0.0, 1.0, 10))
     assert a.trigger_plan is None
 
 
-def test_acquire_defaults():
-    a: Acquire[str, Any, Any] = Acquire(Linspace("x", 0.0, 1.0, 10))
+def test_sync_defaults():
+    a: Sync[str, Any, Any] = Sync(Linspace("x", 0.0, 1.0, 10))
     assert a.fly is False
     assert a.stream_name == "primary"
-    assert a.continuous_streams == ()
-    assert a.monitors == ()
 
 
-def test_acquire_fly_true():
-    a: Acquire[str, Any, Any] = Acquire(Linspace("x", 0.0, 1.0, 10), fly=True)
+def test_monitors_defaults():
+    m: Monitors[str, Any, Any] = Monitors(Sync(Linspace("x", 0.0, 1.0, 10)))
+    assert m.monitors == ()
+
+
+def test_continuous_streams_defaults():
+    cs: ContinuousStreams[str, Any, Any] = ContinuousStreams(
+        Sync(Linspace("x", 0.0, 1.0, 10))
+    )
+    assert cs.continuous_streams == ()
+
+
+def test_sync_fly_true():
+    a: Sync[str, Any, Any] = Sync(Linspace("x", 0.0, 1.0, 10), fly=True)
     assert a.fly is True
 
 
-def test_acquire_frozen():
-    a: Acquire[str, Any, Any] = Acquire(Linspace("x", 0.0, 1.0, 10))
+def test_sync_frozen():
+    a: Sync[str, Any, Any] = Sync(Linspace("x", 0.0, 1.0, 10))
     with pytest.raises(ValidationError):
         a.fly = True  # type: ignore[misc]
 

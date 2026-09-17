@@ -6,6 +6,11 @@ Date: 2026-09-11
 
 Accepted
 
+`Acquire`, referenced throughout this document, was subsequently renamed to
+`Sync` — see ADR 0009. That rename is decided but not yet implemented as of
+this note; this document still describes the class by its name at the time
+this ADR was written and shipped, to stay accurate to the actual code.
+
 ## Context
 
 `Acquire` currently authors its windowed stream through two independent

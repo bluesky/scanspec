@@ -16,7 +16,16 @@ from scanspec.v2.core import (
     TriggerPlan,
     TriggerRepeat,
 )
-from scanspec.v2.specs import Acquire, Linspace, Product, Repeat, Spiral, Static
+from scanspec.v2.specs import (
+    ContinuousStreams,
+    Linspace,
+    Monitors,
+    Product,
+    Repeat,
+    Spiral,
+    Static,
+    Sync,
+)
 
 from ... import approx
 
@@ -51,11 +60,11 @@ def test_linspace_step_scan():
 
 
 def test_linspace_fly_scan():
-    """Acquire(fly=True, Linspace(x, 0, 1, 5)) — one fly window."""
+    """Sync(fly=True, Linspace(x, 0, 1, 5)) — one fly window."""
     linspace = Linspace("x", 0, 1, 5)
     scan = cast(
         Scan[str, Never, Never],
-        Acquire(linspace, fly=True).compile(),
+        Sync(linspace, fly=True).compile(),
     )
     windows = list(scan)
     assert len(windows) == 1
@@ -110,10 +119,10 @@ def test_spiral_step_scan():
 
 
 def test_spiral_fly_scan():
-    """Acquire(fly=True, Spiral(...)) — one fly window covering all 10 spiral points."""
+    """Sync(fly=True, Spiral(...)) — one fly window covering all 10 spiral points."""
     scan = cast(
         Scan[str, Never, Never],
-        Acquire(Spiral("x", 0, 5, 2, "y", 10, 10), fly=True).compile(),
+        Sync(Spiral("x", 0, 5, 2, "y", 10, 10), fly=True).compile(),
     )
     windows = list(scan)
     assert len(windows) == 1
@@ -178,18 +187,18 @@ def test_flagship_multi_stream_concat():
         deadtime=0.001,
     )
 
-    diff_acq: Acquire[str, str, Never] = Acquire(
+    diff_acq: Sync[str, str, Never] = Sync(
         Static("e", 7.0),
         trigger_plan=diff_group,
         stream_name="diff",
     )
-    spec_fwd: Acquire[str, str, Never] = Acquire(
+    spec_fwd: Sync[str, str, Never] = Sync(
         Linspace("e", 7.0, 7.1, 1000),
         fly=True,
         trigger_plan=spec_group,
         stream_name="spec",
     )
-    spec_rev: Acquire[str, str, Never] = Acquire(
+    spec_rev: Sync[str, str, Never] = Sync(
         Linspace("e", 7.1, 7.0, 1000),
         fly=True,
         trigger_plan=spec_group,
@@ -199,10 +208,10 @@ def test_flagship_multi_stream_concat():
         diff_acq.concat(spec_fwd).concat(spec_rev),
         num=200,
     )
-    scan: Scan[str, str, str] = Acquire(  # type: ignore[reportUnknownVariableType]
-        spec,
-        monitors=[MonitorStream("temperature", "tc1")],
-    ).compile()  # type: ignore[reportArgumentType]
+    scan: Scan[str, str, str] = Monitors(  # type: ignore[reportUnknownVariableType]
+        Sync(spec),  # type: ignore[reportUnknownArgumentType]
+        monitors=[MonitorStream("temperature", "tc1")],  # type: ignore[reportArgumentType]
+    ).compile()
 
     # --- Monitors ---
     assert len(scan.monitors) == 1
@@ -296,7 +305,7 @@ def test_maximal_fly_step(fly: bool):
     fly=True: 50 fly windows (one per y row), x sweeps continuously.
     fly=False: 5000 step windows (50 y × 100 x).
     """
-    spec = Acquire(
+    sync: Sync[str, str, str] = Sync(
         Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100)),
         fly=fly,
         # Which TriggerGroup becomes the parent is still caller-decided (root
@@ -323,14 +332,19 @@ def test_maximal_fly_step(fly: bool):
                 ),
             ],
         ),
+    )
+    spec = ContinuousStreams(
+        Monitors(
+            sync,
+            monitors=[
+                MonitorStream("temperature", "tc1"),
+            ],
+        ),
         continuous_streams=[
             ContinuousStream(
                 "cameras",
                 [DetectorGroup(1, 1, 0.048, 0.001, ["front_cam", "side_cam"])],
             ),
-        ],
-        monitors=[
-            MonitorStream("temperature", "tc1"),
         ],
     )
     scan = spec.compile()
@@ -437,7 +451,7 @@ def test_panda_sequence_table():
     The consumer receives a Scan, finds its trigger sequence by detector name,
     and reads trigger_repeat + moving_axes to populate a PandA sequence table.
     """
-    spec: Acquire[str, str, Never] = Acquire(
+    spec: Sync[str, str, Never] = Sync(
         Product(Linspace("y", 0, 5, 3), ~Linspace("x", 0, 10, 50)),
         fly=True,
         trigger_plan=TriggerGroup(
@@ -482,7 +496,7 @@ def test_motor_record_fly():
     Consumer reads moving_axes for one axis, computes acceleration ramp
     from boundary kinematics, then drives the motor.
     """
-    spec: Acquire[str, str, Never] = Acquire(
+    spec: Sync[str, str, Never] = Sync(
         Linspace("x", 0, 10, 100),
         fly=True,
         trigger_plan=TriggerGroup(
@@ -528,7 +542,7 @@ def test_pmac_trajectory_positions():
     materializes the full servo-rate array, matching real PMAC usage where
     duration/dt could be very large.
     """
-    spec: Acquire[str, str, Never] = Acquire(
+    spec: Sync[str, str, Never] = Sync(
         Product(Linspace("y", 0, 1, 2), ~Linspace("x", 0, 10, 100)),
         fly=True,
         trigger_plan=TriggerGroup(
@@ -637,7 +651,7 @@ def test_analysis_reshaping():
     Consumer uses scan.windowed_streams[].dimensions to determine scan
     shape, then calls dim.setpoints() to get axis coordinates.
     """
-    spec: Acquire[str, str, Never] = Acquire(
+    spec: Sync[str, str, Never] = Sync(
         Product(Linspace("y", 0, 5, 3), ~Linspace("x", 0, 10, 5)),
         fly=True,
         # This test doesn't assert on trigger_sequences, so exact values
