@@ -508,17 +508,19 @@ duration fits within the parent livetime and that detector sets are
 disjoint; `num` is computed from `exposures_per_event`
 (`exposures_per_collection × collections_per_event`) throughout, not
 `exposures_per_collection` alone. ADR 0007 is Accepted (§9); the code and
-tests it describes are in place on this branch.
+tests it describes are in place on this branch. `Scan.number_of_events` —
+total windows the scan will yield, computed structurally (product of each
+generator's own window count, outer → inner; a `ConcatSource` generator
+sums its children's counts instead of multiplying) without iterating.
 
 **Known gaps and defects**:
 
-1. `Scan.number_of_events` (or per-stream) property.
-2. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
+1. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
    `TriggerInfo` for `StandardDetector.prepare()`.
-3. `scanspec/v2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only
+2. `scanspec/v2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only
    — not yet the full `from scanspec.v2 import core, specs` surface.
-4. Serialization test coverage is thin (smoke-test level).
-5. Auxiliary modules not ported (nice-to-have, in priority order):
+3. Serialization test coverage is thin (smoke-test level).
+4. Auxiliary modules not ported (nice-to-have, in priority order):
    `plot.py`, `cli.py` + `__main__.py`, `service.py`, `sphinxext.py`.
 
 **Intentionally dropped from 1.x** (rationale in ADR 0003): `Path`,
