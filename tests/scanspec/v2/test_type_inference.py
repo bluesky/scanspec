@@ -1,7 +1,7 @@
 """Type-inference verification for the scanspec.v2 Sync/Monitors API.
 
 Demonstrates that pyright infers ``DetectorT`` for ``Sync[AxisT, DetectorT,
-MonitorT]`` from the ``trigger_plan`` argument without any annotation, but
+MonitorT]`` from the ``trigger_group`` argument without any annotation, but
 that ``MonitorT`` -- now that ``monitors`` lives on the separate
 ``Monitors[AxisT, DetectorT, MonitorT]`` wrapper (ADR 0009), not on
 ``Sync`` -- can no longer be inferred purely from usage, and needs an
@@ -27,12 +27,12 @@ motion = Linspace("x", 0.0, 1.0, 100)
 
 
 def test_detector_t_inferred_monitor_t_defaults_to_never() -> None:
-    """Pyright infers DetectorT=str from trigger_plan; MonitorT=Never always.
+    """Pyright infers DetectorT=str from trigger_group; MonitorT=Never always.
 
     AxisT must be provided as an explicit annotation: ``Sync.spec`` is typed
     as the ``MotionSpec`` union (``Union[Linspace[Any], ...]``), so AxisT cannot
     be bound by the synthesised constructor. DetectorT is still inferred
-    from ``trigger_plan`` alone, unaffected by ADR 0009's pull-out. MonitorT
+    from ``trigger_group`` alone, unaffected by ADR 0009's pull-out. MonitorT
     is a PEP 696 TypeVar with ``default=Never``: since ``Sync`` has no field
     that mentions MonitorT at all any more (ADR 0009 moved ``monitors`` to
     the separate ``Monitors`` wrapper), a standalone ``Sync(...)`` call
@@ -40,7 +40,7 @@ def test_detector_t_inferred_monitor_t_defaults_to_never() -> None:
     """
     spec = Sync(
         motion,
-        trigger_plan=TriggerGroup(
+        trigger_group=TriggerGroup(
             detectors=frozenset({"saxs", "waxs"}),
             exposures_per_collection=1,
             collections_per_event=1,
@@ -70,7 +70,7 @@ def test_monitor_t_requires_explicit_annotation() -> None:
     spec: Monitors[str, str, str] = Monitors(
         Sync(
             motion,
-            trigger_plan=TriggerGroup(
+            trigger_group=TriggerGroup(
                 detectors=frozenset({"saxs", "waxs"}),
                 exposures_per_collection=1,
                 collections_per_event=1,

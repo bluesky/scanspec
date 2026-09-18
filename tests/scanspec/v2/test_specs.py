@@ -10,8 +10,8 @@ from scanspec.v2.core import (
     ContinuousStream,
     DetectorGroup,
     MonitorStream,
+    TriggerFollower,
     TriggerGroup,
-    TriggerPlan,
 )
 from scanspec.v2.specs import (
     AnySpec,
@@ -223,7 +223,7 @@ def test_sync_json_round_trip():
     spec: Monitors[str, str, str] = Monitors(
         Sync(
             Linspace("x", 0.0, 10.0, 100),
-            trigger_plan=TriggerGroup(
+            trigger_group=TriggerGroup(
                 detectors=frozenset({"saxs", "waxs"}),
                 exposures_per_collection=1,
                 collections_per_event=1,
@@ -238,35 +238,33 @@ def test_sync_json_round_trip():
     restored = ta.validate_json(json_bytes)
     assert isinstance(restored, Monitors)
     assert isinstance(restored.spec, Sync)
-    # A bare TriggerGroup is stored and serialized as-is, not wrapped.
-    assert isinstance(restored.spec.trigger_plan, TriggerGroup)
-    assert restored.spec.trigger_plan.detectors == frozenset({"saxs", "waxs"})
+    assert isinstance(restored.spec.trigger_group, TriggerGroup)
+    assert restored.spec.trigger_group.detectors == frozenset({"saxs", "waxs"})
     assert restored.monitors[0].name == "temp"
 
 
 def test_sync_json_round_trip_full():
     """Round-trip a wrapped Sync exercising every optional field, including a
-    trigger_plan with a non-empty children list."""
+    trigger_group with a non-empty followers list."""
     spec: ContinuousStreams[str, str, str] = ContinuousStreams(
         Monitors(
             Sync(
                 Linspace("x", 0.0, 10.0, 100),
                 fly=True,
-                trigger_plan=TriggerPlan(
-                    root=TriggerGroup(
-                        detectors=frozenset({"saxs"}),
-                        exposures_per_collection=1,
-                        collections_per_event=1,
-                        livetime=0.003,
-                        deadtime=0.001,
-                    ),
-                    children=[
-                        TriggerGroup(
+                trigger_group=TriggerGroup(
+                    detectors=frozenset({"saxs"}),
+                    exposures_per_collection=1,
+                    collections_per_event=1,
+                    livetime=0.003,
+                    deadtime=0.001,
+                    followers=[
+                        TriggerFollower(
                             detectors=frozenset({"encoder"}),
                             exposures_per_collection=10,
                             collections_per_event=1,
                             livetime=0.0003,
                             deadtime=0.0,
+                            repeats=10,
                         ),
                     ],
                 ),
@@ -287,8 +285,8 @@ def test_sync_json_round_trip_full():
     assert restored == spec
     assert isinstance(restored.spec, Monitors)
     assert isinstance(restored.spec.spec, Sync)
-    assert isinstance(restored.spec.spec.trigger_plan, TriggerPlan)
-    assert restored.spec.spec.trigger_plan.children[0].detectors == frozenset(
+    assert isinstance(restored.spec.spec.trigger_group, TriggerGroup)
+    assert restored.spec.spec.trigger_group.followers[0].detectors == frozenset(
         {"encoder"}
     )
     assert restored.continuous_streams[0].name == "cameras"
@@ -323,26 +321,25 @@ def test_sync_duplicate_detector_in_same_continuous_group():
 
 
 def test_sync_duplicate_detector_across_groups():
-    # Raised by TriggerPlan's own disjointness check at construction time,
+    # Raised by TriggerGroup's own disjointness check at construction time,
     # before Sync(...) is even reached -- unaffected by the ADR 0009 pull-out.
     with pytest.raises(ValueError, match="det1"):
         Sync(
             Linspace("x", 0.0, 1.0, 10),
-            trigger_plan=TriggerPlan(
-                root=TriggerGroup(
-                    detectors=frozenset({"det1"}),
-                    exposures_per_collection=1,
-                    collections_per_event=1,
-                    livetime=0.01,
-                    deadtime=0.001,
-                ),
-                children=[
-                    TriggerGroup(
+            trigger_group=TriggerGroup(
+                detectors=frozenset({"det1"}),
+                exposures_per_collection=1,
+                collections_per_event=1,
+                livetime=0.01,
+                deadtime=0.001,
+                followers=[
+                    TriggerFollower(
                         detectors=frozenset({"det1"}),
                         exposures_per_collection=1,
                         collections_per_event=1,
                         livetime=0.01,
                         deadtime=0.001,
+                        repeats=1,
                     ),
                 ],
             ),
@@ -353,7 +350,7 @@ def test_sync_duplicate_between_windowed_and_continuous():
     spec = ContinuousStreams(
         Sync(
             Linspace("x", 0.0, 1.0, 10),
-            trigger_plan=TriggerGroup(
+            trigger_group=TriggerGroup(
                 detectors=frozenset({"cam1"}),
                 exposures_per_collection=1,
                 collections_per_event=1,
@@ -376,7 +373,7 @@ def test_sync_duplicate_with_monitor():
     # monitors= below.
     sync: Sync[str, str, str] = Sync(
         Linspace("x", 0.0, 1.0, 10),
-        trigger_plan=TriggerGroup(
+        trigger_group=TriggerGroup(
             detectors=frozenset({"tc1"}),
             exposures_per_collection=1,
             collections_per_event=1,
@@ -389,10 +386,10 @@ def test_sync_duplicate_with_monitor():
         spec.compile()
 
 
-def test_sync_valid_no_trigger_plan():
-    # No trigger_plan is allowed -- validation only checks uniqueness.
+def test_sync_valid_no_trigger_group():
+    # No trigger_group is allowed -- validation only checks uniqueness.
     a: Sync[str, Any, Any] = Sync(Linspace("x", 0.0, 1.0, 10))
-    assert a.trigger_plan is None
+    assert a.trigger_group is None
 
 
 def test_sync_defaults():

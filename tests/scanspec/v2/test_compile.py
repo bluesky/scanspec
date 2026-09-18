@@ -12,8 +12,8 @@ from scanspec.v2.core import (
     ConcatSource,
     DetectorGroup,
     Scan,
+    TriggerFollower,
     TriggerGroup,
-    TriggerPlan,
     TriggerRepeat,
     Window,
     WindowGenerator,
@@ -164,8 +164,8 @@ def test_snake_with_concat_children():
         livetime=0.001,
         deadtime=0.001,
     )
-    acq1: Sync[str, str, Never] = Sync(Linspace("x", 0, 5, 3), trigger_plan=tg)
-    acq2: Sync[str, str, Never] = Sync(Linspace("x", 10, 15, 2), trigger_plan=tg)
+    acq1: Sync[str, str, Never] = Sync(Linspace("x", 0, 5, 3), trigger_group=tg)
+    acq2: Sync[str, str, Never] = Sync(Linspace("x", 10, 15, 2), trigger_group=tg)
     spec = ~acq1.concat(acq2)
     sc = spec.compile()
     g = gens(sc)
@@ -317,7 +317,7 @@ def test_sync_compile_stream_name():
         deadtime=0.001,
     )
     spec: Sync[str, str, Never] = Sync(
-        Linspace("x", 0.0, 10.0, 5), stream_name="custom", trigger_plan=tg
+        Linspace("x", 0.0, 10.0, 5), stream_name="custom", trigger_group=tg
     )
     sc = spec.compile()
     assert sc.windowed_streams[0].name == "custom"
@@ -393,26 +393,24 @@ def test_maximal_example_dimensions():
         full_motion,
         fly=True,
         stream_name="primary",
-        # Multiple TriggerGroups at different rates -- which becomes root is
-        # still caller-decided (inner_length=100, the innermost `x`
-        # dimension, drives the derived root num=100).
-        trigger_plan=TriggerPlan(
-            root=TriggerGroup(
-                detectors=frozenset({"saxs", "waxs"}),
-                exposures_per_collection=1,
-                collections_per_event=1,
-                livetime=0.003,
-                deadtime=0.001,
-            ),
-            children=[
+        # inner_length=100, the innermost `x` dimension, drives the derived
+        # group repeats=100.
+        trigger_group=TriggerGroup(
+            detectors=frozenset({"saxs", "waxs"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+            followers=[
                 # See test_maximal_fly_step (test_use_cases.py) for how this
                 # livetime is derived.
-                TriggerGroup(
+                TriggerFollower(
                     detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
                     exposures_per_collection=10,
                     collections_per_event=1,
                     livetime=0.000299992,
                     deadtime=8e-9,
+                    repeats=10,
                 ),
             ],
         ),
@@ -584,7 +582,7 @@ def test_fly_scan_velocity_uses_real_seconds_not_index_units():
         deadtime=0.001,
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 100), fly=True, trigger_plan=tg
+        Linspace("x", 0.0, 10.0, 100), fly=True, trigger_group=tg
     ).compile()  # type: ignore[reportArgumentType]
     w = windows(sc)[0]
     am = w.moving_axes["x"]
@@ -618,7 +616,7 @@ def test_fly_scan_reversed_velocity_has_correct_sign():
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Product(Linspace("y", 0.0, 1.0, 2), ~Linspace("x", 0.0, 10.0, 100)),
         fly=True,
-        trigger_plan=tg,
+        trigger_group=tg,
     ).compile()  # type: ignore[reportArgumentType]
     ws = windows(sc)
     assert len(ws) == 2
@@ -649,7 +647,7 @@ def test_window_positions_times_maps_real_seconds_to_physical_position():
         deadtime=0.001,
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 100), fly=True, trigger_plan=tg
+        Linspace("x", 0.0, 10.0, 100), fly=True, trigger_group=tg
     ).compile()  # type: ignore[reportArgumentType]
     w = windows(sc)[0]
     assert w.duration == pytest.approx(0.4)  # type: ignore[reportUnknownMemberType]
@@ -726,7 +724,7 @@ def test_with_start_trigger_index_truncates():
         deadtime=0.001,
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 10), fly=True, trigger_plan=tg
+        Linspace("x", 0.0, 10.0, 10), fly=True, trigger_group=tg
     ).compile()  # type: ignore[reportArgumentType]
     resumed = sc.with_start(window=0, trigger_index=3)
     windows_list = list(resumed)
@@ -840,7 +838,7 @@ def test_step_scan_trigger_sequences():
         deadtime=0.001,
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), trigger_plan=tg
+        Linspace("x", 0.0, 10.0, 5), trigger_group=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     assert len(ws) == 5
@@ -862,7 +860,7 @@ def test_fly_scan_trigger_sequences():
         deadtime=0.001,
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), fly=True, trigger_plan=tg
+        Linspace("x", 0.0, 10.0, 5), fly=True, trigger_group=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     assert len(ws) == 1
@@ -875,30 +873,29 @@ def test_fly_scan_trigger_sequences():
 
 
 def test_multirate_trigger_sequences():
-    trigger_plan = TriggerPlan(
-        root=TriggerGroup(
-            detectors=frozenset({"saxs"}),
-            exposures_per_collection=1,
-            collections_per_event=1,
-            livetime=0.003,
-            deadtime=0.001,
-        ),
-        children=[
+    trigger_group = TriggerGroup(
+        detectors=frozenset({"saxs"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+        followers=[
             # Encoder triggers 10x per saxs repeat: period must divide the
-            # root's 0.003s livetime exactly, so livetime = 0.003/10 - deadtime.
-            TriggerGroup(
+            # group's 0.003s livetime exactly, so livetime = 0.003/10 - deadtime.
+            TriggerFollower(
                 detectors=frozenset({"encoder"}),
                 exposures_per_collection=10,
                 collections_per_event=1,
                 livetime=0.000299992,
                 deadtime=8e-9,
+                repeats=10,
             ),
         ],
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 100),
         fly=True,
-        trigger_plan=trigger_plan,
+        trigger_group=trigger_group,
     ).compile()  # type: ignore[reportArgumentType]
     ws = windows(sc)
     tss = ws[0].trigger_sequences
@@ -927,7 +924,7 @@ def test_collections_per_event_multiplies_parent_repeats():
         deadtime=0.001,
     )
     step_scan: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), trigger_plan=tg_step
+        Linspace("x", 0.0, 10.0, 5), trigger_group=tg_step
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     for w in windows(step_scan):
         ts = w.trigger_sequences[0]
@@ -943,7 +940,7 @@ def test_collections_per_event_multiplies_parent_repeats():
         deadtime=0.001,
     )
     fly_scan: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 100), fly=True, trigger_plan=tg_fly
+        Linspace("x", 0.0, 10.0, 100), fly=True, trigger_group=tg_fly
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ts = windows(fly_scan)[0].trigger_sequences[0]
     # fly: repeats = length * exposures_per_event = 100 * 6
@@ -953,24 +950,25 @@ def test_collections_per_event_multiplies_parent_repeats():
 
 
 def test_non_integer_rate_ratio_raises():
-    # child_period = 0.004 -> root_livetime/child_period = 0.75, not an
-    # integer. Checked inline during TriggerGroup -> TriggerRepeat
-    # derivation, at compile() time.
-    trigger_plan = TriggerPlan(
-        root=TriggerGroup(
-            detectors=frozenset({"saxs"}),
-            exposures_per_collection=1,
-            collections_per_event=1,
-            livetime=0.003,
-            deadtime=0.001,
-        ),
-        children=[
-            TriggerGroup(
+    # child_period = 0.004 -> group_livetime/child_period = 0.75, not an
+    # integer. Checked by validate_trigger_sequence (core.py) against the
+    # derived TriggerRepeat at compile() time -- independent of whatever
+    # repeats the follower declares, since the ratio check is purely
+    # timing-based (ADR 0008 Decision 3).
+    trigger_group = TriggerGroup(
+        detectors=frozenset({"saxs"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+        followers=[
+            TriggerFollower(
                 detectors=frozenset({"enc"}),
                 exposures_per_collection=10,
                 collections_per_event=1,
                 livetime=0.003,
                 deadtime=0.001,
+                repeats=1,
             ),
         ],
     )
@@ -978,16 +976,84 @@ def test_non_integer_rate_ratio_raises():
         Sync(  # type: ignore[reportUnknownVariableType]
             Linspace("x", 0.0, 10.0, 100),
             fly=True,
-            trigger_plan=trigger_plan,
+            trigger_group=trigger_group,
+        ).compile()  # type: ignore[reportArgumentType]
+
+
+def test_follower_missing_repeats_raises():
+    # ADR 0008 Decision 3: repeats is caller-supplied on TriggerFollower,
+    # never derived -- compile() rejects outright if it's still None rather
+    # than falling back to a ratio-based calculation.
+    trigger_group = TriggerGroup(
+        detectors=frozenset({"saxs"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+        followers=[
+            TriggerFollower(
+                detectors=frozenset({"enc"}),
+                exposures_per_collection=10,
+                collections_per_event=1,
+                livetime=0.0003,
+                deadtime=0.0,
+                repeats=None,
+            ),
+        ],
+    )
+    with pytest.raises(ValueError, match="repeats must be set"):
+        Sync(  # type: ignore[reportUnknownVariableType]
+            Linspace("x", 0.0, 10.0, 100),
+            fly=True,
+            trigger_group=trigger_group,
+        ).compile()  # type: ignore[reportArgumentType]
+
+
+def test_follower_missing_livetime_raises():
+    trigger_group = TriggerGroup(
+        detectors=frozenset({"saxs"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+        followers=[
+            TriggerFollower(
+                detectors=frozenset({"enc"}),
+                exposures_per_collection=10,
+                collections_per_event=1,
+                livetime=None,
+                deadtime=0.0,
+                repeats=10,
+            ),
+        ],
+    )
+    with pytest.raises(ValueError, match="livetime and deadtime must be resolved"):
+        Sync(  # type: ignore[reportUnknownVariableType]
+            Linspace("x", 0.0, 10.0, 100),
+            fly=True,
+            trigger_group=trigger_group,
+        ).compile()  # type: ignore[reportArgumentType]
+
+
+def test_group_missing_livetime_raises():
+    # Same check applies to the group's own (root) timing, not just followers.
+    trigger_group = TriggerGroup(
+        detectors=frozenset({"saxs"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=None,
+        deadtime=0.001,
+    )
+    with pytest.raises(ValueError, match="livetime and deadtime must be resolved"):
+        Sync(  # type: ignore[reportUnknownVariableType]
+            Linspace("x", 0.0, 10.0, 100),
+            fly=True,
+            trigger_group=trigger_group,
         ).compile()  # type: ignore[reportArgumentType]
 
 
 # Spacer/overlap/duration checks live in core.validate_trigger_sequence,
-# exercised above via Sync(trigger_plan=...) and directly in test_core.py
-# for scenarios TriggerPlan authoring can no longer produce (e.g. a clean
-# ratio with an inconsistent hand-set num -- only reachable by
-# hand-constructing TriggerRepeat/TriggerSequence directly, bypassing
-# TriggerPlan and compile() entirely).
+# exercised above via Sync(trigger_group=...) and directly in test_core.py.
 
 
 # ---------------------------------------------------------------------------
@@ -1004,7 +1070,7 @@ def test_active_stream_sets_single_sync():
         deadtime=0.001,
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), trigger_plan=tg
+        Linspace("x", 0.0, 10.0, 5), trigger_group=tg
     ).compile()  # type: ignore[reportArgumentType]
     assert sc.active_stream_sets == [frozenset({"primary"})]
 
@@ -1017,12 +1083,12 @@ def test_active_stream_sets_concat_different_names():
         livetime=0.01,
         deadtime=0.001,
     )
-    # Outer Sync has no trigger_plan (monitor-only wrapper),
+    # Outer Sync has no trigger_group (monitor-only wrapper),
     # so only the inner Syncs' stream names are active.
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Concat(
-            Sync(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="diff"),
-            Sync(Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="spec"),
+            Sync(Linspace("x", 0.0, 5.0, 3), trigger_group=tg, stream_name="diff"),
+            Sync(Linspace("x", 5.0, 10.0, 5), trigger_group=tg, stream_name="spec"),
         ),
     ).compile()  # type: ignore[reportArgumentType]
     assert sc.active_stream_sets == [
@@ -1041,8 +1107,8 @@ def test_active_stream_sets_concat_same_name_deduplicates():
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Concat(
-            Sync(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="primary"),
-            Sync(Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="primary"),
+            Sync(Linspace("x", 0.0, 5.0, 3), trigger_group=tg, stream_name="primary"),
+            Sync(Linspace("x", 5.0, 10.0, 5), trigger_group=tg, stream_name="primary"),
         ),
     ).compile()  # type: ignore[reportArgumentType]
     assert sc.active_stream_sets == [
@@ -1060,10 +1126,10 @@ def test_active_stream_sets_detector_less_outer_sync():
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Concat(
-            Sync(Linspace("x", 0.0, 5.0, 3), trigger_plan=tg, stream_name="diff"),
-            Sync(Linspace("x", 5.0, 10.0, 5), trigger_plan=tg, stream_name="spec"),
+            Sync(Linspace("x", 0.0, 5.0, 3), trigger_group=tg, stream_name="diff"),
+            Sync(Linspace("x", 5.0, 10.0, 5), trigger_group=tg, stream_name="spec"),
         ),
-        # Outer Sync has no trigger_plan (monitor/continuous-only wrapper)
+        # Outer Sync has no trigger_group (monitor/continuous-only wrapper)
     ).compile()  # type: ignore[reportArgumentType]
     assert sc.active_stream_sets == [
         frozenset({"diff"}),
@@ -1080,7 +1146,7 @@ def test_duration_derived_from_detectors():
         deadtime=0.001,
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), trigger_plan=tg
+        Linspace("x", 0.0, 10.0, 5), trigger_group=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     # step: 1 × (0.01 + 0.001) = 0.011
@@ -1097,7 +1163,7 @@ def test_duration_derived_from_fly_detectors():
         deadtime=0.001,
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), fly=True, trigger_plan=tg
+        Linspace("x", 0.0, 10.0, 5), fly=True, trigger_group=tg
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     # fly: 5 × (0.003 + 0.001) = 0.02
@@ -1115,7 +1181,7 @@ def test_explicit_duration_must_be_ge_derived():
     with pytest.raises(ValueError, match="less than"):
         Sync(
             Linspace("x", 0.0, 10.0, 5),
-            trigger_plan=tg,
+            trigger_group=tg,
             duration=0.005,  # too small
         ).compile()
 
@@ -1203,7 +1269,7 @@ def test_explicit_duration_overrides_when_larger():
     )
     sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Linspace("x", 0.0, 10.0, 5),
-        trigger_plan=tg,
+        trigger_group=tg,
         duration=0.05,  # larger than derived 0.011
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
@@ -1220,7 +1286,7 @@ def test_none_livetime_raises():
         deadtime=0.001,
     )
     with pytest.raises(ValueError, match="livetime"):
-        Sync(Linspace("x", 0.0, 10.0, 5), trigger_plan=tg).compile()
+        Sync(Linspace("x", 0.0, 10.0, 5), trigger_group=tg).compile()
 
 
 def test_none_deadtime_raises():
@@ -1232,7 +1298,7 @@ def test_none_deadtime_raises():
         deadtime=None,
     )
     with pytest.raises(ValueError, match="deadtime"):
-        Sync(Linspace("x", 0.0, 10.0, 5), trigger_plan=tg).compile()
+        Sync(Linspace("x", 0.0, 10.0, 5), trigger_group=tg).compile()
 
 
 # ---------------------------------------------------------------------------
@@ -1250,12 +1316,12 @@ def test_concat_fly_step_windows():
         deadtime=0.001,
     )
     step_acq: Sync[str, str, Never] = Sync(
-        Static("x", 5.0), trigger_plan=tg, stream_name="s1"
+        Static("x", 5.0), trigger_group=tg, stream_name="s1"
     )
     fly_acq: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
-        trigger_plan=tg,
+        trigger_group=tg,
         stream_name="s2",
     )
     sc = step_acq.concat(fly_acq).compile()
@@ -1285,12 +1351,12 @@ def test_concat_different_streams():
         deadtime=0.001,
     )
     a1: Sync[str, str, Never] = Sync(
-        Static("x", 5.0), trigger_plan=tg1, stream_name="diff"
+        Static("x", 5.0), trigger_group=tg1, stream_name="diff"
     )
     a2: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 100),
         fly=True,
-        trigger_plan=tg2,
+        trigger_group=tg2,
         stream_name="spec",
     )
     sc = a1.concat(a2).compile()
@@ -1310,13 +1376,13 @@ def test_concat_same_stream_sums_inner():
     a1: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 5.0, 500),
         fly=True,
-        trigger_plan=tg,
+        trigger_group=tg,
         stream_name="primary",
     )
     a2: Sync[str, str, Never] = Sync(
         Linspace("x", 5.0, 0.0, 500),
         fly=True,
-        trigger_plan=tg,
+        trigger_group=tg,
         stream_name="primary",
     )
     sc = a1.concat(a2).compile()
@@ -1336,12 +1402,12 @@ def test_repeat_concat_windows():
         deadtime=0.001,
     )
     a1: Sync[str, str, Never] = Sync(
-        Static("x", 5.0), trigger_plan=tg, stream_name="s1"
+        Static("x", 5.0), trigger_group=tg, stream_name="s1"
     )
     a2: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
-        trigger_plan=tg,
+        trigger_group=tg,
         stream_name="s2",
     )
     sc = Repeat(a1.concat(a2), num=3).compile()
@@ -1364,12 +1430,12 @@ def test_repeat_concat_streams_have_outer_dim():
         deadtime=0.001,
     )
     a1: Sync[str, str, Never] = Sync(
-        Static("x", 5.0), trigger_plan=tg, stream_name="s1"
+        Static("x", 5.0), trigger_group=tg, stream_name="s1"
     )
     a2: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
-        trigger_plan=tg,
+        trigger_group=tg,
         stream_name="s2",
     )
     sc = Repeat(a1.concat(a2), num=10).compile()
@@ -1388,10 +1454,10 @@ def test_concat_previous_chain():
         deadtime=0.001,
     )
     a1: Sync[str, str, Never] = Sync(
-        Static("x", 5.0), trigger_plan=tg, stream_name="s1"
+        Static("x", 5.0), trigger_group=tg, stream_name="s1"
     )
     a2: Sync[str, str, Never] = Sync(
-        Static("x", 10.0), trigger_plan=tg, stream_name="s2"
+        Static("x", 10.0), trigger_group=tg, stream_name="s2"
     )
     sc = Repeat(a1.concat(a2), num=3).compile()
     ws = windows(sc)

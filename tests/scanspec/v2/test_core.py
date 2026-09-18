@@ -257,11 +257,14 @@ def test_child_duration_exceeds_parent_livetime_raises():
     """A clean integer ratio (period=0.0003, ratio=10) but a hand-set
     repeats=11 makes total child duration 0.0033 > the 0.003 root livetime.
 
-    Only reachable by constructing TriggerRepeat/TriggerSequence directly
-    (the manually-constructed-Window path, ADR 0007 Assumption A1) -- under
-    ADR 0008, a child authored via TriggerPlan always has repeats *derived*
-    from the ratio, so TriggerPlan itself can no longer produce this
-    combination.
+    Constructs TriggerRepeat/TriggerSequence directly to isolate
+    validate_trigger_sequence's own check. Under ADR 0008 (as amended for
+    the TriggerGroup/TriggerFollower merge), this exact combination is also
+    reachable through the normal authoring surface now: TriggerFollower's
+    repeats is caller-supplied, not derived from the ratio, so nothing on
+    TriggerGroup prevents authoring an inconsistent repeats/timing
+    combination -- validate_trigger_sequence (via compile()) is what
+    catches it either way.
     """
     root = TriggerRepeat(
         detectors=frozenset({"saxs"}), repeats=100, livetime=0.003, deadtime=0.001

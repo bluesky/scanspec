@@ -148,17 +148,15 @@ whole-scan acquisition (ADR 0009):
 
 ```python
 motion = Linspace("y", 0, 5, 50) * ~Linspace("x", 0, 10, 100)   # snaked grid
-spec = Sync(motion, fly=True, trigger_plan=TriggerPlan(
-    root=TriggerGroup(
-        detectors=frozenset({"saxs", "waxs"}),
-        exposures_per_collection=1, collections_per_event=1,
-        livetime=0.003, deadtime=0.001,
-    ),
-    children=[
-        TriggerGroup(
+spec = Sync(motion, fly=True, trigger_group=TriggerGroup(
+    detectors=frozenset({"saxs", "waxs"}),
+    exposures_per_collection=1, collections_per_event=1,
+    livetime=0.003, deadtime=0.001,
+    followers=[
+        TriggerFollower(
             detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
             exposures_per_collection=10, collections_per_event=1,
-            livetime=0.000299992, deadtime=8e-9,
+            livetime=0.000299992, deadtime=8e-9, repeats=10,
         ),
     ],
 ))
@@ -172,9 +170,9 @@ scan = spec.compile()
   (`a.zip(b)`), `Concat` (`a.concat(b)`), `Repeat(a, n)`.
 - **`Sync` is the only place `fly=True/False` appears.** It binds a
   motion spec to one named windowed stream (`stream_name="primary"` by
-  default) via `trigger_plan` (a `TriggerGroup`/`TriggerPlan`, ADR 0008).
-  `fly=True` means the innermost motion dimension sweeps continuously; all
-  outer dimensions step.
+  default) via `trigger_group` (a `TriggerGroup`, optionally with
+  `TriggerFollower`s, ADR 0008). `fly=True` means the innermost motion
+  dimension sweeps continuously; all outer dimensions step.
 - **`Monitors`/`ContinuousStreams` are separate outermost wrapper specs**
   (ADR 0009), not fields on `Sync` — they attach scan-wide, not
   frame-coupled, acquisition (§2.3) after the rest of the tree has
@@ -186,9 +184,9 @@ scan = spec.compile()
   expressed:
 
   ```python
-  diff = Sync(Static("e", 7.0), trigger_plan=diff_group, stream_name="diff")
-  up   = Sync(Linspace("e", 7.0, 7.1, 1000), fly=True, trigger_plan=spec_group, stream_name="spec")
-  down = Sync(Linspace("e", 7.1, 7.0, 1000), fly=True, trigger_plan=spec_group, stream_name="spec")
+  diff = Sync(Static("e", 7.0), trigger_group=diff_group, stream_name="diff")
+  up   = Sync(Linspace("e", 7.0, 7.1, 1000), fly=True, trigger_group=spec_group, stream_name="spec")
+  down = Sync(Linspace("e", 7.1, 7.0, 1000), fly=True, trigger_group=spec_group, stream_name="spec")
   spec = Monitors(
       Repeat(diff.concat(up).concat(down), num=200),
       monitors=[MonitorStream("temperature", "tc1")],

@@ -57,13 +57,19 @@ class TriggerSequence(Generic[DetectorT]):
     children: list[TriggerRepeat[DetectorT]]
 
 
-class TriggerGroup(BaseModel, Generic[DetectorT]):
-    """Authoring-time detector group: identity plus trigger-timing intent.
+class TriggerFollower(BaseModel, Generic[DetectorT]):
+    """Authoring-time detector group firing at its own rate within a TriggerGroup.
 
-    Lives on TriggerPlan.root / TriggerPlan.children. livetime/deadtime may
-    be left unresolved (None) at authoring time -- a downstream process
-    (e.g. ophyd-async) fills them in before compile(), which requires both
-    concrete.
+    Driven by the group's own repeat cadence. repeats/livetime/deadtime
+    may all be left unresolved (None) at
+    authoring time -- a downstream process (e.g. ophyd-async) fills in
+    whichever are missing before compile(), which requires all three
+    concrete. Unlike the group's own detectors, repeats is a real field
+    here: a follower's rate relative to the group is genuinely external
+    information (detector hardware timing), not something derivable
+    purely from the spec tree. Named repeats, not num -- "num" alone
+    doesn't say what it counts; "repeats" matches the compiled
+    TriggerRepeat.repeats it flows into.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -73,6 +79,7 @@ class TriggerGroup(BaseModel, Generic[DetectorT]):
     collections_per_event: int
     livetime: float | None
     deadtime: float | None
+    repeats: int | None
 
     @property
     def exposures_per_event(self) -> int:
@@ -80,42 +87,57 @@ class TriggerGroup(BaseModel, Generic[DetectorT]):
         return self.exposures_per_collection * self.collections_per_event
 
 
-class TriggerPlan(BaseModel, Generic[DetectorT]):
+class TriggerGroup(BaseModel, Generic[DetectorT]):
     """Caller-authored trigger hierarchy for one Sync's windowed stream.
 
-    Replaces Sync.detectors + Sync.trigger_sequence: the caller
-    authors the detector/timing hierarchy once, and compile() derives both
-    the compiled TriggerSequence tree and the list[DetectorGroup] the
+    Replaces Sync.detectors + Sync.trigger_sequence: the caller authors
+    the detector/timing hierarchy once, and compile() derives both the
+    compiled TriggerSequence tree and the list[DetectorGroup] the
     windowed stream needs, instead of requiring the caller to hand-write
     and keep both in sync.
 
-    root/children mirror TriggerSequence's own root/children shape one
-    level up: children fire during every root repeat, in parallel with each
-    other, each at its own integer-multiple rate. Detector sets across root
-    and all children must be disjoint -- checked here structurally at
-    construction time, since timing may still be unresolved. Physical
-    checks (integer-ratio rates, child duration fitting inside the root's
-    livetime, concrete timing) happen at compile() time against the derived
-    TriggerSequence, unchanged from before.
+    detectors/exposures_per_collection/collections_per_event/livetime/
+    deadtime describe the group's own base-rate detectors -- also exactly
+    the shape DetectorGroup is derived from (compile()), so a TriggerGroup
+    with no followers at all is already a complete, meaningful authoring
+    unit on its own. followers is how the group grows to cover detectors
+    triggering at other integer-multiple rates within the same
+    collective, not a separate hierarchical tier -- each fires during
+    every one of the group's own repeats, in parallel with each other.
+    Detector sets across the group's own detectors and all followers must
+    be disjoint -- checked here structurally at construction time, since
+    timing may still be unresolved. Physical checks (integer-ratio rates,
+    follower duration fitting inside the group's own livetime, concrete
+    timing) happen at compile() time against the derived TriggerSequence.
     """
 
     model_config = ConfigDict(frozen=True)
 
-    root: TriggerGroup[DetectorT]
-    children: list[TriggerGroup[DetectorT]] = []
+    detectors: frozenset[DetectorT]
+    exposures_per_collection: int
+    collections_per_event: int
+    livetime: float | None
+    deadtime: float | None
+    followers: list[TriggerFollower[DetectorT]] = []
+
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
 
     @model_validator(mode="after")
     def _disjoint_detectors(self) -> Self:
-        """All detector sets (root + each child) must be pairwise disjoint."""
-        seen: set[DetectorT] = set(self.root.detectors)
-        for child in self.children:
-            overlap = seen & child.detectors
+        """Own detectors + each follower's detectors must be pairwise disjoint."""
+        seen: set[DetectorT] = set(self.detectors)
+        for follower in self.followers:
+            overlap = seen & follower.detectors
             if overlap:
                 raise ValueError(
                     f"Detector(s) {sorted(str(d) for d in overlap)} appear "
-                    f"in more than one TriggerGroup within this TriggerPlan"
+                    f"in more than one TriggerGroup/TriggerFollower within "
+                    f"this TriggerGroup"
                 )
-            seen |= child.detectors
+            seen |= follower.detectors
         return self
 
 

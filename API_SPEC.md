@@ -29,7 +29,7 @@ Three type parameters are used throughout:
 `Window[AxisT, DetectorT]` — pure data object yielded by iterating a `Scan`; trigger sequences may span multiple streams.
 `Dimension[AxisT]` — one dimension of the compiled scan geometry.
 `TriggerRepeat[DetectorT]` / `TriggerSequence[DetectorT]` — compiled detector triggering description (see Trigger structures below).
-`TriggerGroup[DetectorT]` / `TriggerPlan[DetectorT]` — caller-authored trigger hierarchy (ADR 0008), passed to `Sync.trigger_plan`; `compile()` derives `TriggerRepeat`/`TriggerSequence` from it.
+`TriggerGroup[DetectorT]` / `TriggerFollower[DetectorT]` — caller-authored trigger hierarchy (ADR 0008), passed to `Sync.trigger_group`; `compile()` derives `TriggerRepeat`/`TriggerSequence` from it.
 
 ---
 
@@ -61,8 +61,8 @@ class TriggerRepeat(Generic[DetectorT]):
 
     Pure compiled output -- always concrete (no unresolved timing). The
     round trip for unresolved (None) timing happens entirely on
-    TriggerGroup/TriggerPlan, before compile() (ADR 0008); by the time a
-    TriggerSequence exists, livetime/deadtime are guaranteed resolved.
+    TriggerGroup/TriggerFollower, before compile() (ADR 0008); by the time
+    a TriggerSequence exists, livetime/deadtime are guaranteed resolved.
     """
 
     detectors: frozenset[DetectorT]
@@ -89,13 +89,17 @@ class TriggerSequence(Generic[DetectorT]):
     children: list[TriggerRepeat[DetectorT]]
 
 
-class TriggerGroup(BaseModel, Generic[DetectorT]):
-    """Authoring-time detector group: identity plus trigger-timing intent.
+class TriggerFollower(BaseModel, Generic[DetectorT]):
+    """Authoring-time detector group firing at its own rate within a
+    TriggerGroup, driven by the group's own repeat cadence.
 
-    Lives on TriggerPlan.root / TriggerPlan.children. livetime/deadtime may
-    be left unresolved (None) at authoring time -- a downstream process
-    (e.g. ophyd-async) fills them in before compile(), which requires both
-    concrete.
+    repeats/livetime/deadtime may all be left unresolved (None) at
+    authoring time -- a downstream process (e.g. ophyd-async) fills in
+    whichever are missing before compile(), which requires all three
+    concrete. Unlike the group's own detectors, repeats is a real field
+    here: a follower's rate relative to the group is genuinely external
+    information (detector hardware timing), not something derivable
+    purely from the spec tree.
     """
     model_config = ConfigDict(frozen=True)
 
@@ -104,6 +108,7 @@ class TriggerGroup(BaseModel, Generic[DetectorT]):
     collections_per_event: int
     livetime: float | None
     deadtime: float | None
+    repeats: int | None
 
     @property
     def exposures_per_event(self) -> int:
@@ -111,31 +116,38 @@ class TriggerGroup(BaseModel, Generic[DetectorT]):
         return self.exposures_per_collection * self.collections_per_event
 
 
-class TriggerPlan(BaseModel, Generic[DetectorT]):
+class TriggerGroup(BaseModel, Generic[DetectorT]):
     """Caller-authored trigger hierarchy for one Sync's windowed stream.
 
-    root/children mirror TriggerSequence's own root/children shape one
-    level up: children fire during every root repeat, in parallel with
-    each other, each at its own integer-multiple rate. Detector sets
-    across root and all children must be disjoint -- checked here
-    structurally at construction time, since timing may still be
-    unresolved. Physical checks (integer-ratio rates, child duration
-    fitting inside the root's livetime, concrete timing) happen at
-    compile() time against the derived TriggerSequence.
-
-    A bare TriggerGroup (no children) is also accepted anywhere a
-    TriggerPlan is -- Sync.trigger_plan is typed
-    TriggerPlan[DetectorT] | TriggerGroup[DetectorT] | None, and is
-    normalized to a trivial single-node TriggerPlan only where actually
-    needed (compile(), uniqueness validation), not eagerly.
+    detectors/exposures_per_collection/collections_per_event/livetime/
+    deadtime describe the group's own base-rate detectors -- also exactly
+    the shape DetectorGroup is derived from (compile()), so a TriggerGroup
+    with no followers at all is already a complete, meaningful authoring
+    unit on its own. followers fire during every one of the group's own
+    repeats, in parallel with each other, each at its own integer-multiple
+    rate. Detector sets across the group's own detectors and all followers
+    must be disjoint -- checked here structurally at construction time,
+    since timing may still be unresolved. Physical checks (integer-ratio
+    rates, follower duration fitting inside the group's own livetime,
+    concrete timing) happen at compile() time against the derived
+    TriggerSequence.
     """
     model_config = ConfigDict(frozen=True)
 
-    root: TriggerGroup[DetectorT]
-    children: list[TriggerGroup[DetectorT]] = []
+    detectors: frozenset[DetectorT]
+    exposures_per_collection: int
+    collections_per_event: int
+    livetime: float | None
+    deadtime: float | None
+    followers: list[TriggerFollower[DetectorT]] = []
 
-    # Raises ValueError at construction time if any two of {root, *children}
-    # share a detector.
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
+
+    # Raises ValueError at construction time if the group's own detectors
+    # and any follower's detectors are not pairwise disjoint.
 
 
 @dataclass
@@ -803,11 +815,11 @@ y_coords = next(scan.windowed_streams[0].dimensions[0].setpoints("y"))   # shape
 
 - `AxisT` must be hashable (dict key).  `DetectorT` and `MonitorT` are not
   required to be hashable by the library, except where used as `frozenset`
-  members (`TriggerRepeat`/`TriggerGroup`/`TriggerPlan.detectors`).
+  members (`TriggerRepeat`/`TriggerGroup`/`TriggerFollower.detectors`).
 - All `DetectorGroup`s within a single `WindowedStream` must have trigger ratios
   that are integer multiples of each other.
-- Within one `TriggerPlan`, `root` and every `children` `TriggerGroup`'s
-  detector sets must be pairwise disjoint (checked at `TriggerPlan`
+- Within one `TriggerGroup`, its own `detectors` and every `followers`
+  entry's detector sets must be pairwise disjoint (checked at `TriggerGroup`
   construction time, ADR 0008).
 - Detector names must be globally unique across windowed streams,
   `continuous_streams`, and `monitors` for a given compiled `Scan` (ADR
@@ -868,7 +880,7 @@ only inside `Concat`/`Repeat`, never `Product`/`Zip`.
 `Sync` is a `Spec` subclass that is always the outermost construction node
 for a given windowed stream. It takes a pure motion spec
 (`Spec[AxisT, Never, Never]`) and binds detector triggering and fly/step
-mode via `trigger_plan`, producing a `Spec[AxisT, DetectorT, MonitorT]`
+mode via `trigger_group`, producing a `Spec[AxisT, DetectorT, MonitorT]`
 with exactly one windowed stream, named `stream_name` (default
 `"primary"`). `fly=True` means the innermost motion dimension sweeps
 continuously (flyscan); all outer dimensions are stepped. `fly=False`
@@ -879,27 +891,27 @@ is derived from trigger timing. For detector-less scans: step scans default to
 `duration=0`, fly scans use `duration` to compute `window.duration = num_points * duration`.
 When `duration` is `None` (default), fly windows fall back to index-unit duration.
 
-`trigger_plan` (ADR 0008) is the caller-authored detector/timing hierarchy:
-a `TriggerGroup` (the trivial no-children case) or a `TriggerPlan` (a
-`root` `TriggerGroup` plus parallel `children` `TriggerGroup`s, each at
-its own integer-multiple rate). `compile()` derives both the compiled
-`TriggerSequence` and the `list[DetectorGroup]` the windowed stream needs
-from it — there's no separate `detectors` field to keep in sync by hand,
-and no ambiguity about which group is the "parent": the caller states it
-directly via `root`/`children`.
+`trigger_group` (ADR 0008) is the caller-authored detector/timing hierarchy:
+a `TriggerGroup` describing its own base-rate detectors, optionally with
+parallel `followers` (`TriggerFollower`s, each at its own integer-multiple
+rate). `compile()` derives both the compiled `TriggerSequence` and the
+`list[DetectorGroup]` the windowed stream needs from it — there's no
+separate `detectors` field to keep in sync by hand, and no ambiguity about
+which group is the base rate: the caller states it directly via the
+group's own fields vs. `followers`.
 
 `continuous_streams`/`monitors` are **not** `Sync` fields — see "Whole-scan
 acquisition" below.
 
 ```python
-# Step scan — single TriggerGroup, no children.
+# Step scan — single TriggerGroup, no followers.
 # (No explicit Sync[...] annotation needed -- MonitorT infers to Never,
 # since MonitorT no longer has anything on Sync to flow from at all.)
 spec = Sync(
     Product(Linspace("y", 0, 5, 50), Linspace("x", 0, 10, 100)),
     fly=False,              # default
     stream_name="primary",  # default
-    trigger_plan=TriggerGroup(
+    trigger_group=TriggerGroup(
         detectors=frozenset({"det1"}),
         exposures_per_collection=1,
         collections_per_event=1,
@@ -908,21 +920,20 @@ spec = Sync(
     ),
 )
 
-# Flyscan, multi-rate — SAXS/WAXS as root, encoders as a 10x-faster child.
+# Flyscan, multi-rate — SAXS/WAXS as the group's own detectors, encoders
+# as a 10x-faster follower.
 spec: Sync[str, str, Never] = Sync(
     Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100)),
     fly=True,
-    trigger_plan=TriggerPlan(
-        root=TriggerGroup(
-            detectors=frozenset({"saxs", "waxs"}),
-            exposures_per_collection=1, collections_per_event=1,
-            livetime=0.003, deadtime=0.001,
-        ),
-        children=[
-            TriggerGroup(
+    trigger_group=TriggerGroup(
+        detectors=frozenset({"saxs", "waxs"}),
+        exposures_per_collection=1, collections_per_event=1,
+        livetime=0.003, deadtime=0.001,
+        followers=[
+            TriggerFollower(
                 detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
                 exposures_per_collection=10, collections_per_event=1,
-                livetime=0.000299992, deadtime=8e-9,
+                livetime=0.000299992, deadtime=8e-9, repeats=10,
             ),
         ],
     ),
@@ -962,7 +973,7 @@ and compose freely:
 ```python
 spec = ContinuousStreams(
     Monitors(
-        Sync(motion, trigger_plan=trigger_plan),
+        Sync(motion, trigger_group=trigger_group),
         monitors=[MonitorStream("temperature", "tc1")],
     ),
     continuous_streams=[ContinuousStream("cameras", [...])],
@@ -970,7 +981,7 @@ spec = ContinuousStreams(
 ```
 
 **Type-inference caveat**: unlike `DetectorT`, which still flows
-automatically from `trigger_plan=` on `Sync`, `MonitorT` can no longer be
+automatically from `trigger_group=` on `Sync`, `MonitorT` can no longer be
 inferred purely from usage once `Monitors`
 wraps `Sync` — `Sync`'s own `MonitorT` is fixed to `Never` the instant a
 bare `Sync(...)` call returns, since nothing on `Sync` mentions `MonitorT`
@@ -1003,13 +1014,13 @@ spec_group = TriggerGroup(
 )
 
 diff_acq: Sync[str, str, Never] = Sync(
-    Static("e", 7.0), trigger_plan=diff_group, stream_name="diff",
+    Static("e", 7.0), trigger_group=diff_group, stream_name="diff",
 )
 spec_fwd: Sync[str, str, Never] = Sync(
-    Linspace("e", 7.0, 7.1, 1000), fly=True, trigger_plan=spec_group, stream_name="spec",
+    Linspace("e", 7.0, 7.1, 1000), fly=True, trigger_group=spec_group, stream_name="spec",
 )
 spec_rev: Sync[str, str, Never] = Sync(
-    Linspace("e", 7.1, 7.0, 1000), fly=True, trigger_plan=spec_group, stream_name="spec",
+    Linspace("e", 7.1, 7.0, 1000), fly=True, trigger_group=spec_group, stream_name="spec",
 )
 
 # 200 iterations of: step to e=7.0 (1 diffraction frame), fly e 7.0->7.1
@@ -1030,7 +1041,7 @@ scan = spec.compile()
 
 ### Generics and type inference
 
-Pyright infers `DetectorT` from `Sync.trigger_plan=`. `MonitorT` no longer
+Pyright infers `DetectorT` from `Sync.trigger_group=`. `MonitorT` no longer
 has anything on `Sync` to flow from at all (ADR 0009 moved `monitors` to
 the separate `Monitors` wrapper) — a bare `Sync(...)` call always infers
 `MonitorT=Never` (a PEP 696 `TypeVar` default), and an explicit annotation
@@ -1043,7 +1054,7 @@ required by Pydantic.
 # Pyright infers Sync[str, str, Never] — no annotation needed.
 spec = Sync(
     motion,
-    trigger_plan=TriggerGroup(
+    trigger_group=TriggerGroup(
         detectors=frozenset({"saxs"}),
         exposures_per_collection=1,
         collections_per_event=1,
@@ -1099,37 +1110,36 @@ energy_axis = Linspace("energy", 7.0, 7.1, 20)
 xy_motion   = Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100))
 full_motion = energy_axis * xy_motion   # 20 energy steps × 50 rows = 1000 windows
 
-# No explicit Sync[...] annotation needed -- trigger_plan= pins DetectorT
+# No explicit Sync[...] annotation needed -- trigger_group= pins DetectorT
 # directly (unlike the Repeat/Concat chain above). MonitorT still needs
 # the explicit Monitors[...] annotation below (see type-inference caveat).
 sync: Sync[str, str, str] = Sync(
     full_motion,
     fly=True,           # innermost dimension (x) sweeps continuously
     stream_name="primary",
-    # Which TriggerGroup becomes root vs child is caller-decided; repeats is
-    # auto-derived by compile() from scan geometry (root) and timing
-    # (children), not hand-computed.
-    trigger_plan=TriggerPlan(
-        root=TriggerGroup(
-            # SAXS and WAXS Pilatus: 1 frame per event, 3ms live, 1ms dead
-            detectors=frozenset({"saxs", "waxs"}),
-            exposures_per_collection=1,
-            collections_per_event=1,
-            livetime=0.003,
-            deadtime=0.001,
-        ),
-        children=[
-            # PandA encoders: 10x faster than Pilatus. A child's livetime
-            # excludes its own deadtime when sized against the parent's
-            # livetime slot: livetime = parent_livetime/ratio - deadtime,
-            # so 10 child repeats fit exactly inside the 3ms parent
-            # livetime.
-            TriggerGroup(
+    # The group's own repeats is auto-derived by compile() from scan
+    # geometry -- never caller-suppliable. A follower's repeats is
+    # caller-supplied directly (below), not derived from timing.
+    trigger_group=TriggerGroup(
+        # SAXS and WAXS Pilatus: 1 frame per event, 3ms live, 1ms dead
+        detectors=frozenset({"saxs", "waxs"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+        followers=[
+            # PandA encoders: 10x faster than Pilatus. A follower's
+            # livetime excludes its own deadtime when sized against the
+            # group's livetime slot: livetime = group_livetime/ratio -
+            # deadtime, so 10 follower repeats fit exactly inside the 3ms
+            # group livetime -- repeats=10 states that directly.
+            TriggerFollower(
                 detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
                 exposures_per_collection=10,
                 collections_per_event=1,
                 livetime=0.000299992,
                 deadtime=8e-9,
+                repeats=10,
             ),
         ],
     ),
@@ -1194,22 +1204,26 @@ spec: ContinuousStreams[str, str, str] = ContinuousStreams(
 
 ### Validation
 
-**At `TriggerPlan` construction time** (raises `ValueError` immediately,
+**At `TriggerGroup` construction time** (raises `ValueError` immediately,
 ADR 0008):
 
-- `root` and every `children` `TriggerGroup`'s detector sets must be
-  pairwise disjoint.
+- The group's own `detectors` and every `followers` entry's detector sets
+  must be pairwise disjoint.
 
 **At `Sync.compile()` time**:
 
-- Every `TriggerGroup` in `trigger_plan` (`root` and each child) must have
-  concrete `livetime`/`deadtime` (not `None`) — raises `ValueError`
-  otherwise. Unresolved timing is only ever valid at authoring time, before
-  `compile()`.
-- Each child must trigger at an integer ratio of the parent rate; each
-  child's total duration must not exceed the parent's livetime
-  (`validate_trigger_sequence`, re-checked against the derived
-  `TriggerSequence`).
+- The group's own `livetime`/`deadtime` must be concrete (not `None`) —
+  raises `ValueError` otherwise. Unresolved timing is only ever valid at
+  authoring time, before `compile()`.
+- Every `TriggerFollower` in `followers` must have `repeats`, `livetime`,
+  and `deadtime` all concrete (not `None`) — raises `ValueError`
+  otherwise. Unlike the group's own repeats (always derived from scan
+  geometry), a follower's `repeats` is never derived from timing; it must
+  be supplied explicitly.
+- Each follower must trigger at an integer ratio of the group's own rate;
+  each follower's total duration must not exceed the group's own livetime
+  (`validate_trigger_sequence`, checked against the derived
+  `TriggerSequence` regardless of where `repeats` came from).
 - If `duration` is given explicitly and is less than the detector-derived
   per-point duration: raises `ValueError`.
 
@@ -1243,11 +1257,11 @@ A spec serializes to JSON using pydantic's discriminated union on the
 *whole* spec tree (each node has a `type` literal field: `"Linspace"`,
 `"Product"`, `"Sync"`, `"Monitors"`, `"ContinuousStreams"`, etc.) — not
 just the motion nodes. `Sync` serializes its own fields inline, including
-`trigger_plan`: `TriggerGroup`/`TriggerPlan` are pydantic `BaseModel`s and
-round-trip natively, including partially-unresolved timing
-(`livetime`/`deadtime` still `None`) — `frozenset` fields become plain
-JSON arrays. A bare `TriggerGroup` (no children) is stored and serialized
-as-is where given, not eagerly wrapped in a trivial `TriggerPlan`.
+`trigger_group`: `TriggerGroup`/`TriggerFollower` are pydantic
+`BaseModel`s and round-trip natively, including partially-unresolved
+timing (`livetime`/`deadtime` still `None`) — `frozenset` fields become
+plain JSON arrays. A `TriggerGroup` with no `followers` (the common case)
+serializes with an empty `followers` list, no special-casing needed.
 
 `TriggerRepeat`/`TriggerSequence` are **not** part of a spec's own
 serialization at all — they're plain (non-pydantic) dataclasses, pure
@@ -1274,16 +1288,14 @@ A full round trip via `model_dump_json()`/`model_validate_json()` (or the
       },
       "fly": true,
       "stream_name": "primary",
-      "trigger_plan": {
-        "root": {
-          "detectors": ["saxs", "waxs"],
-          "exposures_per_collection": 1, "collections_per_event": 1,
-          "livetime": 0.003, "deadtime": 0.001
-        },
-        "children": [
+      "trigger_group": {
+        "detectors": ["saxs", "waxs"],
+        "exposures_per_collection": 1, "collections_per_event": 1,
+        "livetime": 0.003, "deadtime": 0.001,
+        "followers": [
           {"detectors": ["timestamp", "x_enc", "y_enc"],
            "exposures_per_collection": 10, "collections_per_event": 1,
-           "livetime": 0.000299992, "deadtime": 8e-9}
+           "livetime": 0.000299992, "deadtime": 8e-9, "repeats": 10}
         ]
       },
       "duration": null

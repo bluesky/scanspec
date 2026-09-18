@@ -56,8 +56,8 @@ from .core import (
     LinearSource,
     MonitorStream,
     Scan,
+    TriggerFollower,
     TriggerGroup,
-    TriggerPlan,
     TriggerRepeat,
     TriggerSequence,
     WindowedStream,
@@ -848,7 +848,7 @@ def _compute_active_stream_sets(
         return result
 
     if isinstance(spec, Sync):
-        if spec.trigger_plan is None:
+        if spec.trigger_group is None:
             return []
         return [frozenset({spec.stream_name})]
     if isinstance(spec, Concat):
@@ -878,81 +878,69 @@ def _compute_active_stream_sets(
     return []
 
 
-def _as_trigger_plan(
-    plan: TriggerPlan[DetectorT] | TriggerGroup[DetectorT],
-) -> TriggerPlan[DetectorT]:
-    """Normalize a bare TriggerGroup into a childless TriggerPlan.
-
-    Sync.trigger_plan accepts either shape as input but does not
-    eagerly convert one into the other at construction time -- a bare
-    TriggerGroup is stored and serialized exactly as given, so JSON output
-    stays lossless (reflects what the caller actually wrote) rather than
-    canonical (always one wire shape). This is called instead at each real
-    point of use (compile(), unique-detector validation) that needs
-    root/children access.
-    """
-    if isinstance(plan, TriggerGroup):
-        return TriggerPlan(root=plan)
-    return plan
-
-
-def _resolved_timing(group: TriggerGroup[DetectorT]) -> tuple[float, float]:
+def _resolved_timing(
+    detectors: frozenset[DetectorT], livetime: float | None, deadtime: float | None
+) -> tuple[float, float]:
     """Return (livetime, deadtime), raising if either is unresolved."""
-    lt, dt = group.livetime, group.deadtime
-    if lt is None or dt is None:
+    if livetime is None or deadtime is None:
         raise ValueError(
-            f"livetime and deadtime must be set on TriggerGroup before "
-            f"compile(); got livetime={lt}, deadtime={dt}"
+            f"livetime and deadtime must be resolved before compile() for "
+            f"detectors {sorted(str(d) for d in detectors)}; got "
+            f"livetime={livetime}, deadtime={deadtime}"
         )
-    return lt, dt
+    return livetime, deadtime
 
 
-def _trigger_group_to_repeat(
-    group: TriggerGroup[DetectorT],
-    *,
-    parent_livetime: float | None,
-    inner_length: int,
-    fly: bool,
+def _group_to_repeat(
+    group: TriggerGroup[DetectorT], *, inner_length: int, fly: bool
 ) -> TriggerRepeat[DetectorT]:
-    """Resolve one caller-authored TriggerGroup into a compiled TriggerRepeat.
+    """Resolve a TriggerGroup's own detectors into the root TriggerRepeat.
 
-    Root (``parent_livetime`` is ``None``): ``repeats`` is tied to the scan's
-    own geometry -- ``exposures_per_event``, scaled by ``inner_length`` for a
-    fly scan.
-
-    Child (``parent_livetime`` given): ``repeats`` is how many times its own
-    period fits inside the parent's livetime window -- independent of
-    ``inner_length``/``fly``, since the parent's own ``repeats`` already
-    carries that scaling. Derived, not caller-specified: a child's
-    ``exposures_per_collection``/``collections_per_event`` do not feed this.
+    repeats is tied to the scan's own geometry -- exposures_per_event,
+    scaled by inner_length for a fly scan. Never caller-suppliable: this is
+    the literal motion<->trigger binding Sync exists to perform, not an
+    authoring input (ADR 0008 Decision 1).
     """
-    lt, dt = _resolved_timing(group)
-    if parent_livetime is None:
-        repeats = group.exposures_per_event * (inner_length if fly else 1)
-    else:
-        child_period = lt + dt
-        ratio = parent_livetime / child_period
-        if not isclose(ratio, round(ratio), rel_tol=1e-3, abs_tol=1e-6):
-            raise ValueError(
-                f"Child detector(s) {sorted(str(d) for d in group.detectors)} "
-                f"do not trigger at an integer ratio of the parent rate: "
-                f"parent_livetime {parent_livetime} / child_period "
-                f"{child_period} = {ratio}"
-            )
-        repeats = round(ratio)
+    lt, dt = _resolved_timing(group.detectors, group.livetime, group.deadtime)
+    repeats = group.exposures_per_event * (inner_length if fly else 1)
     return TriggerRepeat(
         detectors=group.detectors, repeats=repeats, livetime=lt, deadtime=dt
     )
 
 
-def _trigger_group_to_detector_group(
-    group: TriggerGroup[DetectorT],
-) -> DetectorGroup[DetectorT]:
-    """Carry a TriggerGroup's shape/timing through unchanged -- no num involved.
+def _follower_to_repeat(
+    follower: TriggerFollower[DetectorT],
+) -> TriggerRepeat[DetectorT]:
+    """Resolve a caller-authored TriggerFollower into a compiled TriggerRepeat.
 
-    Called only after the corresponding TriggerRepeat derivation has already
-    run (see Sync.compile()), which guarantees livetime/deadtime are
-    resolved by this point.
+    repeats/livetime/deadtime must all already be concrete -- a follower's
+    rate relative to the group is genuinely external information (detector
+    hardware timing), so nothing here is derived from the spec tree. No
+    attempt is made to compute a missing repeats from livetime/deadtime
+    (ADR 0008 Decision 3) -- a caller or ophyd-async must supply all three
+    explicitly. The integer-ratio/duration checks against the group's own
+    repeat still run afterwards, via validate_trigger_sequence.
+    """
+    if follower.repeats is None:
+        raise ValueError(
+            f"repeats must be set on TriggerFollower before compile() for "
+            f"detectors {sorted(str(d) for d in follower.detectors)}"
+        )
+    lt, dt = _resolved_timing(follower.detectors, follower.livetime, follower.deadtime)
+    return TriggerRepeat(
+        detectors=follower.detectors, repeats=follower.repeats, livetime=lt, deadtime=dt
+    )
+
+
+def _trigger_group_to_detector_group(
+    group: TriggerGroup[DetectorT] | TriggerFollower[DetectorT],
+) -> DetectorGroup[DetectorT]:
+    """Carry a TriggerGroup/TriggerFollower's shape/timing through unchanged.
+
+    No repeats involved -- both shape factors pass through unchanged. Called
+    only after the corresponding TriggerRepeat derivation has already run
+    (see Sync.compile()), which guarantees livetime/deadtime are resolved
+    by this point.
     """
     return DetectorGroup(
         exposures_per_collection=group.exposures_per_collection,
@@ -963,26 +951,16 @@ def _trigger_group_to_detector_group(
     )
 
 
-def _trigger_plan_to_sequence(
-    plan: TriggerPlan[DetectorT],
+def _group_to_sequence(
+    group: TriggerGroup[DetectorT],
     *,
     inner_length: int,
     fly: bool,
 ) -> TriggerSequence[DetectorT]:
-    """Derive a compiled TriggerSequence from a caller-authored TriggerPlan."""
-    parent = _trigger_group_to_repeat(
-        plan.root, parent_livetime=None, inner_length=inner_length, fly=fly
-    )
-    children = [
-        _trigger_group_to_repeat(
-            child,
-            parent_livetime=parent.livetime,
-            inner_length=inner_length,
-            fly=fly,
-        )
-        for child in plan.children
-    ]
-    return TriggerSequence(root=parent, children=children)
+    """Derive a compiled TriggerSequence from a caller-authored TriggerGroup."""
+    root = _group_to_repeat(group, inner_length=inner_length, fly=fly)
+    children = [_follower_to_repeat(follower) for follower in group.followers]
+    return TriggerSequence(root=root, children=children)
 
 
 class Sync(Spec[AxisT, DetectorT, MonitorT]):
@@ -999,16 +977,12 @@ class Sync(Spec[AxisT, DetectorT, MonitorT]):
         default="primary",
         description="Bluesky stream name.",
     )
-    trigger_plan: TriggerPlan[DetectorT] | TriggerGroup[DetectorT] | None = Field(
+    trigger_group: TriggerGroup[DetectorT] | None = Field(
         default=None,
         description=(
             "Caller-authored trigger hierarchy for the windowed stream. "
             "compile() derives both the compiled TriggerSequence and the "
-            "list[DetectorGroup] the windowed stream needs from this. A "
-            "bare TriggerGroup is accepted for the trivial no-children "
-            "case, stored and serialized as-is rather than eagerly wrapped "
-            "-- see _as_trigger_plan(), called wherever root/children are "
-            "actually needed."
+            "list[DetectorGroup] the windowed stream needs from this."
         ),
     )
     duration: float | None = Field(
@@ -1025,18 +999,17 @@ class Sync(Spec[AxisT, DetectorT, MonitorT]):
         scan = self.spec.compile()
         trigger_sequences: list[TriggerSequence[DetectorT]] = []
         detector_groups: list[DetectorGroup[DetectorT]] = []
-        if self.trigger_plan is not None:
-            plan = _as_trigger_plan(self.trigger_plan)
+        if self.trigger_group is not None:
+            group = self.trigger_group
             inner_length = scan.generators[-1].length if scan.generators else 1
             fly = self.fly and bool(scan.generators)
             trigger_sequences = [
-                _trigger_plan_to_sequence(plan, inner_length=inner_length, fly=fly)
+                _group_to_sequence(group, inner_length=inner_length, fly=fly)
             ]
             for ts in trigger_sequences:
                 validate_trigger_sequence(ts)
             detector_groups = [
-                _trigger_group_to_detector_group(group)
-                for group in [plan.root, *plan.children]
+                _trigger_group_to_detector_group(g) for g in [group, *group.followers]
             ]
         duration = self._compute_duration(trigger_sequences, scan.generators)
         if scan.generators:

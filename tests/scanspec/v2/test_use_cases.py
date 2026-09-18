@@ -12,8 +12,8 @@ from scanspec.v2.core import (
     DetectorGroup,
     MonitorStream,
     Scan,
+    TriggerFollower,
     TriggerGroup,
-    TriggerPlan,
     TriggerRepeat,
 )
 from scanspec.v2.specs import (
@@ -189,19 +189,19 @@ def test_flagship_multi_stream_concat():
 
     diff_acq: Sync[str, str, Never] = Sync(
         Static("e", 7.0),
-        trigger_plan=diff_group,
+        trigger_group=diff_group,
         stream_name="diff",
     )
     spec_fwd: Sync[str, str, Never] = Sync(
         Linspace("e", 7.0, 7.1, 1000),
         fly=True,
-        trigger_plan=spec_group,
+        trigger_group=spec_group,
         stream_name="spec",
     )
     spec_rev: Sync[str, str, Never] = Sync(
         Linspace("e", 7.1, 7.0, 1000),
         fly=True,
-        trigger_plan=spec_group,
+        trigger_group=spec_group,
         stream_name="spec",
     )
     spec: Repeat[str, str, Never] = Repeat(
@@ -311,27 +311,25 @@ def test_maximal_fly_step(fly: bool):
     sync: Sync[str, str, str] = Sync(
         Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100)),
         fly=fly,
-        # Which TriggerGroup becomes the parent is still caller-decided (root
-        # vs children); num is now auto-derived by compile() from timing,
-        # not hand-computed.
-        trigger_plan=TriggerPlan(
-            root=TriggerGroup(
-                detectors=frozenset({"saxs", "waxs"}),
-                exposures_per_collection=1,
-                collections_per_event=1,
-                livetime=0.003,
-                deadtime=0.001,
-            ),
-            children=[
+        trigger_group=TriggerGroup(
+            detectors=frozenset({"saxs", "waxs"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+            followers=[
                 # Encoders trigger 10x per saxs/waxs repeat: period must
-                # divide the parent's 0.003s livetime exactly, so livetime =
-                # 0.003/10 - deadtime.
-                TriggerGroup(
+                # divide the group's 0.003s livetime exactly, so livetime =
+                # 0.003/10 - deadtime. repeats is caller-supplied now (ADR
+                # 0008), not derived from the ratio -- 10 is the value that
+                # ratio would have produced.
+                TriggerFollower(
                     detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
                     exposures_per_collection=10,
                     collections_per_event=1,
                     livetime=0.000299992,
                     deadtime=8e-9,
+                    repeats=10,
                 ),
             ],
         ),
@@ -457,7 +455,7 @@ def test_panda_sequence_table():
     spec: Sync[str, str, Never] = Sync(
         Product(Linspace("y", 0, 5, 3), ~Linspace("x", 0, 10, 50)),
         fly=True,
-        trigger_plan=TriggerGroup(
+        trigger_group=TriggerGroup(
             detectors=frozenset({"saxs", "waxs"}),
             exposures_per_collection=1,
             collections_per_event=1,
@@ -502,7 +500,7 @@ def test_motor_record_fly():
     spec: Sync[str, str, Never] = Sync(
         Linspace("x", 0, 10, 100),
         fly=True,
-        trigger_plan=TriggerGroup(
+        trigger_group=TriggerGroup(
             detectors=frozenset({"det1"}),
             exposures_per_collection=1,
             collections_per_event=1,
@@ -548,7 +546,7 @@ def test_pmac_trajectory_positions():
     spec: Sync[str, str, Never] = Sync(
         Product(Linspace("y", 0, 1, 2), ~Linspace("x", 0, 10, 100)),
         fly=True,
-        trigger_plan=TriggerGroup(
+        trigger_group=TriggerGroup(
             detectors=frozenset({"det1"}),
             exposures_per_collection=1,
             collections_per_event=1,
@@ -659,23 +657,22 @@ def test_analysis_reshaping():
         fly=True,
         # This test doesn't assert on trigger_sequences, so exact values
         # only need to be physically valid (innermost dimension x has
-        # length 5, so parent num = 5 × exposures_per_event(1) = 5).
-        trigger_plan=TriggerPlan(
-            root=TriggerGroup(
-                detectors=frozenset({"det1"}),
-                exposures_per_collection=1,
-                collections_per_event=1,
-                livetime=0.003,
-                deadtime=0.001,
-            ),
-            children=[
+        # length 5, so group repeats = 5 × exposures_per_event(1) = 5).
+        trigger_group=TriggerGroup(
+            detectors=frozenset({"det1"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+            followers=[
                 # See test_maximal_fly_step for how this livetime is derived.
-                TriggerGroup(
+                TriggerFollower(
                     detectors=frozenset({"enc"}),
                     exposures_per_collection=10,
                     collections_per_event=1,
                     livetime=0.000299992,
                     deadtime=8e-9,
+                    repeats=10,
                 ),
             ],
         ),
