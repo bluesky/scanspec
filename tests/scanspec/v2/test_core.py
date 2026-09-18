@@ -26,17 +26,20 @@ from scanspec.v2.core import (
 
 def test_trigger_repeat():
     tr = TriggerRepeat(
-        detectors=frozenset({"det1"}), num=500, livetime=0.003, deadtime=0.001
+        detectors=frozenset({"det1"}), repeats=500, livetime=0.003, deadtime=0.001
     )
     assert tr.detectors == frozenset({"det1"})
-    assert tr.num == 500
+    assert tr.repeats == 500
     assert tr.livetime == 0.003
     assert tr.deadtime == 0.001
 
 
 def test_trigger_sequence():
     tr = TriggerRepeat(
-        detectors=frozenset({"det1", "det2"}), num=100, livetime=0.01, deadtime=0.001
+        detectors=frozenset({"det1", "det2"}),
+        repeats=100,
+        livetime=0.01,
+        deadtime=0.001,
     )
     ts = TriggerSequence(root=tr, children=[])
     assert ts.root.detectors == frozenset({"det1", "det2"})
@@ -46,13 +49,19 @@ def test_trigger_sequence():
 
 def test_trigger_sequence_children():
     root = TriggerRepeat(
-        detectors=frozenset({"saxs", "waxs"}), num=100, livetime=0.009, deadtime=0.001
+        detectors=frozenset({"saxs", "waxs"}),
+        repeats=100,
+        livetime=0.009,
+        deadtime=0.001,
     )
     child_a = TriggerRepeat(
-        detectors=frozenset({"tetramm"}), num=72, livetime=0.000124, deadtime=0.000001
+        detectors=frozenset({"tetramm"}),
+        repeats=72,
+        livetime=0.000124,
+        deadtime=0.000001,
     )
     child_b = TriggerRepeat(
-        detectors=frozenset({"panda"}), num=45, livetime=0.00019, deadtime=0.00001
+        detectors=frozenset({"panda"}), repeats=45, livetime=0.00019, deadtime=0.00001
     )
     ts = TriggerSequence(root=root, children=[child_a, child_b])
     assert ts.root.detectors == frozenset({"saxs", "waxs"})
@@ -92,7 +101,7 @@ def test_axis_motion():
 
 def test_window():
     tr = TriggerRepeat(
-        detectors=frozenset({"det1"}), num=10, livetime=0.001, deadtime=0.0001
+        detectors=frozenset({"det1"}), repeats=10, livetime=0.001, deadtime=0.0001
     )
     ts = TriggerSequence(root=tr, children=[])
     w = Window(
@@ -112,7 +121,7 @@ def test_window():
 
 def test_window_previous():
     tr = TriggerRepeat(
-        detectors=frozenset({"det1"}), num=10, livetime=0.001, deadtime=0.0001
+        detectors=frozenset({"det1"}), repeats=10, livetime=0.001, deadtime=0.0001
     )
     ts = TriggerSequence(root=tr, children=[])
     first = Window(
@@ -177,13 +186,13 @@ def test_truncate_trigger_sequence():
     seqs = [
         TriggerSequence(
             root=TriggerRepeat(
-                detectors=frozenset({"a"}), num=5, livetime=0.01, deadtime=0.001
+                detectors=frozenset({"a"}), repeats=5, livetime=0.01, deadtime=0.001
             ),
             children=[],
         ),
         TriggerSequence(
             root=TriggerRepeat(
-                detectors=frozenset({"b"}), num=3, livetime=0.02, deadtime=0.002
+                detectors=frozenset({"b"}), repeats=3, livetime=0.02, deadtime=0.002
             ),
             children=[],
         ),
@@ -194,11 +203,11 @@ def test_truncate_trigger_sequence():
     assert t0 == seqs
 
     # trigger_index=6 → first seq fully consumed (5),
-    # second seq reduced from 3 to 2 (6-5=1 consumed → num=2)
+    # second seq reduced from 3 to 2 (6-5=1 consumed → repeats=2)
     t6 = _truncate_trigger_sequence(seqs, 6)
     assert len(t6) == 1
     assert t6[0].root.detectors == frozenset({"b"})
-    assert t6[0].root.num == 2
+    assert t6[0].root.repeats == 2
     assert t6[0].children == []
 
     # trigger_index=8 → all consumed, empty result
@@ -209,17 +218,19 @@ def test_truncate_trigger_sequence():
 def test_truncate_trigger_sequence_blank_replays_in_full():
     burst1: TriggerSequence[str] = TriggerSequence(
         root=TriggerRepeat(
-            detectors=frozenset({"det"}), num=100, livetime=0.003, deadtime=0.001
+            detectors=frozenset({"det"}), repeats=100, livetime=0.003, deadtime=0.001
         ),
         children=[],
     )
     blank: TriggerSequence[str] = TriggerSequence(
-        root=TriggerRepeat(detectors=frozenset(), num=1, livetime=0.0, deadtime=50.0),
+        root=TriggerRepeat(
+            detectors=frozenset(), repeats=1, livetime=0.0, deadtime=50.0
+        ),
         children=[],
     )
     burst2: TriggerSequence[str] = TriggerSequence(
         root=TriggerRepeat(
-            detectors=frozenset({"det"}), num=200, livetime=0.003, deadtime=0.001
+            detectors=frozenset({"det"}), repeats=200, livetime=0.003, deadtime=0.001
         ),
         children=[],
     )
@@ -237,25 +248,26 @@ def test_truncate_trigger_sequence_blank_replays_in_full():
     # and burst2 downstream are untouched.
     result_mid = _truncate_trigger_sequence(seqs, 60)
     assert len(result_mid) == 3
-    assert result_mid[0].root.num == 40
+    assert result_mid[0].root.repeats == 40
     assert result_mid[1] == blank
     assert result_mid[2] == burst2
 
 
 def test_child_duration_exceeds_parent_livetime_raises():
-    """A clean integer ratio (period=0.0003, ratio=10) but a hand-set num=11
-    makes total child duration 0.0033 > the 0.003 root livetime.
+    """A clean integer ratio (period=0.0003, ratio=10) but a hand-set
+    repeats=11 makes total child duration 0.0033 > the 0.003 root livetime.
 
     Only reachable by constructing TriggerRepeat/TriggerSequence directly
     (the manually-constructed-Window path, ADR 0007 Assumption A1) -- under
-    ADR 0008, a child authored via TriggerPlan always has num *derived* from
-    the ratio, so TriggerPlan itself can no longer produce this combination.
+    ADR 0008, a child authored via TriggerPlan always has repeats *derived*
+    from the ratio, so TriggerPlan itself can no longer produce this
+    combination.
     """
     root = TriggerRepeat(
-        detectors=frozenset({"saxs"}), num=100, livetime=0.003, deadtime=0.001
+        detectors=frozenset({"saxs"}), repeats=100, livetime=0.003, deadtime=0.001
     )
     child = TriggerRepeat(
-        detectors=frozenset({"enc"}), num=11, livetime=0.0002, deadtime=0.0001
+        detectors=frozenset({"enc"}), repeats=11, livetime=0.0002, deadtime=0.0001
     )
     seq = TriggerSequence(root=root, children=[child])
     with pytest.raises(ValueError, match="exceeds parent livetime"):

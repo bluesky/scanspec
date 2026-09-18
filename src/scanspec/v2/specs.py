@@ -916,19 +916,19 @@ def _trigger_group_to_repeat(
 ) -> TriggerRepeat[DetectorT]:
     """Resolve one caller-authored TriggerGroup into a compiled TriggerRepeat.
 
-    Root (``parent_livetime`` is ``None``): ``num`` is tied to the scan's own
-    geometry -- ``exposures_per_event``, scaled by ``inner_length`` for a fly
-    scan.
+    Root (``parent_livetime`` is ``None``): ``repeats`` is tied to the scan's
+    own geometry -- ``exposures_per_event``, scaled by ``inner_length`` for a
+    fly scan.
 
-    Child (``parent_livetime`` given): ``num`` is how many times its own
+    Child (``parent_livetime`` given): ``repeats`` is how many times its own
     period fits inside the parent's livetime window -- independent of
-    ``inner_length``/``fly``, since the parent's own ``num`` already carries
-    that scaling. Derived, not caller-specified: a child's
+    ``inner_length``/``fly``, since the parent's own ``repeats`` already
+    carries that scaling. Derived, not caller-specified: a child's
     ``exposures_per_collection``/``collections_per_event`` do not feed this.
     """
     lt, dt = _resolved_timing(group)
     if parent_livetime is None:
-        num = group.exposures_per_event * (inner_length if fly else 1)
+        repeats = group.exposures_per_event * (inner_length if fly else 1)
     else:
         child_period = lt + dt
         ratio = parent_livetime / child_period
@@ -939,8 +939,10 @@ def _trigger_group_to_repeat(
                 f"parent_livetime {parent_livetime} / child_period "
                 f"{child_period} = {ratio}"
             )
-        num = round(ratio)
-    return TriggerRepeat(detectors=group.detectors, num=num, livetime=lt, deadtime=dt)
+        repeats = round(ratio)
+    return TriggerRepeat(
+        detectors=group.detectors, repeats=repeats, livetime=lt, deadtime=dt
+    )
 
 
 def _trigger_group_to_detector_group(

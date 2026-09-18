@@ -732,7 +732,7 @@ def test_with_start_trigger_index_truncates():
     windows_list = list(resumed)
     assert len(windows_list) == 1
     ts = windows_list[0].trigger_sequences[0]
-    assert ts.root.num == 7  # 10 - 3 = 7
+    assert ts.root.repeats == 7  # 10 - 3 = 7
     assert ts.root.detectors == frozenset({"det"})
 
 
@@ -849,7 +849,7 @@ def test_step_scan_trigger_sequences():
         ts = w.trigger_sequences[0]
         assert ts.root.detectors == frozenset({"det1"})
         assert ts.root == TriggerRepeat(
-            detectors=frozenset({"det1"}), num=1, livetime=0.01, deadtime=0.001
+            detectors=frozenset({"det1"}), repeats=1, livetime=0.01, deadtime=0.001
         )
 
 
@@ -868,9 +868,9 @@ def test_fly_scan_trigger_sequences():
     assert len(ws) == 1
     ts = ws[0].trigger_sequences[0]
     assert ts.root.detectors == frozenset({"det1"})
-    # fly: num = length * exposures_per_collection = 5 * 1
+    # fly: repeats = length * exposures_per_collection = 5 * 1
     assert ts.root == TriggerRepeat(
-        detectors=frozenset({"det1"}), num=5, livetime=0.003, deadtime=0.001
+        detectors=frozenset({"det1"}), repeats=5, livetime=0.003, deadtime=0.001
     )
 
 
@@ -906,18 +906,18 @@ def test_multirate_trigger_sequences():
     ts = tss[0]
     assert ts.root.detectors == frozenset({"saxs"})
     assert ts.root == TriggerRepeat(
-        detectors=frozenset({"saxs"}), num=100, livetime=0.003, deadtime=0.001
+        detectors=frozenset({"saxs"}), repeats=100, livetime=0.003, deadtime=0.001
     )
     assert len(ts.children) == 1
     assert ts.children[0] == TriggerRepeat(
         detectors=frozenset({"encoder"}),
-        num=10,
+        repeats=10,
         livetime=0.000299992,
         deadtime=8e-9,
     )
 
 
-def test_collections_per_event_multiplies_parent_num():
+def test_collections_per_event_multiplies_parent_repeats():
     # exposures_per_event = exposures_per_collection * collections_per_event = 2 * 3 = 6
     tg_step = TriggerGroup(
         detectors=frozenset({"det1"}),
@@ -932,7 +932,7 @@ def test_collections_per_event_multiplies_parent_num():
     for w in windows(step_scan):
         ts = w.trigger_sequences[0]
         assert ts.root == TriggerRepeat(
-            detectors=frozenset({"det1"}), num=6, livetime=0.01, deadtime=0.001
+            detectors=frozenset({"det1"}), repeats=6, livetime=0.01, deadtime=0.001
         )
 
     tg_fly = TriggerGroup(
@@ -946,9 +946,9 @@ def test_collections_per_event_multiplies_parent_num():
         Linspace("x", 0.0, 10.0, 100), fly=True, trigger_plan=tg_fly
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ts = windows(fly_scan)[0].trigger_sequences[0]
-    # fly: num = length * exposures_per_event = 100 * 6
+    # fly: repeats = length * exposures_per_event = 100 * 6
     assert ts.root == TriggerRepeat(
-        detectors=frozenset({"det1"}), num=600, livetime=0.003, deadtime=0.001
+        detectors=frozenset({"det1"}), repeats=600, livetime=0.003, deadtime=0.001
     )
 
 

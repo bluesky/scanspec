@@ -256,7 +256,10 @@ def test_flagship_multi_stream_concat():
         ts = w_diff.trigger_sequences[0]
         assert ts.root.detectors == frozenset({"diffraction"})
         assert ts.root == TriggerRepeat(
-            detectors=frozenset({"diffraction"}), num=1, livetime=0.01, deadtime=0.001
+            detectors=frozenset({"diffraction"}),
+            repeats=1,
+            livetime=0.01,
+            deadtime=0.001,
         )
 
         # Window 1: fly e 7.0 → 7.1
@@ -271,7 +274,7 @@ def test_flagship_multi_stream_concat():
         assert w_fwd.trigger_sequences[0].root.detectors == frozenset({"spectroscopy"})
         assert w_fwd.trigger_sequences[0].root == TriggerRepeat(
             detectors=frozenset({"spectroscopy"}),
-            num=1000,
+            repeats=1000,
             livetime=0.003,
             deadtime=0.001,
         )
@@ -287,7 +290,7 @@ def test_flagship_multi_stream_concat():
         assert w_rev.trigger_sequences[0].root.detectors == frozenset({"spectroscopy"})
         assert w_rev.trigger_sequences[0].root == TriggerRepeat(
             detectors=frozenset({"spectroscopy"}),
-            num=1000,
+            repeats=1000,
             livetime=0.003,
             deadtime=0.001,
         )
@@ -384,7 +387,7 @@ def test_maximal_fly_step(fly: bool):
         assert ts.children[0].detectors == frozenset({"timestamp", "x_enc", "y_enc"})
         assert ts.children[0] == TriggerRepeat(
             detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
-            num=10,
+            repeats=10,
             livetime=0.000299992,
             deadtime=8e-9,
         )
@@ -392,14 +395,14 @@ def test_maximal_fly_step(fly: bool):
         if fly:
             assert ts.root == TriggerRepeat(
                 detectors=frozenset({"saxs", "waxs"}),
-                num=100,
+                repeats=100,
                 livetime=0.003,
                 deadtime=0.001,
             )
         else:
             assert ts.root == TriggerRepeat(
                 detectors=frozenset({"saxs", "waxs"}),
-                num=1,
+                repeats=1,
                 livetime=0.003,
                 deadtime=0.001,
             )
@@ -471,7 +474,7 @@ def test_panda_sequence_table():
 
         # Trigger repeat is baked — consumer reads it directly for SeqTable
         tr = seq.root
-        assert tr.num == 50
+        assert tr.repeats == 50
         assert tr.livetime == approx(0.003)
         assert tr.deadtime == approx(0.001)
 

@@ -22,7 +22,7 @@ class TriggerRepeat(Generic[DetectorT]):
     """One resolved, repeating trigger block within a TriggerSequence.
 
     detectors: the set of detectors this block fires.
-    num:       number of times this block repeats.
+    repeats:   how many times this block executes.
     livetime:  detector exposure time in seconds.
     deadtime:  detector readout/spacing time in seconds.
 
@@ -36,7 +36,7 @@ class TriggerRepeat(Generic[DetectorT]):
     """
 
     detectors: frozenset[DetectorT]
-    num: int
+    repeats: int
     livetime: float
     deadtime: float
 
@@ -579,17 +579,17 @@ def _truncate_trigger_sequence(
         if seq.root.livetime == 0.0:
             result.append(seq)
             continue
-        num = seq.root.num
+        repeats = seq.root.repeats
         if remaining <= 0:
             result.append(seq)
-        elif remaining >= num:
-            remaining -= num
+        elif remaining >= repeats:
+            remaining -= repeats
         else:
             result.append(
                 TriggerSequence(
                     root=TriggerRepeat(
                         detectors=seq.root.detectors,
-                        num=num - remaining,
+                        repeats=repeats - remaining,
                         livetime=seq.root.livetime,
                         deadtime=seq.root.deadtime,
                     ),
@@ -643,7 +643,7 @@ def validate_trigger_sequence(seq: TriggerSequence[DetectorT]) -> None:
                 f"rate: parent_livetime {parent_lt} / child_period "
                 f"{child_period} = {ratio}"
             )
-        child_dur = child.num * child_period
+        child_dur = child.repeats * child_period
         if child_dur > parent_lt and not isclose(
             child_dur, parent_lt, rel_tol=1e-3, abs_tol=1e-6
         ):
@@ -653,8 +653,8 @@ def validate_trigger_sequence(seq: TriggerSequence[DetectorT]) -> None:
 
 
 def trigger_sequences_duration(seqs: list[TriggerSequence[DetectorT]]) -> float:
-    """Total duration of *seqs*: sum of ``num * (livetime + deadtime)``."""
-    return sum(ts.root.num * (ts.root.livetime + ts.root.deadtime) for ts in seqs)
+    """Total duration of *seqs*: sum of ``repeats * (livetime + deadtime)``."""
+    return sum(ts.root.repeats * (ts.root.livetime + ts.root.deadtime) for ts in seqs)
 
 
 class Scan(Generic[AxisT, DetectorT, MonitorT]):

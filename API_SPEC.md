@@ -52,7 +52,7 @@ class TriggerRepeat(Generic[DetectorT]):
     """One resolved, repeating trigger block within a TriggerSequence.
 
     detectors: the set of detectors this block fires.
-    num:       number of times this block repeats.
+    repeats:   how many times this block executes.
     livetime:  detector exposure time in seconds.
     deadtime:  detector readout/spacing time in seconds.
 
@@ -66,7 +66,7 @@ class TriggerRepeat(Generic[DetectorT]):
     """
 
     detectors: frozenset[DetectorT]
-    num: int
+    repeats: int
     livetime: float
     deadtime: float
 
@@ -185,9 +185,9 @@ class Window(Generic[AxisT, DetectorT]):
     non_linear: bool
 
     # Total time for this collection window, in seconds.
-    # Equals sum(seq.root.num * (seq.root.livetime + seq.root.deadtime) for
-    # all trigger_sequences) -- children run inside the parent livetime and
-    # do not extend it.
+    # Equals sum(seq.root.repeats * (seq.root.livetime + seq.root.deadtime)
+    # for all trigger_sequences) -- children run inside the parent livetime
+    # and do not extend it.
     duration: float
 
     # Detector triggering for this window, in execution order.
@@ -525,7 +525,7 @@ async def run_panda_flyscan(
         # model stops at "trigger N times, this long, this often."
         tr = seq.root
         rows += SeqTable.row(
-            repeats=tr.num,
+            repeats=tr.repeats,
             trigger=SeqTrigger.IMMEDIATE,
             time1=int(tr.livetime * 1e6),
             time2=int(tr.deadtime * 1e6),
@@ -567,7 +567,8 @@ async def run_panda_flyscan_chained(
         if s.root.detectors == frozenset({"saxs", "waxs"})
     )
     tr = seq.root
-    # children are flat TriggerRepeats directly -- no nested .repeats list.
+    # children are flat TriggerRepeats directly -- no nested TriggerChild
+    # wrapper (removed, ADR 0008) with its own list to index into.
     panda_rep = next(c for c in seq.children if c.detectors == frozenset({"panda"}))
     tetramm_rep = next(c for c in seq.children if c.detectors == frozenset({"tetramm"}))
 
@@ -588,7 +589,7 @@ async def run_panda_flyscan_chained(
         time2=int(panda_rep.deadtime / 2 * 1e6), outa2=True, outb2=False,
     )
     seq1_rows += SeqTable.row(  # 3: collapsible middle -- child's full livetime+deadtime
-        trigger=SeqTrigger.IMMEDIATE, repeats=panda_rep.num - 1,
+        trigger=SeqTrigger.IMMEDIATE, repeats=panda_rep.repeats - 1,
         time1=int(panda_rep.livetime * 1e6), outa1=True, outb1=True,
         time2=int(panda_rep.deadtime * 1e6), outa2=True, outb2=False,
     )
@@ -616,7 +617,7 @@ async def run_panda_flyscan_chained(
         time2=int(tetramm_rep.deadtime / 2 * 1e6), outa2=False,
     )
     seq2_rows += SeqTable.row(  # B: collapsible middle
-        trigger=SeqTrigger.IMMEDIATE, repeats=tetramm_rep.num - 1,
+        trigger=SeqTrigger.IMMEDIATE, repeats=tetramm_rep.repeats - 1,
         time1=int(tetramm_rep.livetime * 1e6), outa1=True,
         time2=int(tetramm_rep.deadtime * 1e6), outa2=False,
     )
@@ -636,7 +637,7 @@ async def run_panda_flyscan_chained(
 |---|---|---|---|---|---|---|---|---|
 | 1 | BITB | 1 | — | — | — | ½·`tr.deadtime` | 0 | 0 |
 | 2 | — | 1 | — | — | — | ½·`panda_rep.deadtime` | 1 | 0 |
-| 3 | — | `panda_rep.num − 1` | `panda_rep.livetime` | 1 | 1 | `panda_rep.deadtime` | 1 | 0 |
+| 3 | — | `panda_rep.repeats − 1` | `panda_rep.livetime` | 1 | 1 | `panda_rep.deadtime` | 1 | 0 |
 | 4 | — | 1 | `panda_rep.livetime` | 1 | 1 | ½·`panda_rep.deadtime` | 1 | 0 |
 | 5 | — | 1 | — | — | — | ½·`tr.deadtime` | 0 | 0 |
 
@@ -648,7 +649,7 @@ Loops to row 1 on the next `BITB` pulse for the next parent repeat.
 | Row | TRIG | REP | T1 | OA1 | T2 | OA2 |
 |---|---|---|---|---|---|---|
 | A | BITA | 1 | — | — | ½·`tetramm_rep.deadtime` | 0 |
-| B | — | `tetramm_rep.num − 1` | `tetramm_rep.livetime` | 1 | `tetramm_rep.deadtime` | 0 |
+| B | — | `tetramm_rep.repeats − 1` | `tetramm_rep.livetime` | 1 | `tetramm_rep.deadtime` | 0 |
 | C | — | 1 | `tetramm_rep.livetime` | 1 | ½·`tetramm_rep.deadtime` | 0 |
 
 ### 3. Flyscan — Motor record
@@ -1105,7 +1106,7 @@ sync: Sync[str, str, str] = Sync(
     full_motion,
     fly=True,           # innermost dimension (x) sweeps continuously
     stream_name="primary",
-    # Which TriggerGroup becomes root vs child is caller-decided; num is
+    # Which TriggerGroup becomes root vs child is caller-decided; repeats is
     # auto-derived by compile() from scan geometry (root) and timing
     # (children), not hand-computed.
     trigger_plan=TriggerPlan(
@@ -1182,11 +1183,11 @@ spec: ContinuousStreams[str, str, str] = ContinuousStreams(
 # Every window's trigger_sequences == [TriggerSequence(
 #     root=TriggerRepeat(
 #         detectors=frozenset({"saxs", "waxs"}),
-#         num=100, livetime=0.003, deadtime=0.001,
+#         repeats=100, livetime=0.003, deadtime=0.001,
 #     ),
 #     children=[TriggerRepeat(
 #         detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
-#         num=10, livetime=0.000299992, deadtime=8e-9,
+#         repeats=10, livetime=0.000299992, deadtime=8e-9,
 #     )],
 # )]
 ```
