@@ -1,4 +1,4 @@
-# 8. Unified trigger-authoring surface: `TriggerGroup` and `TriggerPlan`
+# 8. Unified trigger-authoring surface: `TriggerGroup` and `TriggerFollower`
 
 Date: 2026-09-11
 
@@ -6,22 +6,22 @@ Date: 2026-09-11
 
 Accepted
 
-`Acquire`, referenced throughout this document, was subsequently renamed to
-`Sync` — see ADR 0009. That rename is decided but not yet implemented as of
-this note; this document still describes the class by its name at the time
-this ADR was written and shipped, to stay accurate to the actual code.
+`Acquire`, referenced in this ADR's original Context below, was renamed to
+`Sync` — see ADR 0009 (implemented). The rest of this document uses `Sync`
+throughout, including in sections describing decisions made before that
+rename landed, to stay consistent with the current code.
 
 ## Context
 
-`Acquire` currently authors its windowed stream through two independent
+`Sync` originally authored its windowed stream through two independent
 fields: `detectors: Sequence[DetectorGroup[DetectorT]]` and
 `trigger_sequence: TriggerSequence[DetectorT] | None`. This has two related
 problems.
 
-**Collapsing `num` loses information needed elsewhere.** Triggering a
+**Collapsing `repeats` loses information needed elsewhere.** Triggering a
 detector only needs the total repeat count
 (`exposures_per_collection * collections_per_event`, folded into
-`TriggerRepeat.num`). Reshaping collected data back into events needs the two
+`TriggerRepeat.repeats`). Reshaping collected data back into events needs the two
 factors kept separate — PRD §5 uses `collections_per_event > 1` to add an
 extra reshaping dimension downstream, and `(2, 3)` vs `(6, 1)` give the same
 trigger count but different output shapes. Because `DetectorGroup` is the
@@ -33,7 +33,7 @@ already-collapsed `TriggerSequence` after the fact.
 **With more than one `DetectorGroup`, the caller writes the same hierarchy
 twice.** `_bake_trigger_sequence` only auto-derives a `TriggerSequence` for
 the zero-or-one-group case; picking which group becomes the parent is
-otherwise ambiguous. Any multi-group `Acquire` — the common case for
+otherwise ambiguous. Any multi-group `Sync` — the common case for
 multi-rate detector triggering — requires hand-authoring both `detectors`
 and `trigger_sequence`, with a validator
 (`_validate_trigger_sequence_detectors_match`) whose only job is catching
@@ -57,16 +57,36 @@ of scope for this decision (see Consequences).
 
 ## Decision
 
-### 1. New authoring types: `TriggerGroup` and `TriggerPlan`
+### 1. New authoring types: `TriggerGroup` and `TriggerFollower`
+
+`TriggerGroup` carries its own base-rate detector identity and timing
+directly — `detectors`, `exposures_per_collection`, `collections_per_event`,
+`livetime`, `deadtime` — plus a `followers` list. `followers` fire in
+parallel with each other during every one of the group's own repeats, each
+at its own integer-multiple rate. Detector sets across the group's own
+`detectors` and all followers must be disjoint — checked here structurally
+at construction time, since timing may still be unresolved. Physical checks
+(integer-ratio rates, follower duration fitting inside the group's own
+livetime, concrete timing) happen at `compile()` time against the derived
+`TriggerSequence`.
 
 ```python
 class TriggerGroup(BaseModel, Generic[DetectorT]):
-    """Authoring-time detector group: identity plus trigger-timing intent.
+    """Caller-authored trigger hierarchy for one Sync's windowed stream.
 
-    Lives on TriggerPlan.root / TriggerPlan.children. livetime/deadtime may
-    be left unresolved (None) at authoring time -- a downstream process
-    (e.g. ophyd-async) fills them in before compile(), which requires both
-    concrete.
+    Replaces Sync.detectors + Sync.trigger_sequence: the caller authors
+    the detector/timing hierarchy once, and compile() derives both the
+    compiled TriggerSequence tree and the list[DetectorGroup] the
+    windowed stream needs, instead of requiring the caller to hand-write
+    and keep both in sync.
+
+    detectors/exposures_per_collection/collections_per_event/livetime/
+    deadtime describe the group's own base-rate detectors -- also exactly
+    the shape DetectorGroup is derived from (compile(), Decision 3), so a
+    TriggerGroup with no followers at all is already a complete,
+    meaningful authoring unit on its own. followers is how the group
+    grows to cover detectors triggering at other integer-multiple rates
+    within the same collective, not a separate hierarchical tier.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -76,110 +96,160 @@ class TriggerGroup(BaseModel, Generic[DetectorT]):
     collections_per_event: int
     livetime: float | None
     deadtime: float | None
+    followers: list[TriggerFollower[DetectorT]] = []
 
     @property
     def exposures_per_event(self) -> int:
         """Total triggers per event: each collection needs its own trigger."""
         return self.exposures_per_collection * self.collections_per_event
 
+    @model_validator(mode="after")
+    def _disjoint_detectors(self) -> Self: ...  # structural check only
 
-class TriggerPlan(BaseModel, Generic[DetectorT]):
-    """Caller-authored trigger hierarchy for one Acquire's windowed stream.
 
-    Replaces Acquire.detectors + Acquire.trigger_sequence: the caller
-    authors the detector/timing hierarchy once, and compile() derives both
-    the compiled TriggerSequence tree and the list[DetectorGroup] the
-    windowed stream needs, instead of requiring the caller to hand-write
-    and keep both in sync.
+class TriggerFollower(BaseModel, Generic[DetectorT]):
+    """Authoring-time detector group firing at its own rate within a
+    TriggerGroup, driven by the group's own repeat cadence.
 
-    root/children mirror TriggerSequence's own root/children shape one
-    level up: children fire during every root repeat, in parallel with each
-    other, each at its own integer-multiple rate. Detector sets across root
-    and all children must be disjoint -- checked here structurally at
-    construction time, since timing may still be unresolved. Physical
-    checks (integer-ratio rates, child duration fitting inside the root's
-    livetime, concrete timing) happen at compile() time against the derived
-    TriggerSequence, unchanged from before.
+    repeats/livetime/deadtime may all be left unresolved (None) at
+    authoring time -- a downstream process (e.g. ophyd-async) fills in
+    whichever are missing before compile(), which requires all three
+    concrete (Decision 3). Unlike the group's own detectors, repeats is a
+    real field here: a follower's rate relative to the group is genuinely
+    external information (detector hardware timing), not something
+    derivable purely from the spec tree. Named repeats, not num -- "num"
+    alone doesn't say what it counts; "repeats" matches the compiled
+    TriggerRepeat.repeats it flows into (Decision 5).
     """
 
     model_config = ConfigDict(frozen=True)
 
-    root: TriggerGroup[DetectorT]
-    children: list[TriggerGroup[DetectorT]] = []
+    detectors: frozenset[DetectorT]
+    exposures_per_collection: int
+    collections_per_event: int
+    livetime: float | None
+    deadtime: float | None
+    repeats: int | None
 
-    @model_validator(mode="after")
-    def _disjoint_detectors(self) -> Self: ...  # structural check only
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
 ```
 
-The caller still explicitly decides the hierarchy — which group is the
-root, which are children, how they nest — exactly as before. Only how many
-times that decision must be expressed changes: once, into one object that
-generates both derived structures, instead of two independently-authored
-objects that must each separately express the same hierarchy.
+**Why the group's own repeat count is never a field, only ever derived**:
+it's `exposures_per_event × inner_length` (fly) or `exposures_per_event`
+(step), and both factors are already fully known from the spec tree itself
+(the motion generators, the `fly` flag). Nothing about it depends on
+hardware; it's the literal point where the motion domain and the trigger
+domain bind into one number — the computation `Sync` exists to perform,
+not incidental to it. A caller-suppliable count here would force a choice
+between silently overwriting a caller-supplied value (hides a mistake) or
+cross-checking it
+against the derived one (reintroducing the exact "two things kept in sync
+by hand" problem this ADR exists to eliminate) — so there is no such field
+at all.
 
-### 2. `Acquire.trigger_plan` replaces `Acquire.detectors` and `Acquire.trigger_sequence`
+**Naming**: the first implemented version of this decision used
+`TriggerGroup` identically for both a root group and its children
+(`TriggerPlan.root: TriggerGroup`, `TriggerPlan.children:
+list[TriggerGroup]`), inside a separate `TriggerPlan` container. Merging
+the container and the root group into one class (this decision) briefly
+considered keeping the container named `TriggerPlan`, but that collides
+with Bluesky's own "plan" vocabulary (a `RunEngine` executes "plans" —
+`count()`, `scan()`, `grid_scan()` — a term scanspec, living in the same
+ecosystem, shouldn't shadow). `TriggerGroup` for the merged container reads
+correctly for the same reason it was already the right name before: it
+groups detectors, and that grouping now literally includes the root's own
+detectors as well as any followers — not a narrower meaning than before,
+just a more complete one. `TriggerFollower` (not `TriggerChild`, which is
+purely positional — says where it sits, not what it does) names the actual
+relationship: fires at a rate driven by the group's own cadence, not chosen
+independently, without implying (the way a leader/follower pairing would)
+that a group with no followers is somehow incomplete.
+
+The caller still explicitly decides the hierarchy — what the group's own
+rate is, which detectors follow it, at what rate — exactly as before. Only
+how many times that decision must be expressed changes: once, into one
+object that generates both derived structures, instead of two
+independently-authored objects that must each separately express the same
+hierarchy.
+
+### 2. `Sync.trigger_group` replaces `Sync.detectors` and `Sync.trigger_sequence`
 
 ```python
-class Acquire(Spec[AxisT, DetectorT, MonitorT]):
+class Sync(Spec[AxisT, DetectorT, MonitorT]):
     spec: AnySpec[AxisT, Any, Any]
     fly: bool = False
     stream_name: str = "primary"
-    trigger_plan: TriggerPlan[DetectorT] | TriggerGroup[DetectorT] | None = None
-    continuous_streams: Sequence[ContinuousStream[DetectorT]] = ()  # unchanged
-    monitors: Sequence[MonitorStream[MonitorT]] = ()                # unchanged
+    trigger_group: TriggerGroup[DetectorT] | None = None
     duration: float | None = None
 ```
 
-A bare `TriggerGroup` is accepted for the trivial no-children case. It is
-stored and serialized exactly as given rather than eagerly wrapped into a
-`TriggerPlan` — JSON output stays lossless (reflects what the caller
-actually wrote) rather than canonical (one fixed wire shape regardless of
-input). A small helper, `_as_trigger_plan(x) -> TriggerPlan`, is called
-instead at each real point of use (`compile()`, `_validate_unique_detectors`)
-that needs `root`/`children` access, narrowing the type honestly at a real
-function boundary rather than the field silently lying about what it can
-hold. This also means the field's own type is widened to include
-`TriggerGroup[DetectorT]` directly — an earlier eager-normalization design
-kept the field's type as plain `TriggerPlan[DetectorT] | None` for a
-canonical wire format, but that made the annotation inaccurate at every
-internal read site (pydantic's `mode="before"` normalization is invisible
-to a type checker), forcing a defensive cast wherever `trigger_plan` was
-read. Lossless storage plus a single, explicit normalization point resolves
-that cleanly.
+(`continuous_streams`/`monitors` are not `Sync` fields — see ADR 0009.)
+
+The field is named `trigger_group`, not `trigger_plan`, for the same reason
+the type itself isn't `TriggerPlan` — avoiding Bluesky's "plan" vocabulary
+matters at the field name too, not just the class name.
+
+Merging the root group into `TriggerGroup` itself (Decision 1) means this
+field has exactly one shape: `TriggerGroup[DetectorT] | None`, nothing
+else. The first implemented design kept `TriggerGroup` as a type reused
+for both a root group and its children, paired with a separate `TriggerPlan`
+container — which meant this field had to accept a bare `TriggerGroup` too
+(the trivial no-children case) alongside a full `TriggerPlan`, a
+`TriggerPlan[DetectorT] | TriggerGroup[DetectorT] | None` union with its
+own normalization helper (`_as_trigger_plan()`) and a
+lossless-vs-canonical-JSON tradeoff to reason about (whether a bare
+`TriggerGroup` should be stored/serialized as-is or eagerly wrapped into a
+`TriggerPlan`). Merging root into one type removes the second shape
+entirely, and with it the whole question: there is only ever one type to
+store, serialize, or normalize.
 
 `_validate_trigger_sequence_detectors_match` is deleted: with one field
-instead of two, there is nothing left to cross-check for drift.
-`_validate_unique_detectors` is retargeted to walk
-`_as_trigger_plan(trigger_plan).root`/`.children` instead of
-`self.detectors`.
+instead of two, there is nothing left to cross-check for drift. Detector
+uniqueness across `trigger_group` and whatever else lives on the compiled
+`Scan` (`continuous_streams`, `monitors`) is not `Sync`'s concern at all —
+see ADR 0009's `Monitors`/`ContinuousStreams` wrappers, which check it
+post-compile instead.
 
-### 3. `compile()` derives two structures from `trigger_plan`, neither lossy
+### 3. `compile()` derives two structures from `trigger_group`, neither lossy
 
-Two module-level derivation functions (not methods on `TriggerPlan`, since
+Two module-level derivation functions (not methods on `TriggerGroup`, since
 they need `inner_length`/`fly` from the compiled motion generators — the
 same reason `_bake_trigger_sequence` takes `gens` today):
 
-- `TriggerGroup -> TriggerRepeat`: `num` is derived differently for the
-  root than for a child, since the two answer different questions.
-  - **Root**: same formula as today's `_bake_trigger_sequence`
-    (`exposures_per_event * inner_length if fly else exposures_per_event`)
-    — tied to the scan's own geometry.
-  - **Child**: `num = round(root_livetime / child_period)`, where
-    `child_period = child.livetime + child.deadtime` — how many times the
-    child's own period fits inside the root's livetime window, independent
-    of `inner_length`/`fly` (the root's own `num` already carries that
-    scaling). A child's `exposures_per_collection`/`collections_per_event`
-    do not feed this at all; the same `isclose` integer-ratio tolerance
-    `validate_trigger_sequence` already used defensively is applied here to
-    reject a rate that doesn't actually divide evenly, rather than merely
-    cross-checking a caller-supplied count after the fact.
+- `-> TriggerRepeat`: `repeats` is derived differently for the group's own
+  detectors than for a follower, since the two answer different questions.
+  - **The group's own detectors**: `exposures_per_event * inner_length if
+    fly else exposures_per_event` — tied to the scan's own geometry,
+    always computed, never caller-suppliable (Decision 1's rationale: this
+    is the literal motion↔trigger binding `Sync` exists to perform, not an
+    authoring input).
+  - **A follower**: `repeats`, `livetime`, and `deadtime` must all be
+    concrete (non-`None`) by this point, or `compile()` raises `ValueError`
+    immediately — a follower's rate relative to the group is genuinely
+    external information (detector hardware timing), so nothing here is
+    derived from the spec tree. No attempt is made to compute a missing
+    `repeats` from `livetime`/`deadtime` (e.g. `round(group_livetime /
+    follower_period)`, mechanically available but deliberately not
+    applied) — a caller or ophyd-async must supply all three explicitly.
+    A future "repair" pass that fills in whichever *one* of the three is
+    still missing, where mechanically derivable, is explicitly out of
+    scope for this decision (see Consequences).
 
-  Both cases read from `TriggerGroup` instead of `DetectorGroup`. Feeds
-  `WindowGenerator`/`Window.trigger_sequences`.
-- `TriggerGroup -> DetectorGroup`: no `num` involved at all — both shape
-  factors pass through unchanged. Feeds `WindowedStream.detector_groups`.
+  Either way, the existing integer-ratio and duration checks
+  (`validate_trigger_sequence`) still run against the derived
+  `TriggerRepeat` afterwards, regardless of whether `repeats` came from a
+  caller/ophyd-async or (in a future repair pass) from scanspec's own
+  calculation — physical consistency doesn't care about provenance.
 
-Both derivations read from the same `TriggerPlan`, so the two outputs can
+  Feeds `WindowGenerator`/`Window.trigger_sequences`.
+- `-> DetectorGroup`: no `repeats` involved at all — both shape factors pass
+  through unchanged, for both the group's own detectors and each follower.
+  Feeds `WindowedStream.detector_groups`.
+
+Both derivations read from the same `TriggerGroup`, so the two outputs can
 never drift out of sync with each other — there is no validator needed to
 catch that drift, because there are no longer two independently-authored
 sources for it to drift between.
@@ -188,10 +258,11 @@ sources for it to drift between.
 
 `DetectorGroup`'s shape is unchanged. What changes is how it is produced for
 the windowed case: it is no longer directly caller-authored (it moves off
-`Acquire.detectors` onto the derived output described in Decision 3) — it
+`Sync.detectors` onto the derived output described in Decision 3) — it
 becomes purely compiled output for `WindowedStream.detector_groups`, the
 same role it already plays today. `ContinuousStream.detector_groups`
-continues to be directly caller-authored via `Acquire.continuous_streams`,
+continues to be directly caller-authored, now via
+`ContinuousStreams.continuous_streams` (ADR 0009),
 completely unchanged by this decision — it still has no way to express
 detector identity and rate other than through `DetectorGroup`, so
 `DetectorGroup` cannot be reduced to pure inventory without breaking it.
@@ -216,7 +287,7 @@ class TriggerRepeat(Generic[DetectorT]):
     """One resolved, repeating trigger block within a TriggerSequence.
 
     detectors: the set of detectors this block fires.
-    num:       number of times this block repeats.
+    repeats:   how many times this block executes.
     livetime:  detector exposure time in seconds.
     deadtime:  detector readout/spacing time in seconds.
 
@@ -225,7 +296,7 @@ class TriggerRepeat(Generic[DetectorT]):
     """
 
     detectors: frozenset[DetectorT]
-    num: int
+    repeats: int
     livetime: float
     deadtime: float
 
@@ -248,25 +319,27 @@ class TriggerSequence(Generic[DetectorT]):
 
 `TriggerSequence`'s own `detectors` field is dropped — it was always
 identical to `root.detectors` once `TriggerRepeat` carries detector
-identity, so keeping both was redundant. The field is named `root` (not
-`parent`, an earlier choice) specifically because a field named `parent` on
-a container reads as "the thing that owns this," not "the primary entry
-held alongside `children`" — `root` can't be misread that way, and it
-matches `TriggerPlan.root` exactly, reinforcing that `TriggerPlan` and
-`TriggerSequence` are the same shape before and after `compile()`.
-Relational "parent"/"child" language remains fine in prose and local
-variable names describing how `root` and `children` relate to each other.
+identity, so keeping both was redundant. The compiled side keeps
+`root`/`children` naming (not `TriggerGroup`/`TriggerFollower`'s
+group-plus-followers naming) — `TriggerSequence` is pure compiled output,
+one level removed from the authoring surface's own vocabulary, and `root`
+still reads correctly there: a field named `parent` on a container reads
+as "the thing that owns this," not "the primary entry held alongside
+`children`" — `root` can't be misread that way. Relational
+"parent"/"child" language remains fine in prose and local variable names
+describing how `root` and `children` relate to each other, even though the
+authoring-side types now use "group"/"follower" instead.
 
 ### 6. Compiled `TriggerRepeat`/`TriggerSequence` become plain dataclasses
 
 Under ADR 0007, `TriggerRepeat`/`TriggerChild`/`TriggerSequence` were
 pydantic `BaseModel`s specifically because `TriggerSequence` doubled as
-caller-authored input to `Acquire.trigger_sequence` and had to survive a
+caller-authored input to `Sync.trigger_sequence` and had to survive a
 JSON round trip (unresolved `livetime`/`deadtime` filled in downstream
 before `compile()`).
 
-That round trip now happens entirely on `TriggerGroup`/`TriggerPlan`, before
-`compile()` — never on the compiled output. `compile()` and
+That round trip now happens entirely on `TriggerGroup`/`TriggerFollower`,
+before `compile()` — never on the compiled output. `compile()` and
 `validate_trigger_sequence` already reject unresolved (`None`) timing, so
 once a `TriggerRepeat`/`TriggerSequence` exists, there is no remaining
 ambiguity for a round trip to preserve. `TriggerRepeat.livetime`/`deadtime`
@@ -282,55 +355,74 @@ carve-out for these types.
 
 ## Consequences
 
+**Implementation status**: Decisions 1-3's `TriggerGroup`/`TriggerFollower`
+merge (replacing the first implemented two-type `TriggerGroup`+
+`TriggerPlan` design) and the repeats/livetime/deadtime-all-required
+compile-time policy are design-accepted but **not yet implemented** as of
+this amendment — Decisions 4-6 (compiled-side shapes, `DetectorGroup`
+handling) are already implemented, under the original design, and are
+unaffected by this amendment. `scanspec.v2` has no external consumers yet
+(it only becomes `scanspec` at the final 2.0 migration, PRD §12), so none
+of this carries release/backward-compatibility weight — the code changes
+below describe the remaining delta from what is currently in
+`core.py`/`specs.py` to what Decisions 1-3 now describe.
+
 ### Code changes required
 
-1. **`TriggerGroup`, `TriggerPlan`** (`core.py`): add as pydantic
-   `BaseModel`s, per Decision 1.
-2. **`TriggerRepeat`, `TriggerSequence`** (`core.py`): convert to plain
-   `@dataclass(frozen=True)`; add `detectors` to `TriggerRepeat`; drop
-   `| None` from `livetime`/`deadtime`; drop `TriggerSequence.detectors`;
-   rename `TriggerSequence.trigger_repeat` to `root`. Remove
-   `TriggerChild` entirely.
-3. **`Acquire`** (`specs.py`): replace `detectors`/`trigger_sequence` fields
-   with `trigger_plan: TriggerPlan[DetectorT] | TriggerGroup[DetectorT] |
-   None`, plus a module-level `_as_trigger_plan()` helper called at each
-   real point of use (Decision 2). Delete
-   `_validate_trigger_sequence_detectors_match`. Retarget
-   `_validate_unique_detectors` to walk `trigger_plan`.
-4. **`compile()`** (`specs.py`): add the two module-level derivation
-   functions from Decision 3, replacing `_bake_trigger_sequence`'s
-   single-group-only logic. `WindowedStream.detector_groups` is now always
-   populated from the derived `list[DetectorGroup]`, not `self.detectors`
-   directly.
-5. **`validate_trigger_sequence`, `_truncate_trigger_sequence`,
-   `trigger_sequences_duration`** (`core.py`): drop the inner
-   `for r in child.repeats` loop everywhere it appears — children are now a
-   flat `list[TriggerRepeat]`, not `list[TriggerChild]`. Field accesses move
-   from `.trigger_repeat`/`.detectors` to `.root`/`.root.detectors`. The
-   unresolved-timing (`None`) checks in `validate_trigger_sequence` and
-   `trigger_sequences_duration` are removed — no longer reachable once
-   `TriggerRepeat.livetime`/`deadtime` are plain `float` — and
-   `validate_trigger_sequence`'s duration check gains an `isclose` tolerance
-   to match the ratio check beside it, since derived `num` values land
-   `child_dur` right at the floating-point boundary of `root`'s livetime.
-6. **Tests**: update every construction of `TriggerRepeat`/`TriggerChild`/
-   `TriggerSequence` (`tests/scanspec/v2/test_specs.py`,
-   `test_use_cases.py`, `test_compile.py`, `test_core.py`) to the new
-   shape. Remove any test exercising `TriggerChild.repeats` with more than
-   one entry (none currently exist). Add: `TriggerPlan` disjointness
-   validation; bare-`TriggerGroup` normalization on `Acquire.trigger_plan`;
-   the multi-group flagship case authored once instead of twice; the
-   derived `DetectorGroup` list matches what hand-authoring `detectors`
-   used to produce.
-7. **`API_SPEC.md`, PRD.md §4**: update trigger-model examples and prose to
-   the new types once implemented — out of scope for this ADR itself.
+1. **`TriggerGroup`, `TriggerFollower`** (`core.py`): replace the
+   currently-implemented `TriggerGroup`+`TriggerPlan` pair with the merged
+   shape from Decision 1 — move
+   `detectors`/`exposures_per_collection`/`collections_per_event`/
+   `livetime`/`deadtime` directly onto the (renamed) container; rename
+   `children` to `followers`; add `TriggerFollower` (same fields as the
+   old per-child `TriggerGroup`, plus a new `repeats: int | None`).
+   Retarget `_disjoint_detectors` to check the group's own `detectors`
+   against each follower instead of `root` against each child.
+2. **`Sync`** (`specs.py`): rename the field from `trigger_plan` to
+   `trigger_group`; narrow its type from `TriggerPlan[DetectorT] |
+   TriggerGroup[DetectorT] | None` to `TriggerGroup[DetectorT] | None`
+   (Decision 2). Delete `_as_trigger_plan()` entirely — every call site can
+   read `trigger_group` directly, no normalization needed.
+3. **`TriggerRepeat`** (`core.py`): rename the already-implemented
+   `num: int` field to `repeats: int` (Decision 5), for consistency with
+   `TriggerFollower.repeats` — the authoring-time field it flows from is
+   more important to keep unambiguous than the compiled one, so the
+   compiled side takes the (mildly redundant-sounding) name change too.
+   Update every construction and `.num` access across `core.py`/`specs.py`
+   (`_trigger_group_to_repeat`, `_truncate_trigger_sequence`,
+   `validate_trigger_sequence`, `trigger_sequences_duration`) and every
+   test/doc example.
+4. **`compile()`** (`specs.py`): the group's own `TriggerRepeat`
+   derivation is unchanged (still reads the now-inline fields off
+   `TriggerGroup` directly instead of `.root`). Follower derivation
+   changes from always computing `repeats = round(group_livetime /
+   follower_period)` to requiring `repeats`/`livetime`/`deadtime` all
+   already concrete on the `TriggerFollower` — raise `ValueError`
+   immediately if any is still `None`, no derivation attempted (Decision
+   3).
+5. **Tests**: update every construction of the old `TriggerGroup`/
+   `TriggerPlan` pair (`tests/scanspec/v2/test_specs.py`,
+   `test_use_cases.py`, `test_compile.py`, `test_type_inference.py`, plus
+   `PRD.md`/`API_SPEC.md` examples) to the merged `TriggerGroup`/
+   `TriggerFollower` shape and the `repeats` rename. Add: a test asserting
+   `compile()` rejects a follower with any of `repeats`/`livetime`/
+   `deadtime` still `None`; a construction-time test that setting fields
+   directly on `TriggerGroup` (no separate root object) still validates
+   disjointness against followers correctly.
 
 ### Explicitly out of scope
 
-- **`continuous_streams`/`monitors`.** Whether these stay on `Acquire` or
-  move to a standalone construct outside the spec tree is a separate,
-  undecided question, tracked independently. `ContinuousStream`/
-  `MonitorStream` are unaffected by this ADR (Decision 4).
+- **A "repair" pass for follower `repeats`.** Decision 3 deliberately
+  rejects rather than derives a missing follower `repeats`, even though
+  `round(group_livetime / follower_period)` is mechanically available
+  (it's exactly the formula the first implemented version always used).
+  Adding that back as an optional fallback — attempted only when `repeats`
+  is missing, after requiring `livetime`/`deadtime` regardless — is real
+  follow-up work, not resolved here.
+- **`continuous_streams`/`monitors`.** Resolved by ADR 0009: moved off
+  `Sync` onto the outermost `Monitors`/`ContinuousStreams` wrapper specs,
+  not decided by this ADR. `ContinuousStream`/`MonitorStream` are
+  unaffected by this ADR (Decision 4).
 - **PandA SEQ-block chaining / multi-rate continuous-stream
   representation.** Unrelated to the authoring-surface question this ADR
   resolves.
