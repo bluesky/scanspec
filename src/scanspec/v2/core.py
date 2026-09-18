@@ -4,50 +4,141 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar
+from math import isclose
+from typing import Any, Generic, Never, Self
+from typing import TypeVar as StdTypeVar
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, model_validator
+from typing_extensions import TypeVar
 
-AxisT = TypeVar("AxisT")
-DetectorT = TypeVar("DetectorT")
-MonitorT = TypeVar("MonitorT")
+AxisT = StdTypeVar("AxisT")
+DetectorT = StdTypeVar("DetectorT")
+MonitorT = TypeVar("MonitorT", default=Never)
 
 
-@dataclass
-class TriggerPattern:
-    """One entry in a TriggerGroup's trigger sequence.
+@dataclass(frozen=True)
+class TriggerRepeat(Generic[DetectorT]):
+    """One resolved, repeating trigger block within a TriggerSequence.
 
-    repeats:  number of times this pattern repeats within the window.
-    livetime: detector exposure time in seconds.
-    deadtime: detector readout/spacing time in seconds.
+    detectors: the set of detectors this block fires.
+    repeats:   how many times this block executes.
+    livetime:  detector exposure time in seconds.
+    deadtime:  detector readout/spacing time in seconds.
+
+    Centred-livetime semantics apply: execution order per repeat is
+    ``½·deadtime → livetime → ½·deadtime``.
+
+    Pure compiled output -- unlike its ADR 0007 predecessor, no longer
+    caller-authored, so no pydantic/round-trip requirement (the round trip
+    for unresolved timing now happens entirely on TriggerGroup/TriggerPlan,
+    before compile() -- see ADR 0008).
     """
 
+    detectors: frozenset[DetectorT]
     repeats: int
     livetime: float
     deadtime: float
 
 
-@dataclass
-class TriggerGroup(Generic[DetectorT]):
-    """Detector triggering description for one group within a collection window.
+@dataclass(frozen=True)
+class TriggerSequence(Generic[DetectorT]):
+    """Detector triggering description for one sequential entry in a window.
 
-    A group is a set of detectors sharing an identical trigger sequence.
-    A window may contain groups from different streams; consumers identify
-    their group by matching against their known detector names.  The set of
-    detectors is unique across all groups within a window (enforced at
-    Path construction time).
+    ``root`` fires first; ``children`` fire in parallel with each other
+    during every root repeat. All child detector sets must be disjoint
+    from each other and from ``root.detectors``.
 
-    trigger_patterns uniformly expresses:
-      single rate, fixed timing:    [TriggerPattern(500, 0.003, 0.001)]
-      multi-rate (10x encoders):    [TriggerPattern(5000, 0.0003, 8e-9)]
-      ptychography variable spacing: [TriggerPattern(1, 0.1, 0.01),
-                                     TriggerPattern(1, 0.1, 0.3), ...]
-
-    Baked in from DetectorGroup.livetime/deadtime at Path construction time.
+    ``Window.trigger_sequences`` is an ordered list; entries execute one after
+    another within the window.
     """
 
-    detectors: list[DetectorT]
-    trigger_patterns: list[TriggerPattern]
+    root: TriggerRepeat[DetectorT]
+    children: list[TriggerRepeat[DetectorT]]
+
+
+class TriggerFollower(BaseModel, Generic[DetectorT]):
+    """Authoring-time detector group firing at its own rate within a TriggerGroup.
+
+    Driven by the group's own repeat cadence. repeats/livetime/deadtime
+    may all be left unresolved (None) at
+    authoring time -- a downstream process (e.g. ophyd-async) fills in
+    whichever are missing before compile(), which requires all three
+    concrete. Unlike the group's own detectors, repeats is a real field
+    here: a follower's rate relative to the group is genuinely external
+    information (detector hardware timing), not something derivable
+    purely from the spec tree. Named repeats, not num -- "num" alone
+    doesn't say what it counts; "repeats" matches the compiled
+    TriggerRepeat.repeats it flows into.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    detectors: frozenset[DetectorT]
+    exposures_per_collection: int
+    collections_per_event: int
+    livetime: float | None
+    deadtime: float | None
+    repeats: int | None
+
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
+
+
+class TriggerGroup(BaseModel, Generic[DetectorT]):
+    """Caller-authored trigger hierarchy for one Sync's windowed stream.
+
+    Replaces Sync.detectors + Sync.trigger_sequence: the caller authors
+    the detector/timing hierarchy once, and compile() derives both the
+    compiled TriggerSequence tree and the list[DetectorGroup] the
+    windowed stream needs, instead of requiring the caller to hand-write
+    and keep both in sync.
+
+    detectors/exposures_per_collection/collections_per_event/livetime/
+    deadtime describe the group's own base-rate detectors -- also exactly
+    the shape DetectorGroup is derived from (compile()), so a TriggerGroup
+    with no followers at all is already a complete, meaningful authoring
+    unit on its own. followers is how the group grows to cover detectors
+    triggering at other integer-multiple rates within the same
+    collective, not a separate hierarchical tier -- each fires during
+    every one of the group's own repeats, in parallel with each other.
+    Detector sets across the group's own detectors and all followers must
+    be disjoint -- checked here structurally at construction time, since
+    timing may still be unresolved. Physical checks (integer-ratio rates,
+    follower duration fitting inside the group's own livetime, concrete
+    timing) happen at compile() time against the derived TriggerSequence.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    detectors: frozenset[DetectorT]
+    exposures_per_collection: int
+    collections_per_event: int
+    livetime: float | None
+    deadtime: float | None
+    followers: list[TriggerFollower[DetectorT]] = []
+
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
+
+    @model_validator(mode="after")
+    def _disjoint_detectors(self) -> Self:
+        """Own detectors + each follower's detectors must be pairwise disjoint."""
+        seen: set[DetectorT] = set(self.detectors)
+        for follower in self.followers:
+            overlap = seen & follower.detectors
+            if overlap:
+                raise ValueError(
+                    f"Detector(s) {sorted(str(d) for d in overlap)} appear "
+                    f"in more than one TriggerGroup/TriggerFollower within "
+                    f"this TriggerGroup"
+                )
+            seen |= follower.detectors
+        return self
 
 
 @dataclass
@@ -149,7 +240,7 @@ class WindowGenerator(Generic[AxisT]):
         source: LinearSource[AxisT] | FunctionSource[AxisT] | ConcatSource[AxisT],
         snake: bool = False,
         fly: bool = False,
-        trigger_groups: list[TriggerGroup[Any]] | None = None,
+        trigger_sequences: list[TriggerSequence[Any]] | None = None,
         duration: float | None = None,
     ) -> None:
         self.axes = axes
@@ -157,8 +248,8 @@ class WindowGenerator(Generic[AxisT]):
         self.source = source
         self.snake = snake
         self.fly = fly
-        self.trigger_groups: list[TriggerGroup[Any]] = (
-            trigger_groups if trigger_groups is not None else []
+        self.trigger_sequences: list[TriggerSequence[Any]] = (
+            list(trigger_sequences) if trigger_sequences is not None else []
         )
         self.duration = duration
 
@@ -207,13 +298,19 @@ class WindowGenerator(Generic[AxisT]):
                 moving_axes={},
                 non_linear=False,
                 duration=self.duration if self.duration is not None else 0.0,
-                trigger_groups=list(self.trigger_groups),
+                trigger_sequences=list(self.trigger_sequences),
                 previous=None,
             )
 
     def _fly_window(self, reverse: bool) -> Iterator[Window[AxisT, Any]]:
         """Yield a single fly-scan Window."""
         length = self.length
+        # Seconds per index step. Velocities and positions_fn are evaluated
+        # against the position function's own index domain (0..length), but
+        # must be reported/accepted in real seconds -- this is the conversion
+        # factor between the two.
+        seconds_per_index = self.duration if self.duration is not None else 1.0
+        sign = 1.0 if not reverse else -1.0
         if reverse:
             start_i, end_i = float(length), 0.0
         else:
@@ -226,10 +323,20 @@ class WindowGenerator(Generic[AxisT]):
             return float(self.setpoints(np.array([i]))[ax][0])
 
         for axis in self.setpoints(np.array([0.5])):
-            s_vel = (_eval(start_i + eps, axis) - _eval(start_i - eps, axis)) / (
-                2 * eps
+            # d(position)/d(time) = d(position)/d(index) * d(index)/d(time).
+            # The position function is direction-agnostic (always increasing
+            # with index); d(index)/d(time) = sign / seconds_per_index is
+            # what actually carries the scan direction.
+            s_vel = (
+                (_eval(start_i + eps, axis) - _eval(start_i - eps, axis))
+                * sign
+                / (2 * eps * seconds_per_index)
             )
-            e_vel = (_eval(end_i + eps, axis) - _eval(end_i - eps, axis)) / (2 * eps)
+            e_vel = (
+                (_eval(end_i + eps, axis) - _eval(end_i - eps, axis))
+                * sign
+                / (2 * eps * seconds_per_index)
+            )
             moving_axes[axis] = AxisMotion(
                 start_position=_eval(start_i, axis),
                 start_velocity=s_vel,
@@ -238,20 +345,17 @@ class WindowGenerator(Generic[AxisT]):
             )
 
         setpoints_fn = self.setpoints
-        sign = 1.0 if not reverse else -1.0
 
-        def positions_fn(indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
-            return setpoints_fn(start_i + indexes * sign)
+        def positions_fn(times: np.ndarray) -> dict[AxisT, np.ndarray]:
+            return setpoints_fn(start_i + (times / seconds_per_index) * sign)
 
-        duration = (
-            length * self.duration if self.duration is not None else float(length)
-        )
+        duration = length * seconds_per_index
         yield Window(
             static_axes={},
             moving_axes=moving_axes,
             non_linear=self.non_linear,
             duration=duration,
-            trigger_groups=list(self.trigger_groups),
+            trigger_sequences=list(self.trigger_sequences),
             previous=None,
             positions_fn=positions_fn,
         )
@@ -314,9 +418,10 @@ class Window(Generic[AxisT, DetectorT]):
     so the caller can compute the turnaround trajectory externally via
     calculate_turnaround.
 
-    trigger_groups may contain groups for multiple streams. In a multi-stream
-    scan a window may contain groups for only a subset of streams (e.g. some
-    motion phases trigger only diffraction detectors, others only spectroscopy).
+    ``trigger_sequences`` is an ordered list; entries execute one after
+    another within the window. In a multi-stream scan a window may contain
+    sequences for only a subset of streams (e.g. some motion phases trigger
+    only diffraction detectors, others only spectroscopy).
     """
 
     def __init__(
@@ -325,7 +430,7 @@ class Window(Generic[AxisT, DetectorT]):
         moving_axes: dict[AxisT, AxisMotion],
         non_linear: bool,
         duration: float,
-        trigger_groups: list[TriggerGroup[DetectorT]],
+        trigger_sequences: list[TriggerSequence[DetectorT]],
         previous: Window[AxisT, DetectorT] | None,
         positions_fn: Callable[[np.ndarray], dict[AxisT, np.ndarray]] | None = None,
     ) -> None:
@@ -333,19 +438,12 @@ class Window(Generic[AxisT, DetectorT]):
         self.moving_axes = moving_axes
         self.non_linear = non_linear
         self.duration = duration
-        self.trigger_groups = trigger_groups
+        self.trigger_sequences = list(trigger_sequences)
         self.previous = previous
         self._positions_fn = positions_fn
 
-    def positions(
-        self, dt: float, max_duration: float | None = None
-    ) -> Iterator[dict[AxisT, np.ndarray]]:
-        """Yield chunks of servo-rate positions for the moving axes.
-
-        ``dt`` is the index step (e.g. 1 = one point per collection frame;
-        use a smaller value for servo-rate interpolation in future).
-        ``max_duration`` limits how many index steps are yielded per chunk
-        (None = yield all at once).
+    def positions(self, times: np.ndarray) -> dict[AxisT, np.ndarray]:
+        """Positions for the moving axes at each of the given real-second times.
 
         Raises RuntimeError if no position function was provided (step windows).
         """
@@ -354,25 +452,19 @@ class Window(Generic[AxisT, DetectorT]):
                 "No position function on this window "
                 "(step windows have no continuous trajectory)"
             )
-        n_total = int(self.duration / dt) if dt > 0 else 1
-        chunk = (
-            int(max_duration / dt) if max_duration is not None and dt > 0 else n_total
-        )
-        start = 0
-        while start < n_total:
-            end = min(start + chunk, n_total)
-            indexes = np.linspace(start * dt, end * dt, end - start)
-            yield self._positions_fn(indexes)
-            start = end
+        return self._positions_fn(times)
 
 
 @dataclass
 class DetectorGroup(Generic[DetectorT]):
     """Upfront description of a set of detectors sharing trigger parameters.
 
-    Lives on Acquire.detectors. Used to configure detectors before the scan
-    starts. Static livetime/deadtime are baked into the trigger_patterns of
-    each TriggerGroup at Path construction time.
+    For a windowed stream this is pure compiled output, derived by
+    ``Sync.compile()`` from a caller-authored ``TriggerGroup`` (see ADR
+    0008) -- it is no longer directly caller-authored there. For a
+    continuous stream it is still directly caller-authored, on
+    ``ContinuousStreams.continuous_streams`` (ADR 0009); static
+    livetime/deadtime describe the stream's own fixed rate.
 
     exposures_per_collection: exposures the detector accumulates per collection.
     collections_per_event:    collections that form one event in the stream.
@@ -384,6 +476,11 @@ class DetectorGroup(Generic[DetectorT]):
     livetime: float | None  # None means ophyd-async sets it
     deadtime: float | None  # None means ophyd-async sets it
     detectors: list[DetectorT]
+
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
 
 
 @dataclass
@@ -466,6 +563,122 @@ def _iter_with_outer(
                 yield inner_window, merged
 
 
+def _generator_window_count(gen: WindowGenerator[Any]) -> int:
+    """Number of windows *gen* itself yields, not counting outer generators.
+
+    Mirrors ``WindowGenerator.windows()``: a fly generator always yields
+    exactly one window regardless of ``length``; a ``ConcatSource``
+    generator yields each child's own windows in turn, so its count is the
+    *sum* (not product) of its children's own counts, recursively; anything
+    else (a step generator) yields ``length`` windows.
+    """
+    if isinstance(gen.source, ConcatSource):
+        return sum(_generator_window_count(child) for child in gen.source.children)
+    if gen.fly:
+        return 1
+    return gen.length
+
+
+def _truncate_trigger_sequence(
+    sequences: list[TriggerSequence[DetectorT]],
+    trigger_index: int,
+) -> list[TriggerSequence[DetectorT]]:
+    """Remove *trigger_index* completed root-level repeats from *sequences*.
+
+    Walks the sequential list, skipping fully-completed sequences and
+    truncating the in-progress one.  ``children`` is carried unchanged.
+
+    Blank/spacer sequences (``livetime == 0.0``) are never counted and never
+    truncated -- they always pass through whole.  A gap only ever needs to be
+    *at least* as long as designed, never exactly that long, so replaying a
+    blank in full on resume (padded by whatever already elapsed before the
+    pause plus the real pause duration) can only lengthen the realized gap,
+    never shorten it below the intended minimum.
+    """
+    result: list[TriggerSequence[DetectorT]] = []
+    remaining = trigger_index
+    for seq in sequences:
+        if seq.root.livetime == 0.0:
+            result.append(seq)
+            continue
+        repeats = seq.root.repeats
+        if remaining <= 0:
+            result.append(seq)
+        elif remaining >= repeats:
+            remaining -= repeats
+        else:
+            result.append(
+                TriggerSequence(
+                    root=TriggerRepeat(
+                        detectors=seq.root.detectors,
+                        repeats=repeats - remaining,
+                        livetime=seq.root.livetime,
+                        deadtime=seq.root.deadtime,
+                    ),
+                    children=seq.children,
+                )
+            )
+            remaining = 0
+    return result
+
+
+def validate_trigger_sequence(seq: TriggerSequence[DetectorT]) -> None:
+    """Check that *seq* is physically valid.
+
+    Not specific to ``Sync`` -- also required for manually-constructed
+    ``Window``s (ADR 0007 Assumption A1), so lives here rather than as a
+    private method. Unresolved (``None``) timing is rejected earlier, on
+    the caller-authored ``TriggerGroup``/``TriggerPlan``, before a
+    ``TriggerSequence`` can exist at all (ADR 0008) -- ``TriggerRepeat``'s
+    ``livetime``/``deadtime`` are always concrete by the time this runs.
+
+    Raises ``ValueError`` if:
+
+    - a child detector set overlaps the parent's or another child's.
+    - a child does not trigger at an integer ratio of the parent rate.
+    - a child's total duration exceeds the parent's livetime.
+    """
+    parent = seq.root
+    parent_lt = parent.livetime
+
+    for i, child in enumerate(seq.children):
+        overlap = parent.detectors & child.detectors
+        if overlap:
+            raise ValueError(
+                f"Detector(s) {sorted(str(d) for d in overlap)} appear in "
+                f"both parent and child groups"
+            )
+        for other in seq.children[i + 1 :]:
+            shared = child.detectors & other.detectors
+            if shared:
+                raise ValueError(
+                    f"Child detector sets overlap: {sorted(str(d) for d in shared)}"
+                )
+
+    for child in seq.children:
+        child_period = child.livetime + child.deadtime
+        ratio = parent_lt / child_period
+        if not isclose(ratio, round(ratio), rel_tol=1e-3, abs_tol=1e-6):
+            raise ValueError(
+                f"Child detector(s) {sorted(str(d) for d in child.detectors)} "
+                f"do not trigger at an integer ratio of the parent "
+                f"rate: parent_livetime {parent_lt} / child_period "
+                f"{child_period} = {ratio}"
+            )
+        child_dur = child.repeats * child_period
+        if child_dur > parent_lt and not isclose(
+            child_dur, parent_lt, rel_tol=1e-3, abs_tol=1e-6
+        ):
+            raise ValueError(
+                f"Child total duration {child_dur} exceeds parent livetime {parent_lt}"
+            )
+
+
+def trigger_sequences_duration(seqs: list[TriggerSequence[DetectorT]]) -> float:
+    """Total duration of *seqs*: sum of ``repeats * (livetime + deadtime)``."""
+    return sum(ts.root.repeats * (ts.root.livetime + ts.root.deadtime) for ts in seqs)
+
+
 class Scan(Generic[AxisT, DetectorT, MonitorT]):
     """Compiled output of Spec.compile().
 
@@ -487,31 +700,34 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         windowed_streams: Sequence[WindowedStream[AxisT, DetectorT]] = (),
         continuous_streams: Sequence[ContinuousStream[DetectorT]] = (),
         monitors: Sequence[MonitorStream[MonitorT]] = (),
+        active_stream_sets: Sequence[frozenset[str]] = (),
         start_window: int = 0,
-        start_time: float = 0.0,
+        trigger_index: int = 0,
     ) -> None:
         self.generators: list[WindowGenerator[AxisT]] = list(generators)
         self.windowed_streams = list(windowed_streams)
         self.continuous_streams = list(continuous_streams)
         self.monitors = list(monitors)
+        self.active_stream_sets: list[frozenset[str]] = list(active_stream_sets)
         self._start_window = start_window
-        self._start_time = start_time
+        self._trigger_index = trigger_index
 
     def with_start(
-        self, window: int, time: float = 0.0
+        self, window: int, trigger_index: int = 0
     ) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Return a new Scan that starts iteration at the given window and time.
+        """Return a new Scan that starts iteration at the given window.
 
-        Used for pause/resume -- construct a new Scan from a known progress point
-        rather than rewinding an existing iterator.
+        Used for pause/resume -- construct a new Scan from a known progress
+        point rather than rewinding an existing iterator.
         """
         return Scan(
             generators=self.generators,
             windowed_streams=self.windowed_streams,
             continuous_streams=self.continuous_streams,
             monitors=self.monitors,
+            active_stream_sets=self.active_stream_sets,
             start_window=window,
-            start_time=time,
+            trigger_index=trigger_index,
         )
 
     @property
@@ -523,6 +739,23 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
     def non_linear(self) -> bool:
         """True if any fly generator uses a non-linear position function."""
         return any(g.fly and g.non_linear for g in self.generators)
+
+    @property
+    def number_of_events(self) -> int:
+        """Total windows this Scan will yield, without iterating.
+
+        O(generator-tree size): the product of each generator's own window
+        count (``_generator_window_count``), outer -> inner -- matching how
+        ``__iter__`` nests deeper generators once per outer position. No
+        generators means no windows (``__iter__``'s own early return), not
+        the empty-product identity of one.
+        """
+        if not self.generators:
+            return 0
+        total = 1
+        for gen in self.generators:
+            total *= _generator_window_count(gen)
+        return total
 
     @staticmethod
     def _changed_axes(
@@ -545,7 +778,9 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         yields the actual collection windows.
 
         ``previous`` and ``static_axes`` are set by mutating the inner Window
-        before yielding it.
+        before yielding it.  On the first yielded window, if ``_trigger_index``
+        is set, the window's ``trigger_sequences`` are truncated to remove
+        completed root-level repeats.
         """
         gens = self.generators
         if not gens:
@@ -554,6 +789,7 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         prev_window: Window[AxisT, DetectorT] | None = None
         prev_all: dict[AxisT, float] = {}
         window_idx = 0
+        first_yielded = True
 
         for inner_window, outer_pos in _iter_with_outer(gens, 0, 0):
             all_pos: dict[AxisT, float] = dict(outer_pos)
@@ -563,6 +799,15 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
             inner_window.previous = prev_window
 
             if window_idx >= self._start_window:
+                if first_yielded and self._trigger_index > 0:
+                    inner_window.trigger_sequences = _truncate_trigger_sequence(
+                        inner_window.trigger_sequences,
+                        self._trigger_index,
+                    )
+                    inner_window.duration = trigger_sequences_duration(
+                        inner_window.trigger_sequences
+                    )
+                first_yielded = False
                 yield inner_window
 
             prev_all = dict(all_pos)
