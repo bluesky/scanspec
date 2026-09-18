@@ -20,14 +20,16 @@ Three type parameters are used throughout:
   Only appears on `Spec` and `Scan` — never on `Window`.
 
 `Spec[AxisT, DetectorT, MonitorT]` — base class for all scan specs.
-`Sync[AxisT, DetectorT, MonitorT]` — concrete `Spec` subclass: wraps a motion spec + produces a single stream.
+`Sync[AxisT, DetectorT, MonitorT]` — concrete `Spec` subclass: wraps a motion spec + binds detector triggering, producing a single windowed stream.
+`Monitors[AxisT, DetectorT, MonitorT]` / `ContinuousStreams[AxisT, DetectorT, MonitorT]` — outermost wrapper `Spec` subclasses (ADR 0009) that attach scan-wide monitors / continuous streams to the whole compiled tree.
 `Scan[AxisT, DetectorT, MonitorT]` — compiled output of `spec.compile()`; iterable, yielding `Window` objects.
 `WindowedStream[AxisT, DetectorT]` — one named detector stream within a `Scan`: dimensions + detector groups.
 `ContinuousStream[DetectorT]` — constant-rate detector stream with no scan dimensions (e.g. cameras at 20 Hz).
 `MonitorStream[MonitorT]` — on-change PV monitor; no timing parameters.
 `Window[AxisT, DetectorT]` — pure data object yielded by iterating a `Scan`; trigger sequences may span multiple streams.
 `Dimension[AxisT]` — one dimension of the compiled scan geometry.
-`TriggerSequence[DetectorT]` / `TriggerChild[DetectorT]` — detector triggering description (see Trigger structures below).
+`TriggerRepeat[DetectorT]` / `TriggerSequence[DetectorT]` — compiled detector triggering description (see Trigger structures below).
+`TriggerGroup[DetectorT]` / `TriggerPlan[DetectorT]` — caller-authored trigger hierarchy (ADR 0008), passed to `Sync.trigger_plan`; `compile()` derives `TriggerRepeat`/`TriggerSequence` from it.
 
 ---
 
@@ -45,66 +47,95 @@ DetectorT = TypeVar("DetectorT")
 MonitorT = TypeVar("MonitorT")
 
 
-class TriggerRepeat(BaseModel):
-    """Timing parameters for one repeating trigger block.
+@dataclass(frozen=True)
+class TriggerRepeat(Generic[DetectorT]):
+    """One resolved, repeating trigger block within a TriggerSequence.
 
-    num:      number of times this block repeats.
-    livetime: detector exposure time in seconds. None means not yet
-        resolved -- a downstream process (e.g. ophyd-async) fills it in
-        before compile(); must be resolved by then.
-    deadtime: detector readout/spacing time in seconds. Same None
-        semantics as livetime.
+    detectors: the set of detectors this block fires.
+    num:       number of times this block repeats.
+    livetime:  detector exposure time in seconds.
+    deadtime:  detector readout/spacing time in seconds.
 
     Centred-livetime semantics apply: execution order per repeat is
     ½·deadtime -> livetime -> ½·deadtime.
+
+    Pure compiled output -- always concrete (no unresolved timing). The
+    round trip for unresolved (None) timing happens entirely on
+    TriggerGroup/TriggerPlan, before compile() (ADR 0008); by the time a
+    TriggerSequence exists, livetime/deadtime are guaranteed resolved.
     """
-    model_config = ConfigDict(frozen=True)
-
-    num: int
-    livetime: float | None
-    deadtime: float | None
-
-
-class TriggerChild(BaseModel, Generic[DetectorT]):
-    """One parallel child within a TriggerSequence.
-
-    Fires during every parent repeat; its own repeats list executes
-    sequentially within each parent livetime. detectors names the child's
-    own detector set explicitly (rather than keying a dict by it) so the
-    whole structure serializes to JSON cleanly -- frozenset is not a valid
-    JSON object key, but is a perfectly ordinary field value.
-    """
-    model_config = ConfigDict(frozen=True)
 
     detectors: frozenset[DetectorT]
-    repeats: list[TriggerRepeat]
+    num: int
+    livetime: float
+    deadtime: float
 
 
-class TriggerSequence(BaseModel, Generic[DetectorT]):
+@dataclass(frozen=True)
+class TriggerSequence(Generic[DetectorT]):
     """Detector triggering description for one sequential entry in a window.
 
-    detectors is the set of detectors triggered by trigger_repeat. children
-    is a list of parallel children, each firing during every parent repeat;
-    each child's own repeats list executes sequentially. All child detector
-    sets must be disjoint from each other and from detectors (checked at
-    compile time).
+    root fires first; children fire in parallel with each other during
+    every root repeat. All child detector sets must be disjoint from each
+    other and from root.detectors (checked at compile time).
 
     Window.trigger_sequences is an ordered list; entries execute one after
     another within the window. Compiled specs always produce a single-entry
     list -- multi-entry lists (the variable-spacing spacer pattern) only
     arise via manually-constructed Window objects.
+    """
 
-    TriggerRepeat/TriggerChild/TriggerSequence are pydantic BaseModels, not
-    plain dataclasses like most compiled output (ADR 0003 Decision 6
-    carve-out): TriggerSequence doubles as caller-authored input to
-    Sync.trigger_sequence and must survive a JSON round trip, including
-    partially-unresolved timing.
+    root: TriggerRepeat[DetectorT]
+    children: list[TriggerRepeat[DetectorT]]
+
+
+class TriggerGroup(BaseModel, Generic[DetectorT]):
+    """Authoring-time detector group: identity plus trigger-timing intent.
+
+    Lives on TriggerPlan.root / TriggerPlan.children. livetime/deadtime may
+    be left unresolved (None) at authoring time -- a downstream process
+    (e.g. ophyd-async) fills them in before compile(), which requires both
+    concrete.
     """
     model_config = ConfigDict(frozen=True)
 
     detectors: frozenset[DetectorT]
-    trigger_repeat: TriggerRepeat
-    children: list[TriggerChild[DetectorT]]
+    exposures_per_collection: int
+    collections_per_event: int
+    livetime: float | None
+    deadtime: float | None
+
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
+
+
+class TriggerPlan(BaseModel, Generic[DetectorT]):
+    """Caller-authored trigger hierarchy for one Sync's windowed stream.
+
+    root/children mirror TriggerSequence's own root/children shape one
+    level up: children fire during every root repeat, in parallel with
+    each other, each at its own integer-multiple rate. Detector sets
+    across root and all children must be disjoint -- checked here
+    structurally at construction time, since timing may still be
+    unresolved. Physical checks (integer-ratio rates, child duration
+    fitting inside the root's livetime, concrete timing) happen at
+    compile() time against the derived TriggerSequence.
+
+    A bare TriggerGroup (no children) is also accepted anywhere a
+    TriggerPlan is -- Sync.trigger_plan is typed
+    TriggerPlan[DetectorT] | TriggerGroup[DetectorT] | None, and is
+    normalized to a trivial single-node TriggerPlan only where actually
+    needed (compile(), uniqueness validation), not eagerly.
+    """
+    model_config = ConfigDict(frozen=True)
+
+    root: TriggerGroup[DetectorT]
+    children: list[TriggerGroup[DetectorT]] = []
+
+    # Raises ValueError at construction time if any two of {root, *children}
+    # share a detector.
 
 
 @dataclass
@@ -154,9 +185,9 @@ class Window(Generic[AxisT, DetectorT]):
     non_linear: bool
 
     # Total time for this collection window, in seconds.
-    # Equals sum(seq.trigger_repeat.num * (livetime + deadtime) for all
-    # trigger_sequences) -- children run inside the parent livetime and do
-    # not extend it.
+    # Equals sum(seq.root.num * (seq.root.livetime + seq.root.deadtime) for
+    # all trigger_sequences) -- children run inside the parent livetime and
+    # do not extend it.
     duration: float
 
     # Detector triggering for this window, in execution order.
@@ -211,9 +242,12 @@ class Dimension(Generic[AxisT]):
 class DetectorGroup(Generic[DetectorT]):
     """Upfront description of a set of detectors sharing trigger parameters.
 
-    Lives on Sync.detectors. Used to configure detectors before the scan
-    starts. Static livetime/deadtime are resolved into TriggerRepeat
-    instances when Sync.compile() is called.
+    For a windowed stream this is pure compiled output, derived by
+    Sync.compile() from a caller-authored TriggerGroup (ADR 0008) -- it is
+    no longer directly caller-authored there. For a continuous stream it
+    is still directly caller-authored, on
+    ContinuousStreams.continuous_streams (ADR 0009); static
+    livetime/deadtime describe the stream's own fixed rate.
 
     exposures_per_collection: exposures the detector accumulates per collection.
     collections_per_event: collections that form one event in the stream.
@@ -314,6 +348,16 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
     @property
     def non_linear(self) -> bool:
         """True if any fly dimension uses a non-linear position function."""
+        ...
+
+    @property
+    def number_of_events(self) -> int:
+        """Total windows this Scan will yield, without iterating.
+
+        O(generator-tree size): product of each internal generator's own
+        window count, outer -> inner. Zero generators means zero windows,
+        not the empty-product identity of one.
+        """
         ...
 
     def with_start(
@@ -432,7 +476,7 @@ async def run_step_scan(spec: Spec[str, str, str]) -> None:
         assert all(not seq.children for seq in window.trigger_sequences)
         await asyncio.gather(*(
             trigger_detectors(
-                seq.detectors, seq.trigger_repeat.livetime, seq.trigger_repeat.deadtime
+                seq.root.detectors, seq.root.livetime, seq.root.deadtime
             )
             for seq in window.trigger_sequences
         ))
@@ -457,7 +501,7 @@ async def run_panda_flyscan(
 ) -> None:
     det_key = frozenset(detector_names)
     for window in scan:
-        seq = next(s for s in window.trigger_sequences if s.detectors == det_key)
+        seq = next(s for s in window.trigger_sequences if s.root.detectors == det_key)
 
         rows = SeqTable.empty()
 
@@ -474,12 +518,12 @@ async def run_panda_flyscan(
             )
             rows += SeqTable.row(trigger=trigger, position=int(lower))
 
-        # Root trigger_repeat. Generating the full N+1-row/2N-edge
+        # Root TriggerRepeat. Generating the full N+1-row/2N-edge
         # position-compare gate for N live exposures, and composing it with
         # a BITB pause-checkpoint gate, is a consumer-side (ophyd-async
         # PandA driver) concern -- ADR 0007 Assumptions A3/A4. scanspec's
         # model stops at "trigger N times, this long, this often."
-        tr = seq.trigger_repeat
+        tr = seq.root
         rows += SeqTable.row(
             repeats=tr.num,
             trigger=SeqTrigger.IMMEDIATE,
@@ -520,13 +564,12 @@ async def run_panda_flyscan_chained(
 ) -> None:
     seq = next(
         s for s in window.trigger_sequences
-        if s.detectors == frozenset({"saxs", "waxs"})
+        if s.root.detectors == frozenset({"saxs", "waxs"})
     )
-    tr = seq.trigger_repeat
-    panda_child = next(c for c in seq.children if c.detectors == frozenset({"panda"}))
-    tetramm_child = next(c for c in seq.children if c.detectors == frozenset({"tetramm"}))
-    panda_rep = panda_child.repeats[0]
-    tetramm_rep = tetramm_child.repeats[0]
+    tr = seq.root
+    # children are flat TriggerRepeats directly -- no nested .repeats list.
+    panda_rep = next(c for c in seq.children if c.detectors == frozenset({"panda"}))
+    tetramm_rep = next(c for c in seq.children if c.detectors == frozenset({"tetramm"}))
 
     # SEQ1: parent (SAXS+WAXS) exposed on OA, first child (PandA) on OB.
     # Pause can only be honoured while the parent is unexposed -- that's
@@ -587,7 +630,7 @@ async def run_panda_flyscan_chained(
     await asyncio.gather(panda.seq[1].wait_for_completion(), panda.seq[2].wait_for_completion())
 ```
 
-**SEQ1** (`tr = seq.trigger_repeat`, `panda_rep = panda_child.repeats[0]`):
+**SEQ1** (`tr = seq.root`, `panda_rep` = the matching child `TriggerRepeat`):
 
 | Row | TRIG | REP | T1 | OA1 | OB1 | T2 | OA2 | OB2 |
 |---|---|---|---|---|---|---|---|---|
@@ -599,8 +642,8 @@ async def run_panda_flyscan_chained(
 
 Loops to row 1 on the next `BITB` pulse for the next parent repeat.
 
-**SEQ2** (`tetramm_rep = tetramm_child.repeats[0]`), gated on `BITA` ←
-`SEQ1.OA`:
+**SEQ2** (`tetramm_rep` = the matching child `TriggerRepeat`), gated on
+`BITA` ← `SEQ1.OA`:
 
 | Row | TRIG | REP | T1 | OA1 | T2 | OA2 |
 |---|---|---|---|---|---|---|
@@ -759,19 +802,22 @@ y_coords = next(scan.windowed_streams[0].dimensions[0].setpoints("y"))   # shape
 
 - `AxisT` must be hashable (dict key).  `DetectorT` and `MonitorT` are not
   required to be hashable by the library, except where used as `frozenset`
-  members (`TriggerSequence`/`TriggerChild.detectors`).
+  members (`TriggerRepeat`/`TriggerGroup`/`TriggerPlan.detectors`).
 - All `DetectorGroup`s within a single `WindowedStream` must have trigger ratios
   that are integer multiples of each other.
-- Detector names must be disjoint across `detectors`, `continuous_streams`,
-  and `monitors` within an `Sync` (checked at construction time).
-- If `trigger_sequence` is supplied on `Sync`, its total detector set
-  (root `detectors` union every child's `detectors`) must exactly match
-  `Sync.detectors`' detector set (checked at construction time).
+- Within one `TriggerPlan`, `root` and every `children` `TriggerGroup`'s
+  detector sets must be pairwise disjoint (checked at `TriggerPlan`
+  construction time, ADR 0008).
+- Detector names must be globally unique across windowed streams,
+  `continuous_streams`, and `monitors` for a given compiled `Scan` (ADR
+  0009). Since `continuous_streams`/`monitors` are attached by the
+  outermost `ContinuousStreams`/`Monitors` wrapper, not `Sync` itself, this
+  is checked at `compile()` time against the full `Scan` state, not at
+  `Sync` construction time.
 - `TriggerSequence` child detector sets must be disjoint from each other and
-  from the parent's `detectors`; each child must trigger at an integer ratio
-  of the parent rate; each child's total duration must not exceed the
-  parent's livetime (checked at `compile()` time, for both caller-supplied
-  and auto-derived sequences).
+  from `root`'s; each child must trigger at an integer ratio of the parent
+  rate; each child's total duration must not exceed the parent's livetime
+  (checked at `compile()` time, via `validate_trigger_sequence`).
 - When `scan.has_moving_axes == False` (step scan), windows always have empty
   `moving_axes`.
 
@@ -820,9 +866,9 @@ only inside `Concat`/`Repeat`, never `Product`/`Zip`.
 
 `Sync` is a `Spec` subclass that is always the outermost construction node
 for a given windowed stream. It takes a pure motion spec
-(`Spec[AxisT, Never, Never]`) and binds detector triggering, monitor
-configuration, and fly/step mode, producing a `Spec[AxisT, DetectorT,
-MonitorT]` with exactly one windowed stream, named `stream_name` (default
+(`Spec[AxisT, Never, Never]`) and binds detector triggering and fly/step
+mode via `trigger_plan`, producing a `Spec[AxisT, DetectorT, MonitorT]`
+with exactly one windowed stream, named `stream_name` (default
 `"primary"`). `fly=True` means the innermost motion dimension sweeps
 continuously (flyscan); all outer dimensions are stepped. `fly=False`
 (default) is a software step scan.
@@ -832,58 +878,106 @@ is derived from trigger timing. For detector-less scans: step scans default to
 `duration=0`, fly scans use `duration` to compute `window.duration = num_points * duration`.
 When `duration` is `None` (default), fly windows fall back to index-unit duration.
 
-`trigger_sequence` is an optional, caller-supplied `TriggerSequence` used as
-the windowed stream's trigger structure as-is, instead of deriving one from
-`detectors`. It is **required** once `detectors` has more than one
-`DetectorGroup` — which group becomes the parent of a multi-rate structure is
-otherwise ambiguous, so `Sync.compile()` raises `ValueError` rather than
-guessing. `detectors` is still required alongside it (it is the arming-time
-description consumed by `WindowedStream.detector_groups`); the two are
-cross-checked for describing the same detector set, not derived from each
-other.
+`trigger_plan` (ADR 0008) is the caller-authored detector/timing hierarchy:
+a `TriggerGroup` (the trivial no-children case) or a `TriggerPlan` (a
+`root` `TriggerGroup` plus parallel `children` `TriggerGroup`s, each at
+its own integer-multiple rate). `compile()` derives both the compiled
+`TriggerSequence` and the `list[DetectorGroup]` the windowed stream needs
+from it — there's no separate `detectors` field to keep in sync by hand,
+and no ambiguity about which group is the "parent": the caller states it
+directly via `root`/`children`.
+
+`continuous_streams`/`monitors` are **not** `Sync` fields — see "Whole-scan
+acquisition" below.
 
 ```python
-# Step scan — single DetectorGroup, trigger_sequence derived automatically.
-# (No explicit Sync[...] annotation needed -- MonitorT infers to Never.)
+# Step scan — single TriggerGroup, no children.
+# (No explicit Sync[...] annotation needed -- MonitorT infers to Never,
+# since MonitorT no longer has anything on Sync to flow from at all.)
 spec = Sync(
     Product(Linspace("y", 0, 5, 50), Linspace("x", 0, 10, 100)),
     fly=False,              # default
     stream_name="primary",  # default
-    detectors=[
-        DetectorGroup(
-            exposures_per_collection=1,
-            collections_per_event=1,
-            livetime=0.1,
-            deadtime=0.01,
-            detectors=["det1"],
-        ),
-    ],
+    trigger_plan=TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.1,
+        deadtime=0.01,
+    ),
 )
 
-# Flyscan — inner axis sweeps continuously; cameras are a ContinuousStream,
-# temperature a free-running MonitorStream. Still a single DetectorGroup.
-# (No explicit Sync[...] annotation needed -- monitors= pins MonitorT.)
-spec = Sync(
+# Flyscan, multi-rate — SAXS/WAXS as root, encoders as a 10x-faster child.
+spec: Sync[str, str, Never] = Sync(
     Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100)),
     fly=True,
-    detectors=[
-        DetectorGroup(1, 1, 0.003, 0.001, ["saxs", "waxs"]),
-    ],
-    continuous_streams=[
-        ContinuousStream("cameras", [
-            DetectorGroup(1, 1, 0.048, 0.001, ["front_cam", "side_cam"]),
-        ]),
-    ],
-    monitors=[
-        MonitorStream("temperature", "tc1"),
-    ],
+    trigger_plan=TriggerPlan(
+        root=TriggerGroup(
+            detectors=frozenset({"saxs", "waxs"}),
+            exposures_per_collection=1, collections_per_event=1,
+            livetime=0.003, deadtime=0.001,
+        ),
+        children=[
+            TriggerGroup(
+                detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
+                exposures_per_collection=10, collections_per_event=1,
+                livetime=0.000299992, deadtime=8e-9,
+            ),
+        ],
+    ),
 )
 ```
 
 A single `Sync.compile()` always produces a `Scan` with exactly one
 windowed stream. All detector groups within that stream must trigger at
-integer-multiple rates of each other (see multi-rate example below and the
-maximal example).
+integer-multiple rates of each other (see the maximal example below).
+
+### Whole-scan acquisition — `Monitors` and `ContinuousStreams`
+
+`continuous_streams` and `monitors` are not-frame-coupled: they run for
+the whole scan regardless of windows, not local to wherever a `Sync`
+happens to sit in the combinator tree. ADR 0009 expresses this
+structurally with two outermost wrapper `Spec` subclasses instead of
+fields on `Sync`:
+
+```python
+class Monitors(Spec[AxisT, DetectorT, MonitorT]):
+    spec: AnySpec[AxisT, DetectorT, MonitorT]
+    monitors: Sequence[MonitorStream[MonitorT]] = ()
+
+class ContinuousStreams(Spec[AxisT, DetectorT, MonitorT]):
+    spec: AnySpec[AxisT, DetectorT, MonitorT]
+    continuous_streams: Sequence[ContinuousStream[DetectorT]] = ()
+```
+
+Each wrapper compiles its inner spec, then attaches its own field to the
+resulting `Scan`. Both must sit outside the entire spec tree — `Concat`/
+`Product`/`Zip` reject a nested spec carrying either field (see
+Invariants); each wrapper also rejects double-wrapping on its own field
+(`Monitors(Monitors(...))`). The two wrappers commute — nesting order
+between them doesn't matter, since each only ever touches its own field —
+and compose freely:
+
+```python
+spec = ContinuousStreams(
+    Monitors(
+        Sync(motion, trigger_plan=trigger_plan),
+        monitors=[MonitorStream("temperature", "tc1")],
+    ),
+    continuous_streams=[ContinuousStream("cameras", [...])],
+)
+```
+
+**Type-inference caveat**: unlike `DetectorT`, which still flows
+automatically from `trigger_plan=` on `Sync`, `MonitorT` can no longer be
+inferred purely from usage once `Monitors`
+wraps `Sync` — `Sync`'s own `MonitorT` is fixed to `Never` the instant a
+bare `Sync(...)` call returns, since nothing on `Sync` mentions `MonitorT`
+any more, even when that call sits directly inside `Monitors(...)` in the
+same expression (pyright resolves nested calls argument-first, not
+bidirectionally). An explicit annotation on the assignment target
+(`spec: Monitors[str, str, str] = Monitors(...)`) is required to recover
+the real type.
 
 ### Multi-stream scans — `Concat` of `Sync`s
 
@@ -892,32 +986,37 @@ spectroscopy `[N, 2, 1000]`) are expressed as a `Concat` of `Sync`s with
 different `stream_name`s — not a separate `Spec` subclass. `Concat.compile()`
 merges `windowed_streams` by name (summing the innermost dimension's length
 for repeated names) rather than requiring a single stream. Wrap in `Repeat`
-to interleave the pattern, and an outer `Sync` to carry scan-wide
-monitors:
+to interleave the pattern, and an outer `Monitors` (ADR 0009) to carry
+scan-wide monitors:
 
 ```python
-diff_det = DetectorGroup(1, 1, 0.01, 0.001, ["diffraction"])
-spec_det = DetectorGroup(1, 1, 0.003, 0.001, ["spectroscopy"])
+diff_group = TriggerGroup(
+    detectors=frozenset({"diffraction"}),
+    exposures_per_collection=1, collections_per_event=1,
+    livetime=0.01, deadtime=0.001,
+)
+spec_group = TriggerGroup(
+    detectors=frozenset({"spectroscopy"}),
+    exposures_per_collection=1, collections_per_event=1,
+    livetime=0.003, deadtime=0.001,
+)
 
-diff_acq = Sync(
-    Static("e", 7.0), detectors=[diff_det], stream_name="diff",
+diff_acq: Sync[str, str, Never] = Sync(
+    Static("e", 7.0), trigger_plan=diff_group, stream_name="diff",
 )
-spec_fwd = Sync(
-    Linspace("e", 7.0, 7.1, 1000), fly=True, detectors=[spec_det], stream_name="spec",
+spec_fwd: Sync[str, str, Never] = Sync(
+    Linspace("e", 7.0, 7.1, 1000), fly=True, trigger_plan=spec_group, stream_name="spec",
 )
-spec_rev = Sync(
-    Linspace("e", 7.1, 7.0, 1000), fly=True, detectors=[spec_det], stream_name="spec",
+spec_rev: Sync[str, str, Never] = Sync(
+    Linspace("e", 7.1, 7.0, 1000), fly=True, trigger_plan=spec_group, stream_name="spec",
 )
 
 # 200 iterations of: step to e=7.0 (1 diffraction frame), fly e 7.0->7.1
 # (1000 spectroscopy frames), fly e 7.1->7.0 (1000 spectroscopy frames).
-# Sync[...] annotation IS needed here -- not for MonitorT (monitors=
-# pins that), but because DetectorT can't be inferred through the
-# Repeat(...concat...concat...) combinator chain feeding `spec=`.
-spec: Sync[str, str, str] = Sync(
-    Repeat(diff_acq.concat(spec_fwd).concat(spec_rev), num=200),
-    monitors=[MonitorStream("temperature", "tc1")],
+inner: Repeat[str, str, Never] = Repeat(
+    diff_acq.concat(spec_fwd).concat(spec_rev), num=200,
 )
+spec = Monitors(inner, monitors=[MonitorStream("temperature", "tc1")])
 scan = spec.compile()
 
 # scan.windowed_streams has two entries, "diff" and "spec":
@@ -930,51 +1029,50 @@ scan = spec.compile()
 
 ### Generics and type inference
 
-Pyright infers `DetectorT` from `detectors=`. `MonitorT` infers from
-`monitors=` when given; when omitted, it defaults to `Never` (a PEP 696
-`TypeVar` default) rather than needing an explicit annotation. The type
-parameters exist for static analysis only — no runtime generic
-parameterization is required by Pydantic.
+Pyright infers `DetectorT` from `Sync.trigger_plan=`. `MonitorT` no longer
+has anything on `Sync` to flow from at all (ADR 0009 moved `monitors` to
+the separate `Monitors` wrapper) — a bare `Sync(...)` call always infers
+`MonitorT=Never` (a PEP 696 `TypeVar` default), and an explicit annotation
+on `Monitors(...)`'s own assignment target is required to recover the
+real `MonitorT` (see "Whole-scan acquisition" above). The type parameters
+exist for static analysis only — no runtime generic parameterization is
+required by Pydantic.
 
 ```python
-# Pyright infers Sync[str, str, str] — no annotation needed.
+# Pyright infers Sync[str, str, Never] — no annotation needed.
 spec = Sync(
     motion,
-    detectors=[DetectorGroup(
+    trigger_plan=TriggerGroup(
+        detectors=frozenset({"saxs"}),
         exposures_per_collection=1,
         collections_per_event=1,
         livetime=0.003,
         deadtime=0.001,
-        detectors=["saxs"],
-    )],
-    monitors=[MonitorStream("temp", "tc1")],
+    ),
 )
 
-# Without monitors, MonitorT infers to Never — still no annotation needed.
-spec_no_mon = Sync(
-    motion,
-    detectors=[DetectorGroup(1, 1, 0.003, 0.001, ["saxs"])],
+# MonitorT explicit annotation required to get it right -- see caveat above.
+wrapped: Monitors[str, str, str] = Monitors(
+    spec, monitors=[MonitorStream("temp", "tc1")],
 )
 ```
 
 Explicit `Sync[...]` annotation is still needed on the rare construction
 pyright can't see through at all — e.g. `spec=` built from a `Repeat`-of-
-`Concat`-of-`Sync`s chain, where `DetectorT` (unrelated to `MonitorT`)
-can't be tracked through the combinators (see the multi-stream example
-above).
+`Concat`-of-`Sync`s chain, where `DetectorT` can't be tracked through the
+combinators (see the multi-stream example above).
 
 See `tests/scanspec/v2/test_type_inference.py` for pyright assertions.
 
 ### `spec.compile()` — producing `Scan`
 
-`scan = spec.compile()` (or `acquire.compile()` for `Sync`) compiles
-the spec into a `Scan`. This is O(spec complexity) — no position
-arrays are allocated.
+`scan = spec.compile()` compiles the spec into a `Scan`. This is
+O(spec complexity) — no position arrays are allocated.
 
 `Scan` is iterable and the sole entry point for analysis:
 
 ```python
-scan: Scan[str, str, str] = acquire.compile()
+scan: Scan[str, str, str] = spec.compile()
 
 # For a single Sync, exactly one windowed stream is produced.
 assert len(scan.windowed_streams) == 1
@@ -1000,45 +1098,50 @@ energy_axis = Linspace("energy", 7.0, 7.1, 20)
 xy_motion   = Product(Linspace("y", 0, 5, 50), ~Linspace("x", 0, 10, 100))
 full_motion = energy_axis * xy_motion   # 20 energy steps × 50 rows = 1000 windows
 
-# No explicit Sync[...] annotation needed -- detectors=/monitors= pin
-# DetectorT/MonitorT directly (unlike the Repeat/Concat chain above).
-spec = Sync(
+# No explicit Sync[...] annotation needed -- trigger_plan= pins DetectorT
+# directly (unlike the Repeat/Concat chain above). MonitorT still needs
+# the explicit Monitors[...] annotation below (see type-inference caveat).
+sync: Sync[str, str, str] = Sync(
     full_motion,
     fly=True,           # innermost dimension (x) sweeps continuously
     stream_name="primary",
-    detectors=[
-        # SAXS and WAXS Pilatus: 1 frame per event, 3ms live, 1ms dead
-        DetectorGroup(
+    # Which TriggerGroup becomes root vs child is caller-decided; num is
+    # auto-derived by compile() from scan geometry (root) and timing
+    # (children), not hand-computed.
+    trigger_plan=TriggerPlan(
+        root=TriggerGroup(
+            # SAXS and WAXS Pilatus: 1 frame per event, 3ms live, 1ms dead
+            detectors=frozenset({"saxs", "waxs"}),
             exposures_per_collection=1,
             collections_per_event=1,
             livetime=0.003,
             deadtime=0.001,
-            detectors=["saxs", "waxs"],
         ),
-        # PandA encoders: 10× faster than Pilatus. A child's livetime
-        # excludes its own deadtime when sized against the parent's
-        # livetime slot: livetime = parent_livetime/ratio - deadtime, so
-        # 10 child repeats fit exactly inside the 3ms parent livetime.
-        DetectorGroup(
-            exposures_per_collection=10,
-            collections_per_event=1,
-            livetime=0.000299992,
-            deadtime=8e-9,
-            detectors=["timestamp", "x_enc", "y_enc"],
-        ),
-    ],
-    # Which DetectorGroup becomes the trigger-sequence parent is not
-    # auto-derived once there is more than one -- supplied explicitly.
-    trigger_sequence=TriggerSequence(
-        detectors=frozenset({"saxs", "waxs"}),
-        trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
         children=[
-            TriggerChild(
+            # PandA encoders: 10x faster than Pilatus. A child's livetime
+            # excludes its own deadtime when sized against the parent's
+            # livetime slot: livetime = parent_livetime/ratio - deadtime,
+            # so 10 child repeats fit exactly inside the 3ms parent
+            # livetime.
+            TriggerGroup(
                 detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
-                repeats=[
-                    TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9),
-                ],
+                exposures_per_collection=10,
+                collections_per_event=1,
+                livetime=0.000299992,
+                deadtime=8e-9,
             ),
+        ],
+    ),
+)
+
+# continuous_streams/monitors attach via the outermost wrappers (ADR 0009),
+# not on Sync itself. Nesting order between the two doesn't matter.
+spec: ContinuousStreams[str, str, str] = ContinuousStreams(
+    Monitors(
+        sync,
+        monitors=[
+            # Free-running temperature PV — no timing parameters
+            MonitorStream("dcm_temp", "dcm_temperature"),
         ],
     ),
     continuous_streams=[
@@ -1052,10 +1155,6 @@ spec = Sync(
                 detectors=["front_cam", "side_cam"],
             ),
         ]),
-    ],
-    monitors=[
-        # Free-running temperature PV — no timing parameters
-        MonitorStream("dcm_temp", "dcm_temperature"),
     ],
 )
 
@@ -1081,38 +1180,57 @@ spec = Sync(
 # ]
 # scan.monitors == [MonitorStream("dcm_temp", "dcm_temperature")]
 # Every window's trigger_sequences == [TriggerSequence(
-#     detectors=frozenset({"saxs", "waxs"}),
-#     trigger_repeat=TriggerRepeat(num=100, livetime=0.003, deadtime=0.001),
-#     children=[TriggerChild(
+#     root=TriggerRepeat(
+#         detectors=frozenset({"saxs", "waxs"}),
+#         num=100, livetime=0.003, deadtime=0.001,
+#     ),
+#     children=[TriggerRepeat(
 #         detectors=frozenset({"timestamp", "x_enc", "y_enc"}),
-#         repeats=[TriggerRepeat(num=10, livetime=0.000299992, deadtime=8e-9)],
+#         num=10, livetime=0.000299992, deadtime=8e-9,
 #     )],
 # )]
 ```
 
 ### Validation
 
-**At `Sync` construction time** (raises `ValueError` immediately):
+**At `TriggerPlan` construction time** (raises `ValueError` immediately,
+ADR 0008):
 
-- If `trigger_sequence` is given, its total detector set (root `detectors`
-  union every child's `detectors`) must exactly match `Sync.detectors`'
-  detector set.
-- Detector names must be globally unique across `detectors`,
-  `continuous_streams`, and `monitors`.
+- `root` and every `children` `TriggerGroup`'s detector sets must be
+  pairwise disjoint.
 
-**At `compile()` time**:
+**At `Sync.compile()` time**:
 
-- If `trigger_sequence` was given: `validate_trigger_sequence` checks that
-  `trigger_repeat.livetime`/`deadtime` are resolved (not `None`), that every
-  child detector set is disjoint from the parent and from every other child,
-  that each child's own `livetime`/`deadtime` are resolved, that each child
-  triggers at an integer ratio of the parent rate, and that each child's
-  total duration does not exceed the parent's livetime.
-- If `trigger_sequence` was **not** given and `detectors` has more than one
-  `DetectorGroup`: raises `ValueError` — the parent is ambiguous, supply
-  `trigger_sequence` explicitly instead.
+- Every `TriggerGroup` in `trigger_plan` (`root` and each child) must have
+  concrete `livetime`/`deadtime` (not `None`) — raises `ValueError`
+  otherwise. Unresolved timing is only ever valid at authoring time, before
+  `compile()`.
+- Each child must trigger at an integer ratio of the parent rate; each
+  child's total duration must not exceed the parent's livetime
+  (`validate_trigger_sequence`, re-checked against the derived
+  `TriggerSequence`).
 - If `duration` is given explicitly and is less than the detector-derived
   per-point duration: raises `ValueError`.
+
+**At `Monitors.compile()` / `ContinuousStreams.compile()` time** (ADR
+0009):
+
+- Detector names must be globally unique across windowed streams,
+  `continuous_streams`, and `monitors` for the whole compiled `Scan` —
+  checked against the full `Scan` state after attaching, not just the
+  wrapper's own field, since nesting order between the two wrappers can
+  put either one first.
+- Double-wrapping the same field is rejected (`Monitors(Monitors(...))`,
+  `ContinuousStreams(ContinuousStreams(...))`) — checking only that
+  wrapper's own field, not the other one, so
+  `ContinuousStreams(Monitors(...), ...)` composes normally.
+
+**At `Product`/`Zip`/`Concat.compile()` time**:
+
+- A nested spec carrying `continuous_streams` or `monitors` (i.e. a
+  `Monitors`/`ContinuousStreams` wrapper, or a windowed stream nested
+  inside one) is rejected — those must be attached via the outermost
+  `Monitors`/`ContinuousStreams` wrapper, never inside a combinator.
 - Any `Spec` subclass with detectors is always the outermost node for its
   stream and cannot be nested inside `Product` or `Zip` without losing its
   `windowed_streams` (see Motion spec composition above) — use `Concat`
@@ -1120,44 +1238,65 @@ spec = Sync(
 
 ### Serialization
 
-A spec serializes to JSON using pydantic's discriminated union on the motion
-tree (each node has a `type` literal field: `"Linspace"`, `"Product"`, etc.).
-`Sync` wraps the motion tree and serializes its own fields inline,
-including `trigger_sequence` — `TriggerRepeat`/`TriggerChild`/`TriggerSequence`
-are pydantic `BaseModel`s and round-trip natively: `frozenset` fields become
-plain JSON arrays, and `children` is an ordinary list rather than a dict
-keyed by `frozenset` (which JSON cannot represent). A full round trip via
-`model_dump_json()`/`model_validate_json()` (or the `AnySpec` `TypeAdapter`
-as part of a full `Sync`) is supported end to end, including
-partially-unresolved timing (`livetime`/`deadtime` still `None`).
+A spec serializes to JSON using pydantic's discriminated union on the
+*whole* spec tree (each node has a `type` literal field: `"Linspace"`,
+`"Product"`, `"Sync"`, `"Monitors"`, `"ContinuousStreams"`, etc.) — not
+just the motion nodes. `Sync` serializes its own fields inline, including
+`trigger_plan`: `TriggerGroup`/`TriggerPlan` are pydantic `BaseModel`s and
+round-trip natively, including partially-unresolved timing
+(`livetime`/`deadtime` still `None`) — `frozenset` fields become plain
+JSON arrays. A bare `TriggerGroup` (no children) is stored and serialized
+as-is where given, not eagerly wrapped in a trivial `TriggerPlan`.
+
+`TriggerRepeat`/`TriggerSequence` are **not** part of a spec's own
+serialization at all — they're plain (non-pydantic) dataclasses, pure
+compiled output that only exists on `Window.trigger_sequences` after
+`compile()` runs. `continuous_streams`/`monitors` are not `Sync` fields
+either (ADR 0009) — they appear only inside a `Monitors`/`ContinuousStreams`
+wrapper node, nested around the `Sync` subtree they scope.
+
+A full round trip via `model_dump_json()`/`model_validate_json()` (or the
+`AnySpec` `TypeAdapter`) is supported end to end for the whole tree,
+`Monitors`/`ContinuousStreams` wrappers included:
 
 ```json
 {
-  "type": "Sync",
+  "type": "ContinuousStreams",
   "spec": {
-    "type": "Product",
-    "outer": {"type": "Linspace", "axis": "y", "start": 0, "stop": 5, "num": 50},
-    "inner": {"type": "Snake", "spec": {"type": "Linspace", "axis": "x", "start": 0, "stop": 10, "num": 100}}
-  },
-  "fly": true,
-  "stream_name": "primary",
-  "detectors": [
-    {"exposures_per_collection": 1, "collections_per_event": 1,
-     "livetime": 0.003, "deadtime": 0.001, "detectors": ["saxs", "waxs"]},
-    {"exposures_per_collection": 10, "collections_per_event": 1,
-     "livetime": 0.000299992, "deadtime": 8e-9, "detectors": ["timestamp", "x_enc", "y_enc"]}
-  ],
-  "continuous_streams": [],
-  "monitors": [],
-  "duration": null,
-  "trigger_sequence": {
-    "detectors": ["saxs", "waxs"],
-    "trigger_repeat": {"num": 100, "livetime": 0.003, "deadtime": 0.001},
-    "children": [
-      {"detectors": ["timestamp", "x_enc", "y_enc"],
-       "repeats": [{"num": 10, "livetime": 0.000299992, "deadtime": 8e-9}]}
+    "type": "Monitors",
+    "spec": {
+      "type": "Sync",
+      "spec": {
+        "type": "Product",
+        "outer": {"type": "Linspace", "axis": "y", "start": 0, "stop": 5, "num": 50},
+        "inner": {"type": "Snake", "spec": {"type": "Linspace", "axis": "x", "start": 0, "stop": 10, "num": 100}}
+      },
+      "fly": true,
+      "stream_name": "primary",
+      "trigger_plan": {
+        "root": {
+          "detectors": ["saxs", "waxs"],
+          "exposures_per_collection": 1, "collections_per_event": 1,
+          "livetime": 0.003, "deadtime": 0.001
+        },
+        "children": [
+          {"detectors": ["timestamp", "x_enc", "y_enc"],
+           "exposures_per_collection": 10, "collections_per_event": 1,
+           "livetime": 0.000299992, "deadtime": 8e-9}
+        ]
+      },
+      "duration": null
+    },
+    "monitors": [
+      {"name": "dcm_temp", "detector": "dcm_temperature"}
     ]
-  }
+  },
+  "continuous_streams": [
+    {"name": "cameras", "detector_groups": [
+      {"exposures_per_collection": 1, "collections_per_event": 1,
+       "livetime": 0.048, "deadtime": 0.001, "detectors": ["front_cam", "side_cam"]}
+    ]}
+  ]
 }
 ```
 

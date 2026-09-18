@@ -548,16 +548,6 @@ are `float | None`, and `TriggerSequence` round-trips through JSON
 
 ## 10. Documentation debt
 
-- **API_SPEC.md predates ADR 0006/0007 entirely** and needs a full rewrite,
-  not a targeted patch: its trigger vocabulary throughout (data structures
-  and 2 of its 5 worked use cases) is `TriggerPattern`/`TriggerGroup`,
-  superseded by `TriggerRepeat`/`TriggerSequence` (already landed — §8); it
-  also still names `Window.non_linear_move` (code: `non_linear`),
-  `with_start(window, time)` (code: `trigger_index`), and a
-  `Scan.fly`/`Scan.motion_dims` field (removed in favour of
-  `has_moving_axes`/`non_linear` and `windowed_streams`). Its "Open
-  questions §1" (multi-stream `Spec` subclass) is also already resolved —
-  by `Concat` of `Sync`s with different `stream_name`s (§3.1).
 - `docs/` (user-facing Sphinx docs) still document 1.x only; they are
   rewritten as part of the final migration, not before.
 
