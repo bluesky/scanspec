@@ -33,6 +33,7 @@ from .core import (
 
 __all__ = [
     "VARIABLE_DURATION",
+    "Array",
     "Concat",
     "ConstantDuration",
     "Ellipse",
