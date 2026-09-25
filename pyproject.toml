@@ -32,7 +32,7 @@ dev = [
     "scanspec[plotting]",
     "scanspec[service]",
     "autodoc-pydantic",
-    "anyio<4.15",  # anyio 4.15 deprecates a starlette.testclient import; unpin once
+    "anyio<4.16",  # anyio 4.15 deprecates a starlette.testclient import; unpin once
                    # https://github.com/Kludex/starlette/pull/3498 is released
     "httpx",     # ophyd-async's own dependency, unrelated to starlette's TestClient
     "httpx2",    # starlette.testclient now requires this instead of httpx
