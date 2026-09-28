@@ -268,43 +268,70 @@ centre to avoid the velocity singularity at r=0.
 
 ## 4. Trigger model
 
-### 4.1 Upfront description vs runtime instruction
+### 4.1 Authoring input vs compiled output (ADR 0008)
 
-Two deliberately separate concepts:
+The caller authors triggering once, as a **`TriggerGroup`** on
+`Sync.trigger_group` (example in §3.1); `compile()` derives everything else
+from it.
 
-- **`DetectorGroup`** (on `Sync.detectors`, surfaced via
-  `WindowedStream.detector_groups`) — *arming-time* description:
+- **`TriggerGroup`** — the group's own detectors (`detectors: frozenset`,
   `exposures_per_collection`, `collections_per_event`, `livetime`,
-  `deadtime`, `detectors`. `exposures_per_event = exposures_per_collection ×
-  collections_per_event`. Used with the stream's `dimensions` to call
-  `StandardDetector.prepare()` before any window is iterated.
-- **`TriggerSequence`** (on `Window.trigger_sequences`) — *runtime*
-  instruction: `detectors` + a `trigger_repeat: TriggerRepeat(num, livetime,
-  deadtime)` + a parallel `children: list[TriggerChild]` of
-  integer-multiple-rate sub-groups (§4.3). Baked from `DetectorGroup`s at
-  compile time (ADR 0007): every
-  recorded collection needs its own trigger, so `num` is computed from
-  `exposures_per_event` (`= exposures_per_collection × collections_per_event`),
-  not `exposures_per_collection` alone (known gap in §8 for the pending code
-  fix). The **parent** `trigger_repeat.num` is `inner_length ×
-  exposures_per_event` for flyscan windows, or `exposures_per_event` for step
-  windows. Each **child**'s `num` follows the same rule scaled to the
-  parent's livetime rather than the whole window — conventionally
-  `child_rate_Hz × parent_livetime` (e.g. `8000 Hz × 0.009 s = 72`, §4.3) —
-  independent of `inner_length`, since children fire once per *parent
-  repeat*, not once per window. `livetime`/`deadtime` must be resolved
-  (not `None`) before `compile()`. Consumers find their sequence by matching
-  `frozenset(sequence.detectors)` (unique per window, enforced); they read,
-  never compute.
+  `deadtime`) plus `followers: list[TriggerFollower]`. A group with no
+  followers is complete on its own.
+- **`TriggerFollower`** — the same fields plus `repeats`: detectors
+  triggering at an integer-multiple rate within the same collective. Each
+  follower fires `repeats` times during *every one of the group's own
+  repeats*, in parallel with the other followers.
+- Detector sets across the group and all its followers must be disjoint —
+  checked at construction, since timing may still be unresolved.
+- Both are frozen pydantic `BaseModel`s. `livetime`, `deadtime` and a
+  follower's `repeats` may be `None` at authoring time and survive a JSON
+  round trip, so a downstream process (e.g. ophyd-async) can fill them in
+  before `compile()`.
 
-A stream's detector group may appear in the trigger sequences of only a subset
+At `compile()`, all timing must be concrete (else `ValueError`):
+
+- The **group's own repeat count is never caller-supplied** — it is the
+  motion↔trigger binding `Sync` exists to perform:
+  `exposures_per_event × inner_length` for a flyscan window,
+  `exposures_per_event` for a step window
+  (`exposures_per_event = exposures_per_collection × collections_per_event`).
+- A **follower's `repeats`, `livetime` and `deadtime` must all be supplied**
+  — a follower's rate relative to the group is detector-hardware
+  information, so nothing is derived from the spec tree.
+
+One `TriggerGroup` compiles into two separate things:
+
+- **`WindowedStream.detector_groups: list[DetectorGroup]`** — the
+  *arming-time* description, one entry for the group then one per
+  follower, carrying `detectors`, `exposures_per_collection`,
+  `collections_per_event`, `livetime`, `deadtime` through unchanged. Used
+  with the stream's `number_of_events` (§5) to call
+  `StandardDetector.prepare()` before any window is iterated. It carries no
+  repeat count: a follower's scan-wide total (`number_of_events ×
+  repeats`) is found by walking windows (§8). `DetectorGroup` is still
+  directly caller-authored for continuous streams (`ContinuousStreams`,
+  ADR 0009).
+- **`Window.trigger_sequences: list[TriggerSequence]`** — the *runtime*
+  instruction. `TriggerSequence(root: TriggerRepeat, children:
+  list[TriggerRepeat])`, with `TriggerRepeat(detectors, repeats, livetime,
+  deadtime)`; both are frozen dataclasses with concrete timing. Consumers
+  find their entry by matching `seq.root.detectors` (or a child's
+  `detectors`) and read, never compute.
+
+`validate_trigger_sequence` (also required for manually-constructed
+`Window`s) raises if detector sets overlap, if a child's period
+(`livetime + deadtime`) doesn't divide the root's livetime to an integer,
+or if a child's total duration exceeds the root's livetime.
+
+A stream's detectors may appear in the trigger sequences of only a subset
 of windows (flagship pattern: diffraction fires only in hold windows).
 
-Window `duration` is derived from the root `TriggerSequence`s — the sum of
-`num × (livetime + deadtime)` across them, since faster children run inside
-the parent livetime and do not extend it; an explicit `Sync(duration=...)`
-must be ≥ the derived value. Detector-less step scans have `duration = 0`;
-detector-less fly scans require a supplied duration.
+Window `duration` is the sum of `root.repeats × (livetime + deadtime)`
+across its trigger sequences — children run inside the root's livetime and
+do not extend it. An explicit `Sync(duration=...)` is per point and must be
+≥ the derived per-point value. Detector-less step scans have
+`duration = 0`; detector-less fly scans require a supplied duration.
 
 ### 4.2 Centred livetime (ADR 0006 — accepted)
 
@@ -321,60 +348,43 @@ intra-burst deadtime — the ptychography pattern, expressed as a list of
 `TriggerSequence`s in the window (§4.3):
 
 ```python
-[TriggerSequence(detectors=dets,        trigger_repeat=TriggerRepeat(num=N1, livetime=livetime1, deadtime=deadtime), children=[]),  # first burst
- TriggerSequence(detectors=frozenset(), trigger_repeat=TriggerRepeat(num=1,  livetime=0.0,        deadtime=spacing),  children=[]),  # spacer
- TriggerSequence(detectors=dets,        trigger_repeat=TriggerRepeat(num=N2, livetime=livetime2, deadtime=deadtime), children=[])]  # second burst
+[TriggerSequence(root=TriggerRepeat(detectors=dets,        repeats=N1, livetime=livetime1, deadtime=deadtime), children=[]),  # first burst
+ TriggerSequence(root=TriggerRepeat(detectors=frozenset(), repeats=1,  livetime=0.0,       deadtime=spacing),  children=[]),  # spacer
+ TriggerSequence(root=TriggerRepeat(detectors=dets,        repeats=N2, livetime=livetime2, deadtime=deadtime), children=[])]  # second burst
 ```
 
 ### 4.3 The two-level trigger structure (ADR 0007 — accepted)
 
-Sibling `TriggerGroup`s at integer-multiple rates have no structural link —
-nothing ties "100 SAXS frames" to "7200 Tetramm samples" during the scan.
-ADR 0007 replaces `TriggerPattern` + `TriggerGroup` with two types: a
-**`TriggerRepeat`** (`num`, `livetime`, `deadtime`) carrying timing only, and
-a **`TriggerSequence`** binding `detectors` to one parent `trigger_repeat`
-plus a parallel `children: list[TriggerChild]`. Integer-multiple-rate
-sub-groups become parallel children that fire *during each parent
-livetime*, so progress through the parent structurally implies progress
-through the children:
+Detectors at integer-multiple rates are structurally linked: children fire
+*during each root repeat*, so progress through the root implies progress
+through the children — which is what gives pause/resume a single
+checkpoint to count on (§6). For example, SAXS/WAXS as the root with two
+faster children:
 
 ```python
 TriggerSequence(
-    detectors=frozenset({"saxs", "waxs"}),
-    trigger_repeat=TriggerRepeat(num=100, livetime=0.009, deadtime=0.001),
+    root=TriggerRepeat(detectors=frozenset({"saxs", "waxs"}), repeats=100, livetime=0.009, deadtime=0.001),
     children=[
-        TriggerChild(detectors=frozenset({"tetramm"}), repeats=[TriggerRepeat(num=72, livetime=0.000124, deadtime=0.000001)]),
-        TriggerChild(detectors=frozenset({"panda"}),   repeats=[TriggerRepeat(num=45, livetime=0.000190, deadtime=0.000010)]),
+        TriggerRepeat(detectors=frozenset({"tetramm"}), repeats=72, livetime=0.000124, deadtime=0.000001),
+        TriggerRepeat(detectors=frozenset({"panda"}),   repeats=45, livetime=0.000190, deadtime=0.000010),
     ],
 )
 ```
 
-`TriggerRepeat`/`TriggerChild`/`TriggerSequence` are pydantic `BaseModel`s,
-not plain dataclasses like most compiled output (ADR 0003 Decision 6
-carve-out) — `TriggerSequence` is also caller-authored input to
-`Sync.trigger_sequence` and must survive a JSON round trip (e.g. sent to
-ophyd-async to have unresolved `livetime`/`deadtime` filled in). `children`
-is a list of named entries rather than a dict keyed by the child's
-`frozenset` of detectors specifically so this round-trips: a `frozenset`
-is not a valid JSON object key.
+The structure is fixed at **two levels** (root + one parallel child layer).
+One root plus one child fits in a single PandA SEQ block; each additional
+child needs another SEQ block, chained by wiring the previous block's
+output as the next block's trigger input (worked example in
+`API_SPEC.md`) — so the example above costs two SEQ blocks. A child's
+detector is therefore externally gated by the root, never free-running.
 
-The `children` list is **parallel** (every entry fires simultaneously
-during each parent repeat); each entry's `repeats` is a **sequential**
-`list[TriggerRepeat]`. Each child's total duration must be ≤ the parent
-livetime, and child detector sets must be disjoint from each other and the
-parent — all validated at compile
-time. The structure is fixed at **two levels** (parent + one child layer).
-One parent plus one child fits in a single PandA SEQ block; each additional
-child requires an additional SEQ block — the SAXS/WAXS + Tetramm + PandA
-example above has two children, so it costs two SEQ blocks, not one.
-
-`Window.trigger_groups` becomes `Window.trigger_sequences` — an **ordered
-sequential list**; there are no parallel sibling streams within a window
-(no zipping of unrelated trigger streams with no common checkpoint base).
-Compiled specs always produce a single-entry list — a spec-facing authoring
-surface for the variable-spacing spacer pattern (§4.2) is not required for
-2.0 (§2.5, §11) — so multi-entry lists, including that pattern, only arise
-via manual `Window` construction.
+`Window.trigger_sequences` is an **ordered sequential list**; there are no
+parallel sibling streams within a window (no zipping of unrelated trigger
+streams with no common checkpoint base). Compiled specs always produce a
+single-entry list — a spec-facing authoring surface for the
+variable-spacing spacer pattern (§4.2) is not required for 2.0 (§2.5, §11)
+— so multi-entry lists, including that pattern, only arise via manual
+`Window` construction.
 
 ADR 0007 also adds `Scan.active_stream_sets: list[frozenset[str]]` — every
 combination of stream names simultaneously active in some window — so a
@@ -388,8 +398,11 @@ singleton — confirmed by
 outputs, so independent streams can reuse different outputs of the same
 block rather than each needing a separate one — up to 6 streams per block.
 
-This ADR supersedes ADR 0005 and the `positions(TriggerPattern)` signature
-of ADR 0006 (§3.3, ADR 0007 Assumption A4).
+ADR 0007 superseded ADR 0005 and the `positions(TriggerPattern)` signature
+of ADR 0006 (§3.3, ADR 0007 Assumption A4). ADR 0008 then replaced ADR
+0007's caller-authored `TriggerSequence`/`TriggerChild` input with
+`TriggerGroup`/`TriggerFollower` (§4.1), leaving the compiled
+`TriggerSequence` as pure output.
 
 ---
 
@@ -440,8 +453,9 @@ Principles (agreed, ADR 0007 context):
 - Intra-window resume works regardless of how many entries a window's
   `trigger_sequences` list contains — `_truncate_trigger_sequence` walks the
   flat list, counting completed root-level repeats across all of them. (This
-  was a real restriction under the old `TriggerGroup` model, which required
-  exactly one group per window; that type no longer exists.)
+  was a real restriction under the pre-ADR-0007 `TriggerGroup` model —
+  unrelated to ADR 0008's authoring `TriggerGroup` — which required exactly
+  one group per window.)
 - Within a window, safe pause points are **checkpoints** at root-level
   repeat boundaries. ADR 0007 proposes gating each root repeat on a
   Bluesky-held bit (BITB) in the PandA sequencer table. When the bit
@@ -493,20 +507,19 @@ branch: `v2-dev`.
 (`Linspace`+`bounded`, `Static`, `Range`+`bounded`, `Spiral`, `Ellipse`,
 `Polygon`, `Line`); all combinators; `Sync`; serialization via dynamic
 discriminated union with out-of-package subclass support; centred-livetime
-semantics; the ADR 0007 trigger model (`TriggerRepeat`/`TriggerSequence`,
-`positions(times: np.ndarray)`, `Scan.active_stream_sets`) — this has fully
-replaced ADR 0005/0006's `TriggerPattern`/`TriggerGroup`, which no longer
-exist anywhere in the codebase; `with_start(window, trigger_index)`
-checkpoint truncation resume via `_truncate_trigger_sequence`; compile-time
-validation that same-stream detector groups trigger at integer ratios of
-each other (story 4) — `_bake_trigger_sequence` checks that
-`parent_livetime / child_period` is (within floating tolerance) a whole
-number, in addition to the pre-existing checks that a child group's total
-duration fits within the parent livetime and that detector sets are
-disjoint; `num` is computed from `exposures_per_event`
-(`exposures_per_collection × collections_per_event`) throughout, not
-`exposures_per_collection` alone. ADR 0007 is Accepted (§9); the code and
-tests it describes are in place on this branch. `WindowedStream.number_of_events`
+semantics; the ADR 0007 compiled trigger structure (`TriggerRepeat`/
+`TriggerSequence`, `positions(times: np.ndarray)`,
+`Scan.active_stream_sets`) — ADR 0005/0006's `TriggerPattern` no longer
+exists; the ADR 0008 authoring surface (`Sync.trigger_group` taking a
+`TriggerGroup` with `TriggerFollower`s, §4.1); the ADR 0009 `Sync` rename
+and `Monitors`/`ContinuousStreams` wrappers; `with_start(window,
+trigger_index)` checkpoint truncation resume via
+`_truncate_trigger_sequence`; compile-time validation that same-stream
+detectors trigger at integer ratios of each other (story 4) —
+`validate_trigger_sequence` checks that `root_livetime / child_period` is
+(within floating tolerance) a whole number, that a child's total duration
+fits within the root's livetime, and that detector sets are disjoint.
+`WindowedStream.number_of_events`
 — total detector trigger events for that stream, computed as the product of
 `dim.length` across `stream.dimensions`. Fly-agnostic, since `Dimension.length`
 already is: a flown dimension's length is its real point count, not collapsed
@@ -534,18 +547,18 @@ each window's `root.repeats` by the matching child's `repeats`.
 
 ## 9. ADR review status
 
-ADR 0006 and ADR 0007 are both **Accepted**, with no open review items.
-ADR 0005 is superseded by ADR 0007; ADR 0006 Decision 3 (`positions()`
-argument type) is superseded by ADR 0007 in the same pass; ADR 0003
-Decisions #1/#2/#5 are likewise superseded by ADR 0007, and Decision 6 has
-a carve-out for `TriggerRepeat`/`TriggerSequence`/`TriggerChild` (now
-pydantic `BaseModel`s, not plain dataclasses). See
-`docs/explanations/decisions/` for the full supersession detail. ADR 0007
-Assumption A5 (`TriggerRepeat` needing to regain the unresolved-value
-support its ADR 0005 predecessor had) is implemented: `livetime`/`deadtime`
-are `float | None`, and `TriggerSequence` round-trips through JSON
-(including with unresolved values) now that `children` is a
-`list[TriggerChild]` rather than a `frozenset`-keyed dict.
+ADRs 0006–0009 are all **Accepted**, with no open review items. ADR 0005
+is superseded by ADR 0007; ADR 0006 Decision 3 (`positions()` argument
+type) and ADR 0003 Decisions #1/#2/#5 are likewise superseded by ADR 0007.
+ADR 0007 Decision #1 made `TriggerRepeat`/`TriggerSequence`/`TriggerChild`
+pydantic `BaseModel`s so caller-authored `TriggerSequence`s could round-trip
+with unresolved timing (ADR 0007 Assumption A5); ADR 0008 moved authoring
+to `TriggerGroup`/`TriggerFollower` (which now carry that round-trip
+requirement), removed `TriggerChild`, and returned the compiled
+`TriggerRepeat`/`TriggerSequence` to plain dataclasses with concrete
+`float` timing — so ADR 0003 Decision 6 holds as originally written. See
+each ADR's own Status field for the full supersession detail; the ADR set
+is due to be consolidated.
 
 ---
 

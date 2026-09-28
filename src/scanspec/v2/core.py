@@ -31,7 +31,7 @@ class TriggerRepeat(Generic[DetectorT]):
 
     Pure compiled output -- unlike its ADR 0007 predecessor, no longer
     caller-authored, so no pydantic/round-trip requirement (the round trip
-    for unresolved timing now happens entirely on TriggerGroup/TriggerPlan,
+    for unresolved timing now happens entirely on TriggerGroup/TriggerFollower,
     before compile() -- see ADR 0008).
     """
 
@@ -622,7 +622,7 @@ def validate_trigger_sequence(seq: TriggerSequence[DetectorT]) -> None:
     Not specific to ``Sync`` -- also required for manually-constructed
     ``Window``s (ADR 0007 Assumption A1), so lives here rather than as a
     private method. Unresolved (``None``) timing is rejected earlier, on
-    the caller-authored ``TriggerGroup``/``TriggerPlan``, before a
+    the caller-authored ``TriggerGroup``/``TriggerFollower``, before a
     ``TriggerSequence`` can exist at all (ADR 0008) -- ``TriggerRepeat``'s
     ``livetime``/``deadtime`` are always concrete by the time this runs.
 
