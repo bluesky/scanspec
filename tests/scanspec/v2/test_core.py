@@ -12,6 +12,7 @@ from scanspec.v2.core import (
     LinearSource,
     MonitorStream,
     Scan,
+    TriggerFollower,
     TriggerGroup,
     TriggerRepeat,
     TriggerSequence,
@@ -21,6 +22,7 @@ from scanspec.v2.core import (
     _truncate_trigger_sequence,  # type: ignore[reportPrivateUsage]
     validate_trigger_sequence,
 )
+from scanspec.v2.specs import Linspace, Product, Sync
 
 
 def test_trigger_repeat():
@@ -499,3 +501,98 @@ def test_scan_fly():
         monitors=[],
     )
     assert scan.generators[0].fly is True
+
+
+def test_ophyd_async_trigger_info():
+    """PRD §8 gap 2: ophyd-async — map WindowedStream to TriggerInfo.
+
+    The consumer maps DetectorGroup + WindowedStream.number_of_events onto
+    ophyd_async.core.TriggerInfo for StandardDetector.prepare(). The root
+    group's total comes straight from number_of_events (fly-agnostic,
+    O(1)). A follower's own rate isn't in the compiled DetectorGroup (it
+    has no `repeats` field), so its total is found by walking windows: a
+    follower's `repeats` is per *root repeat*, not per window (TriggerGroup
+    docstring: "each fires during every one of the group's own repeats"),
+    so each window contributes `root.repeats * child.repeats`, summed
+    across all windows. DetectorTrigger (electrical trigger mode) has no
+    scanspec analogue at all -- it's hardware wiring, supplied by the
+    consumer, never derived from the spec. It isn't a free choice per
+    group either: root has nothing upstream of it (INTERNAL), while a
+    follower is physically gated by the root's own SEQ output (see the
+    "chained pair of SEQ blocks" worked example in API_SPEC.md) -- SEQ2's
+    OA1 there is held high for the child's own livetime per repeat, a
+    constant-width gate, so CONSTANT_GATE, not INTERNAL or EDGE_TRIGGER.
+    """
+    from ophyd_async.core import DetectorTrigger, TriggerInfo
+
+    root_group = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+        followers=[
+            TriggerFollower(
+                detectors=frozenset({"enc"}),
+                exposures_per_collection=10,
+                collections_per_event=1,
+                livetime=0.000299992,
+                deadtime=8e-9,
+                repeats=10,
+            ),
+        ],
+    )
+
+    for fly in (True, False):
+        spec: Sync[str, str, Never] = Sync(
+            Product(Linspace("y", 0, 5, 3), ~Linspace("x", 0, 10, 5)),
+            fly=fly,
+            trigger_group=root_group,
+        )
+        scan = spec.compile()
+        stream = scan.windowed_streams[0]
+
+        det_dg = next(g for g in stream.detector_groups if g.detectors == ["det1"])
+        enc_dg = next(g for g in stream.detector_groups if g.detectors == ["enc"])
+
+        # Root: O(1), fly-agnostic. Hand-derived: 3 y-points * 5 x-points = 15,
+        # regardless of whether x is flown or stepped.
+        assert det_dg.livetime is not None
+        assert det_dg.deadtime is not None
+        det_info = TriggerInfo(
+            number_of_events=stream.number_of_events,
+            trigger=DetectorTrigger.INTERNAL,  # nothing upstream of root
+            livetime=det_dg.livetime,
+            deadtime=det_dg.deadtime,
+            exposures_per_event=det_dg.exposures_per_event,
+        )
+        assert det_info.number_of_events == 15
+        assert det_info.total_number_of_exposures == 15
+
+        # Follower: walk windows, since the compiled DetectorGroup has no
+        # `repeats` field. Hand-derived: 15 root events * 10 follower
+        # repeats-per-root-repeat = 150, independent of fly.
+        enc_total = 0
+        for window in scan:
+            seq = next(
+                s
+                for s in window.trigger_sequences
+                if s.root.detectors == frozenset({"det1"})
+            )
+            child = next(c for c in seq.children if c.detectors == frozenset({"enc"}))
+            enc_total += seq.root.repeats * child.repeats
+        assert enc_dg.livetime is not None
+        assert enc_dg.deadtime is not None
+        enc_info = TriggerInfo(
+            number_of_events=enc_total,
+            # Gated by root's own SEQ output, not free-running -- see
+            # SEQ2's BITA <- SEQ1.OA wiring in the chained-SEQ-blocks
+            # example in API_SPEC.md.
+            trigger=DetectorTrigger.CONSTANT_GATE,
+            livetime=enc_dg.livetime,
+            deadtime=enc_dg.deadtime,
+            exposures_per_event=enc_dg.exposures_per_event,
+        )
+        assert enc_info.number_of_events == 150
+        # 150 * exposures_per_event(10)
+        assert enc_info.total_number_of_exposures == 1500
