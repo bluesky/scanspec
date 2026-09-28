@@ -1,4 +1,4 @@
-"""Motion spec nodes and Acquire for scanspec 2.0.
+"""Motion spec nodes and Sync for scanspec 2.0.
 
 All Spec nodes are pydantic BaseModels.  ``type`` is a computed field on
 ``Spec`` returning ``type(self).__name__`` — no per-subclass literal needed.
@@ -19,18 +19,20 @@ from __future__ import annotations
 
 from abc import ABCMeta
 from collections.abc import Iterator, Sequence
+from math import isclose
 from typing import (
     TYPE_CHECKING,
     Annotated,
     Any,
     Generic,
     Never,
-    Self,
     TypeAlias,
-    TypeVar,
     Union,
     cast,
     dataclass_transform,
+)
+from typing import (
+    TypeVar as StdTypeVar,
 )
 
 import numpy as np
@@ -42,8 +44,8 @@ from pydantic import (
     GetCoreSchemaHandler,
     Tag,
     computed_field,
-    model_validator,
 )
+from typing_extensions import TypeVar
 
 from .core import (
     ConcatSource,
@@ -54,16 +56,20 @@ from .core import (
     LinearSource,
     MonitorStream,
     Scan,
+    TriggerFollower,
     TriggerGroup,
-    TriggerPattern,
+    TriggerRepeat,
+    TriggerSequence,
     WindowedStream,
     WindowGenerator,
+    trigger_sequences_duration,
+    validate_trigger_sequence,
 )
 
-AxisT = TypeVar("AxisT")
-DetectorT = TypeVar("DetectorT")
-MonitorT = TypeVar("MonitorT")
-_BoundedAxisT = TypeVar("_BoundedAxisT")
+AxisT = StdTypeVar("AxisT")
+DetectorT = StdTypeVar("DetectorT")
+MonitorT = TypeVar("MonitorT", default=Never)
+_BoundedAxisT = StdTypeVar("_BoundedAxisT")
 
 
 def _discriminate_by_type(obj: Any) -> str | None:
@@ -185,9 +191,19 @@ class Spec(BaseModel, Generic[AxisT, DetectorT, MonitorT], metaclass=PosargsMeta
     Positional constructor args are supported on all subclasses via
     ``PosargsMeta``.  The ``type`` computed field is included in JSON
     serialisation and drives the discriminated-union deserialiser.
+
+    ``arbitrary_types_allowed`` is required because ``MonitorT`` defaults to
+    ``Never`` (PEP 696) so pyright can infer it when a bare ``Sync(...)``
+    is constructed with no ``monitors=``; pydantic-core cannot generate a
+    schema for ``Never`` itself when a subclass is built unparametrized
+    (e.g. ``Zip(left=self, right=other)`` inside the combinator methods
+    below), and this is the fix pydantic's own error message recommends.
+    Concretely-parametrized construction (``Sync[str, str, str](...)``,
+    or inference from a real ``monitors=`` value) is unaffected -- full
+    validation still applies there.
     """
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
     @computed_field
     @property
@@ -330,7 +346,7 @@ class Range(Spec[AxisT, Never, Never]):
         step = abs(self.step)
         distance = abs(self.stop - self.start)
         num = int(distance // step) + 1
-        if np.isclose(step * num, distance):
+        if isclose(step * num, distance, rel_tol=1e-5, abs_tol=1e-8):
             num = num + 1
         return num
 
@@ -448,7 +464,7 @@ class Spiral(Spec[AxisT, Never, Never]):
 
 
 # ---------------------------------------------------------------------------
-# Combinators — accept any Spec (including Acquire)
+# Combinators — accept any Spec (including Sync)
 # ---------------------------------------------------------------------------
 
 
@@ -456,18 +472,89 @@ def _reject_continuous_and_monitors(scan: Scan[Any, Any, Any], combinator: str) 
     """Raise if *scan* has continuous_streams or monitors.
 
     Continuous and monitor streams run in parallel to the entire scan and
-    must be attached at the outermost ``Acquire``, not nested inside
-    combinators.
+    must be attached via the outermost ``ContinuousStreams``/``Monitors``
+    wrapper, not nested inside combinators.
     """
     if scan.continuous_streams:
         raise ValueError(
             f"{combinator} does not accept specs with continuous_streams; "
-            f"attach them on the outermost Acquire instead"
+            f"attach them via the outermost ContinuousStreams wrapper instead"
         )
     if scan.monitors:
         raise ValueError(
             f"{combinator} does not accept specs with monitors; "
-            f"attach them on the outermost Acquire instead"
+            f"attach them via the outermost Monitors wrapper instead"
+        )
+
+
+def _reject_existing_monitors(scan: Scan[Any, Any, Any]) -> None:
+    """Raise if *scan* already has monitors attached.
+
+    Guards against double-wrapping (``Monitors(Monitors(...))``) or a
+    ``Monitors`` nested inside a combinator instead of outside it -- the
+    latter is also caught by ``_reject_continuous_and_monitors`` at the
+    combinator itself, this is belt-and-braces for the wrapper's own
+    boundary. Deliberately does *not* check ``continuous_streams`` --
+    ``ContinuousStreams`` may legitimately have already run on this same
+    scan (the two wrappers commute and compose, e.g.
+    ``ContinuousStreams(Monitors(...), ...)``).
+    """
+    if scan.monitors:
+        raise ValueError(
+            "Monitors cannot wrap a spec that already has monitors "
+            "attached (double-wrapping, or a nested Monitors deeper in "
+            "the tree)"
+        )
+
+
+def _reject_existing_continuous_streams(scan: Scan[Any, Any, Any]) -> None:
+    """Raise if *scan* already has continuous_streams attached.
+
+    Mirrors ``_reject_existing_monitors`` for ``ContinuousStreams``;
+    deliberately does not check ``monitors``.
+    """
+    if scan.continuous_streams:
+        raise ValueError(
+            "ContinuousStreams cannot wrap a spec that already has "
+            "continuous_streams attached (double-wrapping, or a nested "
+            "ContinuousStreams deeper in the tree)"
+        )
+
+
+def _check_unique_detectors(scan: Scan[Any, Any, Any]) -> None:
+    """Raise if a detector name is duplicated across scan/monitor groups.
+
+    Checks windowed streams, continuous_streams, and monitors on *scan*.
+    Called by ``Monitors``/``ContinuousStreams`` after attaching their own
+    field. Re-checks uniqueness across whatever is currently on the scan
+    rather than trying to determine which wrapper is outermost -- since an
+    inner wrapper's ``compile()`` always attaches its field before an outer
+    wrapper's ``compile()`` runs, whichever wrapper ends up outermost
+    naturally sees the complete picture when its own check runs.
+    """
+    seen: set[object] = set()
+    duplicates: set[object] = set()
+
+    def _mark(d: object) -> None:
+        if d in seen:
+            duplicates.add(d)
+        seen.add(d)
+
+    for ws in scan.windowed_streams:
+        for dg in ws.detector_groups:
+            for d in dg.detectors:
+                _mark(d)
+    for cs in scan.continuous_streams:
+        for dg in cs.detector_groups:
+            for d in dg.detectors:
+                _mark(d)
+    for ms in scan.monitors:
+        _mark(ms.detector)
+
+    if duplicates:
+        raise ValueError(
+            f"Detector names must be unique across all groups; "
+            f"duplicates: {sorted(str(d) for d in duplicates)}"
         )
 
 
@@ -548,8 +635,9 @@ class Zip(Spec[AxisT, DetectorT, MonitorT]):
 
     - Both sides have the same number of generators with matching inner
       lengths: merge innermost generators dimension-by-dimension.
-    - Right has more generators than left: left-pad left with right's
-      extra outer generators.
+    - Left has more generators than right: left-pad right's generator list
+      with placeholders so positions align by innermost generator; left's
+      extra outer generators are left untouched.
     - Right has a single generator of length 1 (e.g. ``Static``): expand
       it to match left's innermost generator length.
     """
@@ -666,7 +754,7 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
     """Concatenate two specs sequentially.
 
     Both *left* and *right* may carry detector configuration — useful for
-    combining two ``Acquire`` nodes that differ in detector setup.
+    combining two ``Sync`` nodes that differ in detector setup.
     """
 
     left: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="First spec.")
@@ -738,11 +826,148 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         return [gen]
 
 
-class Acquire(Spec[AxisT, DetectorT, MonitorT]):
+def _compute_active_stream_sets(
+    spec: Spec[AxisT, DetectorT, MonitorT],
+) -> list[frozenset[str]]:
+    """Walk the spec tree to find all distinct stream-name sets.
+
+    Returns a list of frozensets, one per simultaneously-active stream
+    combination.  Consumers use this to validate sequencer-table capacity
+    up front without iterating windows.
+    """
+
+    def _dedup(
+        items: list[frozenset[str]],
+    ) -> list[frozenset[str]]:
+        seen: set[frozenset[str]] = set()
+        result: list[frozenset[str]] = []
+        for s in items:
+            if s not in seen:
+                seen.add(s)
+                result.append(s)
+        return result
+
+    if isinstance(spec, Sync):
+        if spec.trigger_group is None:
+            return []
+        return [frozenset({spec.stream_name})]
+    if isinstance(spec, Concat):
+        return _dedup(
+            _compute_active_stream_sets(spec.left)
+            + _compute_active_stream_sets(spec.right)
+        )
+    # Repeat, Snake: single inner spec
+    inner_spec = getattr(spec, "spec", None)
+    if isinstance(inner_spec, Spec):
+        typed: Spec[AxisT, DetectorT, MonitorT] = cast(
+            Spec[AxisT, DetectorT, MonitorT], inner_spec
+        )
+        return _compute_active_stream_sets(typed)
+    # Product: outer and inner children
+    if isinstance(spec, Product):
+        return _dedup(
+            _compute_active_stream_sets(spec.outer)
+            + _compute_active_stream_sets(spec.inner)
+        )
+    # Zip: left and right children
+    if isinstance(spec, Zip):
+        return _dedup(
+            _compute_active_stream_sets(spec.left)
+            + _compute_active_stream_sets(spec.right)
+        )
+    return []
+
+
+def _resolved_timing(
+    detectors: frozenset[DetectorT], livetime: float | None, deadtime: float | None
+) -> tuple[float, float]:
+    """Return (livetime, deadtime), raising if either is unresolved."""
+    if livetime is None or deadtime is None:
+        raise ValueError(
+            f"livetime and deadtime must be resolved before compile() for "
+            f"detectors {sorted(str(d) for d in detectors)}; got "
+            f"livetime={livetime}, deadtime={deadtime}"
+        )
+    return livetime, deadtime
+
+
+def _group_to_repeat(
+    group: TriggerGroup[DetectorT], *, inner_length: int, fly: bool
+) -> TriggerRepeat[DetectorT]:
+    """Resolve a TriggerGroup's own detectors into the root TriggerRepeat.
+
+    repeats is tied to the scan's own geometry -- exposures_per_event,
+    scaled by inner_length for a fly scan. Never caller-suppliable: this is
+    the literal motion<->trigger binding Sync exists to perform, not an
+    authoring input (ADR 0008 Decision 1).
+    """
+    lt, dt = _resolved_timing(group.detectors, group.livetime, group.deadtime)
+    repeats = group.exposures_per_event * (inner_length if fly else 1)
+    return TriggerRepeat(
+        detectors=group.detectors, repeats=repeats, livetime=lt, deadtime=dt
+    )
+
+
+def _follower_to_repeat(
+    follower: TriggerFollower[DetectorT],
+) -> TriggerRepeat[DetectorT]:
+    """Resolve a caller-authored TriggerFollower into a compiled TriggerRepeat.
+
+    repeats/livetime/deadtime must all already be concrete -- a follower's
+    rate relative to the group is genuinely external information (detector
+    hardware timing), so nothing here is derived from the spec tree. No
+    attempt is made to compute a missing repeats from livetime/deadtime
+    (ADR 0008 Decision 3) -- a caller or ophyd-async must supply all three
+    explicitly. The integer-ratio/duration checks against the group's own
+    repeat still run afterwards, via validate_trigger_sequence.
+    """
+    if follower.repeats is None:
+        raise ValueError(
+            f"repeats must be set on TriggerFollower before compile() for "
+            f"detectors {sorted(str(d) for d in follower.detectors)}"
+        )
+    lt, dt = _resolved_timing(follower.detectors, follower.livetime, follower.deadtime)
+    return TriggerRepeat(
+        detectors=follower.detectors, repeats=follower.repeats, livetime=lt, deadtime=dt
+    )
+
+
+def _trigger_group_to_detector_group(
+    group: TriggerGroup[DetectorT] | TriggerFollower[DetectorT],
+) -> DetectorGroup[DetectorT]:
+    """Carry a TriggerGroup/TriggerFollower's shape/timing through unchanged.
+
+    No repeats involved -- both shape factors pass through unchanged. Called
+    only after the corresponding TriggerRepeat derivation has already run
+    (see Sync.compile()), which guarantees livetime/deadtime are resolved
+    by this point.
+    """
+    return DetectorGroup(
+        exposures_per_collection=group.exposures_per_collection,
+        collections_per_event=group.collections_per_event,
+        livetime=group.livetime,
+        deadtime=group.deadtime,
+        detectors=list(group.detectors),
+    )
+
+
+def _group_to_sequence(
+    group: TriggerGroup[DetectorT],
+    *,
+    inner_length: int,
+    fly: bool,
+) -> TriggerSequence[DetectorT]:
+    """Derive a compiled TriggerSequence from a caller-authored TriggerGroup."""
+    root = _group_to_repeat(group, inner_length=inner_length, fly=fly)
+    children = [_follower_to_repeat(follower) for follower in group.followers]
+    return TriggerSequence(root=root, children=children)
+
+
+class Sync(Spec[AxisT, DetectorT, MonitorT]):
     """Outermost spec node: binds detector triggering to a motion spec."""
 
     spec: AnySpec[AxisT, Any, Any] = Field(
-        description="Inner spec (motion or nested Acquire.)."
+        description="Inner spec (motion or nested Sync.)."
     )
     fly: bool = Field(
         default=False,
@@ -752,17 +977,13 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
         default="primary",
         description="Bluesky stream name.",
     )
-    detectors: Sequence[DetectorGroup[DetectorT]] = Field(
-        default_factory=tuple,
-        description="DetectorGroups for the windowed stream.",
-    )
-    continuous_streams: Sequence[ContinuousStream[DetectorT]] = Field(
-        default_factory=tuple,
-        description="Continuously-acquired detector groups (no scan dimensions).",
-    )
-    monitors: Sequence[MonitorStream[MonitorT]] = Field(
-        default_factory=tuple,
-        description="Free-running PV monitors.",
+    trigger_group: TriggerGroup[DetectorT] | None = Field(
+        default=None,
+        description=(
+            "Caller-authored trigger hierarchy for the windowed stream. "
+            "compile() derives both the compiled TriggerSequence and the "
+            "list[DetectorGroup] the windowed stream needs from this."
+        ),
     )
     duration: float | None = Field(
         default=None,
@@ -773,47 +994,32 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
         ),
     )
 
-    @model_validator(mode="after")
-    def _validate_unique_detectors(self) -> Self:
-        """All detector names must be globally unique within this Acquire."""
-        seen: set[object] = set()
-        duplicates: set[object] = set()
-        for dg in self.detectors:
-            for d in dg.detectors:
-                if d in seen:
-                    duplicates.add(d)
-                seen.add(d)
-        for cs in self.continuous_streams:
-            for dg in cs.detector_groups:
-                for d in dg.detectors:
-                    if d in seen:
-                        duplicates.add(d)
-                    seen.add(d)
-        for ms in self.monitors:
-            if ms.detector in seen:
-                duplicates.add(ms.detector)
-            seen.add(ms.detector)
-        if duplicates:
-            raise ValueError(
-                f"Detector names must be unique across all groups; "
-                f"duplicates: {sorted(str(d) for d in duplicates)}"
-            )
-        return self
-
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile into a Scan with detector groups and generators."""
         scan = self.spec.compile()
-        trigger_groups = self._bake_trigger_groups(scan.generators)
-        duration = self._compute_duration(trigger_groups, scan.generators)
+        trigger_sequences: list[TriggerSequence[DetectorT]] = []
+        detector_groups: list[DetectorGroup[DetectorT]] = []
+        if self.trigger_group is not None:
+            group = self.trigger_group
+            inner_length = scan.generators[-1].length if scan.generators else 1
+            fly = self.fly and bool(scan.generators)
+            trigger_sequences = [
+                _group_to_sequence(group, inner_length=inner_length, fly=fly)
+            ]
+            for ts in trigger_sequences:
+                validate_trigger_sequence(ts)
+            detector_groups = [
+                _trigger_group_to_detector_group(g) for g in [group, *group.followers]
+            ]
+        duration = self._compute_duration(trigger_sequences, scan.generators)
         if scan.generators:
             last = scan.generators[-1]
             last.fly = self.fly
-            last.trigger_groups = trigger_groups
+            last.trigger_sequences = trigger_sequences
             last.duration = duration
 
-        # Only create a windowed stream when this Acquire has detectors.
-        # A monitor/continuous-only Acquire preserves inner streams.
-        if self.detectors:
+        # Only create a windowed stream when this Sync has detectors.
+        if detector_groups:
             dims = [
                 Dimension(
                     axes=g.axes,
@@ -826,50 +1032,17 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
             stream = WindowedStream(
                 name=self.stream_name,
                 dimensions=dims,
-                detector_groups=list(self.detectors),
+                detector_groups=detector_groups,
             )
             scan.windowed_streams = [stream]
-        scan.continuous_streams = list(self.continuous_streams)
-        scan.monitors = list(self.monitors)
+        scan.active_stream_sets = _compute_active_stream_sets(self.spec)
+        if detector_groups:
+            scan.active_stream_sets = [frozenset({self.stream_name})]
         return scan
-
-    def _bake_trigger_groups(
-        self,
-        gens: list[WindowGenerator[AxisT]],
-    ) -> list[TriggerGroup[DetectorT]]:
-        """Convert DetectorGroups into TriggerGroups with TriggerPatterns."""
-        if not self.detectors:
-            return []
-        inner_length = gens[-1].length if gens else 1
-        fly = self.fly and bool(gens)
-        result: list[TriggerGroup[DetectorT]] = []
-        for dg in self.detectors:
-            if dg.livetime is None or dg.deadtime is None:
-                raise ValueError(
-                    f"livetime and deadtime must be set on DetectorGroup "
-                    f"before compile(); got livetime={dg.livetime}, "
-                    f"deadtime={dg.deadtime}"
-                )
-            if fly:
-                repeats = inner_length * dg.exposures_per_collection
-            else:
-                repeats = dg.exposures_per_collection
-            pattern = TriggerPattern(
-                repeats=repeats,
-                livetime=dg.livetime,
-                deadtime=dg.deadtime,
-            )
-            result.append(
-                TriggerGroup(
-                    detectors=list(dg.detectors),
-                    trigger_patterns=[pattern],
-                )
-            )
-        return result
 
     def _compute_duration(
         self,
-        trigger_groups: list[TriggerGroup[DetectorT]],
+        trigger_sequences: list[TriggerSequence[DetectorT]],
         gens: list[WindowGenerator[AxisT]],
     ) -> float | None:
         """Derive per-point duration from trigger timing.
@@ -879,14 +1052,9 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
         duration is ``per_point * inner_length``; ``Scan.__iter__``
         multiplies automatically.
         """
-        if not trigger_groups:
+        if not trigger_sequences:
             return self.duration
-        total_dur = 0.0
-        for tg in trigger_groups:
-            tg_dur = sum(
-                tp.repeats * (tp.livetime + tp.deadtime) for tp in tg.trigger_patterns
-            )
-            total_dur = max(total_dur, tg_dur)
+        total_dur = trigger_sequences_duration(trigger_sequences)
         fly = self.fly and bool(gens)
         inner_length = gens[-1].length if fly else 1
         per_point = total_dur / inner_length
@@ -898,6 +1066,52 @@ class Acquire(Spec[AxisT, DetectorT, MonitorT]):
                 )
             return self.duration
         return per_point
+
+
+class Monitors(Spec[AxisT, DetectorT, MonitorT]):
+    """Attach free-running PV monitors to the whole scan.
+
+    Must sit outside the entire spec tree -- ``_reject_continuous_and_monitors``
+    (raised by every combinator that merges specs, and by this class and
+    ``ContinuousStreams`` on their own inner scan) enforces that a nested
+    ``Monitors``/``ContinuousStreams``/``Sync`` carrying monitors cannot be
+    merged into a larger tree.
+    """
+
+    spec: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="Inner spec.")
+    monitors: Sequence[MonitorStream[MonitorT]] = Field(
+        default_factory=tuple,
+        description="Free-running PV monitors, scan-wide.",
+    )
+
+    def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
+        """Compile the inner spec, then attach monitors to the resulting Scan."""
+        scan = self.spec.compile()
+        _reject_existing_monitors(scan)
+        scan.monitors = list(self.monitors)
+        _check_unique_detectors(scan)
+        return scan
+
+
+class ContinuousStreams(Spec[AxisT, DetectorT, MonitorT]):
+    """Attach continuously-acquired detector streams to the whole scan.
+
+    Must sit outside the entire spec tree -- see ``Monitors`` docstring.
+    """
+
+    spec: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="Inner spec.")
+    continuous_streams: Sequence[ContinuousStream[DetectorT]] = Field(
+        default_factory=tuple,
+        description="Continuously-acquired detector groups (no scan dimensions).",
+    )
+
+    def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
+        """Compile the inner spec, then attach continuous streams to the Scan."""
+        scan = self.spec.compile()
+        _reject_existing_continuous_streams(scan)
+        scan.continuous_streams = list(self.continuous_streams)
+        _check_unique_detectors(scan)
+        return scan
 
 
 # ---------------------------------------------------------------------------
@@ -1124,4 +1338,4 @@ if not TYPE_CHECKING:
 
     # Final rebuild: resolve AnySpec annotations now that all subclasses and
     # the runtime AnySpec class exist.
-    _maybe_rebuild_anyspec_union(Acquire)
+    _maybe_rebuild_anyspec_union(Sync)

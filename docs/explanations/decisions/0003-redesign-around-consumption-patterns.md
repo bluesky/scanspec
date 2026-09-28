@@ -4,7 +4,11 @@ Date: 2026-04-23
 
 ## Status
 
-Accepted
+Accepted (partially superseded by ADRs 0007 and 0008)
+
+- Decisions #1/#2 (`Window.trigger_groups`, baked `TriggerPattern` timing) — superseded by ADR 0007.
+- Decision #5 (`with_start(window, time)`) — superseded by ADR 0007.
+- Decision #6 (compiled output has no serialisation requirement) — ADR 0007 Decision #1 carved out `TriggerRepeat`/`TriggerSequence`/`TriggerChild` as pydantic `BaseModel`s; ADR 0008 Decision 6 reverses that carve-out (`TriggerChild` removed, `TriggerRepeat`/`TriggerSequence` are plain dataclasses again, and the round-trip requirement moved to the caller-authored `TriggerGroup`/`TriggerFollower`). Decision #6 holds as originally written.
 
 ## Context
 
