@@ -533,10 +533,8 @@ each window's `root.repeats` by the matching child's `repeats`.
 
 **Known gaps and defects**:
 
-1. `scanspec/v2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only
-   — not yet the full `from scanspec.v2 import core, specs` surface.
-2. Serialization test coverage is thin (smoke-test level).
-3. Auxiliary modules not ported (nice-to-have, in priority order):
+1. Serialization test coverage is thin (smoke-test level).
+2. Auxiliary modules not ported (nice-to-have, in priority order):
    `plot.py`, `cli.py` + `__main__.py`, `service.py`, `sphinxext.py`.
 
 **Intentionally dropped from 1.x** (rationale in ADR 0003): `Path`,
