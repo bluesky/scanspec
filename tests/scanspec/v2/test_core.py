@@ -504,7 +504,7 @@ def test_scan_fly():
 
 
 def test_ophyd_async_trigger_info():
-    """PRD §8 gap 2: ophyd-async — map WindowedStream to TriggerInfo.
+    """PRD §8: ophyd-async — map WindowedStream to TriggerInfo.
 
     The consumer maps DetectorGroup + WindowedStream.number_of_events onto
     ophyd_async.core.TriggerInfo for StandardDetector.prepare(). The root

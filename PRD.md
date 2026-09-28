@@ -511,16 +511,19 @@ tests it describes are in place on this branch. `WindowedStream.number_of_events
 `dim.length` across `stream.dimensions`. Fly-agnostic, since `Dimension.length`
 already is: a flown dimension's length is its real point count, not collapsed
 to 1. Per-stream rather than scan-level, since different streams on the same
-`Scan` can have differently-shaped dimensions.
+`Scan` can have differently-shaped dimensions. `test_ophyd_async_trigger_info`
+(`test_core.py`) maps `DetectorGroup` + `WindowedStream.number_of_events` onto
+`ophyd_async.core.TriggerInfo` for `StandardDetector.prepare()`: a root
+group's total is O(1) via `number_of_events`; a follower's total (not present
+in the compiled `DetectorGroup`) is found by walking windows and multiplying
+each window's `root.repeats` by the matching child's `repeats`.
 
 **Known gaps and defects**:
 
-1. A use-case test mapping `DetectorGroup` + dimensions to an ophyd-async
-   `TriggerInfo` for `StandardDetector.prepare()`.
-2. `scanspec/v2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only
+1. `scanspec/v2/__init__.py` exports `TriggerRepeat`/`TriggerSequence` only
    — not yet the full `from scanspec.v2 import core, specs` surface.
-3. Serialization test coverage is thin (smoke-test level).
-4. Auxiliary modules not ported (nice-to-have, in priority order):
+2. Serialization test coverage is thin (smoke-test level).
+3. Auxiliary modules not ported (nice-to-have, in priority order):
    `plot.py`, `cli.py` + `__main__.py`, `service.py`, `sphinxext.py`.
 
 **Intentionally dropped from 1.x** (rationale in ADR 0003): `Path`,
