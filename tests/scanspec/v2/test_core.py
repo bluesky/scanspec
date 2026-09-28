@@ -6,7 +6,6 @@ import pytest
 
 from scanspec.v2.core import (
     AxisMotion,
-    ConcatSource,
     ContinuousStream,
     DetectorGroup,
     Dimension,
@@ -389,6 +388,49 @@ def test_windowed_stream():
     assert ws.dimensions[0].length == 50
 
 
+def test_windowed_stream_number_of_events_step_product():
+    """Two step dimensions: outer * inner."""
+    outer = Dimension(axes=["y"], length=5, snake=False, position_fn=lambda _: {})
+    inner = Dimension(axes=["x"], length=10, snake=False, position_fn=lambda _: {})
+    ws: WindowedStream[str, Never] = WindowedStream(
+        name="diff", dimensions=[outer, inner], detector_groups=[]
+    )
+    assert ws.number_of_events == 50
+
+
+def test_windowed_stream_number_of_events_fly_agnostic():
+    """A flown dimension's length is a real point count, not collapsed to 1.
+
+    Regression test: number_of_events used to be computed from generator
+    window counts, which collapse a fly generator's contribution to 1
+    regardless of its length. Dimension.length is fly-agnostic, so the
+    product below must be 5 * 100, not 5 * 1.
+    """
+    outer = Dimension(axes=["y"], length=5, snake=False, position_fn=lambda _: {})
+    inner_fly = Dimension(axes=["x"], length=100, snake=False, position_fn=lambda _: {})
+    ws: WindowedStream[str, Never] = WindowedStream(
+        name="diff", dimensions=[outer, inner_fly], detector_groups=[]
+    )
+    assert ws.number_of_events == 500
+
+
+def test_windowed_stream_number_of_events_matches_iteration():
+    """number_of_events agrees with actually counting a matching Scan's output."""
+    outer_gen = WindowGenerator(
+        axes=["y"], length=4, source=LinearSource({"y": (0.0, 1.0)}, 4)
+    )
+    inner_gen = WindowGenerator(
+        axes=["x"], length=7, source=LinearSource({"x": (0.0, 1.0)}, 7)
+    )
+    scan: Scan[str, Never, Never] = Scan(generators=[outer_gen, inner_gen])
+    outer_dim = Dimension(axes=["y"], length=4, snake=False, position_fn=lambda _: {})
+    inner_dim = Dimension(axes=["x"], length=7, snake=False, position_fn=lambda _: {})
+    ws: WindowedStream[str, Never] = WindowedStream(
+        name="diff", dimensions=[outer_dim, inner_dim], detector_groups=[]
+    )
+    assert ws.number_of_events == len(list(scan))
+
+
 def test_continuous_stream():
     dg = DetectorGroup(
         exposures_per_collection=1,
@@ -457,60 +499,3 @@ def test_scan_fly():
         monitors=[],
     )
     assert scan.generators[0].fly is True
-
-
-def test_number_of_events_empty():
-    """No generators means no windows -- not the empty-product identity of 1."""
-    scan: Scan[Never, Never, Never] = Scan(generators=[])
-    assert scan.number_of_events == 0
-
-
-def test_number_of_events_step_product():
-    """Two step generators: outer * inner."""
-    outer = WindowGenerator(
-        axes=["y"], length=5, source=LinearSource({"y": (0.0, 1.0)}, 5)
-    )
-    inner = WindowGenerator(
-        axes=["x"], length=10, source=LinearSource({"x": (0.0, 1.0)}, 10)
-    )
-    scan: Scan[str, Never, Never] = Scan(generators=[outer, inner])
-    assert scan.number_of_events == 50
-
-
-def test_number_of_events_fly_step_mixed():
-    """A fly generator always contributes 1, regardless of its own length."""
-    outer = WindowGenerator(
-        axes=["y"], length=5, source=LinearSource({"y": (0.0, 1.0)}, 5)
-    )
-    inner_fly = WindowGenerator(
-        axes=["x"], length=100, fly=True, source=LinearSource({"x": (0.0, 1.0)}, 100)
-    )
-    scan: Scan[str, Never, Never] = Scan(generators=[outer, inner_fly])
-    assert scan.number_of_events == 5
-
-
-def test_number_of_events_concat_sums():
-    """A ConcatSource generator sums its children's own counts, not product."""
-    step_child = WindowGenerator(
-        axes=["x"], length=3, source=LinearSource({"x": (0.0, 1.0)}, 3)
-    )
-    fly_child = WindowGenerator(
-        axes=["x"], length=20, fly=True, source=LinearSource({"x": (0.0, 1.0)}, 20)
-    )
-    concat_gen: WindowGenerator[str] = WindowGenerator(
-        axes=["x"], length=23, source=ConcatSource([step_child, fly_child])
-    )
-    scan: Scan[str, Never, Never] = Scan(generators=[concat_gen])
-    assert scan.number_of_events == 4  # 3 step windows + 1 fly window
-
-
-def test_number_of_events_matches_iteration():
-    """number_of_events agrees with actually counting __iter__'s output."""
-    outer = WindowGenerator(
-        axes=["y"], length=4, source=LinearSource({"y": (0.0, 1.0)}, 4)
-    )
-    inner = WindowGenerator(
-        axes=["x"], length=7, source=LinearSource({"x": (0.0, 1.0)}, 7)
-    )
-    scan: Scan[str, Never, Never] = Scan(generators=[outer, inner])
-    assert scan.number_of_events == len(list(scan))

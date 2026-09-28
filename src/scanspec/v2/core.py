@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
-from math import isclose
+from math import isclose, prod
 from typing import Any, Generic, Never, Self
 from typing import TypeVar as StdTypeVar
 
@@ -501,6 +501,16 @@ class WindowedStream(Generic[AxisT, DetectorT]):
     dimensions: list[Dimension[AxisT]]
     detector_groups: list[DetectorGroup[DetectorT]]
 
+    @property
+    def number_of_events(self) -> int:
+        """Total number of detector trigger events for this stream.
+
+        Product of dimension lengths -- fly-agnostic, since Dimension.length
+        already is (see Dimension). Matches the physical event count a
+        detector is armed for, regardless of scan trajectory shape.
+        """
+        return prod(dim.length for dim in self.dimensions)
+
 
 @dataclass
 class ContinuousStream(Generic[DetectorT]):
@@ -561,22 +571,6 @@ def _iter_with_outer(
                 merged: dict[AxisT, float] = dict(outer_window.static_axes)
                 merged.update(deeper_outer)
                 yield inner_window, merged
-
-
-def _generator_window_count(gen: WindowGenerator[Any]) -> int:
-    """Number of windows *gen* itself yields, not counting outer generators.
-
-    Mirrors ``WindowGenerator.windows()``: a fly generator always yields
-    exactly one window regardless of ``length``; a ``ConcatSource``
-    generator yields each child's own windows in turn, so its count is the
-    *sum* (not product) of its children's own counts, recursively; anything
-    else (a step generator) yields ``length`` windows.
-    """
-    if isinstance(gen.source, ConcatSource):
-        return sum(_generator_window_count(child) for child in gen.source.children)
-    if gen.fly:
-        return 1
-    return gen.length
 
 
 def _truncate_trigger_sequence(
@@ -739,23 +733,6 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
     def non_linear(self) -> bool:
         """True if any fly generator uses a non-linear position function."""
         return any(g.fly and g.non_linear for g in self.generators)
-
-    @property
-    def number_of_events(self) -> int:
-        """Total windows this Scan will yield, without iterating.
-
-        O(generator-tree size): the product of each generator's own window
-        count (``_generator_window_count``), outer -> inner -- matching how
-        ``__iter__`` nests deeper generators once per outer position. No
-        generators means no windows (``__iter__``'s own early return), not
-        the empty-product identity of one.
-        """
-        if not self.generators:
-            return 0
-        total = 1
-        for gen in self.generators:
-            total *= _generator_window_count(gen)
-        return total
 
     @staticmethod
     def _changed_axes(
