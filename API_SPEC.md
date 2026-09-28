@@ -294,6 +294,17 @@ class WindowedStream(Generic[AxisT, DetectorT]):
     dimensions: list[Dimension[AxisT]]
     detector_groups: list[DetectorGroup[DetectorT]]
 
+    @property
+    def number_of_events(self) -> int:
+        """Total number of detector trigger events for this stream.
+
+        Product of dimension lengths -- fly-agnostic, since Dimension.length
+        already is. Matches the physical event count a detector is armed
+        for, regardless of scan trajectory shape. For StandardDetector.prepare()
+        / TriggerInfo.
+        """
+        ...
+
 
 @dataclass
 class ContinuousStream(Generic[DetectorT]):
@@ -360,16 +371,6 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
     @property
     def non_linear(self) -> bool:
         """True if any fly dimension uses a non-linear position function."""
-        ...
-
-    @property
-    def number_of_events(self) -> int:
-        """Total windows this Scan will yield, without iterating.
-
-        O(generator-tree size): product of each internal generator's own
-        window count, outer -> inner. Zero generators means zero windows,
-        not the empty-product identity of one.
-        """
         ...
 
     def with_start(

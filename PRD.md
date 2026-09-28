@@ -405,8 +405,8 @@ Analysis is per stream, from static compiled geometry (never from windows):
   `collections_per_event > 1` get an extra inner dimension.
 - De-snaking is the caller's job (`dim.snake` tells it where); multiple axes
   can share one dimension (a spiral is one `Dimension` with two axes).
-- A `number_of_events` convenience (product of dimension lengths, for
-  `StandardDetector.prepare()`) is agreed but not yet implemented (§8).
+- `stream.number_of_events` is a convenience for `StandardDetector.prepare()`
+  (§8).
 
 ---
 
@@ -506,10 +506,12 @@ duration fits within the parent livetime and that detector sets are
 disjoint; `num` is computed from `exposures_per_event`
 (`exposures_per_collection × collections_per_event`) throughout, not
 `exposures_per_collection` alone. ADR 0007 is Accepted (§9); the code and
-tests it describes are in place on this branch. `Scan.number_of_events` —
-total windows the scan will yield, computed structurally (product of each
-generator's own window count, outer → inner; a `ConcatSource` generator
-sums its children's counts instead of multiplying) without iterating.
+tests it describes are in place on this branch. `WindowedStream.number_of_events`
+— total detector trigger events for that stream, computed as the product of
+`dim.length` across `stream.dimensions`. Fly-agnostic, since `Dimension.length`
+already is: a flown dimension's length is its real point count, not collapsed
+to 1. Per-stream rather than scan-level, since different streams on the same
+`Scan` can have differently-shaped dimensions.
 
 **Known gaps and defects**:
 
