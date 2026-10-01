@@ -1,12 +1,9 @@
 """Type-inference verification for the scanspec.v2 Sync/Monitors API.
 
 Demonstrates that pyright infers ``DetectorT`` for ``Sync[AxisT, DetectorT,
-MonitorT]`` from the ``trigger_group`` argument without any annotation, but
-that ``MonitorT`` -- now that ``monitors`` lives on the separate
-``Monitors[AxisT, DetectorT, MonitorT]`` wrapper (ADR 0009), not on
-``Sync`` -- can no longer be inferred purely from usage, and needs an
-explicit annotation on the assignment target. See
-``test_monitor_t_requires_explicit_annotation`` for why.
+MonitorT]`` from the ``trigger_group`` argument, and ``MonitorT`` for
+``Monitors[AxisT, DetectorT, MonitorT]`` from the ``monitors`` argument,
+without any annotation.
 
 These tests are checked statically by pyright (``tox -e type-checking``) and
 executed by pytest (``assert_type`` is a no-op at runtime in Python ≥ 3.11).
@@ -51,23 +48,14 @@ def test_detector_t_inferred_monitor_t_defaults_to_never() -> None:
     assert_type(spec, Sync[str, str, Never])
 
 
-def test_monitor_t_requires_explicit_annotation() -> None:
-    """Unlike DetectorT, MonitorT can no longer be inferred purely from
-    usage once Monitors wraps Sync -- an explicit annotation is required.
+def test_monitor_t_inferred_from_monitors() -> None:
+    """Pyright infers MonitorT=str from ``monitors``, with no annotation.
 
-    Sync's own MonitorT is fixed to Never the moment a ``Sync(...)`` call
-    returns, since nothing on ``Sync`` mentions MonitorT any more (ADR
-    0009 moved ``monitors`` to the separate ``Monitors`` wrapper) -- even
-    when the ``Sync(...)`` call sits directly inside a ``Monitors(...)``
-    call in the same expression, since pyright evaluates nested calls
-    argument-first, not bidirectionally, and locks in Never before
-    ``Monitors`` ever runs. An explicit annotation on the assignment
-    target is the only way to widen it back to the actual monitor type.
-    This is a real ergonomics cost of the ADR 0009 pull-out, not a bug:
-    before it, MonitorT flowed from ``monitors=`` directly on ``Sync``'s
-    own constructor call, in the same statement that fixed the type.
+    The inner spec's own MonitorT (Never for a bare ``Sync``) doesn't
+    constrain the wrapper's: ``Monitors.spec`` accepts an inner spec of any
+    MonitorT, since an inner spec can never carry monitors itself.
     """
-    spec: Monitors[str, str, str] = Monitors(
+    spec = Monitors(
         Sync(
             motion,
             trigger_group=TriggerGroup(

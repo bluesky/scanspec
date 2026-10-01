@@ -208,9 +208,9 @@ def test_flagship_multi_stream_concat():
         diff_acq.concat(spec_fwd).concat(spec_rev),
         num=200,
     )
-    scan: Scan[str, str, str] = Monitors(  # type: ignore[reportUnknownVariableType]
-        Sync(spec),  # type: ignore[reportUnknownArgumentType]
-        monitors=[MonitorStream("temperature", "tc1")],  # type: ignore[reportArgumentType]
+    scan: Scan[str, str, str] = Monitors(
+        spec,
+        monitors=[MonitorStream("temperature", "tc1")],
     ).compile()
 
     # --- Monitors ---

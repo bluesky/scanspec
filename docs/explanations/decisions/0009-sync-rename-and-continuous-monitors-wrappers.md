@@ -190,6 +190,11 @@ non-`Never` element type. An explicit annotation on the assignment target
 `Sync.trigger_plan` with no annotation needed, since `trigger_plan` stayed
 on `Sync`. See `tests/scanspec/v2/test_type_inference.py`.
 
+This cost no longer applies: `Monitors.spec` is now typed
+`AnySpec[AxisT, DetectorT, Any]`, so the inner spec's `MonitorT` no longer
+constrains the wrapper's, and `MonitorT` is inferred from `monitors=` with
+no annotation.
+
 ### Explicitly out of scope
 
 - **Variable-spacing/phased trigger authoring** (ptychography's

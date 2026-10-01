@@ -1074,11 +1074,10 @@ class Monitors(Spec[AxisT, DetectorT, MonitorT]):
     Must sit outside the entire spec tree -- ``_reject_continuous_and_monitors``
     (raised by every combinator that merges specs, and by this class and
     ``ContinuousStreams`` on their own inner scan) enforces that a nested
-    ``Monitors``/``ContinuousStreams``/``Sync`` carrying monitors cannot be
-    merged into a larger tree.
+    ``Monitors``/``ContinuousStreams`` cannot be merged into a larger tree.
     """
 
-    spec: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="Inner spec.")
+    spec: AnySpec[AxisT, DetectorT, Any] = Field(description="Inner spec.")
     monitors: Sequence[MonitorStream[MonitorT]] = Field(
         default_factory=tuple,
         description="Free-running PV monitors, scan-wide.",

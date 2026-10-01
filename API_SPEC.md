@@ -981,17 +981,6 @@ spec = ContinuousStreams(
 )
 ```
 
-**Type-inference caveat**: unlike `DetectorT`, which still flows
-automatically from `trigger_group=` on `Sync`, `MonitorT` can no longer be
-inferred purely from usage once `Monitors`
-wraps `Sync` — `Sync`'s own `MonitorT` is fixed to `Never` the instant a
-bare `Sync(...)` call returns, since nothing on `Sync` mentions `MonitorT`
-any more, even when that call sits directly inside `Monitors(...)` in the
-same expression (pyright resolves nested calls argument-first, not
-bidirectionally). An explicit annotation on the assignment target
-(`spec: Monitors[str, str, str] = Monitors(...)`) is required to recover
-the real type.
-
 ### Multi-stream scans — `Concat` of `Sync`s
 
 Two streams with different dimensionality (e.g. diffraction `[N]` and
@@ -1042,14 +1031,12 @@ scan = spec.compile()
 
 ### Generics and type inference
 
-Pyright infers `DetectorT` from `Sync.trigger_group=`. `MonitorT` no longer
-has anything on `Sync` to flow from at all (ADR 0009 moved `monitors` to
-the separate `Monitors` wrapper) — a bare `Sync(...)` call always infers
-`MonitorT=Never` (a PEP 696 `TypeVar` default), and an explicit annotation
-on `Monitors(...)`'s own assignment target is required to recover the
-real `MonitorT` (see "Whole-scan acquisition" above). The type parameters
-exist for static analysis only — no runtime generic parameterization is
-required by Pydantic.
+Pyright infers `DetectorT` from `Sync.trigger_group=` and `MonitorT` from
+`Monitors.monitors=`. A bare `Sync(...)` has nothing that mentions
+`MonitorT`, so it infers `MonitorT=Never` (a PEP 696 `TypeVar` default);
+wrapping it in `Monitors` then takes `MonitorT` from `monitors=` alone. The
+type parameters exist for static analysis only — no runtime generic
+parameterization is required by Pydantic.
 
 ```python
 # Pyright infers Sync[str, str, Never] — no annotation needed.
@@ -1064,8 +1051,8 @@ spec = Sync(
     ),
 )
 
-# MonitorT explicit annotation required to get it right -- see caveat above.
-wrapped: Monitors[str, str, str] = Monitors(
+# Pyright infers Monitors[str, str, str] — no annotation needed.
+wrapped = Monitors(
     spec, monitors=[MonitorStream("temp", "tc1")],
 )
 ```
