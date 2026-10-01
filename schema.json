@@ -692,7 +692,10 @@
                     },
                     "type": {
                         "type": "string",
-                        "const": "Linspace",
+                        "enum": [
+                            "Linspace",
+                            "Line"
+                        ],
                         "title": "Type",
                         "default": "Linspace"
                     }
@@ -1117,6 +1120,7 @@
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Input",
                         "Ellipse": "#/components/schemas/Ellipse_str_",
                         "Fly": "#/components/schemas/Fly_str_-Input",
+                        "Line": "#/components/schemas/Linspace_str_",
                         "Linspace": "#/components/schemas/Linspace_str_",
                         "Polygon": "#/components/schemas/Polygon_str_",
                         "Product": "#/components/schemas/Product_str_-Input",
@@ -1178,6 +1182,7 @@
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Output",
                         "Ellipse": "#/components/schemas/Ellipse_str_",
                         "Fly": "#/components/schemas/Fly_str_-Output",
+                        "Line": "#/components/schemas/Linspace_str_",
                         "Linspace": "#/components/schemas/Linspace_str_",
                         "Polygon": "#/components/schemas/Polygon_str_",
                         "Product": "#/components/schemas/Product_str_-Output",
