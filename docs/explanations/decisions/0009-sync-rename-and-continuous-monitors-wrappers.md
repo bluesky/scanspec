@@ -250,3 +250,14 @@ its placement is stated explicitly:
 These are structural, so they are checked by pydantic validators when the
 spec is constructed (including when it's loaded from JSON), not at
 `compile()`.
+
+Two further rules need the compiled streams, so `Concat` (the only place
+windowed streams merge) checks them at `compile()`:
+
+- `Sync`s sharing a stream name write pieces of one Bluesky stream, so they
+  must have identical trigger groups. The comparison uses the compiled
+  `DetectorGroup`s, which don't carry a follower's `repeats`, so pieces
+  differing only there are not caught.
+- A detector belongs to exactly one stream (windowed, continuous or
+  monitor); otherwise a consumer couldn't tell which stream a window's
+  frames belong to.

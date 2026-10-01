@@ -177,7 +177,9 @@ scan = spec.compile()
   combined only through `Concat` (optionally inside `Repeat`/`Snake` and
   the outermost wrappers); a `Sync` nested in another `Sync`, or anywhere
   under `Product`/`Zip`, is rejected at construction. `duration` applies
-  only to a `Sync` without a `trigger_group`.
+  only to a `Sync` without a `trigger_group`. At compile time, `Sync`s
+  sharing a stream name must have identical trigger groups, and a detector
+  may belong to only one stream.
 - **`Monitors`/`ContinuousStreams` are separate outermost wrapper specs**
   (ADR 0009), not fields on `Sync` — they attach scan-wide, not
   frame-coupled, acquisition (§2.3) after the rest of the tree has

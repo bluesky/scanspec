@@ -1183,6 +1183,24 @@ def test_sync_placements_that_stay_allowed():
     assert len(triggered) == 3
 
 
+def test_concat_rejects_same_stream_with_different_trigger_groups():
+    slow = _tg("det")
+    fast = slow.model_copy(update={"livetime": 0.005})
+    with pytest.raises(ValueError, match="'primary' must have identical trigger"):
+        Concat(
+            Sync(Linspace("x", 0.0, 1.0, 3), trigger_group=slow),
+            Sync(Linspace("x", 1.0, 2.0, 3), trigger_group=fast),
+        ).compile()
+
+
+def test_concat_rejects_detector_in_two_streams():
+    with pytest.raises(ValueError, match=r"only one stream.*'det'"):
+        Concat(
+            Sync(Linspace("x", 0.0, 1.0, 3), trigger_group=_tg("det"), stream_name="a"),
+            Sync(Linspace("x", 1.0, 2.0, 3), trigger_group=_tg("det"), stream_name="b"),
+        ).compile()
+
+
 def test_duration_derived_from_detectors():
     tg = TriggerGroup(
         detectors=frozenset({"det1"}),
@@ -1339,13 +1357,14 @@ def test_concat_fly_step_windows():
         livetime=0.01,
         deadtime=0.001,
     )
+    tg2 = tg.model_copy(update={"detectors": frozenset({"det2"})})
     step_acq: Sync[str, str, Never] = Sync(
         Static("x", 5.0), trigger_group=tg, stream_name="s1"
     )
     fly_acq: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
-        trigger_group=tg,
+        trigger_group=tg2,
         stream_name="s2",
     )
     sc = step_acq.concat(fly_acq).compile()
@@ -1425,13 +1444,14 @@ def test_repeat_concat_windows():
         livetime=0.01,
         deadtime=0.001,
     )
+    tg2 = tg.model_copy(update={"detectors": frozenset({"det2"})})
     a1: Sync[str, str, Never] = Sync(
         Static("x", 5.0), trigger_group=tg, stream_name="s1"
     )
     a2: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
-        trigger_group=tg,
+        trigger_group=tg2,
         stream_name="s2",
     )
     sc = Repeat(a1.concat(a2), num=3).compile()
@@ -1453,13 +1473,14 @@ def test_repeat_concat_streams_have_outer_dim():
         livetime=0.01,
         deadtime=0.001,
     )
+    tg2 = tg.model_copy(update={"detectors": frozenset({"det2"})})
     a1: Sync[str, str, Never] = Sync(
         Static("x", 5.0), trigger_group=tg, stream_name="s1"
     )
     a2: Sync[str, str, Never] = Sync(
         Linspace("x", 0.0, 10.0, 5),
         fly=True,
-        trigger_group=tg,
+        trigger_group=tg2,
         stream_name="s2",
     )
     sc = Repeat(a1.concat(a2), num=10).compile()
@@ -1477,11 +1498,12 @@ def test_concat_previous_chain():
         livetime=0.01,
         deadtime=0.001,
     )
+    tg2 = tg.model_copy(update={"detectors": frozenset({"det2"})})
     a1: Sync[str, str, Never] = Sync(
         Static("x", 5.0), trigger_group=tg, stream_name="s1"
     )
     a2: Sync[str, str, Never] = Sync(
-        Static("x", 10.0), trigger_group=tg, stream_name="s2"
+        Static("x", 10.0), trigger_group=tg2, stream_name="s2"
     )
     sc = Repeat(a1.concat(a2), num=3).compile()
     ws = windows(sc)

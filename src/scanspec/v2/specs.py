@@ -523,16 +523,31 @@ def _reject_existing_continuous_streams(scan: Scan[Any, Any, Any]) -> None:
         )
 
 
-def _check_unique_detectors(scan: Scan[Any, Any, Any]) -> None:
-    """Raise if a detector name is duplicated across scan/monitor groups.
+def _group_keys(groups: list[DetectorGroup[Any]]) -> list[tuple[object, ...]]:
+    """Comparable form of detector groups; detector order is not significant.
 
-    Checks windowed streams, continuous_streams, and monitors on *scan*.
-    Called by ``Monitors``/``ContinuousStreams`` after attaching their own
-    field. Re-checks uniqueness across whatever is currently on the scan
-    rather than trying to determine which wrapper is outermost -- since an
-    inner wrapper's ``compile()`` always attaches its field before an outer
-    wrapper's ``compile()`` runs, whichever wrapper ends up outermost
-    naturally sees the complete picture when its own check runs.
+    A follower's ``repeats`` isn't part of a compiled ``DetectorGroup``, so
+    two groups differing only in it compare equal.
+    """
+    return [
+        (
+            frozenset(g.detectors),
+            g.exposures_per_collection,
+            g.collections_per_event,
+            g.livetime,
+            g.deadtime,
+        )
+        for g in groups
+    ]
+
+
+def _check_unique_detectors(scan: Scan[Any, Any, Any]) -> None:
+    """Raise if a detector belongs to more than one stream.
+
+    Checks windowed streams, continuous streams and monitors on *scan*.
+    Called by ``Concat`` (the only place windowed streams merge) and by
+    ``Monitors``/``ContinuousStreams`` after attaching their own field; each
+    re-checks the whole scan, so the outermost call sees everything.
     """
     seen: set[object] = set()
     duplicates: set[object] = set()
@@ -555,7 +570,7 @@ def _check_unique_detectors(scan: Scan[Any, Any, Any]) -> None:
 
     if duplicates:
         raise ValueError(
-            f"Detector names must be unique across all groups; "
+            f"A detector can belong to only one stream; "
             f"duplicates: {sorted(str(d) for d in duplicates)}"
         )
 
@@ -826,16 +841,18 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         for stream in right_scan.windowed_streams:
             if stream.name in left_by_name:
                 existing = left_by_name[stream.name]
+                if _group_keys(existing.detector_groups) != _group_keys(
+                    stream.detector_groups
+                ):
+                    raise ValueError(
+                        f"Concat: Syncs sharing stream name {stream.name!r} "
+                        f"must have identical trigger groups"
+                    )
                 if existing.dimensions and stream.dimensions:
                     existing.dimensions[-1].length += stream.dimensions[-1].length
             else:
                 left_scan.windowed_streams.append(stream)
-        for cs in right_scan.continuous_streams:
-            if cs not in left_scan.continuous_streams:
-                left_scan.continuous_streams.append(cs)
-        for m in right_scan.monitors:
-            if m not in left_scan.monitors:
-                left_scan.monitors.append(m)
+        _check_unique_detectors(left_scan)
         return left_scan
 
     @staticmethod
