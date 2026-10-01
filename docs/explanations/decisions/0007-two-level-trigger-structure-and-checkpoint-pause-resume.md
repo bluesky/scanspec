@@ -221,6 +221,12 @@ The two axes of PandA resource consumption are orthogonal:
   reuse different outputs of the same block rather than each needing a
   separate one — up to 6 streams per block.
 
+**Addendum.** `active_stream_sets` is a property of the compiled `Scan`,
+defined only after `compile()` and derived from its `windowed_streams`,
+rather than a field populated by `Acquire`/`Sync` and `Concat` during
+compilation. Only `Concat` combines streams (ADR 0009 addendum), and it
+alternates them window by window, so every entry is a single stream name.
+
 ## Consequences
 
 ### Code changes required

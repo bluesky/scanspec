@@ -694,7 +694,6 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         windowed_streams: Sequence[WindowedStream[AxisT, DetectorT]] = (),
         continuous_streams: Sequence[ContinuousStream[DetectorT]] = (),
         monitors: Sequence[MonitorStream[MonitorT]] = (),
-        active_stream_sets: Sequence[frozenset[str]] = (),
         start_window: int = 0,
         trigger_index: int = 0,
     ) -> None:
@@ -702,7 +701,6 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         self.windowed_streams = list(windowed_streams)
         self.continuous_streams = list(continuous_streams)
         self.monitors = list(monitors)
-        self.active_stream_sets: list[frozenset[str]] = list(active_stream_sets)
         self._start_window = start_window
         self._trigger_index = trigger_index
 
@@ -719,10 +717,19 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
             windowed_streams=self.windowed_streams,
             continuous_streams=self.continuous_streams,
             monitors=self.monitors,
-            active_stream_sets=self.active_stream_sets,
             start_window=window,
             trigger_index=trigger_index,
         )
+
+    @property
+    def active_stream_sets(self) -> list[frozenset[str]]:
+        """Every combination of stream names active together in some window.
+
+        Lets a consumer check sequencer-table capacity before iterating. Only
+        ``Concat`` combines streams, and it alternates them window by window,
+        so each entry holds a single stream name.
+        """
+        return [frozenset({ws.name}) for ws in self.windowed_streams]
 
     @property
     def has_moving_axes(self) -> bool:

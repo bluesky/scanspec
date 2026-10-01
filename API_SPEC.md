@@ -356,12 +356,15 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
     # E.g. temperature readbacks, beam current.
     monitors: list[MonitorStream[MonitorT]]
 
-    # Every combination of stream names simultaneously active in some
-    # window, so a consumer can validate sequencer-table capacity up front,
-    # without iterating.  A detector-bearing Sync contributes its own
-    # singleton; Concat/Product/Zip union and deduplicate their children's
-    # lists; Repeat/Snake pass their single inner spec's value through.
-    active_stream_sets: list[frozenset[str]]
+    @property
+    def active_stream_sets(self) -> list[frozenset[str]]:
+        """Every combination of stream names active together in some window.
+
+        Lets a consumer check sequencer-table capacity before iterating. Only
+        Concat combines streams, alternating them window by window, so each
+        entry holds a single stream name.
+        """
+        ...
 
     @property
     def has_moving_axes(self) -> bool:
@@ -887,8 +890,9 @@ with exactly one windowed stream, named `stream_name` (default
 continuously (flyscan); all outer dimensions are stepped. `fly=False`
 (default) is a software step scan.
 
-`duration` is per-point time in seconds. When detectors are present, duration
-is derived from trigger timing. For detector-less scans: step scans default to
+`duration` is per-point time in seconds. With a `trigger_group`, duration is
+derived from trigger timing, and passing `duration` as well raises at
+construction. For detector-less scans: step scans default to
 `duration=0`, fly scans use `duration` to compute `window.duration = num_points * duration`.
 When `duration` is `None` (default), fly windows fall back to index-unit duration.
 
@@ -989,7 +993,9 @@ different `stream_name`s — not a separate `Spec` subclass. `Concat.compile()`
 merges `windowed_streams` by name (summing the innermost dimension's length
 for repeated names) rather than requiring a single stream. Wrap in `Repeat`
 to interleave the pattern, and an outer `Monitors` (ADR 0009) to carry
-scan-wide monitors:
+scan-wide monitors. `Concat` is the only combinator that may combine
+`Sync`s; a `Sync` nested in another `Sync`, or under `Product`/`Zip`, raises
+at construction:
 
 ```python
 diff_group = TriggerGroup(

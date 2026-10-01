@@ -26,6 +26,7 @@ from scanspec.v2.specs import (
     Snake,
     Static,
     Sync,
+    Zip,
 )
 
 # ---------------------------------------------------------------------------
@@ -1075,66 +1076,111 @@ def test_active_stream_sets_single_sync():
     assert sc.active_stream_sets == [frozenset({"primary"})]
 
 
-def test_active_stream_sets_concat_different_names():
-    tg = TriggerGroup(
-        detectors=frozenset({"det"}),
+def _tg(detector: str) -> TriggerGroup[str]:
+    return TriggerGroup(
+        detectors=frozenset({detector}),
         exposures_per_collection=1,
         collections_per_event=1,
         livetime=0.01,
         deadtime=0.001,
     )
-    # Outer Sync has no trigger_group (monitor-only wrapper),
-    # so only the inner Syncs' stream names are active.
-    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Concat(
-            Sync(Linspace("x", 0.0, 5.0, 3), trigger_group=tg, stream_name="diff"),
-            Sync(Linspace("x", 5.0, 10.0, 5), trigger_group=tg, stream_name="spec"),
-        ),
-    ).compile()  # type: ignore[reportArgumentType]
-    assert sc.active_stream_sets == [
-        frozenset({"diff"}),
-        frozenset({"spec"}),
-    ]
+
+
+def test_active_stream_sets_concat_different_names():
+    sc = Concat(
+        Sync(Linspace("x", 0.0, 5.0, 3), trigger_group=_tg("d1"), stream_name="diff"),
+        Sync(Linspace("x", 5.0, 10.0, 5), trigger_group=_tg("d2"), stream_name="spec"),
+    ).compile()
+    assert sc.active_stream_sets == [frozenset({"diff"}), frozenset({"spec"})]
 
 
 def test_active_stream_sets_concat_same_name_deduplicates():
-    tg = TriggerGroup(
-        detectors=frozenset({"det"}),
-        exposures_per_collection=1,
-        collections_per_event=1,
-        livetime=0.01,
-        deadtime=0.001,
-    )
-    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Concat(
-            Sync(Linspace("x", 0.0, 5.0, 3), trigger_group=tg, stream_name="primary"),
-            Sync(Linspace("x", 5.0, 10.0, 5), trigger_group=tg, stream_name="primary"),
-        ),
-    ).compile()  # type: ignore[reportArgumentType]
-    assert sc.active_stream_sets == [
-        frozenset({"primary"}),
-    ]
+    sc = Concat(
+        Sync(Linspace("x", 0.0, 5.0, 3), trigger_group=_tg("det")),
+        Sync(Linspace("x", 5.0, 10.0, 5), trigger_group=_tg("det")),
+    ).compile()
+    assert sc.active_stream_sets == [frozenset({"primary"})]
 
 
-def test_active_stream_sets_detector_less_outer_sync():
-    tg = TriggerGroup(
-        detectors=frozenset({"det"}),
-        exposures_per_collection=1,
-        collections_per_event=1,
-        livetime=0.01,
-        deadtime=0.001,
+def test_active_stream_sets_flagship_under_wrappers():
+    """Wrappers around a Repeat of a Concat still report every stream."""
+    from scanspec.v2.core import MonitorStream
+    from scanspec.v2.specs import Monitors
+
+    diff = Sync(Static("e", 7.0), trigger_group=_tg("d1"), stream_name="diff")
+    up = Sync(
+        Linspace("e", 7.0, 7.1, 10),
+        fly=True,
+        trigger_group=_tg("d2"),
+        stream_name="spec",
     )
-    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Concat(
-            Sync(Linspace("x", 0.0, 5.0, 3), trigger_group=tg, stream_name="diff"),
-            Sync(Linspace("x", 5.0, 10.0, 5), trigger_group=tg, stream_name="spec"),
-        ),
-        # Outer Sync has no trigger_group (monitor/continuous-only wrapper)
-    ).compile()  # type: ignore[reportArgumentType]
-    assert sc.active_stream_sets == [
-        frozenset({"diff"}),
-        frozenset({"spec"}),
-    ]
+    spec: Repeat[str, str, Never] = Repeat(diff.concat(up), num=2)
+    sc: Scan[str, str, str] = Monitors(
+        spec, monitors=[MonitorStream("temp", "tc1")]
+    ).compile()
+    assert sc.active_stream_sets == [frozenset({"diff"}), frozenset({"spec"})]
+    assert sc.with_start(1).active_stream_sets == sc.active_stream_sets
+
+
+def test_active_stream_sets_detector_less_sync_is_empty():
+    sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
+        Linspace("x", 0.0, 1.0, 5), fly=True, duration=0.1
+    ).compile()
+    assert sc.active_stream_sets == []
+
+
+# ---------------------------------------------------------------------------
+# Sync placement
+# ---------------------------------------------------------------------------
+
+
+def test_sync_rejects_nested_sync():
+    inner = Sync(Linspace("x", 0.0, 1.0, 5), trigger_group=_tg("det"))
+    with pytest.raises(ValueError, match="Sync cannot contain another Sync"):
+        Sync(inner)
+
+
+def test_sync_rejects_sync_nested_under_concat():
+    both = Concat(
+        Sync(Linspace("x", 0.0, 1.0, 3), trigger_group=_tg("d1"), stream_name="a"),
+        Sync(Linspace("x", 1.0, 2.0, 3), trigger_group=_tg("d2"), stream_name="b"),
+    )
+    with pytest.raises(ValueError, match="Sync cannot contain another Sync"):
+        Sync(both, trigger_group=_tg("d3"), stream_name="c")
+
+
+@pytest.mark.parametrize("side", ["outer", "inner"])
+def test_product_rejects_sync(side: str):
+    sync = Sync(Linspace("x", 0.0, 1.0, 3), trigger_group=_tg("det"))
+    motion = Linspace("y", 0.0, 1.0, 2)
+    with pytest.raises(ValueError, match="Product cannot contain a Sync"):
+        if side == "outer":
+            Product(sync, motion)  # type: ignore[reportArgumentType]
+        else:
+            Product(motion, sync)  # type: ignore[reportArgumentType]
+
+
+def test_product_rejects_sync_below_repeat():
+    sync = Sync(Linspace("x", 0.0, 1.0, 3), trigger_group=_tg("det"))
+    with pytest.raises(ValueError, match="Product cannot contain a Sync"):
+        Product(Linspace("y", 0.0, 1.0, 2), Repeat(sync, num=2))  # type: ignore[reportArgumentType]
+
+
+def test_zip_rejects_sync():
+    sync = Sync(Linspace("x", 0.0, 1.0, 3), trigger_group=_tg("det"))
+    with pytest.raises(ValueError, match="Zip cannot contain a Sync"):
+        Zip(sync, Static("z", 1.0))  # type: ignore[reportArgumentType]
+
+
+def test_sync_placements_that_stay_allowed():
+    """Repeat of a Sync, and a Concat mixing a Sync with plain motion."""
+    sync = Sync(Linspace("x", 0.0, 1.0, 3), trigger_group=_tg("det"))
+    assert len(windows(Repeat(sync, num=2).compile())) == 6
+    # Concat ties DetectorT across both sides, so plain motion (DetectorT=Never)
+    # doesn't type-check beside a Sync, although it's valid at runtime.
+    mixed = Concat(sync, Linspace("x", 1.0, 2.0, 2)).compile()  # type: ignore[reportArgumentType]
+    triggered = [w for w in windows(mixed) if w.trigger_sequences]
+    assert len(triggered) == 3
 
 
 def test_duration_derived_from_detectors():
@@ -1170,7 +1216,7 @@ def test_duration_derived_from_fly_detectors():
     assert ws[0].duration == pytest.approx(0.02)  # type: ignore[reportUnknownMemberType]
 
 
-def test_explicit_duration_must_be_ge_derived():
+def test_sync_rejects_duration_with_trigger_group():
     tg = TriggerGroup(
         detectors=frozenset({"det1"}),
         exposures_per_collection=1,
@@ -1178,12 +1224,8 @@ def test_explicit_duration_must_be_ge_derived():
         livetime=0.01,
         deadtime=0.001,
     )
-    with pytest.raises(ValueError, match="less than"):
-        Sync(
-            Linspace("x", 0.0, 10.0, 5),
-            trigger_group=tg,
-            duration=0.005,  # too small
-        ).compile()
+    with pytest.raises(ValueError, match="duration cannot be combined"):
+        Sync(Linspace("x", 0.0, 10.0, 5), trigger_group=tg, duration=0.05)
 
 
 # ---------------------------------------------------------------------------
@@ -1257,24 +1299,6 @@ def test_anyspec_extension():
     sc = original.compile()
     assert len(sc.generators) == 1
     assert sc.generators[0].length == 7
-
-
-def test_explicit_duration_overrides_when_larger():
-    tg = TriggerGroup(
-        detectors=frozenset({"det1"}),
-        exposures_per_collection=1,
-        collections_per_event=1,
-        livetime=0.01,
-        deadtime=0.001,
-    )
-    sc: Scan[str, str, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5),
-        trigger_group=tg,
-        duration=0.05,  # larger than derived 0.011
-    ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
-    ws = windows(sc)
-    for w in ws:
-        assert w.duration == pytest.approx(0.05)  # type: ignore[reportUnknownMemberType]
 
 
 def test_none_livetime_raises():
@@ -1502,7 +1526,7 @@ def test_product_rejects_continuous_streams():
     from scanspec.v2.specs import ContinuousStreams
 
     a: ContinuousStreams[str, str, Never] = ContinuousStreams(
-        Sync(Linspace("x", 0, 1, 5)),
+        Linspace("x", 0, 1, 5),
         continuous_streams=[
             ContinuousStream("cam", [DetectorGroup(1, 1, 0.01, 0.001, ["c1"])])
         ],
@@ -1516,7 +1540,7 @@ def test_zip_rejects_monitors():
     from scanspec.v2.specs import Monitors
 
     a: Monitors[str, Never, str] = Monitors(
-        Sync(Linspace("x", 0, 1, 5)),
+        Linspace("x", 0, 1, 5),
         monitors=[MonitorStream("temp", "tc1")],
     )
     with pytest.raises(ValueError, match="Zip does not accept.*monitors"):

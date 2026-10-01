@@ -1,6 +1,6 @@
 """Tests for scanspec.v2.specs — motion nodes, operator algebra, Sync validation."""
 
-from typing import Any
+from typing import Any, Never
 
 import numpy as np
 import pytest
@@ -244,8 +244,8 @@ def test_sync_json_round_trip():
 
 
 def test_sync_json_round_trip_full():
-    """Round-trip a wrapped Sync exercising every optional field, including a
-    trigger_group with a non-empty followers list."""
+    """Round-trip a wrapped Sync with a trigger_group that has followers,
+    plus monitors and continuous streams."""
     spec: ContinuousStreams[str, str, str] = ContinuousStreams(
         Monitors(
             Sync(
@@ -268,7 +268,6 @@ def test_sync_json_round_trip_full():
                         ),
                     ],
                 ),
-                duration=0.5,
             ),
             monitors=[MonitorStream("temp", "tc1")],
         ),
@@ -290,7 +289,18 @@ def test_sync_json_round_trip_full():
         {"encoder"}
     )
     assert restored.continuous_streams[0].name == "cameras"
-    assert restored.spec.spec.duration == 0.5
+
+
+def test_sync_json_round_trip_duration():
+    """``duration`` (only valid without a trigger_group) survives a round trip."""
+    spec: Sync[str, Never, Never] = Sync(
+        Linspace("x", 0.0, 10.0, 100), fly=True, duration=0.5
+    )
+    ta: TypeAdapter[AnySpec[Any, Any, Any]] = TypeAdapter(AnySpec)
+    restored = ta.validate_json(ta.dump_json(spec))
+    assert restored == spec
+    assert isinstance(restored, Sync)
+    assert restored.duration == 0.5
 
 
 # ---------------------------------------------------------------------------
@@ -367,11 +377,7 @@ def test_sync_duplicate_between_windowed_and_continuous():
 
 
 def test_sync_duplicate_with_monitor():
-    # Explicit annotation: MonitorT can't be inferred from Sync's own call
-    # (monitors is no longer a Sync field, ADR 0009) -- without it, Sync's
-    # MonitorT defaults to Never, conflicting with Monitors' str-typed
-    # monitors= below.
-    sync: Sync[str, str, str] = Sync(
+    sync = Sync(
         Linspace("x", 0.0, 1.0, 10),
         trigger_group=TriggerGroup(
             detectors=frozenset({"tc1"}),

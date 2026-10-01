@@ -4,9 +4,10 @@ Date: 2026-04-23
 
 ## Status
 
-Accepted (partially superseded by ADRs 0007 and 0008)
+Accepted (partially superseded by ADRs 0007, 0008 and 0009)
 
 - Decisions #1/#2 (`Window.trigger_groups`, baked `TriggerPattern` timing) — superseded by ADR 0007.
+- Decision #2's "always the outermost spec node" — superseded by ADR 0009, whose `Monitors`/`ContinuousStreams` wrap `Sync` from outside; where a `Sync` may appear is set out in ADR 0009's addendum.
 - Decision #5 (`with_start(window, time)`) — superseded by ADR 0007.
 - Decision #6 (compiled output has no serialisation requirement) — ADR 0007 Decision #1 carved out `TriggerRepeat`/`TriggerSequence`/`TriggerChild` as pydantic `BaseModel`s; ADR 0008 Decision 6 reverses that carve-out (`TriggerChild` removed, `TriggerRepeat`/`TriggerSequence` are plain dataclasses again, and the round-trip requirement moved to the caller-authored `TriggerGroup`/`TriggerFollower`). Decision #6 holds as originally written.
 

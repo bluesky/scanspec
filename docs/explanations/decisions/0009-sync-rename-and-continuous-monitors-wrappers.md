@@ -193,7 +193,9 @@ on `Sync`. See `tests/scanspec/v2/test_type_inference.py`.
 This cost no longer applies: `Monitors.spec` is now typed
 `AnySpec[AxisT, DetectorT, Any]`, so the inner spec's `MonitorT` no longer
 constrains the wrapper's, and `MonitorT` is inferred from `monitors=` with
-no annotation.
+no annotation. `ContinuousStreams.spec` is likewise typed
+`AnySpec[AxisT, Any, MonitorT]`, so it can wrap pure motion
+(`DetectorT=Never`) alongside `str`-named cameras.
 
 ### Explicitly out of scope
 
@@ -229,3 +231,22 @@ but a reader moving between ADR 0007 and this one could conflate them if
 it's not called out — hence this note, and consistent backticking
 (`` `Sync` `` for the class, plain "sync" for the hardware signal)
 throughout future docs referencing both.
+
+## Addendum: where a `Sync` may appear
+
+With `Monitors`/`ContinuousStreams` as the outermost wrappers, `Sync` is no
+longer guaranteed to be the outermost spec node (ADR 0003 Decision 2), so
+its placement is stated explicitly:
+
+- A `Sync`'s `spec` is pure motion: no `Sync` anywhere beneath it.
+- `Sync`s are combined only through `Concat` (story 6's multi-stream
+  pattern), optionally inside `Repeat`/`Snake` and the outermost wrappers.
+- No `Sync` anywhere under `Product` or `Zip`, on either side. Any grid with
+  a `Sync` inside it is written as `Sync(Product(...))` instead, so nothing
+  is lost.
+- `duration` applies only to a `Sync` without a `trigger_group`; with one,
+  the duration is derived from the trigger timing.
+
+These are structural, so they are checked by pydantic validators when the
+spec is constructed (including when it's loaded from JSON), not at
+`compile()`.

@@ -26,6 +26,7 @@ from typing import (
     Any,
     Generic,
     Never,
+    Self,
     TypeAlias,
     Union,
     cast,
@@ -44,6 +45,7 @@ from pydantic import (
     GetCoreSchemaHandler,
     Tag,
     computed_field,
+    model_validator,
 )
 from typing_extensions import TypeVar
 
@@ -601,11 +603,35 @@ class Snake(Spec[AxisT, DetectorT, MonitorT]):
         return scan
 
 
+def _contains_sync(spec: Spec[Any, Any, Any]) -> bool:
+    """True if *spec* is a ``Sync`` or has one anywhere beneath it."""
+    if isinstance(spec, Sync):
+        return True
+    for name in type(spec).model_fields:
+        child: object = getattr(spec, name)
+        if isinstance(child, Spec) and _contains_sync(cast(Spec[Any, Any, Any], child)):
+            return True
+    return False
+
+
+def _reject_sync_in(owner: str, *children: Spec[Any, Any, Any]) -> None:
+    if any(_contains_sync(c) for c in children):
+        raise ValueError(
+            f"{owner} cannot contain a Sync: wrap the whole motion in a single "
+            f"Sync instead, e.g. Sync({owner}(...))"
+        )
+
+
 class Product(Spec[AxisT, DetectorT, MonitorT]):
     """Outer x inner product: ``outer`` is slow, ``inner`` is fast."""
 
     outer: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="Slow (outer) spec.")
     inner: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="Fast (inner) spec.")
+
+    @model_validator(mode="after")
+    def _no_sync_inside(self) -> Self:
+        _reject_sync_in("Product", self.outer, self.inner)
+        return self
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile by prepending outer generators before inner generators."""
@@ -644,6 +670,11 @@ class Zip(Spec[AxisT, DetectorT, MonitorT]):
 
     left: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="First spec.")
     right: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="Second spec.")
+
+    @model_validator(mode="after")
+    def _no_sync_inside(self) -> Self:
+        _reject_sync_in("Zip", self.left, self.right)
+        return self
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile by merging generators of left and right."""
@@ -826,58 +857,6 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         return [gen]
 
 
-def _compute_active_stream_sets(
-    spec: Spec[AxisT, DetectorT, MonitorT],
-) -> list[frozenset[str]]:
-    """Walk the spec tree to find all distinct stream-name sets.
-
-    Returns a list of frozensets, one per simultaneously-active stream
-    combination.  Consumers use this to validate sequencer-table capacity
-    up front without iterating windows.
-    """
-
-    def _dedup(
-        items: list[frozenset[str]],
-    ) -> list[frozenset[str]]:
-        seen: set[frozenset[str]] = set()
-        result: list[frozenset[str]] = []
-        for s in items:
-            if s not in seen:
-                seen.add(s)
-                result.append(s)
-        return result
-
-    if isinstance(spec, Sync):
-        if spec.trigger_group is None:
-            return []
-        return [frozenset({spec.stream_name})]
-    if isinstance(spec, Concat):
-        return _dedup(
-            _compute_active_stream_sets(spec.left)
-            + _compute_active_stream_sets(spec.right)
-        )
-    # Repeat, Snake: single inner spec
-    inner_spec = getattr(spec, "spec", None)
-    if isinstance(inner_spec, Spec):
-        typed: Spec[AxisT, DetectorT, MonitorT] = cast(
-            Spec[AxisT, DetectorT, MonitorT], inner_spec
-        )
-        return _compute_active_stream_sets(typed)
-    # Product: outer and inner children
-    if isinstance(spec, Product):
-        return _dedup(
-            _compute_active_stream_sets(spec.outer)
-            + _compute_active_stream_sets(spec.inner)
-        )
-    # Zip: left and right children
-    if isinstance(spec, Zip):
-        return _dedup(
-            _compute_active_stream_sets(spec.left)
-            + _compute_active_stream_sets(spec.right)
-        )
-    return []
-
-
 def _resolved_timing(
     detectors: frozenset[DetectorT], livetime: float | None, deadtime: float | None
 ) -> tuple[float, float]:
@@ -964,11 +943,13 @@ def _group_to_sequence(
 
 
 class Sync(Spec[AxisT, DetectorT, MonitorT]):
-    """Outermost spec node: binds detector triggering to a motion spec."""
+    """Binds detector triggering to a motion spec.
 
-    spec: AnySpec[AxisT, Any, Any] = Field(
-        description="Inner spec (motion or nested Sync.)."
-    )
+    ``spec`` must be pure motion: combine several ``Sync``s with ``Concat``,
+    never by nesting them or placing them under ``Product``/``Zip``.
+    """
+
+    spec: AnySpec[AxisT, Any, Any] = Field(description="Motion spec.")
     fly: bool = Field(
         default=False,
         description="True for flyscan (innermost dimension sweeps continuously).",
@@ -988,11 +969,26 @@ class Sync(Spec[AxisT, DetectorT, MonitorT]):
     duration: float | None = Field(
         default=None,
         description=(
-            "Per-point duration in seconds. Required for detector-less fly "
-            "scans. When detectors are present, duration is derived from "
-            "trigger timing. For step scans without detectors, defaults to 0."
+            "Per-point duration in seconds, for scans without a "
+            "trigger_group: required for fly scans, defaults to 0 for step "
+            "scans. Not allowed with a trigger_group, whose timing "
+            "determines the duration."
         ),
     )
+
+    @model_validator(mode="after")
+    def _validate_structure(self) -> Self:
+        if self.duration is not None and self.trigger_group is not None:
+            raise ValueError(
+                "duration cannot be combined with trigger_group: the duration "
+                "is derived from the trigger timing"
+            )
+        if _contains_sync(self.spec):
+            raise ValueError(
+                "Sync cannot contain another Sync: its spec must be pure "
+                "motion. Combine Syncs with Concat instead"
+            )
+        return self
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile into a Scan with detector groups and generators."""
@@ -1035,9 +1031,6 @@ class Sync(Spec[AxisT, DetectorT, MonitorT]):
                 detector_groups=detector_groups,
             )
             scan.windowed_streams = [stream]
-        scan.active_stream_sets = _compute_active_stream_sets(self.spec)
-        if detector_groups:
-            scan.active_stream_sets = [frozenset({self.stream_name})]
         return scan
 
     def _compute_duration(
@@ -1057,15 +1050,7 @@ class Sync(Spec[AxisT, DetectorT, MonitorT]):
         total_dur = trigger_sequences_duration(trigger_sequences)
         fly = self.fly and bool(gens)
         inner_length = gens[-1].length if fly else 1
-        per_point = total_dur / inner_length
-        if self.duration is not None:
-            if self.duration < per_point:
-                raise ValueError(
-                    f"Explicit duration {self.duration} is less than "
-                    f"detector-derived per-point duration {per_point}"
-                )
-            return self.duration
-        return per_point
+        return total_dur / inner_length
 
 
 class Monitors(Spec[AxisT, DetectorT, MonitorT]):
@@ -1098,7 +1083,7 @@ class ContinuousStreams(Spec[AxisT, DetectorT, MonitorT]):
     Must sit outside the entire spec tree -- see ``Monitors`` docstring.
     """
 
-    spec: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="Inner spec.")
+    spec: AnySpec[AxisT, Any, MonitorT] = Field(description="Inner spec.")
     continuous_streams: Sequence[ContinuousStream[DetectorT]] = Field(
         default_factory=tuple,
         description="Continuously-acquired detector groups (no scan dimensions).",

@@ -173,6 +173,11 @@ scan = spec.compile()
   default) via `trigger_group` (a `TriggerGroup`, optionally with
   `TriggerFollower`s, ADR 0008). `fly=True` means the innermost motion
   dimension sweeps continuously; all outer dimensions step.
+- **Where a `Sync` may appear.** Its `spec` is pure motion. `Sync`s are
+  combined only through `Concat` (optionally inside `Repeat`/`Snake` and
+  the outermost wrappers); a `Sync` nested in another `Sync`, or anywhere
+  under `Product`/`Zip`, is rejected at construction. `duration` applies
+  only to a `Sync` without a `trigger_group`.
 - **`Monitors`/`ContinuousStreams` are separate outermost wrapper specs**
   (ADR 0009), not fields on `Sync` — they attach scan-wide, not
   frame-coupled, acquisition (§2.3) after the rest of the tree has
@@ -329,9 +334,9 @@ of windows (flagship pattern: diffraction fires only in hold windows).
 
 Window `duration` is the sum of `root.repeats × (livetime + deadtime)`
 across its trigger sequences — children run inside the root's livetime and
-do not extend it. An explicit `Sync(duration=...)` is per point and must be
-≥ the derived per-point value. Detector-less step scans have
-`duration = 0`; detector-less fly scans require a supplied duration.
+do not extend it. `Sync(duration=...)` (per point) is only allowed without
+a `trigger_group`: detector-less step scans default to `duration = 0`, and
+detector-less fly scans require one.
 
 ### 4.2 Centred livetime (ADR 0006 — accepted)
 
@@ -386,15 +391,12 @@ variable-spacing spacer pattern (§4.2) is not required for 2.0 (§2.5, §11)
 — so multi-entry lists, including that pattern, only arise via manual
 `Window` construction.
 
-ADR 0007 also adds `Scan.active_stream_sets: list[frozenset[str]]` — every
-combination of stream names simultaneously active in some window — so a
-consumer can validate sequencer-table capacity **up front, without
-iterating**: `Sync` contributes its own singleton (or nothing, if it has
-no detectors); `Concat`, `Product`, and `Zip` all union and deduplicate their
-children's lists; `Repeat` and `Snake` pass their single inner spec's value
-through unchanged. `Concat` of two same-named `Sync`s dedupes to one
-singleton — confirmed by
-`test_active_stream_sets_concat_same_name_deduplicates`. A SEQ block has 6
+`Scan.active_stream_sets: list[frozenset[str]]` (ADR 0007) lists every
+combination of stream names active together in some window, so a consumer
+can validate sequencer-table capacity **up front, without iterating**. It
+is a property of the compiled `Scan`, derived from its `windowed_streams`:
+only `Concat` combines streams, and it alternates them window by window, so
+each entry is a single stream name — one per distinct stream. A SEQ block has 6
 outputs, so independent streams can reuse different outputs of the same
 block rather than each needing a separate one — up to 6 streams per block.
 
