@@ -255,9 +255,9 @@ Two further rules need the compiled streams, so `Concat` (the only place
 windowed streams merge) checks them at `compile()`:
 
 - `Sync`s sharing a stream name write pieces of one Bluesky stream, so they
-  must have identical trigger groups. The comparison uses the compiled
-  `DetectorGroup`s, which don't carry a follower's `repeats`, so pieces
-  differing only there are not caught.
+  must have identical trigger groups. That includes each follower's
+  `repeats`, which the compiled `DetectorGroup` doesn't carry, so `Concat`
+  compares the pieces' compiled trigger sequences for it.
 - A detector belongs to exactly one stream (windowed, continuous or
   monitor); otherwise a consumer couldn't tell which stream a window's
   frames belong to.

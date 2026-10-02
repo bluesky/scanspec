@@ -1193,6 +1193,38 @@ def test_concat_rejects_same_stream_with_different_trigger_groups():
         ).compile()
 
 
+def test_concat_rejects_same_stream_with_different_follower_repeats():
+    def tg(repeats: int) -> TriggerGroup[str]:
+        return TriggerGroup(
+            detectors=frozenset({"saxs"}),
+            exposures_per_collection=1,
+            collections_per_event=1,
+            livetime=0.003,
+            deadtime=0.001,
+            followers=[
+                TriggerFollower(
+                    detectors=frozenset({"enc"}),
+                    exposures_per_collection=10,
+                    collections_per_event=1,
+                    livetime=0.000299992,
+                    deadtime=8e-9,
+                    repeats=repeats,
+                )
+            ],
+        )
+
+    same = Concat(
+        Sync(Linspace("x", 0.0, 1.0, 3), fly=True, trigger_group=tg(10)),
+        Sync(Linspace("x", 1.0, 2.0, 3), fly=True, trigger_group=tg(10)),
+    ).compile()
+    assert same.windowed_streams[0].dimensions[-1].length == 6
+    with pytest.raises(ValueError, match="'primary' must have identical trigger"):
+        Concat(
+            Sync(Linspace("x", 0.0, 1.0, 3), fly=True, trigger_group=tg(10)),
+            Sync(Linspace("x", 1.0, 2.0, 3), fly=True, trigger_group=tg(5)),
+        ).compile()
+
+
 def test_concat_rejects_detector_in_two_streams():
     with pytest.raises(ValueError, match=r"only one stream.*'det'"):
         Concat(

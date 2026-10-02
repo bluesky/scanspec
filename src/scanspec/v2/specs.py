@@ -524,11 +524,7 @@ def _reject_existing_continuous_streams(scan: Scan[Any, Any, Any]) -> None:
 
 
 def _group_keys(groups: list[DetectorGroup[Any]]) -> list[tuple[object, ...]]:
-    """Comparable form of detector groups; detector order is not significant.
-
-    A follower's ``repeats`` isn't part of a compiled ``DetectorGroup``, so
-    two groups differing only in it compare equal.
-    """
+    """Comparable form of detector groups; detector order is not significant."""
     return [
         (
             frozenset(g.detectors),
@@ -539,6 +535,23 @@ def _group_keys(groups: list[DetectorGroup[Any]]) -> list[tuple[object, ...]]:
         )
         for g in groups
     ]
+
+
+def _follower_repeats(
+    leaves: list[WindowGenerator[Any]], root: frozenset[Any]
+) -> set[tuple[tuple[frozenset[Any], int], ...]]:
+    """Follower ``repeats`` of the stream whose root fires *root*.
+
+    ``DetectorGroup`` doesn't carry them, but each piece's compiled trigger
+    sequences do, and they don't depend on the motion, so pieces with
+    identical trigger groups have identical values here.
+    """
+    return {
+        tuple((c.detectors, c.repeats) for c in seq.children)
+        for leaf in leaves
+        for seq in leaf.trigger_sequences
+        if seq.root.detectors == root
+    }
 
 
 def _check_unique_detectors(scan: Scan[Any, Any, Any]) -> None:
@@ -815,9 +828,9 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         _reject_continuous_and_monitors(left_scan, "Concat")
         _reject_continuous_and_monitors(right_scan, "Concat")
 
-        children = self._extract_children(left_scan) + self._extract_children(
-            right_scan
-        )
+        left_leaves = self._extract_children(left_scan)
+        right_leaves = self._extract_children(right_scan)
+        children = left_leaves + right_leaves
 
         # Validate: pure-motion concats must share the same axes.
         if not left_scan.windowed_streams and not right_scan.windowed_streams:
@@ -841,8 +854,11 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         for stream in right_scan.windowed_streams:
             if stream.name in left_by_name:
                 existing = left_by_name[stream.name]
+                root = frozenset(existing.detector_groups[0].detectors)
                 if _group_keys(existing.detector_groups) != _group_keys(
                     stream.detector_groups
+                ) or _follower_repeats(left_leaves, root) != _follower_repeats(
+                    right_leaves, root
                 ):
                     raise ValueError(
                         f"Concat: Syncs sharing stream name {stream.name!r} "
