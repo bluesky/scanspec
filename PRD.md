@@ -540,6 +540,18 @@ each window's `root.repeats` by the matching child's `repeats`.
 1. Serialization test coverage is thin (smoke-test level).
 2. Auxiliary modules not ported (nice-to-have, in priority order):
    `plot.py`, `cli.py` + `__main__.py`, `service.py`, `sphinxext.py`.
+3. **A detector can belong to only one stream.** A window's trigger
+   sequences name detectors, not streams, so a consumer maps each fired
+   detector back to its stream; a detector in two streams would make that
+   ambiguous. Bluesky itself allows one device in several streams
+   (`declare_stream` under each name, `collect(name=...)` to choose). Way
+   forward if a story ever needs it: give `TriggerSequence` the stream name
+   it feeds, so attribution no longer goes through the detector, then drop
+   the uniqueness check across windowed streams.
+4. **`Scan.non_linear` treats piecewise-linear motion as non-linear.** It's
+   a source-type check, so a flown concatenation of linear segments reports
+   `True`. Each window's own `non_linear` is precise, and the scan-wide
+   value errs on the safe side (a trajectory controller is selected).
 
 **Intentionally dropped from 1.x** (rationale in ADR 0003): `Path`,
 `Midpoints`, `Slice`, `Squash`, `Mask`/regions, `Fly`, `ConstantDuration`,
@@ -589,6 +601,19 @@ is due to be consolidated.
    intended design, matching `validate_trigger_sequence`'s "child duration ≤
    parent livetime" rule and the tests/examples throughout this document and
    `API_SPEC.md`.
+4. **Collection and follower fields, and how they map onto ophyd-async's
+   `TriggerInfo`.** Per §5, only `collections_per_event` changes an event's
+   data shape; `exposures_per_collection` is hardware-side accumulation.
+   But ophyd-async's `TriggerInfo.exposures_per_event` *does* shape the data
+   (5 gives `(5, h, w)`), and `test_ophyd_async_trigger_info` currently fills
+   it from `exposures_per_collection × collections_per_event`, which would
+   claim a shape for summed exposures. For followers it's also unsettled
+   which field means "N samples per root event" (examples author encoders
+   as `exposures_per_collection=10`, while the analysis example in
+   `API_SPEC.md` reshapes them as if `collections_per_event=10`), and how a
+   follower's `repeats` relates to those fields, since `compile()` only uses
+   `repeats`. Needs a decision with the maintainer, then the mapping, the
+   examples and the test made consistent.
 
 ---
 
