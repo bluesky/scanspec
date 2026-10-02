@@ -987,11 +987,12 @@ spec = ContinuousStreams(
 
 ### Multi-stream scans — `Concat` of `Sync`s
 
-Two streams with different dimensionality (e.g. diffraction `[N]` and
-spectroscopy `[N, 2, 1000]`) are expressed as a `Concat` of `Sync`s with
+Two streams with different shapes (e.g. diffraction `[N, 1]` and
+spectroscopy `[N, 2000]`) are expressed as a `Concat` of `Sync`s with
 different `stream_name`s — not a separate `Spec` subclass. `Concat.compile()`
-merges `windowed_streams` by name (summing the innermost dimension's length
-for repeated names) rather than requiring a single stream. Wrap in `Repeat`
+merges `windowed_streams` by name (for repeated names, one innermost
+dimension covering each piece in turn, with each piece's own setpoints)
+rather than requiring a single stream. Wrap in `Repeat`
 to interleave the pattern, and an outer `Monitors` (ADR 0009) to carry
 scan-wide monitors. `Concat` is the only combinator that may combine
 `Sync`s; a `Sync` nested in another `Sync`, or under `Product`/`Zip`, raises

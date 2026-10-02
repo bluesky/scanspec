@@ -92,9 +92,10 @@ All are in scope for 2.0; they may be delivered in stages.
 6. **Different detector streams at different phases** (the flagship
    multi-stream pattern). N iterations of: take a diffraction image at
    static energy; flyscan energy up taking 1000 spectroscopy frames; flyscan
-   energy back down taking 1000 more. Diffraction data has shape `[N]`,
-   spectroscopy `[N, 2, 1000]` — different dimensionality, interleaved in
-   time, on the same motion axis.
+   energy back down taking 1000 more. Diffraction data has shape `[N, 1]`
+   (the static energy contributes a length-1 dimension), spectroscopy
+   `[N, 2000]` (the up and down sweeps merge into one dimension) — different
+   shapes, interleaved in time, on the same motion axis.
 
 7. **Motor-controller dispatch by motion type.** A simple servo drive can do
    static positioning and constant-velocity moves; a trajectory controller

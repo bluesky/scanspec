@@ -537,10 +537,24 @@ def _group_keys(groups: list[DetectorGroup[Any]]) -> list[tuple[object, ...]]:
     ]
 
 
-def _follower_repeats(
+def _stream_pieces(
     leaves: list[WindowGenerator[Any]], root: frozenset[Any]
+) -> list[WindowGenerator[Any]]:
+    """The leaf generators belonging to the stream whose root fires *root*.
+
+    A detector belongs to only one stream, so its root detectors identify it.
+    """
+    return [
+        leaf
+        for leaf in leaves
+        if any(seq.root.detectors == root for seq in leaf.trigger_sequences)
+    ]
+
+
+def _follower_repeats(
+    pieces: list[WindowGenerator[Any]],
 ) -> set[tuple[tuple[frozenset[Any], int], ...]]:
-    """Follower ``repeats`` of the stream whose root fires *root*.
+    """Follower ``repeats`` of a stream's *pieces*.
 
     ``DetectorGroup`` doesn't carry them, but each piece's compiled trigger
     sequences do, and they don't depend on the motion, so pieces with
@@ -548,9 +562,8 @@ def _follower_repeats(
     """
     return {
         tuple((c.detectors, c.repeats) for c in seq.children)
-        for leaf in leaves
-        for seq in leaf.trigger_sequences
-        if seq.root.detectors == root
+        for piece in pieces
+        for seq in piece.trigger_sequences
     }
 
 
@@ -855,17 +868,29 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
             if stream.name in left_by_name:
                 existing = left_by_name[stream.name]
                 root = frozenset(existing.detector_groups[0].detectors)
+                left_pieces = _stream_pieces(left_leaves, root)
+                right_pieces = _stream_pieces(right_leaves, root)
                 if _group_keys(existing.detector_groups) != _group_keys(
                     stream.detector_groups
-                ) or _follower_repeats(left_leaves, root) != _follower_repeats(
-                    right_leaves, root
-                ):
+                ) or _follower_repeats(left_pieces) != _follower_repeats(right_pieces):
                     raise ValueError(
                         f"Concat: Syncs sharing stream name {stream.name!r} "
                         f"must have identical trigger groups"
                     )
                 if existing.dimensions and stream.dimensions:
-                    existing.dimensions[-1].length += stream.dimensions[-1].length
+                    inner, other = existing.dimensions[-1], stream.dimensions[-1]
+                    if inner.axes != other.axes:
+                        raise ValueError(
+                            f"Concat: Syncs sharing stream name {stream.name!r} "
+                            f"must move the same axes; got {inner.axes} and "
+                            f"{other.axes}"
+                        )
+                    existing.dimensions[-1] = Dimension(
+                        axes=inner.axes,
+                        length=inner.length + other.length,
+                        snake=inner.snake,
+                        position_fn=ConcatSource(left_pieces + right_pieces).setpoints,
+                    )
             else:
                 left_scan.windowed_streams.append(stream)
         _check_unique_detectors(left_scan)

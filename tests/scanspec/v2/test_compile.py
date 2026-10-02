@@ -1225,6 +1225,29 @@ def test_concat_rejects_same_stream_with_different_follower_repeats():
         ).compile()
 
 
+def test_concat_same_stream_setpoints_follow_each_piece():
+    """Merged stream setpoints come from each piece, not the left one extended.
+
+    ``up`` sweeps 7.0 -> 7.1 and ``down`` 7.1 -> 7.0 over 1000 points each;
+    Linspace's start/stop are its first/last midpoints.
+    """
+    up = Sync(Linspace("e", 7.0, 7.1, 1000), fly=True, trigger_group=_tg("spec_det"))
+    down = Sync(Linspace("e", 7.1, 7.0, 1000), fly=True, trigger_group=_tg("spec_det"))
+    dim = Repeat(up.concat(down), num=2).compile().windowed_streams[0].dimensions[-1]
+    assert dim.length == 2000
+    full = next(dim.setpoints("e"))
+    assert full[[0, 999, 1000, 1999]] == pytest.approx([7.0, 7.1, 7.1, 7.0])  # type: ignore[reportUnknownMemberType]
+    np.testing.assert_allclose(np.concatenate(list(dim.setpoints("e", 300))), full)
+
+
+def test_concat_rejects_same_stream_on_different_axes():
+    with pytest.raises(ValueError, match="must move the same axes"):
+        Concat(
+            Sync(Linspace("e", 0.0, 1.0, 3), trigger_group=_tg("det")),
+            Sync(Linspace("x", 0.0, 1.0, 3), trigger_group=_tg("det")),
+        ).compile()
+
+
 def test_concat_rejects_detector_in_two_streams():
     with pytest.raises(ValueError, match=r"only one stream.*'det'"):
         Concat(
