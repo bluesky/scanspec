@@ -865,8 +865,11 @@ class Array(Spec[Axis]):
         # Case where only the midpoints array is provided.
         # Assume no gaps between the points
         if self.array is not None and bounds is True and self.bounds is None:
-            # Average value in between the midpoints
-            _bounds = (self.array[1:] - self.array[:-1]) / 2
+            if len(self.array) == 1:
+                _bounds = [self.array, self.array]
+            else:
+                # Average value in between the midpoints
+                _bounds = (self.array[1:] - self.array[:-1]) / 2
 
             mid = self.array
 
