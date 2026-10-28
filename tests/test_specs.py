@@ -1,4 +1,3 @@
-import re
 from typing import Any
 
 import numpy as np
@@ -626,15 +625,29 @@ def test_array_spec_all():
 def test_array_spec_raises():
     points = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     bounds = np.array([-0.5, 0.5, 1.5, 2.5])
+    duration = np.array([1.0, 1.0, 1.0])
+    single_point = np.array([1.0])
 
-    with pytest.raises(ValueError, match="Must provide a valid combination of arrays"):
-        Array("x").calculate()
+    with pytest.raises(
+        ValueError, match="Must provide bounds, array or both. None provided."
+    ):
+        Array("x")
 
-    with pytest.raises(ValueError, match="Must provide a valid combination of arrays"):
-        Array("x", array=None, bounds=None).calculate()
+    with pytest.raises(
+        ValueError,
+        match="len\\(array\\) must equal len\\(bounds\\) - 1",
+    ):
+        Array("x", array=points, bounds=bounds)
 
-    with pytest.raises(AssertionError, match=re.escape("Mismatching lengths [3, 5]")):
-        Array("x", array=points, bounds=bounds).calculate(bounds=True)
+    with pytest.raises(
+        ValueError, match="len\\(array\\) must equal len\\(durations\\);"
+    ):
+        Array("x", array=points, bounds=None, durations=duration)
+
+    with pytest.raises(ValueError, match="Bounds array must contain more than 1 point"):
+        Array("x", array=None, bounds=single_point, durations=None).calculate(
+            bounds=True
+        )
 
 
 def test_array_spec_fly():
@@ -662,6 +675,22 @@ def test_array_spec_fly():
             1,
             1,
             1,
+            1,
+        ]
+    )
+    assert spec.duration() == 1
+
+
+def test_array_spec_fly_single_point():
+    points = [1.0]
+
+    spec = Fly(1 @ Array("x", np.asarray(points)))
+    (dim,) = spec.calculate(bounds=True)
+    assert dim.midpoints == {"x": approx(points)}
+    assert dim.lower == {"x": approx(points)}
+    assert dim.upper == {"x": approx(points)}
+    assert dim.duration == approx(
+        [
             1,
         ]
     )
