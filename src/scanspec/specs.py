@@ -13,7 +13,12 @@ from typing import Any, Generic, Literal, SupportsFloat
 
 import numpy as np
 import numpy.typing as npt
-from pydantic import Field, TypeAdapter, validate_call
+from pydantic import (
+    Field,
+    TypeAdapter,
+    model_validator,
+    validate_call,
+)
 from pydantic.dataclasses import dataclass
 
 from .core import (
@@ -33,6 +38,7 @@ from .core import (
 
 __all__ = [
     "VARIABLE_DURATION",
+    "Array",
     "Concat",
     "ConstantDuration",
     "Ellipse",
@@ -816,6 +822,142 @@ class Spiral(Spec[Axis]):
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self._num, bounds
         )
+
+
+@dataclass(config=StrictConfig)
+class Array(Spec[Axis]):
+    """User defined array containing position of the frames to acquire.
+
+    There are three possible combinations of inputs that are calculate when wrapping
+    this spec with `Fly`:
+    * midpoints only:
+        bounds will be calculated as the array plus or minus the average of the
+        midpoints array.
+    * bounds only:
+        midpoints will be calculated as the average between two consecutive points in
+        the bounds array. Important to note that len(bounds) == len(array) + 1
+    * midpoints and bounds:
+        if len(bounds) == len(array) + 1 then no calculations will be made.
+
+    .. example_spec::
+
+        import numpy as np
+
+        from scanspec.specs import Fly, Array
+
+        array = np.array([0, 1, 3])
+
+        spec = Fly(Array("x", array)).calculate()
+
+        * spec.midpoints == [0, 1, 3]
+        * spec.lower == [-0.5, 0.5, 2]
+        * spec.upper == [0.5, 1.5, 4]
+    """
+
+    axis: Axis = Field(description="An identifier for what to move")
+    array: npt.NDArray[np.float64] | None = Field(
+        description="Array describing the midpoint of each frame", default=None
+    )
+    bounds: npt.NDArray[np.float64] | None = Field(
+        description="Array describing the bounds of the array", default=None
+    )
+    durations: npt.NDArray[np.float64] | None = Field(
+        description="Array describing the duration of each point in the array",
+        default=None,
+    )
+
+    @model_validator(mode="after")
+    def check_input_array(self):
+        """Method for validating correct inputs for the class."""
+        if self.array is None and self.bounds is None:
+            raise ValueError("Must provide bounds, array or both. None provided.")
+        if (
+            self.array is not None
+            and self.bounds is not None
+            and len(self.bounds) != len(self.array) + 1
+        ):
+            raise ValueError(
+                f"len(array) must equal len(bounds) - 1; "
+                f"got len(array)={len(self.array)} and len(bounds)={len(self.bounds)}"
+            )
+        if (
+            self.array is not None
+            and self.durations is not None
+            and len(self.durations) != len(self.array)
+        ):
+            raise ValueError(
+                f"len(array) must equal len(durations); "
+                f"got len(array)={len(self.array)} "
+                f"and len(durations)={len(self.durations)}"
+            )
+        return self
+
+    def axes(self) -> list[Axis]:  # noqa: D102
+        return [self.axis]
+
+    def duration(self) -> None | float | Literal["VARIABLE_DURATION"]:  # noqa: D102
+        if self.durations is None:
+            return None
+        elif len(set(self.durations)) == 1:
+            return self.durations[0]
+        else:
+            return VARIABLE_DURATION
+
+    def calculate(  # noqa: D102
+        self, bounds: bool = False, nested: bool = False
+    ) -> list[Dimension[Axis]]:
+        # Case where only the midpoints array is provided.
+        # Assume no gaps between the points
+        if self.array is not None and bounds is True and self.bounds is None:
+            if len(self.array) == 1:
+                mid = self.array
+                lower = self.array
+                upper = self.array
+            else:
+                # Average value in between the midpoints
+                _bounds = (self.array[1:] - self.array[:-1]) / 2
+
+                mid = self.array
+
+                lower = np.asarray(mid - np.append(_bounds[0], _bounds))
+                upper = np.asarray(mid + np.append(_bounds, [_bounds[-1]]))
+
+        # Case where the users only provided the bounds array.
+        # Need to calculate the midpoints array by averaging the
+        # value between lower and upper
+        elif self.array is None and bounds is True and self.bounds is not None:
+            if len(self.bounds) == 1:
+                raise ValueError("Bounds array must contain more than 1 point")
+            mid = np.empty(len(self.bounds) - 1, dtype=np.float64)
+            lower = self.bounds[:-1]
+            upper = self.bounds[1:]
+            mid = np.asarray(lower + ((upper - lower) / 2))
+
+        # Case where midpoints and bounds were provided.
+        # We guarantee they have the correct shape with the pydantic model_validator.
+        elif self.array is not None and bounds is True and self.bounds is not None:
+            mid = self.array
+            lower = np.asarray(self.bounds[:-1])
+            upper = np.asarray(self.bounds[1:])
+
+        # Case where only the midpoints were provided and no bounds are to be calculated
+        elif self.array is not None and bounds is False:
+            mid = np.asarray(self.array)
+            lower = mid
+            upper = mid
+
+        else:
+            raise ValueError("Must provide a valid combination of arrays")
+
+        new_dim: Dimension[Axis] = Dimension(
+            {self.axis: mid},
+            {self.axis: lower},
+            {self.axis: upper},
+            None,
+            self.durations,
+        )
+
+        return [new_dim]
 
 
 def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
