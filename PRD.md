@@ -94,8 +94,8 @@ All are in scope for 2.0; they may be delivered in stages.
    static energy; flyscan energy up taking 1000 spectroscopy frames; flyscan
    energy back down taking 1000 more. Diffraction data has shape `[N, 1]`
    (the static energy contributes a length-1 dimension), spectroscopy
-   `[N, 2000]` (the up and down sweeps merge into one dimension) — different
-   shapes, interleaved in time, on the same motion axis.
+   `[N, 2, 1000]` (up then down as two passes of one snaked sweep) —
+   different shapes, interleaved in time, on the same motion axis.
 
 7. **Motor-controller dispatch by motion type.** A simple servo drive can do
    static positioning and constant-velocity moves; a trajectory controller
@@ -188,15 +188,19 @@ scan = spec.compile()
   matter) and may be used independently.
 - **Multi-stream scans are `Concat`s of `Sync`s** with different
   `stream_name`s, optionally wrapped in `Repeat` and an outer `Monitors`
-  carrying scan-wide monitors. This is how the flagship pattern (§2.6) is
-  expressed:
+  carrying scan-wide monitors. `Concat` doesn't touch streams: each
+  stream's shape is what its own `Sync` gives under the same outer
+  wrappers. This is how the flagship pattern (§2.6) is expressed — not yet
+  compilable (§8 gap 5):
 
   ```python
   diff = Sync(Static("e", 7.0), trigger_group=diff_group, stream_name="diff")
-  up   = Sync(Linspace("e", 7.0, 7.1, 1000), fly=True, trigger_group=spec_group, stream_name="spec")
-  down = Sync(Linspace("e", 7.1, 7.0, 1000), fly=True, trigger_group=spec_group, stream_name="spec")
+  sweep = Sync(
+      Repeat(~Linspace("e", 7.0, 7.1, 1000), num=2),  # up, then down
+      fly=True, trigger_group=spec_group, stream_name="spec",
+  )
   spec = Monitors(
-      Repeat(diff.concat(up).concat(down), num=200),
+      Repeat(diff.concat(sweep), num=200),
       monitors=[MonitorStream("temperature", "tc1")],
   )
   ```
@@ -553,6 +557,15 @@ each window's `root.repeats` by the matching child's `repeats`.
    a source-type check, so a flown concatenation of linear segments reports
    `True`. Each window's own `non_linear` is precise, and the scan-wide
    value errs on the safe side (a trajectory controller is selected).
+5. **`Concat` sides must be a single generator**, so the flagship (§2.6)
+   doesn't compile as written in §3.1: its spectroscopy `Sync` compiles to
+   two generators (`Repeat` around a snaked `Linspace`), and `Concat`
+   raises. `Repeat(sweep, num=200)` alone already compiles to the required
+   `[200, 2, 1000]` (inner dimension `snake=True`). Way forward: `Concat`
+   children become lists of generators (`ConcatGenerator.children:
+   list[list[WindowGenerator]]`). Until then the pattern is only expressible as two same-named
+   `Sync`s (`up`, `down`) concatenated, which merges spectroscopy into
+   `[N, 2000]`.
 
 **Intentionally dropped from 1.x** (rationale in ADR 0003): `Path`,
 `Midpoints`, `Slice`, `Squash`, `Mask`/regions, `Fly`, `ConstantDuration`,

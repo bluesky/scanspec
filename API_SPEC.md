@@ -988,11 +988,12 @@ spec = ContinuousStreams(
 ### Multi-stream scans — `Concat` of `Sync`s
 
 Two streams with different shapes (e.g. diffraction `[N, 1]` and
-spectroscopy `[N, 2000]`) are expressed as a `Concat` of `Sync`s with
-different `stream_name`s — not a separate `Spec` subclass. `Concat.compile()`
-merges `windowed_streams` by name (for repeated names, one innermost
-dimension covering each piece in turn, with each piece's own setpoints)
-rather than requiring a single stream. Wrap in `Repeat`
+spectroscopy `[N, 2, 1000]`) are expressed as a `Concat` of `Sync`s with
+different `stream_name`s — not a separate `Spec` subclass. `Concat` doesn't
+touch streams: each stream's shape is what its own `Sync` gives under the
+same outer wrappers. `Concat.compile()` collects `windowed_streams` by name
+(for repeated names, one innermost dimension covering each piece in turn,
+with each piece's own setpoints). Wrap in `Repeat`
 to interleave the pattern, and an outer `Monitors` (ADR 0009) to carry
 scan-wide monitors. `Concat` is the only combinator that may combine
 `Sync`s; a `Sync` nested in another `Sync`, or under `Product`/`Zip`, raises
@@ -1015,24 +1016,21 @@ spec_group = TriggerGroup(
 diff_acq: Sync[str, str, Never] = Sync(
     Static("e", 7.0), trigger_group=diff_group, stream_name="diff",
 )
-spec_fwd: Sync[str, str, Never] = Sync(
-    Linspace("e", 7.0, 7.1, 1000), fly=True, trigger_group=spec_group, stream_name="spec",
-)
-spec_rev: Sync[str, str, Never] = Sync(
-    Linspace("e", 7.1, 7.0, 1000), fly=True, trigger_group=spec_group, stream_name="spec",
+# ~ snakes the sweep, so Repeat's second pass runs it back down.
+spec_sweep: Sync[str, str, Never] = Sync(
+    Repeat(~Linspace("e", 7.0, 7.1, 1000), num=2),
+    fly=True, trigger_group=spec_group, stream_name="spec",
 )
 
 # 200 iterations of: step to e=7.0 (1 diffraction frame), fly e 7.0->7.1
 # (1000 spectroscopy frames), fly e 7.1->7.0 (1000 spectroscopy frames).
-inner: Repeat[str, str, Never] = Repeat(
-    diff_acq.concat(spec_fwd).concat(spec_rev), num=200,
-)
+inner: Repeat[str, str, Never] = Repeat(diff_acq.concat(spec_sweep), num=200)
 spec = Monitors(inner, monitors=[MonitorStream("temperature", "tc1")])
-scan = spec.compile()
+scan = spec.compile()  # raises today: Concat sides must be one generator (PRD §8 gap 5)
 
 # scan.windowed_streams has two entries, "diff" and "spec":
-# streams_by_name["diff"].dimensions == [Dimension(["e"...], 200, ...), Dimension(["e"], 1, ...)]
-# streams_by_name["spec"].dimensions == [Dimension(["e"...], 200, ...), Dimension(["e"], 2000, ...)]  # 1000 + 1000
+# streams_by_name["diff"].dimensions == [Dimension([], 200, ...), Dimension(["e"], 1, ...)]
+# streams_by_name["spec"].dimensions == [Dimension([], 200, ...), Dimension([], 2, ...), Dimension(["e"], 1000, snake=True, ...)]
 # 600 windows total: 200 x (1 step + 1 fly + 1 fly). Each window's
 # trigger_sequences carries only the detectors active in that phase --
 # diffraction fires only in step windows, spectroscopy only in fly windows.
