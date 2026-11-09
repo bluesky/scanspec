@@ -999,9 +999,9 @@ with each piece's own setpoints). Wrap in `Repeat`
 to interleave the pattern, and an outer `Monitors` (ADR 0009) to carry
 scan-wide monitors. `Concat` is the only combinator that may combine
 `Sync`s; a `Sync` nested in another `Sync`, or under `Product`/`Zip`/`Snake`,
-raises at construction. `Sync`s sharing a stream name must have identical trigger
-groups, and a detector may belong to only one stream; both raise at
-`compile()`:
+raises at construction. `Sync`s sharing a stream name must have identical
+trigger groups and one dimension each, and a detector may belong to only one
+stream; each of these raises at `compile()`:
 
 ```python
 diff_group = TriggerGroup(

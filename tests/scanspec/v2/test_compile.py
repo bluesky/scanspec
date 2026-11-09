@@ -851,6 +851,17 @@ def test_snaked_concat_runs_snaked_child_sequence_backwards():
     assert xs == pytest.approx([0, 0.5, 1, 2, 3, 3, 2, 0, 0.5, 1])  # type: ignore[reportUnknownMemberType]
 
 
+def test_snaked_concat_as_concat_side_keeps_its_snake():
+    """~Concat as a side of another Concat is kept whole, not spliced in.
+
+    Pass 1 runs the snaked side backwards (3, 2, 1, 0), then x5 as normal.
+    """
+    snaked = ~Concat(Linspace("x", 0.0, 1.0, 2), Linspace("x", 2.0, 3.0, 2))
+    sc = Repeat(Concat(snaked, Linspace("x", 5.0, 6.0, 2)), num=2).compile()
+    xs = [p["x"] for p in _all_positions(sc)]
+    assert xs == pytest.approx([0, 1, 2, 3, 5, 6, 3, 2, 1, 0, 5, 6])  # type: ignore[reportUnknownMemberType]
+
+
 # ---------------------------------------------------------------------------
 # Phase B — trigger_sequences
 # ---------------------------------------------------------------------------

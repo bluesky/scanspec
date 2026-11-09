@@ -968,13 +968,18 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         """The generator stacks *scan* contributes as concat children.
 
         A side is one stack, its whole generator list. A side that is itself
-        a lone concat generator (from a nested Concat) splices that concat's
-        stacks in instead.
+        a lone, unsnaked concat generator (from a nested Concat) splices that
+        concat's stacks in instead; a snaked one stays whole, so its reversal
+        on odd passes is kept.
         """
         gens = scan.generators
         if not gens:
             raise ValueError("Concat requires each side to have a generator")
-        if len(gens) == 1 and isinstance(gens[0].source, ConcatSource):
+        if (
+            len(gens) == 1
+            and isinstance(gens[0].source, ConcatSource)
+            and not gens[0].snake
+        ):
             return list(gens[0].source.children)
         return [list(gens)]
 
