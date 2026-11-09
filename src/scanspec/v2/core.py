@@ -573,6 +573,21 @@ def _iter_with_outer(
                 yield inner_window, merged
 
 
+def _window_generators(
+    gens: list[WindowGenerator[AxisT]],
+) -> Iterator[WindowGenerator[AxisT]]:
+    """Yield the generators whose own settings shape the windows.
+
+    A concat generator's windows come from its children (see
+    ``WindowGenerator.windows``), so its children are yielded in its place.
+    """
+    for gen in gens:
+        if isinstance(gen.source, ConcatSource):
+            yield from _window_generators(gen.source.children)
+        else:
+            yield gen
+
+
 def _truncate_trigger_sequence(
     sequences: list[TriggerSequence[DetectorT]],
     trigger_index: int,
@@ -734,12 +749,12 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
     @property
     def has_moving_axes(self) -> bool:
         """True if any window will have moving_axes (fly generators present)."""
-        return any(g.fly for g in self.generators)
+        return any(g.fly for g in _window_generators(self.generators))
 
     @property
     def non_linear(self) -> bool:
         """True if any fly generator uses a non-linear position function."""
-        return any(g.fly and g.non_linear for g in self.generators)
+        return any(g.fly and g.non_linear for g in _window_generators(self.generators))
 
     @staticmethod
     def _changed_axes(

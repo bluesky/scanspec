@@ -24,6 +24,8 @@ from scanspec.v2.specs import (
     Product,
     Repeat,
     Snake,
+    Spec,
+    Spiral,
     Static,
     Sync,
     Zip,
@@ -1321,11 +1323,43 @@ def test_scan_has_moving_axes_step():
 
 
 def test_scan_non_linear_spiral():
-    from scanspec.v2.specs import Spiral
-
     sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
         Spiral("x", 0, 5, 2, "y", 10, 10), fly=True
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
+    assert sc.has_moving_axes is True
+    assert sc.non_linear is True
+
+
+def _step_then_fly(fly_motion: Spec[str, Never, Never]) -> Scan[str, str, Never]:
+    """A step Sync then a flown Sync, on separate streams."""
+    tg_step = TriggerGroup(
+        detectors=frozenset({"det1"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.01,
+        deadtime=0.001,
+    )
+    tg_fly = TriggerGroup(
+        detectors=frozenset({"det2"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+    )
+    step = Sync(Static("x", 0.0), trigger_group=tg_step, stream_name="step")
+    fly = Sync(fly_motion, fly=True, trigger_group=tg_fly, stream_name="fly")
+    return step.concat(fly).compile()
+
+
+def test_scan_has_moving_axes_concat_child_flies():
+    # The fly window comes from a Concat child, not a top-level generator.
+    sc = _step_then_fly(Linspace("x", 0, 10, 5))
+    assert sc.has_moving_axes is True
+    assert sc.non_linear is False
+
+
+def test_scan_non_linear_concat_child_spiral():
+    sc = _step_then_fly(Spiral("x", 0, 5, 2, "y", 10, 10))
     assert sc.has_moving_axes is True
     assert sc.non_linear is True
 
@@ -1344,7 +1378,7 @@ def test_anyspec_extension():
     from scanspec.v2.core import LinearSource as LinSrc
     from scanspec.v2.core import Scan as Sc
     from scanspec.v2.core import WindowGenerator as WinGen
-    from scanspec.v2.specs import AnySpec, Spec
+    from scanspec.v2.specs import AnySpec
 
     class CustomLinspace(Spec[str, Nv, Nv]):
         axis: str
