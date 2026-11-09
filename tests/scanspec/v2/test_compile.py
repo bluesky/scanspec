@@ -1234,6 +1234,68 @@ def test_sync_placements_that_stay_allowed():
     assert len(triggered) == 3
 
 
+# Sync over a Concat: each child gets the Sync's settings, from its own
+# length. x1 = Linspace("x", 0, 1, 3) has midpoints 0, 0.5, 1 (step 0.5);
+# x2 = Linspace("x", 1, 2, 4) has midpoints 1, 4/3, 5/3, 2 (step 1/3). A
+# fly sweep runs from half a step before the first midpoint to half a step
+# after the last; _tg's points take 0.01 + 0.001 = 0.011 s each.
+
+
+def _x1_x2() -> Concat[str, Never, Never]:
+    return Linspace("x", 0.0, 1.0, 3).concat(Linspace("x", 1.0, 2.0, 4))
+
+
+def test_sync_over_concat_flies_each_child():
+    ws = windows(Sync(_x1_x2(), fly=True, trigger_group=_tg("det")).compile())
+    assert [w.moving_axes["x"].start_position for w in ws] == pytest.approx(  # type: ignore[reportUnknownMemberType]
+        [-0.25, 5 / 6]
+    )
+    assert [w.moving_axes["x"].end_position for w in ws] == pytest.approx(  # type: ignore[reportUnknownMemberType]
+        [1.25, 13 / 6]
+    )
+    assert [w.duration for w in ws] == pytest.approx([0.033, 0.044])  # type: ignore[reportUnknownMemberType]
+    assert [w.trigger_sequences[0].root.repeats for w in ws] == [3, 4]
+
+
+def test_sync_over_concat_steps_each_child_with_its_duration():
+    spec: Sync[str, Never, Never] = Sync(_x1_x2(), duration=0.5)
+    ws = windows(spec.compile())
+    assert [w.duration for w in ws] == [0.5] * 7
+    assert not any(w.moving_axes for w in ws)
+
+
+def test_sync_over_concat_stream_dimension_moves_the_childrens_axes():
+    sc = Sync(_x1_x2(), fly=True, trigger_group=_tg("det")).compile()
+    (dim,) = sc.windowed_streams[0].dimensions
+    assert dim.axes == ["x"]
+    assert dim.length == 7
+    np.testing.assert_allclose(
+        next(dim.setpoints("x")), [0.0, 0.5, 1.0, 1.0, 4 / 3, 5 / 3, 2.0]
+    )
+
+
+def test_sync_over_concat_matches_concat_of_syncs():
+    kw: dict[str, Any] = {"fly": True, "trigger_group": _tg("det")}
+    x1, x2 = Linspace("x", 0.0, 1.0, 3), Linspace("x", 1.0, 2.0, 4)
+    distributed = Sync(x1.concat(x2), **kw).compile()
+    separate = Sync(x1, **kw).concat(Sync(x2, **kw)).compile()
+    for a, b in zip(windows(distributed), windows(separate), strict=True):
+        assert a.moving_axes == b.moving_axes
+        assert a.duration == b.duration
+        assert a.trigger_sequences == b.trigger_sequences
+    assert [s.number_of_events for s in distributed.windowed_streams] == [
+        s.number_of_events for s in separate.windowed_streams
+    ]
+
+
+def test_sync_over_product_with_inner_concat_flies_each_child_per_row():
+    spec = Linspace("y", 0.0, 1.0, 2) * _x1_x2()
+    sc = Sync(spec, fly=True, trigger_group=_tg("det")).compile()
+    ws = windows(sc)
+    assert [w.trigger_sequences[0].root.repeats for w in ws] == [3, 4, 3, 4]
+    assert [d.axes for d in sc.windowed_streams[0].dimensions] == [["y"], ["x"]]
+
+
 def test_concat_rejects_same_stream_with_different_trigger_groups():
     slow = _tg("det")
     fast = slow.model_copy(update={"livetime": 0.005})

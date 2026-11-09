@@ -1118,35 +1118,31 @@ class Sync(Spec[AxisT, DetectorT, MonitorT]):
         return self
 
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
-        """Compile into a Scan with detector groups and generators."""
+        """Compile into a Scan with detector groups and generators.
+
+        The innermost generator's windows carry this Sync's fly flag,
+        trigger sequences and duration. A concat's windows come from its
+        leaves, so each leaf gets them, derived from its own length:
+        ``Sync(a.concat(b))`` runs as ``Sync(a).concat(Sync(b))``.
+        """
         scan = self.spec.compile()
         _reject_multi_generator_concat(scan, "Sync")
-        trigger_sequences: list[TriggerSequence[DetectorT]] = []
-        detector_groups: list[DetectorGroup[DetectorT]] = []
-        if self.trigger_group is not None:
-            group = self.trigger_group
-            inner_length = scan.generators[-1].length if scan.generators else 1
-            fly = self.fly and bool(scan.generators)
-            trigger_sequences = [
-                _group_to_sequence(group, inner_length=inner_length, fly=fly)
-            ]
-            for ts in trigger_sequences:
-                validate_trigger_sequence(ts)
-            detector_groups = [
-                _trigger_group_to_detector_group(g) for g in [group, *group.followers]
-            ]
-        duration = self._compute_duration(trigger_sequences, scan.generators)
-        if scan.generators:
-            last = scan.generators[-1]
-            last.fly = self.fly
-            last.trigger_sequences = trigger_sequences
-            last.duration = duration
+        targets = _leaves([scan.generators[-1:]])
+        for gen in targets:
+            trigger_sequences = self._trigger_sequences(gen.length)
+            gen.fly = self.fly
+            gen.trigger_sequences = trigger_sequences
+            gen.duration = self._compute_duration(trigger_sequences, gen.length)
+        if not targets:
+            # Nothing to attach them to, but the timing must still be valid.
+            self._trigger_sequences(1)
 
         # Only create a windowed stream when this Sync has detectors.
-        if detector_groups:
+        if self.trigger_group is not None:
+            group = self.trigger_group
             dims = [
                 Dimension(
-                    axes=g.axes,
+                    axes=_moved_axes(_leaves([[g]])),
                     length=g.length,
                     snake=g.snake,
                     position_fn=g.setpoints,
@@ -1156,29 +1152,42 @@ class Sync(Spec[AxisT, DetectorT, MonitorT]):
             stream = WindowedStream(
                 name=self.stream_name,
                 dimensions=dims,
-                detector_groups=detector_groups,
+                detector_groups=[
+                    _trigger_group_to_detector_group(g)
+                    for g in [group, *group.followers]
+                ],
             )
             scan.windowed_streams = [stream]
         return scan
 
+    def _trigger_sequences(self, inner_length: int) -> list[TriggerSequence[DetectorT]]:
+        """Derive and validate the trigger sequences for one generator.
+
+        *inner_length* is that generator's length, which a fly scan's root
+        repeats scale by.
+        """
+        if self.trigger_group is None:
+            return []
+        seq = _group_to_sequence(
+            self.trigger_group, inner_length=inner_length, fly=self.fly
+        )
+        validate_trigger_sequence(seq)
+        return [seq]
+
     def _compute_duration(
-        self,
-        trigger_sequences: list[TriggerSequence[DetectorT]],
-        gens: list[WindowGenerator[AxisT]],
+        self, trigger_sequences: list[TriggerSequence[DetectorT]], inner_length: int
     ) -> float | None:
         """Derive per-point duration from trigger timing.
 
-        Returns per-point duration. For step scans (1 window per setpoint)
-        this equals total window duration. For fly scans the total window
-        duration is ``per_point * inner_length``; ``Scan.__iter__``
-        multiplies automatically.
+        For step scans (1 window per setpoint) this equals total window
+        duration. For fly scans the total window duration is
+        ``per_point * inner_length``; ``Scan.__iter__`` multiplies
+        automatically.
         """
         if not trigger_sequences:
             return self.duration
         total_dur = trigger_sequences_duration(trigger_sequences)
-        fly = self.fly and bool(gens)
-        inner_length = gens[-1].length if fly else 1
-        return total_dur / inner_length
+        return total_dur / (inner_length if self.fly else 1)
 
 
 class Monitors(Spec[AxisT, DetectorT, MonitorT]):

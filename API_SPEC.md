@@ -880,6 +880,9 @@ specs carrying `continuous_streams` or `monitors` at compile time — nest
 detector-bearing specs only inside `Concat`/`Repeat`, never `Product`/`Zip`.
 `Sync`, `Zip` and `Snake` also reject a `Concat` with a multi-generator side,
 which has no single flat dimension for them to work on.
+A `Sync` over a `Concat` of single-generator sides applies to each side:
+`Sync(a.concat(b), fly=True)` flies `a` and `b` as separate sweeps, exactly
+like `Sync(a, fly=True).concat(Sync(b, fly=True))`.
 
 ### Attaching triggering to motion — `Sync`
 

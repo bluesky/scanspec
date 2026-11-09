@@ -173,7 +173,10 @@ scan = spec.compile()
   motion spec to one named windowed stream (`stream_name="primary"` by
   default) via `trigger_group` (a `TriggerGroup`, optionally with
   `TriggerFollower`s, ADR 0008). `fly=True` means the innermost motion
-  dimension sweeps continuously; all outer dimensions step.
+  dimension sweeps continuously; all outer dimensions step. When that
+  dimension is a `Concat`, each side sweeps (or steps) on its own, with
+  triggers and duration from its own length: `Sync(a.concat(b))` runs as
+  `Sync(a).concat(Sync(b))`.
 - **Where a `Sync` may appear.** Its `spec` is pure motion. `Sync`s are
   combined only through `Concat` (optionally inside `Repeat` and the
   outermost wrappers); a `Sync` nested in another `Sync`, or anywhere under
