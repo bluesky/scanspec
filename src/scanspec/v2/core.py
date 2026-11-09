@@ -262,7 +262,9 @@ class WindowGenerator(Generic[AxisT]):
         """Evaluate positions at *indexes*."""
         return self.source.setpoints(indexes)
 
-    def windows(self, reverse: bool = False) -> Iterator[Window[AxisT, Any]]:
+    def windows(
+        self, reverse: bool = False, parent_flat_idx: int = 0
+    ) -> Iterator[Window[AxisT, Any]]:
         """Yield collection windows for this generator.
 
         Does not set ``previous`` — the caller (``Scan.__iter__``) chains
@@ -271,6 +273,10 @@ class WindowGenerator(Generic[AxisT]):
         For step scans: one Window per setpoint.
         For fly scans: one Window covering the whole sweep.
         For concat generators (children): iterates each child sequentially.
+        A child adds no loop of its own, so a snaked child reverses on the
+        same odd passes of *parent_flat_idx* (the enclosing loops' flat
+        iteration index) as its stream's ``Dimension.snake`` describes; a
+        reversed concat then runs that whole sequence backwards.
         """
         if isinstance(self.source, ConcatSource):
             children = (
@@ -278,8 +284,10 @@ class WindowGenerator(Generic[AxisT]):
                 if reverse
                 else self.source.children
             )
+            odd_pass = parent_flat_idx % 2 == 1
             for child in children:
-                yield from child.windows(reverse)
+                child_reverse = reverse != (child.snake and odd_pass)
+                yield from child.windows(child_reverse, parent_flat_idx)
             return
 
         if self.fly:
@@ -560,10 +568,10 @@ def _iter_with_outer(
     reverse = gen.snake and (parent_flat_idx % 2 == 1)
 
     if depth == len(gens) - 1:
-        for window in gen.windows(reverse):
+        for window in gen.windows(reverse, parent_flat_idx):
             yield window, {}
     else:
-        for i, outer_window in enumerate(gen.windows(reverse)):
+        for i, outer_window in enumerate(gen.windows(reverse, parent_flat_idx)):
             child_flat_idx = parent_flat_idx * gen.length + i
             for inner_window, deeper_outer in _iter_with_outer(
                 gens, depth + 1, child_flat_idx

@@ -827,6 +827,45 @@ def test_snake_fly_xyz():
     assert x_fwd == [True, False, True, False, True, False]
 
 
+def test_snake_step_inside_concat_reverses_on_odd_passes():
+    """A snaked Sync inside a Concat reverses on the outer loop's odd passes."""
+    a = Sync(~Linspace("x", 0.0, 1.0, 3), trigger_group=_tg("det1"), stream_name="a")
+    b = Sync(Static("y", 5.0), trigger_group=_tg("det2"), stream_name="b")
+    sc = Repeat(a.concat(b), num=3).compile()
+    # Each pass: three "a" windows, then one "b" window (x stays put).
+    xs = [p["x"] for p in _all_positions(sc)]
+    assert xs == pytest.approx([0, 0.5, 1, 1, 1, 0.5, 0, 0, 0, 0.5, 1, 1])  # type: ignore[reportUnknownMemberType]
+    a_dims = sc.windowed_streams[0].dimensions
+    assert [(d.length, d.snake) for d in a_dims] == [(3, False), (3, True)]
+
+
+def test_snake_fly_inside_concat_reverses_on_odd_passes():
+    a = Sync(
+        ~Linspace("x", 0.0, 1.0, 3),
+        fly=True,
+        trigger_group=_tg("det1"),
+        stream_name="a",
+    )
+    b = Sync(Static("y", 5.0), trigger_group=_tg("det2"), stream_name="b")
+    sc = Repeat(a.concat(b), num=2).compile()
+    motions = [w.moving_axes["x"] for w in sc if w.moving_axes]
+    # Midpoints 0, 0.5, 1 at indexes 0.5..2.5, so the sweep spans -0.25..1.25.
+    ends = [p for m in motions for p in (m.start_position, m.end_position)]
+    assert ends == pytest.approx([-0.25, 1.25, 1.25, -0.25])  # type: ignore[reportUnknownMemberType]
+
+
+def test_snaked_concat_runs_snaked_child_sequence_backwards():
+    """~Concat on an odd pass reverses what that pass would otherwise run.
+
+    Pass 1 would otherwise run ~a reversed (1, 0.5, 0) then b (2, 3), so
+    reversed it is b backwards (3, 2) then a forwards (0, 0.5, 1).
+    """
+    inner = Concat(~Linspace("x", 0.0, 1.0, 3), Linspace("x", 2.0, 3.0, 2))
+    sc = Repeat(~inner, num=2).compile()
+    xs = [p["x"] for p in _all_positions(sc)]
+    assert xs == pytest.approx([0, 0.5, 1, 2, 3, 3, 2, 0, 0.5, 1])  # type: ignore[reportUnknownMemberType]
+
+
 # ---------------------------------------------------------------------------
 # Phase B — trigger_sequences
 # ---------------------------------------------------------------------------
@@ -1332,22 +1371,8 @@ def test_scan_non_linear_spiral():
 
 def _step_then_fly(fly_motion: Spec[str, Never, Never]) -> Scan[str, str, Never]:
     """A step Sync then a flown Sync, on separate streams."""
-    tg_step = TriggerGroup(
-        detectors=frozenset({"det1"}),
-        exposures_per_collection=1,
-        collections_per_event=1,
-        livetime=0.01,
-        deadtime=0.001,
-    )
-    tg_fly = TriggerGroup(
-        detectors=frozenset({"det2"}),
-        exposures_per_collection=1,
-        collections_per_event=1,
-        livetime=0.003,
-        deadtime=0.001,
-    )
-    step = Sync(Static("x", 0.0), trigger_group=tg_step, stream_name="step")
-    fly = Sync(fly_motion, fly=True, trigger_group=tg_fly, stream_name="fly")
+    step = Sync(Static("x", 0.0), trigger_group=_tg("det1"), stream_name="step")
+    fly = Sync(fly_motion, fly=True, trigger_group=_tg("det2"), stream_name="fly")
     return step.concat(fly).compile()
 
 
