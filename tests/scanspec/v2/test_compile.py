@@ -259,7 +259,7 @@ def test_concat_setpoints_combined():
 
 
 def test_concat_axes_mismatch_raises():
-    with pytest.raises(ValueError, match="innermost axes must match"):
+    with pytest.raises(ValueError, match="must move the same axes"):
         Linspace("x", 0.0, 5.0, 5).concat(Linspace("y", 0.0, 5.0, 5)).compile()
 
 
@@ -273,7 +273,7 @@ def test_chained_concat_of_motion(nest: str):
 
 def test_chained_concat_axes_mismatch_raises():
     xs = Linspace("x", 0.0, 1.0, 2).concat(Linspace("x", 1.0, 2.0, 2))
-    with pytest.raises(ValueError, match="innermost axes must match"):
+    with pytest.raises(ValueError, match="must move the same axes"):
         xs.concat(Linspace("y", 0.0, 1.0, 2)).compile()
 
 
@@ -1623,6 +1623,175 @@ def test_concat_previous_chain():
     assert ws[0].previous is None
     for i in range(1, len(ws)):
         assert ws[i].previous is ws[i - 1]
+
+
+# ---------------------------------------------------------------------------
+# Concat with multi-generator sides
+# ---------------------------------------------------------------------------
+
+
+def _flagship() -> Repeat[str, str, Never]:
+    """200 x (one diffraction image, then a snaked up/down spectroscopy sweep)."""
+    diff = Sync(Static("e", 7.0), trigger_group=_tg("diffraction"), stream_name="diff")
+    spec = Sync(
+        Repeat(~Linspace("e", 7.0, 7.1, 1000), 2),
+        fly=True,
+        trigger_group=_tg("spectroscopy"),
+        stream_name="spec",
+    )
+    return Repeat(diff.concat(spec), 200)
+
+
+def _sweep(w: Window[str, Any]) -> tuple[float, float]:
+    m = w.moving_axes["e"]
+    return (m.start_position, m.end_position)
+
+
+def test_concat_multi_generator_flagship_streams():
+    sc = _flagship().compile()
+    dims = {
+        s.name: [(d.length, d.snake) for d in s.dimensions] for s in sc.windowed_streams
+    }
+    assert dims == {
+        "diff": [(200, False), (1, False)],
+        "spec": [(200, False), (2, False), (1000, True)],
+    }
+    assert sc.has_moving_axes
+
+
+def test_concat_multi_generator_flagship_windows():
+    ws = windows(_flagship().compile())
+    assert len(ws) == 600
+    detectors = [w.trigger_sequences[0].root.detectors for w in ws]
+    assert (
+        detectors
+        == [
+            frozenset({"diffraction"}),
+            frozenset({"spectroscopy"}),
+            frozenset({"spectroscopy"}),
+        ]
+        * 200
+    )
+    # 1000 midpoints from 7.0 to 7.1 are s = 0.1/999 apart; a sweep covers
+    # half a step beyond the first and last.
+    s = 0.1 / 999
+    up, down = (7.0 - s / 2, 7.1 + s / 2), (7.1 + s / 2, 7.0 - s / 2)
+    assert ws[0].moving_axes == {}
+    assert ws[0].static_axes == {"e": 7.0}
+    for i in (0, 199):
+        assert _sweep(ws[3 * i + 1]) == pytest.approx(up)  # type: ignore[reportUnknownMemberType]
+        assert _sweep(ws[3 * i + 2]) == pytest.approx(down)  # type: ignore[reportUnknownMemberType]
+
+
+def test_concat_multi_generator_with_start_mid_flagship():
+    """Window 301 is iteration 100's up sweep."""
+    sc = _flagship().compile()
+    rest = windows(sc.with_start(301))
+    assert len(rest) == 299
+    s = 0.1 / 999
+    assert _sweep(rest[0]) == pytest.approx((7.0 - s / 2, 7.1 + s / 2))  # type: ignore[reportUnknownMemberType]
+    assert rest[2].trigger_sequences[0].root.detectors == frozenset({"diffraction"})
+
+
+def test_concat_multi_generator_snake_parity_continues_across_passes():
+    """Spec dims [2, 3, 3 snake]: sweep k of pass n has flat index 3n + k.
+
+    So an odd inner repeat runs up/down/up then down/up/down.
+    """
+    diff = Sync(Static("x", 5.0), trigger_group=_tg("det1"), stream_name="diff")
+    spec = Sync(
+        Repeat(~Linspace("x", 0.0, 1.0, 3), 3),
+        fly=True,
+        trigger_group=_tg("det2"),
+        stream_name="spec",
+    )
+    sc = Repeat(diff.concat(spec), 2).compile()
+    spec_dims = sc.windowed_streams[1].dimensions
+    assert [(d.length, d.snake) for d in spec_dims] == [
+        (2, False),
+        (3, False),
+        (3, True),
+    ]
+    motions = [w.moving_axes["x"] for w in sc if w.moving_axes]
+    # Midpoints 0, 0.5, 1 at indexes 0.5..2.5, so a sweep spans -0.25..1.25.
+    ends = [p for m in motions for p in (m.start_position, m.end_position)]
+    up, down = [-0.25, 1.25], [1.25, -0.25]
+    assert ends == pytest.approx([*up, *down, *up, *down, *up, *down])  # type: ignore[reportUnknownMemberType]
+
+
+def test_concat_multi_generator_step_side_positions():
+    """A y(2) * ~x(2) side runs as nested loops, its y folded into the windows."""
+    a = Sync(Static("x", 9.0), trigger_group=_tg("det1"), stream_name="a")
+    b = Sync(
+        Linspace("y", 0.0, 1.0, 2) * ~Linspace("x", 0.0, 1.0, 2),
+        trigger_group=_tg("det2"),
+        stream_name="b",
+    )
+    sc = Repeat(a.concat(b), 2).compile()
+    one_pass = [
+        {"x": 9.0},
+        {"x": 0.0, "y": 0.0},
+        {"x": 1.0, "y": 0.0},
+        {"x": 1.0, "y": 1.0},
+        {"x": 0.0, "y": 1.0},
+    ]
+    second_a = {"x": 9.0, "y": 1.0}
+    assert _all_positions(sc) == [*one_pass, second_a, *one_pass[1:]]
+    b_dims = sc.windowed_streams[1].dimensions
+    assert [(d.length, d.snake) for d in b_dims] == [
+        (2, False),
+        (2, False),
+        (2, True),
+    ]
+
+
+def test_concat_motion_only_multi_generator_side():
+    sc = (
+        Linspace("x", 0.0, 1.0, 2)
+        .concat(Repeat(Linspace("x", 2.0, 3.0, 2), 2))
+        .compile()
+    )
+    xs = [p["x"] for p in _all_positions(sc)]
+    assert xs == [0.0, 1.0, 2.0, 3.0, 2.0, 3.0]
+
+
+def test_concat_motion_only_multi_generator_side_axes_mismatch_raises():
+    with pytest.raises(ValueError, match="must move the same axes"):
+        Linspace("x", 0.0, 1.0, 2).concat(
+            Linspace("y", 0.0, 1.0, 2) * Linspace("x", 0.0, 1.0, 2)
+        ).compile()
+
+
+def _multi_generator_concat() -> Concat[str, Never, Never]:
+    return Static("e", 7.0).concat(Repeat(Linspace("e", 7.0, 7.1, 5), 2))
+
+
+@pytest.mark.parametrize(
+    "op,build",
+    [
+        ("Sync", lambda c: Sync(c, trigger_group=_tg("det"))),  # type: ignore[reportUnknownLambdaType]
+        ("Zip", lambda c: Zip(c, Linspace("y", 0.0, 1.0, 11))),  # type: ignore[reportUnknownLambdaType]
+        ("Zip", lambda c: Zip(Linspace("y", 0.0, 1.0, 11), c)),  # type: ignore[reportUnknownLambdaType]
+        ("Snake", lambda c: ~c),  # type: ignore[reportUnknownLambdaType]
+    ],
+)
+def test_ops_reject_concat_with_multi_generator_side(op: str, build: Any):
+    spec = build(_multi_generator_concat())
+    with pytest.raises(ValueError, match=f"{op} cannot take a Concat"):
+        spec.compile()
+
+
+def test_multi_generator_concat_has_no_flat_setpoints():
+    (gen,) = _multi_generator_concat().compile().generators
+    with pytest.raises(ValueError, match="no flat position function"):
+        gen.setpoints(np.array([0.5]))
+
+
+def test_concat_rejects_merging_multi_dimension_same_stream():
+    single = Sync(Linspace("e", 7.0, 7.1, 5), trigger_group=_tg("det"))
+    double = Sync(Repeat(Linspace("e", 7.1, 7.0, 5), 2), trigger_group=_tg("det"))
+    with pytest.raises(ValueError, match="only merge single-dimension streams"):
+        single.concat(double).compile()
 
 
 # ---------------------------------------------------------------------------

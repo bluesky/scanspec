@@ -195,20 +195,29 @@ class FunctionSource(Generic[AxisT]):
 
 
 class ConcatSource(Generic[AxisT]):
-    """Sequential concatenation of child WindowGenerators.
+    """Sequential concatenation of child generator stacks.
 
-    Delegates setpoint computation to children based on cumulative
-    length ranges.
+    Each child is one side's whole generator list (outer -> inner); a
+    single-generator side is a one-element stack.
     """
 
-    def __init__(self, children: list[WindowGenerator[AxisT]]) -> None:
+    def __init__(self, children: list[list[WindowGenerator[AxisT]]]) -> None:
         self.children = children
 
     def setpoints(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
-        """Delegate to children based on cumulative length ranges."""
+        """Delegate to children based on cumulative length ranges.
+
+        Only defined when every child is a single generator: a stack runs as
+        nested loops, which no flat position function describes.
+        """
+        if any(len(stack) != 1 for stack in self.children):
+            raise ValueError(
+                "ConcatSource.setpoints needs single-generator children; "
+                "a multi-generator child has no flat position function"
+            )
         result: dict[AxisT, np.ndarray] = {}
         cumulative = 0
-        for child in self.children:
+        for (child,) in self.children:
             child_start = cumulative
             child_end = cumulative + child.length
             mask = (indexes >= child_start) & (indexes < child_end)
@@ -230,7 +239,7 @@ class WindowGenerator(Generic[AxisT]):
 
     - ``LinearSource``: axis_ranges → linear interpolation (fence/post).
     - ``FunctionSource``: arbitrary callable.
-    - ``ConcatSource``: delegates to child WindowGenerators.
+    - ``ConcatSource``: delegates to child generator stacks.
     """
 
     def __init__(
@@ -272,28 +281,44 @@ class WindowGenerator(Generic[AxisT]):
 
         For step scans: one Window per setpoint.
         For fly scans: one Window covering the whole sweep.
-        For concat generators (children): iterates each child sequentially.
-        A child adds no loop of its own, so a snaked child reverses on the
-        same odd passes of *parent_flat_idx* (the enclosing loops' flat
-        iteration index) as its stream's ``Dimension.snake`` describes; a
-        reversed concat then runs that whole sequence backwards.
+        For concat generators: runs each child stack in turn as its own
+        nested loop, folding the stack's outer positions into each window's
+        ``static_axes``. A stack's outermost generator takes *parent_flat_idx*
+        (the enclosing loops' flat iteration index) as its base, so snaked
+        generators in it reverse on the passes their stream's
+        ``Dimension.snake`` describes. A reversed concat runs its children
+        backwards; that is only defined for single-generator children.
         """
         if isinstance(self.source, ConcatSource):
-            children = (
-                list(reversed(self.source.children))
-                if reverse
-                else self.source.children
-            )
-            odd_pass = parent_flat_idx % 2 == 1
-            for child in children:
-                child_reverse = reverse != (child.snake and odd_pass)
-                yield from child.windows(child_reverse, parent_flat_idx)
+            if reverse:
+                yield from self._reversed_concat_windows(self.source, parent_flat_idx)
+                return
+            for stack in self.source.children:
+                for window, outer_pos in _iter_with_outer(stack, 0, parent_flat_idx):
+                    window.static_axes = {**outer_pos, **window.static_axes}
+                    yield window
             return
 
         if self.fly:
             yield from self._fly_window(reverse)
         else:
             yield from self._step_windows(reverse)
+
+    @staticmethod
+    def _reversed_concat_windows(
+        source: ConcatSource[AxisT], parent_flat_idx: int
+    ) -> Iterator[Window[AxisT, Any]]:
+        """Yield a concat's windows backwards: last child first, each reversed.
+
+        A snaked child is reversed again on odd passes, so it ends up running
+        forwards there.
+        """
+        if any(len(stack) != 1 for stack in source.children):
+            raise ValueError("Cannot reverse a concat with a multi-generator child")
+        odd_pass = parent_flat_idx % 2 == 1
+        for (child,) in reversed(source.children):
+            child_reverse = not (child.snake and odd_pass)
+            yield from child.windows(child_reverse, parent_flat_idx)
 
     def _step_windows(self, reverse: bool) -> Iterator[Window[AxisT, Any]]:
         """Yield one Window per setpoint."""
@@ -586,12 +611,13 @@ def _window_generators(
 ) -> Iterator[WindowGenerator[AxisT]]:
     """Yield the generators whose own settings shape the windows.
 
-    A concat generator's windows come from its children (see
-    ``WindowGenerator.windows``), so its children are yielded in its place.
+    A concat generator's windows come from its child stacks (see
+    ``WindowGenerator.windows``), so their generators are yielded in its place.
     """
     for gen in gens:
         if isinstance(gen.source, ConcatSource):
-            yield from _window_generators(gen.source.children)
+            for stack in gen.source.children:
+                yield from _window_generators(stack)
         else:
             yield gen
 

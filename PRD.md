@@ -181,8 +181,9 @@ scan = spec.compile()
   dimensions are fixed when it compiles, so snaking goes inside it:
   `Sync(~motion)`. `duration` applies
   only to a `Sync` without a `trigger_group`. At compile time, `Sync`s
-  sharing a stream name must have identical trigger groups, and a detector
-  may belong to only one stream.
+  sharing a stream name must have identical trigger groups and one
+  dimension each, which `Concat` joins end to end, and a detector may
+  belong to only one stream.
 - **`Monitors`/`ContinuousStreams` are separate outermost wrapper specs**
   (ADR 0009), not fields on `Sync` — they attach scan-wide, not
   frame-coupled, acquisition (§2.3) after the rest of the tree has
@@ -192,8 +193,7 @@ scan = spec.compile()
   `stream_name`s, optionally wrapped in `Repeat` and an outer `Monitors`
   carrying scan-wide monitors. `Concat` doesn't touch streams: each
   stream's shape is what its own `Sync` gives under the same outer
-  wrappers. This is how the flagship pattern (§2.6) is expressed — not yet
-  compilable (§8 gap 5):
+  wrappers. This is how the flagship pattern (§2.6) is expressed:
 
   ```python
   diff = Sync(Static("e", 7.0), trigger_group=diff_group, stream_name="diff")
@@ -211,6 +211,13 @@ scan = spec.compile()
   monitors: those run in parallel to the *entire* scan, so they may only be
   attached via the outermost `ContinuousStreams`/`Monitors` wrapper, never
   nested inside a combinator.
+- A `Concat` side may compile to several generators (the flagship's
+  `Repeat` around a snaked sweep). Each side runs as its own nested loop,
+  and a snaked generator in it alternates on the same passes as its
+  stream's dimensions describe. Such a `Concat` has no single flat
+  dimension, so `Sync`, `Zip` and `Snake` reject it at compile time: put
+  them inside its sides. A `Concat` with no streams must move the same
+  axes on both sides.
 - `Snake` operates on a single-dimension spec (deviation from 1.x). `Zip`
   supports exactly the cases 1.x supported. `Squash` is not needed and was
   dropped — dimensions are never merged.
@@ -226,8 +233,8 @@ O(spec complexity). It holds:
   inner (ADR 0004). Only the innermost generator can fly. Sources are
   `LinearSource` (uniform spacing, 1.x fence/post convention),
   `FunctionSource` (arbitrary `fn(indexes) → dict[axis, array]`; spirals and
-  masked grids), or `ConcatSource` (sequential children; how concat-of-
-  Syncs alternates trigger sequences per window).
+  masked grids), or `ConcatSource` (sequential child generator stacks, one
+  per side; how concat-of-Syncs alternates trigger sequences per window).
 - `windowed_streams: list[WindowedStream]` — per stream: `name`,
   `dimensions` (its own shape — streams can differ), `detector_groups`.
   Used to **arm** detectors before the scan and to **reshape** data after.
@@ -559,15 +566,6 @@ each window's `root.repeats` by the matching child's `repeats`.
    a source-type check, so a flown concatenation of linear segments reports
    `True`. Each window's own `non_linear` is precise, and the scan-wide
    value errs on the safe side (a trajectory controller is selected).
-5. **`Concat` sides must be a single generator**, so the flagship (§2.6)
-   doesn't compile as written in §3.1: its spectroscopy `Sync` compiles to
-   two generators (`Repeat` around a snaked `Linspace`), and `Concat`
-   raises. `Repeat(sweep, num=200)` alone already compiles to the required
-   `[200, 2, 1000]` (inner dimension `snake=True`). Way forward: `Concat`
-   children become lists of generators (`ConcatGenerator.children:
-   list[list[WindowGenerator]]`). Until then the pattern is only expressible as two same-named
-   `Sync`s (`up`, `down`) concatenated, which merges spectroscopy into
-   `[N, 2000]`.
 
 **Intentionally dropped from 1.x** (rationale in ADR 0003): `Path`,
 `Midpoints`, `Slice`, `Squash`, `Mask`/regions, `Fly`, `ConstantDuration`,

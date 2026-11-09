@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from abc import ABCMeta
 from collections.abc import Iterator, Sequence
-from math import isclose
+from math import isclose, prod
 from typing import (
     TYPE_CHECKING,
     Annotated,
@@ -537,6 +537,45 @@ def _group_keys(groups: list[DetectorGroup[Any]]) -> list[tuple[object, ...]]:
     ]
 
 
+def _leaves(stacks: list[list[WindowGenerator[AxisT]]]) -> list[WindowGenerator[AxisT]]:
+    """Every generator in *stacks*, looking through nested concats.
+
+    A concat generator's own ``axes`` and trigger sequences are empty; its
+    children's generators carry them.
+    """
+    return [
+        leaf
+        for stack in stacks
+        for gen in stack
+        for leaf in (
+            _leaves(gen.source.children)
+            if isinstance(gen.source, ConcatSource)
+            else [gen]
+        )
+    ]
+
+
+def _reject_multi_generator_concat(scan: Scan[Any, Any, Any], op: str) -> None:
+    """Raise if *scan* has a concat with a multi-generator child anywhere.
+
+    Such a child runs as nested loops, so the concat has no single flat
+    dimension for *op* to treat it as.
+    """
+
+    def has_one(gens: list[WindowGenerator[Any]]) -> bool:
+        return any(
+            isinstance(gen.source, ConcatSource)
+            and any(len(stack) != 1 or has_one(stack) for stack in gen.source.children)
+            for gen in gens
+        )
+
+    if has_one(scan.generators):
+        raise ValueError(
+            f"{op} cannot take a Concat with a multi-generator side; "
+            f"put the {op} inside the Concat's sides instead"
+        )
+
+
 def _moved_axes(leaves: list[WindowGenerator[AxisT]]) -> list[AxisT]:
     """The axes *leaves* move, in first-seen order."""
     return list(dict.fromkeys(axis for leaf in leaves for axis in leaf.axes))
@@ -652,6 +691,7 @@ class Snake(Spec[AxisT, DetectorT, MonitorT]):
             raise ValueError(
                 f"Snake requires exactly one generator, got {len(scan.generators)}"
             )
+        _reject_multi_generator_concat(scan, "Snake")
         scan.generators[0].snake = True
         return scan
 
@@ -737,6 +777,8 @@ class Zip(Spec[AxisT, DetectorT, MonitorT]):
         _reject_continuous_and_monitors(right_scan, "Zip")
         if not left_scan.generators or not right_scan.generators:
             raise ValueError("Zip requires both specs to have at least one dimension")
+        _reject_multi_generator_concat(left_scan, "Zip")
+        _reject_multi_generator_concat(right_scan, "Zip")
         if len(left_scan.generators) < len(right_scan.generators):
             raise ValueError(
                 f"Zip requires len(left.generators) >= len(right.generators); "
@@ -853,21 +895,24 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         _reject_continuous_and_monitors(left_scan, "Concat")
         _reject_continuous_and_monitors(right_scan, "Concat")
 
-        left_leaves = self._extract_children(left_scan)
-        right_leaves = self._extract_children(right_scan)
-        children = left_leaves + right_leaves
+        left_stacks = self._extract_children(left_scan)
+        right_stacks = self._extract_children(right_scan)
+        left_leaves = _leaves(left_stacks)
+        right_leaves = _leaves(right_stacks)
 
-        # Validate: pure-motion concats must share the same axes. Read them
-        # from the leaves: a nested concat's own generator has no axes.
+        # Validate: pure-motion concats must move the same axes, over every
+        # generator of each side.
         if not left_scan.windowed_streams and not right_scan.windowed_streams:
             l_axes = _moved_axes(left_leaves)
             r_axes = _moved_axes(right_leaves)
             if l_axes != r_axes:
                 raise ValueError(
-                    f"Concat: innermost axes must match; got {l_axes} vs {r_axes}"
+                    f"Concat: both sides must move the same axes; "
+                    f"got {l_axes} vs {r_axes}"
                 )
 
-        total_length = sum(c.length for c in children)
+        children = left_stacks + right_stacks
+        total_length = sum(prod(g.length for g in stack) for stack in children)
         concat_gen: WindowGenerator[AxisT] = WindowGenerator(
             axes=[],
             length=total_length,
@@ -890,6 +935,11 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
                         f"Concat: Syncs sharing stream name {stream.name!r} "
                         f"must have identical trigger groups"
                     )
+                if len(existing.dimensions) > 1 or len(stream.dimensions) > 1:
+                    raise ValueError(
+                        f"Concat: Syncs sharing stream name {stream.name!r} "
+                        f"can only merge single-dimension streams"
+                    )
                 if existing.dimensions and stream.dimensions:
                     inner, other = existing.dimensions[-1], stream.dimensions[-1]
                     if inner.axes != other.axes:
@@ -902,7 +952,9 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
                         axes=inner.axes,
                         length=inner.length + other.length,
                         snake=inner.snake,
-                        position_fn=ConcatSource(left_pieces + right_pieces).setpoints,
+                        position_fn=ConcatSource(
+                            [[p] for p in left_pieces + right_pieces]
+                        ).setpoints,
                     )
             else:
                 left_scan.windowed_streams.append(stream)
@@ -912,20 +964,19 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
     @staticmethod
     def _extract_children(
         scan: Scan[AxisT, DetectorT, MonitorT],
-    ) -> list[WindowGenerator[AxisT]]:
-        """Extract leaf WindowGenerators from a Scan for concat children.
+    ) -> list[list[WindowGenerator[AxisT]]]:
+        """The generator stacks *scan* contributes as concat children.
 
-        Each side of a Concat must have exactly one generator.  If that
-        generator already has children (from a nested Concat), flatten them;
-        otherwise use the generator itself.
+        A side is one stack, its whole generator list. A side that is itself
+        a lone concat generator (from a nested Concat) splices that concat's
+        stacks in instead.
         """
         gens = scan.generators
-        if len(gens) != 1:
-            raise ValueError("Concat requires each side to have exactly one generator")
-        gen = gens[0]
-        if isinstance(gen.source, ConcatSource):
-            return list(gen.source.children)
-        return [gen]
+        if not gens:
+            raise ValueError("Concat requires each side to have a generator")
+        if len(gens) == 1 and isinstance(gens[0].source, ConcatSource):
+            return list(gens[0].source.children)
+        return [list(gens)]
 
 
 def _resolved_timing(
@@ -1064,6 +1115,7 @@ class Sync(Spec[AxisT, DetectorT, MonitorT]):
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile into a Scan with detector groups and generators."""
         scan = self.spec.compile()
+        _reject_multi_generator_concat(scan, "Sync")
         trigger_sequences: list[TriggerSequence[DetectorT]] = []
         detector_groups: list[DetectorGroup[DetectorT]] = []
         if self.trigger_group is not None:

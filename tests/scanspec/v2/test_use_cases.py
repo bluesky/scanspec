@@ -163,12 +163,15 @@ def test_spiral_fly_scan():
 
 
 def test_flagship_multi_stream_concat():
-    """Flagship pattern: repeat(diff_step + spec_fly_fwd + spec_fly_rev).
+    """Flagship pattern: repeat(diff_step + spec_sweep_up_and_down).
 
     200 iterations of:
       1. Step to e=7.0, take 1 diffraction image (stream "diff")
       2. Fly e 7.0→7.1, 1000 spectroscopy frames (stream "spec")
       3. Fly e 7.1→7.0, 1000 spectroscopy frames (stream "spec")
+
+    Steps 2 and 3 are one Sync over a snaked sweep repeated twice, so "spec"
+    is a single stream of shape [200, 2, 1000].
 
     600 windows total: 200 × (1 step + 1 fly + 1 fly).
     """
@@ -192,22 +195,13 @@ def test_flagship_multi_stream_concat():
         trigger_group=diff_group,
         stream_name="diff",
     )
-    spec_fwd: Sync[str, str, Never] = Sync(
-        Linspace("e", 7.0, 7.1, 1000),
+    spec_acq: Sync[str, str, Never] = Sync(
+        Repeat(~Linspace("e", 7.0, 7.1, 1000), num=2),
         fly=True,
         trigger_group=spec_group,
         stream_name="spec",
     )
-    spec_rev: Sync[str, str, Never] = Sync(
-        Linspace("e", 7.1, 7.0, 1000),
-        fly=True,
-        trigger_group=spec_group,
-        stream_name="spec",
-    )
-    spec: Repeat[str, str, Never] = Repeat(
-        diff_acq.concat(spec_fwd).concat(spec_rev),
-        num=200,
-    )
+    spec: Repeat[str, str, Never] = Repeat(diff_acq.concat(spec_acq), num=200)
     scan: Scan[str, str, str] = Monitors(
         spec,
         monitors=[MonitorStream("temperature", "tc1")],
@@ -229,10 +223,17 @@ def test_flagship_multi_stream_concat():
     assert diff_stream.dimensions[1].axes == ["e"]
 
     spec_stream = streams_by_name["spec"]
-    assert len(spec_stream.dimensions) == 2
-    assert spec_stream.dimensions[0].length == 200  # repeat
-    assert spec_stream.dimensions[1].length == 2000  # 1000 + 1000 concat
-    assert spec_stream.dimensions[1].axes == ["e"]
+    assert [(d.length, d.snake) for d in spec_stream.dimensions] == [
+        (200, False),  # outer repeat
+        (2, False),  # up then down
+        (1000, True),  # the sweep, reversed on odd passes
+    ]
+    assert spec_stream.dimensions[2].axes == ["e"]
+
+    # 1000 midpoints from 7.0 to 7.1 are s = 0.1/999 apart; a sweep covers
+    # half a step beyond the first and last.
+    s = 0.1 / 999
+    low, high = 7.0 - s / 2, 7.1 + s / 2
 
     # --- Window iteration ---
     windows = list(scan)
@@ -266,7 +267,8 @@ def test_flagship_multi_stream_concat():
         assert w_fwd.moving_axes != {}
         assert "e" in w_fwd.moving_axes
         am_fwd = w_fwd.moving_axes["e"]
-        assert am_fwd.start_position < am_fwd.end_position
+        assert am_fwd.start_position == approx(low)
+        assert am_fwd.end_position == approx(high)
         assert w_fwd.non_linear is False  # linear Linspace
         # duration from detector: 1000 × (0.003 + 0.001) = 4.0
         assert w_fwd.duration == approx(4.0)
@@ -283,7 +285,8 @@ def test_flagship_multi_stream_concat():
         assert w_rev.moving_axes != {}
         assert "e" in w_rev.moving_axes
         am_rev = w_rev.moving_axes["e"]
-        assert am_rev.start_position > am_rev.end_position
+        assert am_rev.start_position == approx(high)
+        assert am_rev.end_position == approx(low)
         assert w_rev.non_linear is False
         assert w_rev.duration == approx(4.0)
         assert len(w_rev.trigger_sequences) == 1

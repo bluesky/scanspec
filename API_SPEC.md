@@ -873,11 +873,13 @@ Operators available on any spec node:
 
 `Concat` is also how detector-bearing `Sync`s combine into a multi-stream
 scan (see "Multi-stream scans" below) — `left`/`right` may each carry their
-own detector configuration. `Product` and `Zip`, by contrast, only merge
-motion generators: they reject nested specs carrying `continuous_streams` or
-`monitors` outright, and silently drop a nested `Sync`'s
-`windowed_streams` rather than merging them — nest detector-bearing specs
-only inside `Concat`/`Repeat`, never `Product`/`Zip`.
+own detector configuration, and each side may compile to several generators
+(e.g. `Repeat` around a sweep). `Product` and `Zip`, by contrast, only merge
+motion generators: they reject a nested `Sync` at construction and nested
+specs carrying `continuous_streams` or `monitors` at compile time — nest
+detector-bearing specs only inside `Concat`/`Repeat`, never `Product`/`Zip`.
+`Sync`, `Zip` and `Snake` also reject a `Concat` with a multi-generator side,
+which has no single flat dimension for them to work on.
 
 ### Attaching triggering to motion — `Sync`
 
@@ -1026,7 +1028,7 @@ spec_sweep: Sync[str, str, Never] = Sync(
 # (1000 spectroscopy frames), fly e 7.1->7.0 (1000 spectroscopy frames).
 inner: Repeat[str, str, Never] = Repeat(diff_acq.concat(spec_sweep), num=200)
 spec = Monitors(inner, monitors=[MonitorStream("temperature", "tc1")])
-scan = spec.compile()  # raises today: Concat sides must be one generator (PRD §8 gap 5)
+scan = spec.compile()
 
 # scan.windowed_streams has two entries, "diff" and "spec":
 # streams_by_name["diff"].dimensions == [Dimension([], 200, ...), Dimension(["e"], 1, ...)]
