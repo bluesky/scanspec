@@ -9,7 +9,6 @@ import pytest
 
 from scanspec.v2.core import (
     AxisMotion,
-    ConcatSource,
     DetectorGroup,
     Scan,
     TriggerFollower,
@@ -151,34 +150,6 @@ def test_snake_multiple_generators_raises():
     spec = ~(Linspace("y", 0, 1, 3) * Linspace("x", 0, 1, 5))
     with pytest.raises(ValueError, match="exactly one generator"):
         spec.compile()
-
-
-def test_snake_with_concat_children():
-    """Snake on a Concat'd Sync sets snake on the concat generator (children).
-
-    The old Snake.compile had an if/else branch because reconstructing a
-    WindowGenerator required different args for children vs non-children
-    generators.  With mutation (just set .snake = True), no branch is needed.
-    """
-    tg = TriggerGroup(
-        detectors=frozenset({"det"}),
-        exposures_per_collection=1,
-        collections_per_event=1,
-        livetime=0.001,
-        deadtime=0.001,
-    )
-    acq1: Sync[str, str, Never] = Sync(Linspace("x", 0, 5, 3), trigger_group=tg)
-    acq2: Sync[str, str, Never] = Sync(Linspace("x", 10, 15, 2), trigger_group=tg)
-    spec = ~acq1.concat(acq2)
-    sc = spec.compile()
-    g = gens(sc)
-    assert len(g) == 1
-    assert g[0].snake is True
-    assert isinstance(g[0].source, ConcatSource)
-    assert len(g[0].source.children) == 2
-    # Verify iteration still works — snake reverses on odd outer iterations
-    ws = windows(sc)
-    assert len(ws) == 5  # 3 + 2 points
 
 
 # ---------------------------------------------------------------------------
@@ -1211,6 +1182,20 @@ def test_zip_rejects_sync():
     sync = Sync(Linspace("x", 0.0, 1.0, 3), trigger_group=_tg("det"))
     with pytest.raises(ValueError, match="Zip cannot contain a Sync"):
         Zip(sync, Static("z", 1.0))  # type: ignore[reportArgumentType]
+
+
+def test_snake_rejects_sync():
+    # The reversal would be missing from the Sync's stream dimensions.
+    sync = Sync(Linspace("x", 0.0, 1.0, 3), trigger_group=_tg("det"))
+    with pytest.raises(ValueError, match="Snake cannot contain a Sync"):
+        Snake(sync)
+
+
+def test_snake_rejects_concat_of_syncs():
+    a = Sync(Linspace("x", 0.0, 1.0, 3), trigger_group=_tg("d1"), stream_name="a")
+    b = Sync(Linspace("x", 1.0, 2.0, 2), trigger_group=_tg("d2"), stream_name="b")
+    with pytest.raises(ValueError, match="Snake cannot contain a Sync"):
+        Snake(a.concat(b))
 
 
 def test_sync_placements_that_stay_allowed():

@@ -175,9 +175,11 @@ scan = spec.compile()
   `TriggerFollower`s, ADR 0008). `fly=True` means the innermost motion
   dimension sweeps continuously; all outer dimensions step.
 - **Where a `Sync` may appear.** Its `spec` is pure motion. `Sync`s are
-  combined only through `Concat` (optionally inside `Repeat`/`Snake` and
-  the outermost wrappers); a `Sync` nested in another `Sync`, or anywhere
-  under `Product`/`Zip`, is rejected at construction. `duration` applies
+  combined only through `Concat` (optionally inside `Repeat` and the
+  outermost wrappers); a `Sync` nested in another `Sync`, or anywhere under
+  `Product`/`Zip`/`Snake`, is rejected at construction. A `Sync`'s stream
+  dimensions are fixed when it compiles, so snaking goes inside it:
+  `Sync(~motion)`. `duration` applies
   only to a `Sync` without a `trigger_group`. At compile time, `Sync`s
   sharing a stream name must have identical trigger groups, and a detector
   may belong to only one stream.

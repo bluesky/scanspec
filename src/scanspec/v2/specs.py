@@ -633,6 +633,13 @@ class Snake(Spec[AxisT, DetectorT, MonitorT]):
         description="Inner spec to snake."
     )
 
+    @model_validator(mode="after")
+    def _no_sync_inside(self) -> Self:
+        # A Sync's stream dimensions are fixed when it compiles, so a
+        # reversal added outside it would go unrecorded.
+        _reject_sync_in("Snake", self.spec)
+        return self
+
     def compile(self) -> Scan[AxisT, DetectorT, MonitorT]:
         """Compile by setting snake=True on the innermost generator."""
         scan = self.spec.compile()

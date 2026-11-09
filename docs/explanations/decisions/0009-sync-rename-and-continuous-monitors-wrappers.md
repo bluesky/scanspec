@@ -240,10 +240,13 @@ its placement is stated explicitly:
 
 - A `Sync`'s `spec` is pure motion: no `Sync` anywhere beneath it.
 - `Sync`s are combined only through `Concat` (story 6's multi-stream
-  pattern), optionally inside `Repeat`/`Snake` and the outermost wrappers.
+  pattern), optionally inside `Repeat` and the outermost wrappers.
 - No `Sync` anywhere under `Product` or `Zip`, on either side. Any grid with
   a `Sync` inside it is written as `Sync(Product(...))` instead, so nothing
   is lost.
+- No `Sync` under `Snake`. A `Sync`'s stream dimensions are fixed when it
+  compiles, so a reversal added outside it would go unrecorded. Snaking
+  goes inside it instead, `Sync(~motion)`.
 - `duration` applies only to a `Sync` without a `trigger_group`; with one,
   the duration is derived from the trigger timing.
 
