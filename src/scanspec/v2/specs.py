@@ -537,6 +537,11 @@ def _group_keys(groups: list[DetectorGroup[Any]]) -> list[tuple[object, ...]]:
     ]
 
 
+def _moved_axes(leaves: list[WindowGenerator[AxisT]]) -> list[AxisT]:
+    """The axes *leaves* move, in first-seen order."""
+    return list(dict.fromkeys(axis for leaf in leaves for axis in leaf.axes))
+
+
 def _stream_pieces(
     leaves: list[WindowGenerator[Any]], root: frozenset[Any]
 ) -> list[WindowGenerator[Any]]:
@@ -852,10 +857,11 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         right_leaves = self._extract_children(right_scan)
         children = left_leaves + right_leaves
 
-        # Validate: pure-motion concats must share the same axes.
+        # Validate: pure-motion concats must share the same axes. Read them
+        # from the leaves: a nested concat's own generator has no axes.
         if not left_scan.windowed_streams and not right_scan.windowed_streams:
-            l_axes = left_scan.generators[0].axes if left_scan.generators else []
-            r_axes = right_scan.generators[0].axes if right_scan.generators else []
+            l_axes = _moved_axes(left_leaves)
+            r_axes = _moved_axes(right_leaves)
             if l_axes != r_axes:
                 raise ValueError(
                     f"Concat: innermost axes must match; got {l_axes} vs {r_axes}"

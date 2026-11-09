@@ -263,6 +263,20 @@ def test_concat_axes_mismatch_raises():
         Linspace("x", 0.0, 5.0, 5).concat(Linspace("y", 0.0, 5.0, 5)).compile()
 
 
+@pytest.mark.parametrize("nest", ["left", "right"])
+def test_chained_concat_of_motion(nest: str):
+    a, b, c = (Linspace("x", lo, lo + 1.0, 2) for lo in (0.0, 1.0, 2.0))
+    spec = Concat(Concat(a, b), c) if nest == "left" else Concat(a, Concat(b, c))
+    xs = [p["x"] for p in _all_positions(spec.compile())]
+    assert xs == pytest.approx([0, 1, 1, 2, 2, 3])  # type: ignore[reportUnknownMemberType]
+
+
+def test_chained_concat_axes_mismatch_raises():
+    xs = Linspace("x", 0.0, 1.0, 2).concat(Linspace("x", 1.0, 2.0, 2))
+    with pytest.raises(ValueError, match="innermost axes must match"):
+        xs.concat(Linspace("y", 0.0, 1.0, 2)).compile()
+
+
 # ---------------------------------------------------------------------------
 # Repeat
 # ---------------------------------------------------------------------------
