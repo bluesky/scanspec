@@ -259,7 +259,7 @@ to execute one collection phase:
 
 | Field | Meaning |
 |---|---|
-| `static_axes: dict[AxisT, float]` | Axes to position before the window starts. Contains **only axes that changed** since the previous window; the first window carries all axes. |
+| `static_axes: dict[AxisT, float]` | Axes to position before the window starts. Contains **only axes that changed** since the previous window; the first window carries all axes, including the first window after `with_start`. |
 | `moving_axes: dict[AxisT, AxisMotion]` | Axes sweeping continuously, each with `start_position`, `start_velocity`, `end_position`, `end_velocity`. Empty for step windows. Disjoint from `static_axes`. |
 | `non_linear: bool` | `True` → trajectory controller required (servo-rate positions). `False` → constant velocity per axis (or no motion). Computed analytically from the position functions, not by finite-differencing. |
 | `duration: float` | Total window time in seconds, derived from trigger timing (§4). |

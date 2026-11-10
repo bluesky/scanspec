@@ -711,6 +711,33 @@ def test_with_start_does_not_mutate_original():
     assert len(windows(sc2)) == 2
 
 
+def test_with_start_first_window_carries_all_static_axes():
+    # y(3) * x(4): window 5 is y=1, x=1; window 4 was y=1, x=0
+    sc = (Linspace("y", 0.0, 2.0, 3) * Linspace("x", 0.0, 3.0, 4)).compile()
+    assert windows(sc)[5].static_axes == {"x": 1.0}
+    resumed = windows(sc.with_start(window=5))
+    assert resumed[0].static_axes == {"y": 1.0, "x": 1.0}
+    assert resumed[1].static_axes == {"x": 2.0}
+
+
+def test_with_start_fly_first_window_carries_outer_axes():
+    tg = TriggerGroup(
+        detectors=frozenset({"det"}),
+        exposures_per_collection=1,
+        collections_per_event=1,
+        livetime=0.003,
+        deadtime=0.001,
+    )
+    spec: Sync[str, str, Never] = Sync(
+        Static("z", 9.0) * Linspace("y", 0.0, 2.0, 3) * ~Linspace("x", 0.0, 3.0, 4),
+        fly=True,
+        trigger_group=tg,
+    )
+    resumed = windows(spec.compile().with_start(window=2))
+    assert resumed[0].static_axes == {"z": 9.0, "y": 2.0}
+    assert list(resumed[0].moving_axes) == ["x"]
+
+
 def test_with_start_trigger_index_truncates():
     tg = TriggerGroup(
         detectors=frozenset({"det"}),

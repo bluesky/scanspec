@@ -383,7 +383,8 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
 
         The first yielded window has its first `trigger_index` root-level
         trigger repeats truncated off its trigger_sequences, and its
-        duration reduced to match. Used for pause/resume — constructs a new
+        duration reduced to match. Its static_axes carry every static axis,
+        not just those changed since the skipped window. Used for pause/resume — constructs a new
         Scan from a known progress point rather than rewinding an existing
         iterator.
         """

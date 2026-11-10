@@ -816,9 +816,11 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
         yields the actual collection windows.
 
         ``previous`` and ``static_axes`` are set by mutating the inner Window
-        before yielding it.  On the first yielded window, if ``_trigger_index``
-        is set, the window's ``trigger_sequences`` are truncated to remove
-        completed root-level repeats.
+        before yielding it.  The first yielded window carries every static
+        axis, also when resuming via ``with_start``; later windows carry only
+        the axes that changed.  On the first yielded window, if
+        ``_trigger_index`` is set, the window's ``trigger_sequences`` are
+        truncated to remove completed root-level repeats.
         """
         gens = self.generators
         if not gens:
@@ -833,8 +835,13 @@ class Scan(Generic[AxisT, DetectorT, MonitorT]):
             all_pos: dict[AxisT, float] = dict(outer_pos)
             all_pos.update(inner_window.static_axes)
 
-            inner_window.static_axes = self._changed_axes(all_pos, prev_all)
             inner_window.previous = prev_window
+
+            if window_idx >= self._start_window and first_yielded:
+                # Nothing is known about where a resumed scan's axes are.
+                inner_window.static_axes = all_pos
+            else:
+                inner_window.static_axes = self._changed_axes(all_pos, prev_all)
 
             if window_idx >= self._start_window:
                 if first_yielded and self._trigger_index > 0:
