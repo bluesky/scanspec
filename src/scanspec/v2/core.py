@@ -1,0 +1,862 @@
+"""Core data structures for scanspec 2.0."""
+
+from __future__ import annotations
+
+from collections.abc import Callable, Iterator, Sequence
+from dataclasses import dataclass
+from math import isclose, prod
+from typing import Any, Generic, Never, Self
+from typing import TypeVar as StdTypeVar
+
+import numpy as np
+from pydantic import BaseModel, ConfigDict, model_validator
+from typing_extensions import TypeVar
+
+AxisT = StdTypeVar("AxisT")
+DetectorT = StdTypeVar("DetectorT")
+MonitorT = TypeVar("MonitorT", default=Never)
+
+
+@dataclass(frozen=True)
+class TriggerRepeat(Generic[DetectorT]):
+    """One resolved, repeating trigger block within a TriggerSequence.
+
+    detectors: the set of detectors this block fires.
+    repeats:   how many times this block executes.
+    livetime:  detector exposure time in seconds.
+    deadtime:  detector readout/spacing time in seconds.
+
+    Centred-livetime semantics apply: execution order per repeat is
+    ``½·deadtime → livetime → ½·deadtime``.
+
+    Pure compiled output -- unlike its ADR 0007 predecessor, no longer
+    caller-authored, so no pydantic/round-trip requirement (the round trip
+    for unresolved timing now happens entirely on TriggerGroup/TriggerFollower,
+    before compile() -- see ADR 0008).
+    """
+
+    detectors: frozenset[DetectorT]
+    repeats: int
+    livetime: float
+    deadtime: float
+
+
+@dataclass(frozen=True)
+class TriggerSequence(Generic[DetectorT]):
+    """Detector triggering description for one sequential entry in a window.
+
+    ``root`` fires first; ``children`` fire in parallel with each other
+    during every root repeat. All child detector sets must be disjoint
+    from each other and from ``root.detectors``.
+
+    ``Window.trigger_sequences`` is an ordered list; entries execute one after
+    another within the window.
+    """
+
+    root: TriggerRepeat[DetectorT]
+    children: list[TriggerRepeat[DetectorT]]
+
+
+class TriggerFollower(BaseModel, Generic[DetectorT]):
+    """Authoring-time detector group firing at its own rate within a TriggerGroup.
+
+    Driven by the group's own repeat cadence. repeats/livetime/deadtime
+    may all be left unresolved (None) at
+    authoring time -- a downstream process (e.g. ophyd-async) fills in
+    whichever are missing before compile(), which requires all three
+    concrete. Unlike the group's own detectors, repeats is a real field
+    here: a follower's rate relative to the group is genuinely external
+    information (detector hardware timing), not something derivable
+    purely from the spec tree. Named repeats, not num -- "num" alone
+    doesn't say what it counts; "repeats" matches the compiled
+    TriggerRepeat.repeats it flows into.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    detectors: frozenset[DetectorT]
+    exposures_per_collection: int
+    collections_per_event: int
+    livetime: float | None
+    deadtime: float | None
+    repeats: int | None
+
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
+
+
+class TriggerGroup(BaseModel, Generic[DetectorT]):
+    """Caller-authored trigger hierarchy for one Sync's windowed stream.
+
+    Replaces Sync.detectors + Sync.trigger_sequence: the caller authors
+    the detector/timing hierarchy once, and compile() derives both the
+    compiled TriggerSequence tree and the list[DetectorGroup] the
+    windowed stream needs, instead of requiring the caller to hand-write
+    and keep both in sync.
+
+    detectors/exposures_per_collection/collections_per_event/livetime/
+    deadtime describe the group's own base-rate detectors -- also exactly
+    the shape DetectorGroup is derived from (compile()), so a TriggerGroup
+    with no followers at all is already a complete, meaningful authoring
+    unit on its own. followers is how the group grows to cover detectors
+    triggering at other integer-multiple rates within the same
+    collective, not a separate hierarchical tier -- each fires during
+    every one of the group's own repeats, in parallel with each other.
+    Detector sets across the group's own detectors and all followers must
+    be disjoint -- checked here structurally at construction time, since
+    timing may still be unresolved. Physical checks (integer-ratio rates,
+    follower duration fitting inside the group's own livetime, concrete
+    timing) happen at compile() time against the derived TriggerSequence.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    detectors: frozenset[DetectorT]
+    exposures_per_collection: int
+    collections_per_event: int
+    livetime: float | None
+    deadtime: float | None
+    followers: list[TriggerFollower[DetectorT]] = []
+
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
+
+    @model_validator(mode="after")
+    def _disjoint_detectors(self) -> Self:
+        """Own detectors + each follower's detectors must be pairwise disjoint."""
+        seen: set[DetectorT] = set(self.detectors)
+        for follower in self.followers:
+            overlap = seen & follower.detectors
+            if overlap:
+                raise ValueError(
+                    f"Detector(s) {sorted(str(d) for d in overlap)} appear "
+                    f"in more than one TriggerGroup/TriggerFollower within "
+                    f"this TriggerGroup"
+                )
+            seen |= follower.detectors
+        return self
+
+
+@dataclass
+class AxisMotion:
+    """Boundary kinematics for one moving axis within a Window.
+
+    All four values are always present together — it is impossible for an axis
+    to have a start_position without a start_velocity (etc.) because the struct
+    is the unit of storage.  Axis-set consistency across all motion fields is
+    therefore structural: the keys of moving_axes are the sole source of truth.
+    """
+
+    start_position: float
+    start_velocity: float
+    end_position: float
+    end_velocity: float
+
+
+class LinearSource(Generic[AxisT]):
+    """Linear position interpolation from axis ranges.
+
+    Each axis maps to ``(start, stop)``.  Setpoints at half-integer indexes
+    follow the 1.x fence/post convention.
+    """
+
+    def __init__(
+        self, axis_ranges: dict[AxisT, tuple[float, float]], length: int
+    ) -> None:
+        self.axis_ranges = axis_ranges
+        self._length = length
+
+    def setpoints(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+        """Evaluate linear positions at *indexes*."""
+        result: dict[AxisT, np.ndarray] = {}
+        for ax, (start, stop) in self.axis_ranges.items():
+            if self._length <= 1:
+                step = stop - start
+            else:
+                step = (stop - start) / (self._length - 1)
+            first = start - step / 2
+            result[ax] = first + indexes * step
+        return result
+
+
+class FunctionSource(Generic[AxisT]):
+    """Arbitrary position function."""
+
+    def __init__(self, fn: Callable[[np.ndarray], dict[AxisT, np.ndarray]]) -> None:
+        self._fn = fn
+
+    def setpoints(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+        """Evaluate positions via the wrapped callable."""
+        return self._fn(indexes)
+
+
+class ConcatSource(Generic[AxisT]):
+    """Sequential concatenation of child generator stacks.
+
+    Each child is one side's whole generator list (outer -> inner); a
+    single-generator side is a one-element stack.
+    """
+
+    def __init__(self, children: list[list[WindowGenerator[AxisT]]]) -> None:
+        self.children = children
+
+    def setpoints(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+        """Delegate to children based on cumulative length ranges.
+
+        Only defined when every child is a single generator: a stack runs as
+        nested loops, which no flat position function describes.
+        """
+        if any(len(stack) != 1 for stack in self.children):
+            raise ValueError(
+                "ConcatSource.setpoints needs single-generator children; "
+                "a multi-generator child has no flat position function"
+            )
+        result: dict[AxisT, np.ndarray] = {}
+        cumulative = 0
+        for (child,) in self.children:
+            child_start = cumulative
+            child_end = cumulative + child.length
+            mask = (indexes >= child_start) & (indexes < child_end)
+            if np.any(mask):
+                child_idx = indexes[mask] - child_start
+                child_pts = child.setpoints(child_idx)
+                for ax, arr in child_pts.items():
+                    if ax not in result:
+                        result[ax] = np.empty(len(indexes), dtype=np.float64)
+                    result[ax][mask] = arr
+            cumulative = child_end
+        return result
+
+
+class WindowGenerator(Generic[AxisT]):
+    """One dimension of window generation.
+
+    Position computation is delegated to the ``source``:
+
+    - ``LinearSource``: axis_ranges → linear interpolation (fence/post).
+    - ``FunctionSource``: arbitrary callable.
+    - ``ConcatSource``: delegates to child generator stacks.
+    """
+
+    def __init__(
+        self,
+        axes: list[AxisT],
+        length: int,
+        source: LinearSource[AxisT] | FunctionSource[AxisT] | ConcatSource[AxisT],
+        snake: bool = False,
+        fly: bool = False,
+        trigger_sequences: list[TriggerSequence[Any]] | None = None,
+        duration: float | None = None,
+    ) -> None:
+        self.axes = axes
+        self.length = length
+        self.source = source
+        self.snake = snake
+        self.fly = fly
+        self.trigger_sequences: list[TriggerSequence[Any]] = (
+            list(trigger_sequences) if trigger_sequences is not None else []
+        )
+        self.duration = duration
+
+    @property
+    def non_linear(self) -> bool:
+        """True when positions use a non-linear function."""
+        return not isinstance(self.source, LinearSource)
+
+    def setpoints(self, indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+        """Evaluate positions at *indexes*."""
+        return self.source.setpoints(indexes)
+
+    def windows(
+        self, reverse: bool = False, parent_flat_idx: int = 0
+    ) -> Iterator[Window[AxisT, Any]]:
+        """Yield collection windows for this generator.
+
+        Does not set ``previous`` — the caller (``Scan.__iter__``) chains
+        windows together and computes delta ``static_axes``.
+
+        For step scans: one Window per setpoint.
+        For fly scans: one Window covering the whole sweep.
+        For concat generators: runs each child stack in turn as its own
+        nested loop, folding the stack's outer positions into each window's
+        ``static_axes``. A stack's outermost generator takes *parent_flat_idx*
+        (the enclosing loops' flat iteration index) as its base, so snaked
+        generators in it reverse on the passes their stream's
+        ``Dimension.snake`` describes. A reversed concat runs its children
+        backwards; that is only defined for single-generator children.
+        """
+        if isinstance(self.source, ConcatSource):
+            if reverse:
+                yield from self._reversed_concat_windows(self.source, parent_flat_idx)
+                return
+            for stack in self.source.children:
+                for window, outer_pos in _iter_with_outer(stack, 0, parent_flat_idx):
+                    window.static_axes = {**outer_pos, **window.static_axes}
+                    yield window
+            return
+
+        if self.fly:
+            yield from self._fly_window(reverse)
+        else:
+            yield from self._step_windows(reverse)
+
+    @staticmethod
+    def _reversed_concat_windows(
+        source: ConcatSource[AxisT], parent_flat_idx: int
+    ) -> Iterator[Window[AxisT, Any]]:
+        """Yield a concat's windows backwards: last child first, each reversed.
+
+        A snaked child is reversed again on odd passes, so it ends up running
+        forwards there.
+        """
+        if any(len(stack) != 1 for stack in source.children):
+            raise ValueError("Cannot reverse a concat with a multi-generator child")
+        odd_pass = parent_flat_idx % 2 == 1
+        for (child,) in reversed(source.children):
+            child_reverse = not (child.snake and odd_pass)
+            yield from child.windows(child_reverse, parent_flat_idx)
+
+    def _step_windows(self, reverse: bool) -> Iterator[Window[AxisT, Any]]:
+        """Yield one Window per setpoint."""
+        for raw_idx in range(self.length):
+            step_idx = (self.length - 1 - raw_idx) if reverse else raw_idx
+            result = self.setpoints(np.array([step_idx + 0.5]))
+            step_pos = {axis: float(arr[0]) for axis, arr in result.items()}
+            yield Window(
+                static_axes=step_pos,
+                moving_axes={},
+                non_linear=False,
+                duration=self.duration if self.duration is not None else 0.0,
+                trigger_sequences=list(self.trigger_sequences),
+                previous=None,
+            )
+
+    def _fly_window(self, reverse: bool) -> Iterator[Window[AxisT, Any]]:
+        """Yield a single fly-scan Window."""
+        length = self.length
+        # Seconds per index step. Velocities and positions_fn are evaluated
+        # against the position function's own index domain (0..length), but
+        # must be reported/accepted in real seconds -- this is the conversion
+        # factor between the two.
+        if self.duration is None:
+            raise ValueError(
+                "a fly Generator needs a duration: without one its velocities "
+                "and window duration have no time base"
+            )
+        seconds_per_index = self.duration
+        sign = 1.0 if not reverse else -1.0
+        if reverse:
+            start_i, end_i = float(length), 0.0
+        else:
+            start_i, end_i = 0.0, float(length)
+
+        eps = 1e-6
+        moving_axes: dict[AxisT, AxisMotion] = {}
+
+        def _eval(i: float, ax: AxisT) -> float:
+            return float(self.setpoints(np.array([i]))[ax][0])
+
+        for axis in self.setpoints(np.array([0.5])):
+            # d(position)/d(time) = d(position)/d(index) * d(index)/d(time).
+            # The position function is direction-agnostic (always increasing
+            # with index); d(index)/d(time) = sign / seconds_per_index is
+            # what actually carries the scan direction.
+            s_vel = (
+                (_eval(start_i + eps, axis) - _eval(start_i - eps, axis))
+                * sign
+                / (2 * eps * seconds_per_index)
+            )
+            e_vel = (
+                (_eval(end_i + eps, axis) - _eval(end_i - eps, axis))
+                * sign
+                / (2 * eps * seconds_per_index)
+            )
+            moving_axes[axis] = AxisMotion(
+                start_position=_eval(start_i, axis),
+                start_velocity=s_vel,
+                end_position=_eval(end_i, axis),
+                end_velocity=e_vel,
+            )
+
+        setpoints_fn = self.setpoints
+
+        def positions_fn(times: np.ndarray) -> dict[AxisT, np.ndarray]:
+            return setpoints_fn(start_i + (times / seconds_per_index) * sign)
+
+        duration = length * seconds_per_index
+        yield Window(
+            static_axes={},
+            moving_axes=moving_axes,
+            non_linear=self.non_linear,
+            duration=duration,
+            trigger_sequences=list(self.trigger_sequences),
+            previous=None,
+            positions_fn=positions_fn,
+        )
+
+
+class Dimension(Generic[AxisT]):
+    """One dimension of the compiled scan geometry.
+
+    Produced by Spec.compile(). One entry is created per motion primitive
+    (Linspace, Spiral, etc.) in the spec tree; Zip merges two primitives
+    into one entry with multiple axes.
+
+    Whether the innermost dimension is flown or stepped is not recorded
+    here, since only the innermost dimension can ever be a flyscan axis.
+
+    """
+
+    def __init__(
+        self,
+        axes: list[AxisT],
+        length: int,
+        snake: bool,
+        position_fn: Callable[[np.ndarray], dict[AxisT, np.ndarray]],
+    ) -> None:
+        self.axes = axes
+        self.length = length
+        self.snake = snake
+        self._position_fn = position_fn
+
+    def setpoints(
+        self,
+        axis: AxisT,
+        chunk_size: int | None = None,
+    ) -> Iterator[np.ndarray]:
+        """Yield nominal collection positions in the forward direction.
+
+        Midpoints are at half-integer indexes 0.5, 1.5, ..., length - 0.5
+        (the 1.x fence/post convention).
+
+        Only computes the indexes for the current chunk — never allocates
+        the full position array and slices it.
+
+        chunk_size=None yields a single chunk covering all points.
+        Snaking is NOT applied — dim.snake is provided for the caller.
+
+        Full materialisation: next(dim.setpoints(axis))
+        """
+        step = chunk_size if chunk_size is not None else self.length
+        for start in range(0, self.length, step):
+            end = min(start + step, self.length)
+            # Half-integer indexes: 0.5, 1.5, ...
+            indexes = np.arange(start, end, dtype=float) + 0.5
+            yield self._position_fn(indexes)[axis]
+
+
+class Window(Generic[AxisT, DetectorT]):
+    """A contiguous stretch of motion during which detectors are triggered.
+
+    Windows are separated by turnarounds. scanspec provides boundary kinematics
+    so the caller can compute the turnaround trajectory externally via
+    calculate_turnaround.
+
+    ``trigger_sequences`` is an ordered list; entries execute one after
+    another within the window. In a multi-stream scan a window may contain
+    sequences for only a subset of streams (e.g. some motion phases trigger
+    only diffraction detectors, others only spectroscopy).
+    """
+
+    def __init__(
+        self,
+        static_axes: dict[AxisT, float],
+        moving_axes: dict[AxisT, AxisMotion],
+        non_linear: bool,
+        duration: float,
+        trigger_sequences: list[TriggerSequence[DetectorT]],
+        previous: Window[AxisT, DetectorT] | None,
+        positions_fn: Callable[[np.ndarray], dict[AxisT, np.ndarray]] | None = None,
+    ) -> None:
+        self.static_axes = static_axes
+        self.moving_axes = moving_axes
+        self.non_linear = non_linear
+        self.duration = duration
+        self.trigger_sequences = list(trigger_sequences)
+        self.previous = previous
+        self._positions_fn = positions_fn
+
+    def positions(self, times: np.ndarray) -> dict[AxisT, np.ndarray]:
+        """Positions for the moving axes at each of the given real-second times.
+
+        Raises RuntimeError if no position function was provided (step windows).
+        """
+        if self._positions_fn is None:
+            raise RuntimeError(
+                "No position function on this window "
+                "(step windows have no continuous trajectory)"
+            )
+        return self._positions_fn(times)
+
+
+@dataclass
+class DetectorGroup(Generic[DetectorT]):
+    """Upfront description of a set of detectors sharing trigger parameters.
+
+    For a windowed stream this is pure compiled output, derived by
+    ``Sync.compile()`` from a caller-authored ``TriggerGroup`` (see ADR
+    0008) -- it is no longer directly caller-authored there. For a
+    continuous stream it is still directly caller-authored, on
+    ``ContinuousStreams.continuous_streams`` (ADR 0009); static
+    livetime/deadtime describe the stream's own fixed rate.
+
+    exposures_per_collection: exposures the detector accumulates per collection.
+    collections_per_event:    collections that form one event in the stream.
+      exposures_per_event = exposures_per_collection * collections_per_event.
+    """
+
+    exposures_per_collection: int
+    collections_per_event: int
+    livetime: float | None  # None means ophyd-async sets it
+    deadtime: float | None  # None means ophyd-async sets it
+    detectors: list[DetectorT]
+
+    @property
+    def exposures_per_event(self) -> int:
+        """Total triggers per event: each collection needs its own trigger."""
+        return self.exposures_per_collection * self.collections_per_event
+
+
+@dataclass
+class WindowedStream(Generic[AxisT, DetectorT]):
+    """One named detector stream within a Scan, aligned to collection windows.
+
+    A stream groups detectors whose trigger rates are integer multiples of
+    each other.  Each stream has its own scan dimensions (which may differ
+    from other streams' dimensions).  Detectors in different streams have no
+    phase lock — only timestamps tie their data together.
+
+    dimensions: ordered outer -> inner scan geometry for this stream.
+    detector_groups: all groups within this stream; trigger rates must be
+        integer multiples of each other within a stream.
+    """
+
+    name: str
+    dimensions: list[Dimension[AxisT]]
+    detector_groups: list[DetectorGroup[DetectorT]]
+
+    @property
+    def number_of_events(self) -> int:
+        """Total number of detector trigger events for this stream.
+
+        Product of dimension lengths -- fly-agnostic, since Dimension.length
+        already is (see Dimension). Matches the physical event count a
+        detector is armed for, regardless of scan trajectory shape.
+        """
+        return prod(dim.length for dim in self.dimensions)
+
+
+@dataclass
+class ContinuousStream(Generic[DetectorT]):
+    """A continuously-acquired detector stream with no scan dimensions.
+
+    Groups detectors that run at a fixed rate for the whole scan duration,
+    not frame-coupled to the motion.  Use for cameras or other triggered
+    detectors that share timing but are not indexed against scan positions
+    (e.g. front_cam and side_cam both at 20 Hz form one ContinuousStream).
+
+    detector_groups: groups within this continuous stream trigger
+        at integer-multiple rates of each other.
+    """
+
+    name: str
+    detector_groups: list[DetectorGroup[DetectorT]]
+
+
+@dataclass
+class MonitorStream(Generic[MonitorT]):
+    """A free-running PV sampled continuously for the scan duration.
+
+    Not frame-coupled to the scan.  Associated with scan data by timestamp
+    only.  No timing parameters -- the PV runs at its own rate.
+    """
+
+    name: str
+    detector: MonitorT
+
+
+def _iter_with_outer(
+    gens: list[WindowGenerator[AxisT]],
+    depth: int,
+    parent_flat_idx: int,
+) -> Iterator[tuple[Window[AxisT, Any], dict[AxisT, float]]]:
+    """Recursively iterate generators, yielding (inner_window, outer_positions).
+
+    Each generator's ``windows(reverse)`` is called with a reversal flag
+    derived from its own ``snake`` attribute and the flat iteration-count
+    index of all ancestor generators.
+
+    ``parent_flat_idx`` is the iteration counter (not effective position
+    index) so that parity is preserved regardless of reversed dimension
+    lengths.
+    """
+    gen = gens[depth]
+    reverse = gen.snake and (parent_flat_idx % 2 == 1)
+
+    if depth == len(gens) - 1:
+        for window in gen.windows(reverse, parent_flat_idx):
+            yield window, {}
+    else:
+        for i, outer_window in enumerate(gen.windows(reverse, parent_flat_idx)):
+            child_flat_idx = parent_flat_idx * gen.length + i
+            for inner_window, deeper_outer in _iter_with_outer(
+                gens, depth + 1, child_flat_idx
+            ):
+                merged: dict[AxisT, float] = dict(outer_window.static_axes)
+                merged.update(deeper_outer)
+                yield inner_window, merged
+
+
+def _window_generators(
+    gens: list[WindowGenerator[AxisT]],
+) -> Iterator[WindowGenerator[AxisT]]:
+    """Yield the generators whose own settings shape the windows.
+
+    A concat generator's windows come from its child stacks (see
+    ``WindowGenerator.windows``), so their generators are yielded in its place.
+    """
+    for gen in gens:
+        if isinstance(gen.source, ConcatSource):
+            for stack in gen.source.children:
+                yield from _window_generators(stack)
+        else:
+            yield gen
+
+
+def _truncate_trigger_sequence(
+    sequences: list[TriggerSequence[DetectorT]],
+    trigger_index: int,
+) -> list[TriggerSequence[DetectorT]]:
+    """Remove *trigger_index* completed root-level repeats from *sequences*.
+
+    Walks the sequential list, skipping fully-completed sequences and
+    truncating the in-progress one.  ``children`` is carried unchanged.
+
+    Blank/spacer sequences (``livetime == 0.0``) are never counted and never
+    truncated -- they always pass through whole.  A gap only ever needs to be
+    *at least* as long as designed, never exactly that long, so replaying a
+    blank in full on resume (padded by whatever already elapsed before the
+    pause plus the real pause duration) can only lengthen the realized gap,
+    never shorten it below the intended minimum.
+    """
+    result: list[TriggerSequence[DetectorT]] = []
+    remaining = trigger_index
+    for seq in sequences:
+        if seq.root.livetime == 0.0:
+            result.append(seq)
+            continue
+        repeats = seq.root.repeats
+        if remaining <= 0:
+            result.append(seq)
+        elif remaining >= repeats:
+            remaining -= repeats
+        else:
+            result.append(
+                TriggerSequence(
+                    root=TriggerRepeat(
+                        detectors=seq.root.detectors,
+                        repeats=repeats - remaining,
+                        livetime=seq.root.livetime,
+                        deadtime=seq.root.deadtime,
+                    ),
+                    children=seq.children,
+                )
+            )
+            remaining = 0
+    return result
+
+
+def validate_trigger_sequence(seq: TriggerSequence[DetectorT]) -> None:
+    """Check that *seq* is physically valid.
+
+    Not specific to ``Sync`` -- also required for manually-constructed
+    ``Window``s (ADR 0007 Assumption A1), so lives here rather than as a
+    private method. Unresolved (``None``) timing is rejected earlier, on
+    the caller-authored ``TriggerGroup``/``TriggerFollower``, before a
+    ``TriggerSequence`` can exist at all (ADR 0008) -- ``TriggerRepeat``'s
+    ``livetime``/``deadtime`` are always concrete by the time this runs.
+
+    Raises ``ValueError`` if:
+
+    - a child detector set overlaps the parent's or another child's.
+    - a child does not trigger at an integer ratio of the parent rate.
+    - a child's total duration exceeds the parent's livetime.
+    """
+    parent = seq.root
+    parent_lt = parent.livetime
+
+    for i, child in enumerate(seq.children):
+        overlap = parent.detectors & child.detectors
+        if overlap:
+            raise ValueError(
+                f"Detector(s) {sorted(str(d) for d in overlap)} appear in "
+                f"both parent and child groups"
+            )
+        for other in seq.children[i + 1 :]:
+            shared = child.detectors & other.detectors
+            if shared:
+                raise ValueError(
+                    f"Child detector sets overlap: {sorted(str(d) for d in shared)}"
+                )
+
+    for child in seq.children:
+        child_period = child.livetime + child.deadtime
+        ratio = parent_lt / child_period
+        if not isclose(ratio, round(ratio), rel_tol=1e-3, abs_tol=1e-6):
+            raise ValueError(
+                f"Child detector(s) {sorted(str(d) for d in child.detectors)} "
+                f"do not trigger at an integer ratio of the parent "
+                f"rate: parent_livetime {parent_lt} / child_period "
+                f"{child_period} = {ratio}"
+            )
+        child_dur = child.repeats * child_period
+        if child_dur > parent_lt and not isclose(
+            child_dur, parent_lt, rel_tol=1e-3, abs_tol=1e-6
+        ):
+            raise ValueError(
+                f"Child total duration {child_dur} exceeds parent livetime {parent_lt}"
+            )
+
+
+def trigger_sequences_duration(seqs: list[TriggerSequence[DetectorT]]) -> float:
+    """Total duration of *seqs*: sum of ``repeats * (livetime + deadtime)``."""
+    return sum(ts.root.repeats * (ts.root.livetime + ts.root.deadtime) for ts in seqs)
+
+
+class Scan(Generic[AxisT, DetectorT, MonitorT]):
+    """Compiled output of Spec.compile().
+
+    O(spec complexity) to construct -- no position arrays allocated until
+    setpoints() or __iter__ is called.
+
+    Serves as the sole entry point for both window iteration and analysis.
+
+    ``generators`` is the ordered outer -> inner list of WindowGenerator
+    objects.  Each generator owns ``windows(reverse)`` which yields
+    ``Window`` objects (without ``previous``).  ``Scan.__iter__`` calls
+    ``windows()`` recursively, merging outer positions into the innermost
+    windows' ``static_axes`` and setting ``previous``.
+    """
+
+    def __init__(
+        self,
+        generators: Sequence[WindowGenerator[AxisT]],
+        windowed_streams: Sequence[WindowedStream[AxisT, DetectorT]] = (),
+        continuous_streams: Sequence[ContinuousStream[DetectorT]] = (),
+        monitors: Sequence[MonitorStream[MonitorT]] = (),
+        start_window: int = 0,
+        trigger_index: int = 0,
+    ) -> None:
+        self.generators: list[WindowGenerator[AxisT]] = list(generators)
+        self.windowed_streams = list(windowed_streams)
+        self.continuous_streams = list(continuous_streams)
+        self.monitors = list(monitors)
+        self._start_window = start_window
+        self._trigger_index = trigger_index
+
+    def with_start(
+        self, window: int, trigger_index: int = 0
+    ) -> Scan[AxisT, DetectorT, MonitorT]:
+        """Return a new Scan that starts iteration at the given window.
+
+        Used for pause/resume -- construct a new Scan from a known progress
+        point rather than rewinding an existing iterator.
+        """
+        return Scan(
+            generators=self.generators,
+            windowed_streams=self.windowed_streams,
+            continuous_streams=self.continuous_streams,
+            monitors=self.monitors,
+            start_window=window,
+            trigger_index=trigger_index,
+        )
+
+    @property
+    def active_stream_sets(self) -> list[frozenset[str]]:
+        """Every combination of stream names active together in some window.
+
+        Lets a consumer check sequencer-table capacity before iterating. Only
+        ``Concat`` combines streams, and it alternates them window by window,
+        so each entry holds a single stream name.
+        """
+        return [frozenset({ws.name}) for ws in self.windowed_streams]
+
+    @property
+    def has_moving_axes(self) -> bool:
+        """True if any window will have moving_axes (fly generators present)."""
+        return any(g.fly for g in _window_generators(self.generators))
+
+    @property
+    def non_linear(self) -> bool:
+        """True if any fly generator uses a non-linear position function."""
+        return any(g.fly and g.non_linear for g in _window_generators(self.generators))
+
+    @staticmethod
+    def _changed_axes(
+        current: dict[AxisT, float],
+        previous: dict[AxisT, float],
+    ) -> dict[AxisT, float]:
+        """Return only the axes whose positions differ from *previous*."""
+        return {
+            ax: pos
+            for ax, pos in current.items()
+            if ax not in previous or previous[ax] != pos
+        }
+
+    def __iter__(self) -> Iterator[Window[AxisT, DetectorT]]:
+        """Iterate collection windows.
+
+        Outer generators are iterated via ``windows()``, yielding step-scan
+        positions that are merged into the innermost windows' ``static_axes``.
+        The innermost generator (which may use a ``ConcatSource`` for concat)
+        yields the actual collection windows.
+
+        ``previous`` and ``static_axes`` are set by mutating the inner Window
+        before yielding it.  The first yielded window carries every static
+        axis, also when resuming via ``with_start``; later windows carry only
+        the axes that changed.  On the first yielded window, if
+        ``_trigger_index`` is set, the window's ``trigger_sequences`` are
+        truncated to remove completed root-level repeats.
+        """
+        gens = self.generators
+        if not gens:
+            return
+
+        prev_window: Window[AxisT, DetectorT] | None = None
+        prev_all: dict[AxisT, float] = {}
+        window_idx = 0
+        first_yielded = True
+
+        for inner_window, outer_pos in _iter_with_outer(gens, 0, 0):
+            all_pos: dict[AxisT, float] = dict(outer_pos)
+            all_pos.update(inner_window.static_axes)
+
+            inner_window.previous = prev_window
+
+            if window_idx >= self._start_window and first_yielded:
+                # Nothing is known about where a resumed scan's axes are.
+                inner_window.static_axes = all_pos
+            else:
+                inner_window.static_axes = self._changed_axes(all_pos, prev_all)
+
+            if window_idx >= self._start_window:
+                if first_yielded and self._trigger_index > 0:
+                    inner_window.trigger_sequences = _truncate_trigger_sequence(
+                        inner_window.trigger_sequences,
+                        self._trigger_index,
+                    )
+                    inner_window.duration = trigger_sequences_duration(
+                        inner_window.trigger_sequences
+                    )
+                first_yielded = False
+                yield inner_window
+
+            prev_all = dict(all_pos)
+            for axis, am in inner_window.moving_axes.items():
+                prev_all[axis] = am.end_position
+            prev_window = inner_window
+            window_idx += 1
