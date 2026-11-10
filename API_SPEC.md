@@ -889,6 +889,10 @@ same way: `Zip(a.concat(b), y)` zips `a` with `y`'s first `len(a)` points and
 that move both axes. `Zip` rejects two `Concat`s at the same position, and a
 snaked `Concat` side, which the other spec can't follow. A `Concat` join
 always starts a new window, even where the motion is continuous across it.
+A stream dimension has one snake flag, so `Sync` over a `Concat` with a side
+snaked on its own (`Sync(Repeat(a.concat(~b), 2))`) raises: give that side its
+own stream, `Sync(a).concat(Sync(~b, stream_name="b"))`. Snaking the whole
+`Concat`, `Sync(Repeat(~(a.concat(b)), 2))`, is fine.
 
 ### Attaching triggering to motion — `Sync`
 
@@ -1010,8 +1014,8 @@ to interleave the pattern, and an outer `Monitors` (ADR 0009) to carry
 scan-wide monitors. `Concat` is the only combinator that may combine
 `Sync`s; a `Sync` nested in another `Sync`, or under `Product`/`Zip`/`Snake`,
 raises at construction. `Sync`s sharing a stream name must have identical
-trigger groups and one dimension each, and a detector may belong to only one
-stream; each of these raises at `compile()`:
+trigger groups and one unsnaked dimension each, and a detector may belong to
+only one stream; each of these raises at `compile()`:
 
 ```python
 diff_group = TriggerGroup(

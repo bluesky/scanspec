@@ -179,7 +179,10 @@ scan = spec.compile()
   `Sync(a.concat(b))` runs as `Sync(a).concat(Sync(b))`. A `Concat` join
   always starts a new window and trigger sequence, even where position and
   velocity are continuous across it; unlike 1.x, v2 doesn't fly such joins
-  as one segment.
+  as one segment. A stream dimension has one snake flag, so a `Concat` side
+  that snakes on its own (`a.concat(~b)`) can't share a stream with the
+  other side: `Sync` over it raises; give that side its own `Sync` and
+  `stream_name`.
 - **Where a `Sync` may appear.** Its `spec` is pure motion. `Sync`s are
   combined only through `Concat` (optionally inside `Repeat` and the
   outermost wrappers); a `Sync` nested in another `Sync`, or anywhere under
@@ -188,7 +191,7 @@ scan = spec.compile()
   `Sync(~motion)`. `duration` applies
   only to a `Sync` without a `trigger_group`. At compile time, `Sync`s
   sharing a stream name must have identical trigger groups and one
-  dimension each, which `Concat` joins end to end, and a detector may
+  unsnaked dimension each, which `Concat` joins end to end, and a detector may
   belong to only one stream.
 - **`Monitors`/`ContinuousStreams` are separate outermost wrapper specs**
   (ADR 0009), not fields on `Sync` — they attach scan-wide, not

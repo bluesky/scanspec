@@ -576,6 +576,32 @@ def _reject_multi_generator_concat(scan: Scan[Any, Any, Any], op: str) -> None:
         )
 
 
+def _reject_snaked_concat_side(scan: Scan[Any, Any, Any]) -> None:
+    """Raise if a concat in *scan* has a snaked side, at any depth.
+
+    A stream ``Dimension`` has one snake flag for the whole concat, so it
+    can't describe a side that reverses on its own on odd passes.
+    """
+
+    def has_one(gens: list[WindowGenerator[Any]]) -> bool:
+        return any(
+            isinstance(gen.source, ConcatSource)
+            and any(
+                child.snake or has_one([child])
+                for stack in gen.source.children
+                for child in stack
+            )
+            for gen in gens
+        )
+
+    if has_one(scan.generators):
+        raise ValueError(
+            "Sync cannot take a Concat with a snaked side: its stream can't "
+            "describe one side reversing on its own; give that side its own "
+            "stream, e.g. Sync(a).concat(Sync(~b, stream_name='b'))"
+        )
+
+
 def _moved_axes(leaves: list[WindowGenerator[AxisT]]) -> list[AxisT]:
     """The axes *leaves* move, in first-seen order."""
     return list(dict.fromkeys(axis for leaf in leaves for axis in leaf.axes))
@@ -1018,6 +1044,13 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
                     )
                 if existing.dimensions and stream.dimensions:
                     inner, other = existing.dimensions[-1], stream.dimensions[-1]
+                    if inner.snake or other.snake:
+                        raise ValueError(
+                            f"Concat: Syncs sharing stream name {stream.name!r} "
+                            f"cannot merge a snaked dimension: each piece "
+                            f"reverses on its own, which one merged dimension "
+                            f"can't describe; give them different stream names"
+                        )
                     if set(inner.axes) != set(other.axes):
                         raise ValueError(
                             f"Concat: Syncs sharing stream name {stream.name!r} "
@@ -1208,6 +1241,7 @@ class Sync(Spec[AxisT, DetectorT, MonitorT]):
         """
         scan = self.spec.compile()
         _reject_multi_generator_concat(scan, "Sync")
+        _reject_snaked_concat_side(scan)
         _reject_continuous_and_monitors(scan, "Sync")
         targets = _leaves([scan.generators[-1:]])
         for gen in targets:

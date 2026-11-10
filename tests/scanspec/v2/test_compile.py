@@ -1427,6 +1427,53 @@ def test_sync_over_product_with_inner_concat_flies_each_child_per_row():
     assert [d.axes for d in sc.windowed_streams[0].dimensions] == [["y"], ["x"]]
 
 
+# A stream Dimension has one snake flag for the whole concat, so a side that
+# reverses on its own can't be described. a, b, c = Linspace("x", ...) over
+# 0-1, 2-3 and 4-5, two points each.
+
+
+def _abc() -> tuple[Linspace[str], Linspace[str], Linspace[str]]:
+    return (
+        Linspace("x", 0.0, 1.0, 2),
+        Linspace("x", 2.0, 3.0, 2),
+        Linspace("x", 4.0, 5.0, 2),
+    )
+
+
+@pytest.mark.parametrize(
+    "shape", ["snaked side", "snaked side, snaked concat", "snaked nested concat"]
+)
+def test_sync_rejects_concat_with_snaked_side(shape: str):
+    a, b, c = _abc()
+    motion = {
+        "snaked side": a.concat(~b),
+        "snaked side, snaked concat": ~(a.concat(~b)),
+        "snaked nested concat": a.concat(~(b.concat(c))),
+    }[shape]
+    with pytest.raises(ValueError, match="Concat with a snaked side"):
+        Sync(Repeat(motion, 2), trigger_group=_tg("det")).compile()
+
+
+def test_sync_over_snaked_concat_reverses_the_whole_concat():
+    a, b, _ = _abc()
+    sc = Sync(Repeat(~(a.concat(b)), 2), trigger_group=_tg("det")).compile()
+    xs = [p["x"] for p in _all_positions(sc)]
+    assert xs == [0.0, 1.0, 2.0, 3.0, 3.0, 2.0, 1.0, 0.0]
+    assert sc.windowed_streams[0].dimensions[-1].snake
+
+
+@pytest.mark.parametrize("snaked", ["left", "right", "both"])
+def test_concat_rejects_same_stream_merge_of_snaked_dimension(snaked: str):
+    a, b, _ = _abc()
+    left = ~a if snaked in ("left", "both") else a
+    right = ~b if snaked in ("right", "both") else b
+    spec = Sync(left, trigger_group=_tg("det")).concat(
+        Sync(right, trigger_group=_tg("det"))
+    )
+    with pytest.raises(ValueError, match="cannot merge a snaked dimension"):
+        Repeat(spec, 2).compile()
+
+
 def test_concat_rejects_same_stream_with_different_trigger_groups():
     slow = _tg("det")
     fast = slow.model_copy(update={"livetime": 0.005})
