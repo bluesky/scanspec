@@ -312,7 +312,9 @@ def test_sync_compile_stream_name():
 
 
 def test_sync_compile_fly_flag():
-    spec: Sync[str, Never, Never] = Sync(Linspace("x", 0.0, 10.0, 5), fly=True)
+    spec: Sync[str, Never, Never] = Sync(
+        Linspace("x", 0.0, 10.0, 5), fly=True, duration=1.0
+    )
     sc = spec.compile()
     assert sc.generators[-1].fly is True
 
@@ -508,7 +510,9 @@ def test_step_scan_no_moving_axes():
 
 def test_fly_scan_window_count():
     sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("y", 0.0, 4.0, 3) * ~Linspace("x", 0.0, 10.0, 5), fly=True
+        Linspace("y", 0.0, 4.0, 3) * ~Linspace("x", 0.0, 10.0, 5),
+        fly=True,
+        duration=1.0,
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     assert len(ws) == 3  # 3 y rows, each row is one fly window
@@ -516,7 +520,9 @@ def test_fly_scan_window_count():
 
 def test_fly_scan_moving_axes():
     sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("y", 0.0, 4.0, 3) * ~Linspace("x", 0.0, 10.0, 5), fly=True
+        Linspace("y", 0.0, 4.0, 3) * ~Linspace("x", 0.0, 10.0, 5),
+        fly=True,
+        duration=1.0,
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     for w in ws:
@@ -527,7 +533,7 @@ def test_fly_scan_moving_axes():
 
 def test_fly_scan_static_axes_delta():
     sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("y", 0.0, 4.0, 3) * Linspace("x", 0.0, 10.0, 5), fly=True
+        Linspace("y", 0.0, 4.0, 3) * Linspace("x", 0.0, 10.0, 5), fly=True, duration=1.0
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     # Window 0: y is new, so it should be in static_axes
@@ -544,7 +550,7 @@ def test_fly_scan_forward_sweep_kinematics():
     # f(i) = 0 + i * 10/4 = 2.5*i
     # f(-0.5)= -1.25, f(4.5)=11.25
     sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0.0, 10.0, 5), fly=True
+        Linspace("x", 0.0, 10.0, 5), fly=True, duration=1.0
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     assert len(ws) == 1
@@ -657,7 +663,9 @@ def test_window_positions_times_maps_real_seconds_to_physical_position():
 
 def test_fly_scan_snake_reverses_direction():
     sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("y", 0.0, 2.0, 2) * ~Linspace("x", 0.0, 10.0, 5), fly=True
+        Linspace("y", 0.0, 2.0, 2) * ~Linspace("x", 0.0, 10.0, 5),
+        fly=True,
+        duration=1.0,
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     assert len(ws) == 2
@@ -670,7 +678,7 @@ def test_fly_scan_snake_reverses_direction():
 
 def test_fly_scan_previous_link():
     sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("y", 0.0, 4.0, 3) * Linspace("x", 0.0, 10.0, 5), fly=True
+        Linspace("y", 0.0, 4.0, 3) * Linspace("x", 0.0, 10.0, 5), fly=True, duration=1.0
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     ws = windows(sc)
     assert ws[0].previous is None
@@ -773,6 +781,7 @@ def test_snake_fly_y_snakex():
     spec: Sync[str, Never, Never] = Sync(
         Linspace("y", 0.0, 2.0, 3) * ~Linspace("x", 0.0, 3.0, 4),
         fly=True,
+        duration=1.0,
     )
     sc = spec.compile()
     ws = windows(sc)
@@ -790,6 +799,7 @@ def test_snake_fly_xyz():
         * ~Linspace("y", 0.0, 2.0, 3)
         * ~Linspace("x", 0.0, 3.0, 4),
         fly=True,
+        duration=1.0,
     )
     sc = spec.compile()
     ws = windows(sc)
@@ -1414,6 +1424,16 @@ def test_sync_rejects_duration_with_trigger_group():
         Sync(Linspace("x", 0.0, 10.0, 5), trigger_group=tg, duration=0.05)
 
 
+def test_fly_sync_requires_duration_or_trigger_group():
+    with pytest.raises(ValueError, match="needs a duration or a trigger_group"):
+        Sync(Linspace("x", 0.0, 10.0, 5), fly=True)
+
+
+def test_step_sync_needs_no_duration():
+    spec: Sync[str, Never, Never] = Sync(Linspace("x", 0.0, 10.0, 5))
+    assert [w.duration for w in windows(spec.compile())] == [0.0] * 5
+
+
 # ---------------------------------------------------------------------------
 # Scan capability properties
 # ---------------------------------------------------------------------------
@@ -1421,7 +1441,7 @@ def test_sync_rejects_duration_with_trigger_group():
 
 def test_scan_has_moving_axes_fly():
     sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Linspace("x", 0, 10, 5), fly=True
+        Linspace("x", 0, 10, 5), fly=True, duration=1.0
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     assert sc.has_moving_axes is True
     assert sc.non_linear is False
@@ -1435,7 +1455,7 @@ def test_scan_has_moving_axes_step():
 
 def test_scan_non_linear_spiral():
     sc: Scan[str, Never, Never] = Sync(  # type: ignore[reportUnknownVariableType]
-        Spiral("x", 0, 5, 2, "y", 10, 10), fly=True
+        Spiral("x", 0, 5, 2, "y", 10, 10), fly=True, duration=1.0
     ).compile()  # type: ignore[reportArgumentType]  # noqa: E501
     assert sc.has_moving_axes is True
     assert sc.non_linear is True

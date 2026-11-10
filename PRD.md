@@ -355,7 +355,7 @@ Window `duration` is the sum of `root.repeats × (livetime + deadtime)`
 across its trigger sequences — children run inside the root's livetime and
 do not extend it. `Sync(duration=...)` (per point) is only allowed without
 a `trigger_group`: detector-less step scans default to `duration = 0`, and
-detector-less fly scans require one.
+detector-less fly scans require one (construction raises without it).
 
 ### 4.2 Centred livetime (ADR 0006 — accepted)
 

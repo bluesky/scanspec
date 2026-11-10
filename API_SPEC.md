@@ -899,7 +899,8 @@ continuously (flyscan); all outer dimensions are stepped. `fly=False`
 derived from trigger timing, and passing `duration` as well raises at
 construction. For detector-less scans: step scans default to
 `duration=0`, fly scans use `duration` to compute `window.duration = num_points * duration`.
-When `duration` is `None` (default), fly windows fall back to index-unit duration.
+A fly `Sync` with neither `duration` nor `trigger_group` raises at
+construction: its velocities and window durations would have no time base.
 
 `trigger_group` (ADR 0008) is the caller-authored detector/timing hierarchy:
 a `TriggerGroup` describing its own base-rate detectors, optionally with

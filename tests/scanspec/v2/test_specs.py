@@ -417,7 +417,7 @@ def test_continuous_streams_defaults():
 
 
 def test_sync_fly_true():
-    a: Sync[str, Any, Any] = Sync(Linspace("x", 0.0, 1.0, 10), fly=True)
+    a: Sync[str, Any, Any] = Sync(Linspace("x", 0.0, 1.0, 10), fly=True, duration=1.0)
     assert a.fly is True
 
 

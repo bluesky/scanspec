@@ -342,7 +342,12 @@ class WindowGenerator(Generic[AxisT]):
         # against the position function's own index domain (0..length), but
         # must be reported/accepted in real seconds -- this is the conversion
         # factor between the two.
-        seconds_per_index = self.duration if self.duration is not None else 1.0
+        if self.duration is None:
+            raise ValueError(
+                "a fly Generator needs a duration: without one its velocities "
+                "and window duration have no time base"
+            )
+        seconds_per_index = self.duration
         sign = 1.0 if not reverse else -1.0
         if reverse:
             start_i, end_i = float(length), 0.0

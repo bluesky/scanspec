@@ -1110,6 +1110,11 @@ class Sync(Spec[AxisT, DetectorT, MonitorT]):
                 "duration cannot be combined with trigger_group: the duration "
                 "is derived from the trigger timing"
             )
+        if self.fly and self.duration is None and self.trigger_group is None:
+            raise ValueError(
+                "a fly Sync needs a duration or a trigger_group: without one "
+                "its velocities and window durations have no time base"
+            )
         if _contains_sync(self.spec):
             raise ValueError(
                 "Sync cannot contain another Sync: its spec must be pure "

@@ -64,7 +64,7 @@ def test_linspace_fly_scan():
     linspace = Linspace("x", 0, 1, 5)
     scan = cast(
         Scan[str, Never, Never],
-        Sync(linspace, fly=True).compile(),
+        Sync(linspace, fly=True, duration=1.0).compile(),
     )
     windows = list(scan)
     assert len(windows) == 1
@@ -78,11 +78,12 @@ def test_linspace_fly_scan():
     # f(i) = 0 + i * 0.25; boundary at i=-0.5 and i=4.5
     assert am.start_position == approx(-0.125)
     assert am.end_position == approx(1.125)
+    # 0.25 per point at 1 s per point
     assert am.start_velocity == approx(0.25)
     assert am.end_velocity == approx(0.25)
     # linear sweep
     assert w.non_linear is False
-    # index-based duration: 5 points
+    # 5 points at 1 s per point
     assert w.duration == approx(5.0)
     # no detectors configured
     assert w.trigger_sequences == []
@@ -122,7 +123,7 @@ def test_spiral_fly_scan():
     """Sync(fly=True, Spiral(...)) — one fly window covering all 10 spiral points."""
     scan = cast(
         Scan[str, Never, Never],
-        Sync(Spiral("x", 0, 5, 2, "y", 10, 10), fly=True).compile(),
+        Sync(Spiral("x", 0, 5, 2, "y", 10, 10), fly=True, duration=1.0).compile(),
     )
     windows = list(scan)
     assert len(windows) == 1
@@ -130,7 +131,7 @@ def test_spiral_fly_scan():
     w = windows[0]
     # The spiral position function is non-linear
     assert w.non_linear is True
-    # duration = |9.5 - (-0.5)| = 10.0 index units (10 points)
+    # 10 points at 1 s per point, boundary i=-0.5 to i=9.5
     assert w.duration == approx(10.0)
     # only window, so no prior outer position to report
     assert w.static_axes == {}

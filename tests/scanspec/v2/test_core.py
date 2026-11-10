@@ -433,6 +433,15 @@ def test_windowed_stream_number_of_events_matches_iteration():
     assert ws.number_of_events == len(list(scan))
 
 
+def test_fly_window_generator_requires_duration():
+    gen = WindowGenerator(
+        axes=["x"], length=5, source=LinearSource({"x": (0.0, 4.0)}, 5), fly=True
+    )
+    scan: Scan[str, Never, Never] = Scan(generators=[gen])
+    with pytest.raises(ValueError, match="needs a duration"):
+        list(scan)
+
+
 def test_continuous_stream():
     dg = DetectorGroup(
         exposures_per_collection=1,
