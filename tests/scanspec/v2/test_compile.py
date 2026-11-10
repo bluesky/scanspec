@@ -339,6 +339,24 @@ def test_concat_axes_mismatch_raises():
         Linspace("x", 0.0, 5.0, 5).concat(Linspace("y", 0.0, 5.0, 5)).compile()
 
 
+def test_concat_axes_check_ignores_axis_order():
+    xy = Zip(Linspace("x", 0.0, 1.0, 2), Linspace("y", 0.0, 1.0, 2))
+    yx = Zip(Linspace("y", 5.0, 6.0, 2), Linspace("x", 5.0, 6.0, 2))
+    pts = _all_positions(xy.concat(yx).compile())
+    assert [(p["x"], p["y"]) for p in pts] == [(0, 0), (1, 1), (5, 5), (6, 6)]
+
+
+def test_same_stream_concat_ignores_axis_order():
+    xy = Zip(Linspace("x", 0.0, 1.0, 2), Linspace("y", 0.0, 1.0, 2))
+    yx = Zip(Linspace("y", 5.0, 6.0, 2), Linspace("x", 5.0, 6.0, 2))
+    kw: dict[str, Any] = {"fly": True, "trigger_group": _tg("det")}
+    sc = Sync(xy, **kw).concat(Sync(yx, **kw)).compile()
+    (dim,) = sc.windowed_streams[0].dimensions
+    assert dim.length == 4
+    np.testing.assert_allclose(next(dim.setpoints("x")), [0.0, 1.0, 5.0, 6.0])
+    np.testing.assert_allclose(next(dim.setpoints("y")), [0.0, 1.0, 5.0, 6.0])
+
+
 @pytest.mark.parametrize("nest", ["left", "right"])
 def test_chained_concat_of_motion(nest: str):
     a, b, c = (Linspace("x", lo, lo + 1.0, 2) for lo in (0.0, 1.0, 2.0))

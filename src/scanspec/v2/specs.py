@@ -981,7 +981,7 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
         if not left_scan.windowed_streams and not right_scan.windowed_streams:
             l_axes = _moved_axes(left_leaves)
             r_axes = _moved_axes(right_leaves)
-            if l_axes != r_axes:
+            if set(l_axes) != set(r_axes):
                 raise ValueError(
                     f"Concat: both sides must move the same axes; "
                     f"got {l_axes} vs {r_axes}"
@@ -1018,7 +1018,7 @@ class Concat(Spec[AxisT, DetectorT, MonitorT]):
                     )
                 if existing.dimensions and stream.dimensions:
                     inner, other = existing.dimensions[-1], stream.dimensions[-1]
-                    if inner.axes != other.axes:
+                    if set(inner.axes) != set(other.axes):
                         raise ValueError(
                             f"Concat: Syncs sharing stream name {stream.name!r} "
                             f"must move the same axes; got {inner.axes} and "
