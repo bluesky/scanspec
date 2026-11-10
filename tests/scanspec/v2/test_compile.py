@@ -1971,6 +1971,44 @@ def test_zip_rejects_monitors():
         Linspace("y", 0, 1, 5).zip(a).compile()  # type: ignore[reportArgumentType]
 
 
+def test_sync_rejects_monitors():
+    from scanspec.v2.core import MonitorStream
+    from scanspec.v2.specs import Monitors
+
+    a: Monitors[str, Never, str] = Monitors(
+        Linspace("x", 0, 1, 5),
+        monitors=[MonitorStream("temp", "tc1")],
+    )
+    with pytest.raises(ValueError, match="Sync does not accept.*monitors"):
+        Sync(a).compile()
+
+
+def test_repeat_rejects_continuous_streams():
+    from scanspec.v2.core import ContinuousStream
+    from scanspec.v2.specs import ContinuousStreams
+
+    a: ContinuousStreams[str, str, Never] = ContinuousStreams(
+        Sync(Linspace("x", 0, 1, 5)),
+        continuous_streams=[
+            ContinuousStream("cam", [DetectorGroup(1, 1, 0.01, 0.001, ["c1"])])
+        ],
+    )
+    with pytest.raises(ValueError, match="Repeat does not accept.*continuous"):
+        Repeat(a, 2).compile()
+
+
+def test_snake_rejects_monitors():
+    from scanspec.v2.core import MonitorStream
+    from scanspec.v2.specs import Monitors
+
+    a: Monitors[str, Never, str] = Monitors(
+        Linspace("x", 0, 1, 5),
+        monitors=[MonitorStream("temp", "tc1")],
+    )
+    with pytest.raises(ValueError, match="Snake does not accept.*monitors"):
+        (~a).compile()
+
+
 # ---------------------------------------------------------------------------
 # Monitors/ContinuousStreams wrappers (ADR 0009)
 # ---------------------------------------------------------------------------

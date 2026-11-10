@@ -475,7 +475,7 @@ def _reject_continuous_and_monitors(scan: Scan[Any, Any, Any], combinator: str) 
 
     Continuous and monitor streams run in parallel to the entire scan and
     must be attached via the outermost ``ContinuousStreams``/``Monitors``
-    wrapper, not nested inside combinators.
+    wrapper, not nested inside any other spec.
     """
     if scan.continuous_streams:
         raise ValueError(
@@ -661,6 +661,7 @@ class Repeat(Spec[AxisT, DetectorT, MonitorT]):
             source=LinearSource({}, self.num),
         )
         scan = self.spec.compile()
+        _reject_continuous_and_monitors(scan, "Repeat")
         new_dim: Dimension[AxisT] = Dimension(
             axes=[], length=self.num, snake=False, position_fn=new_gen.setpoints
         )
@@ -692,6 +693,7 @@ class Snake(Spec[AxisT, DetectorT, MonitorT]):
                 f"Snake requires exactly one generator, got {len(scan.generators)}"
             )
         _reject_multi_generator_concat(scan, "Snake")
+        _reject_continuous_and_monitors(scan, "Snake")
         scan.generators[0].snake = True
         return scan
 
@@ -1132,6 +1134,7 @@ class Sync(Spec[AxisT, DetectorT, MonitorT]):
         """
         scan = self.spec.compile()
         _reject_multi_generator_concat(scan, "Sync")
+        _reject_continuous_and_monitors(scan, "Sync")
         targets = _leaves([scan.generators[-1:]])
         for gen in targets:
             trigger_sequences = self._trigger_sequences(gen.length)
@@ -1199,9 +1202,10 @@ class Monitors(Spec[AxisT, DetectorT, MonitorT]):
     """Attach free-running PV monitors to the whole scan.
 
     Must sit outside the entire spec tree -- ``_reject_continuous_and_monitors``
-    (raised by every combinator that merges specs, and by this class and
-    ``ContinuousStreams`` on their own inner scan) enforces that a nested
-    ``Monitors``/``ContinuousStreams`` cannot be merged into a larger tree.
+    (raised by every spec that wraps or merges specs, other than these two
+    wrappers) and ``_reject_existing_monitors`` (raised by this class on its
+    own inner scan) enforce that a nested ``Monitors``/``ContinuousStreams``
+    cannot sit inside a larger tree.
     """
 
     spec: AnySpec[AxisT, DetectorT, Any] = Field(description="Inner spec.")

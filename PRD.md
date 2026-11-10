@@ -210,10 +210,10 @@ scan = spec.compile()
   )
   ```
 
-- `Concat`/`Product`/`Zip` **reject** specs carrying continuous streams or
-  monitors: those run in parallel to the *entire* scan, so they may only be
-  attached via the outermost `ContinuousStreams`/`Monitors` wrapper, never
-  nested inside a combinator.
+- `Concat`/`Product`/`Zip`/`Sync`/`Repeat`/`Snake` **reject** specs
+  carrying continuous streams or monitors: those run in parallel to the
+  *entire* scan, so they may only be attached via the outermost
+  `ContinuousStreams`/`Monitors` wrapper, never nested inside another spec.
 - A `Concat` side may compile to several generators (the flagship's
   `Repeat` around a snaked sweep). Each side runs as its own nested loop,
   and a snaked generator in it alternates on the same passes as its
