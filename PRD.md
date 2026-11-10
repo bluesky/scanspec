@@ -232,7 +232,9 @@ scan = spec.compile()
   side is zipped with the slice of the other spec covering its points, so
   `Zip(a.concat(b), y)` runs as `Zip(a, y[:len(a)]).concat(Zip(b,
   y[len(a):]))`. Two `Concat`s at the same position, or a snaked `Concat`
-  side, are rejected: zip inside the sides instead. `Squash` is not needed and was
+  side, are rejected: zip inside the sides instead. Two sides that set the
+  same axis are rejected too: each point would give it two values. `Squash`
+  is not needed and was
   dropped — dimensions are never merged.
 - Out-of-package `Spec` subclasses are supported: the serialization union is
   rebuilt automatically whenever a `Spec` subclass is defined.

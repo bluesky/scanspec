@@ -313,6 +313,25 @@ def test_zip_of_two_concats_raises():
         Zip(_x1_x2(), y).compile()
 
 
+_X_CONCAT = Linspace("x", 0.0, 1.0, 2).concat(Linspace("x", 2.0, 3.0, 1))
+
+
+@pytest.mark.parametrize(
+    "left, right",
+    [
+        (Linspace("x", 0.0, 1.0, 3), Linspace("x", 10.0, 11.0, 3)),
+        (Linspace("x", 0.0, 1.0, 3), Static("x", 5.0)),
+        (Linspace("y", 0.0, 1.0, 2) * Linspace("x", 0.0, 1.0, 3), _X_CONCAT),
+        (Zip(Linspace("x", 0.0, 1.0, 3), Linspace("y", 0.0, 1.0, 3)), _X_CONCAT),
+    ],
+)
+def test_zip_sharing_an_axis_raises(
+    left: Spec[str, Never, Never], right: Spec[str, Never, Never]
+):
+    with pytest.raises(ValueError, match=r"both sides set \['x'\]"):
+        Zip(left, right).compile()
+
+
 # ---------------------------------------------------------------------------
 # Concat
 # ---------------------------------------------------------------------------

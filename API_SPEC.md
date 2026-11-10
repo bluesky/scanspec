@@ -887,7 +887,9 @@ like `Sync(a, fly=True).concat(Sync(b, fly=True))`. `Zip` distributes the
 same way: `Zip(a.concat(b), y)` zips `a` with `y`'s first `len(a)` points and
 `b` with the rest, so `Sync(Zip(a.concat(b), y), fly=True)` flies two sweeps
 that move both axes. `Zip` rejects two `Concat`s at the same position, and a
-snaked `Concat` side, which the other spec can't follow. A `Concat` join
+snaked `Concat` side, which the other spec can't follow. It also rejects two
+sides that set the same axis (`Zip(Linspace("x", ...), Static("x", 5))`),
+since each point would give that axis two values. A `Concat` join
 always starts a new window, even where the motion is continuous across it.
 A stream dimension has one snake flag, so `Sync` over a `Concat` with a side
 snaked on its own (`Sync(Repeat(a.concat(~b), 2))`) raises: give that side its

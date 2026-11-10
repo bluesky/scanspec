@@ -792,7 +792,8 @@ class Zip(Spec[AxisT, DetectorT, MonitorT]):
     of its sides is zipped with the slice of the other spec covering its
     points, so ``Zip(a.concat(b), y)`` runs as
     ``Zip(a, y[:len(a)]).concat(Zip(b, y[len(a):]))``. Two concats at the
-    same position, or a snaked concat side, raise.
+    same position, or a snaked concat side, raise. So do two sides that set
+    the same axis, which would give it two values at each point.
     """
 
     left: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="First spec.")
@@ -811,6 +812,14 @@ class Zip(Spec[AxisT, DetectorT, MonitorT]):
         _reject_continuous_and_monitors(right_scan, "Zip")
         if not left_scan.generators or not right_scan.generators:
             raise ValueError("Zip requires both specs to have at least one dimension")
+        shared = set(_moved_axes(_leaves([left_scan.generators]))) & set(
+            _moved_axes(_leaves([right_scan.generators]))
+        )
+        if shared:
+            raise ValueError(
+                f"Zip cannot give an axis two values at each point; both "
+                f"sides set {sorted(map(str, shared))}"
+            )
         _reject_multi_generator_concat(left_scan, "Zip")
         _reject_multi_generator_concat(right_scan, "Zip")
         if len(left_scan.generators) < len(right_scan.generators):
