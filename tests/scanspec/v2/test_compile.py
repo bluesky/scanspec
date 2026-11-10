@@ -237,6 +237,82 @@ def test_zip_product_left_single_right():
     assert g[1].length == 5
 
 
+# Zip over a Concat: each child is zipped with the slice of the other side
+# covering its indexes. x1 = Linspace("x", 0, 1, 3) and x2 =
+# Linspace("x", 1, 2, 4) as for Sync over a Concat below; y =
+# Linspace("y", 0, 6, 7) has step 1, so x1's slice is y = 0, 1, 2 (edges
+# -0.5 to 2.5) and x2's is y = 3, 4, 5, 6 (edges 2.5 to 6.5).
+
+
+def _y7() -> Linspace[str]:
+    return Linspace("y", 0.0, 6.0, 7)
+
+
+@pytest.mark.parametrize("concat_left", [True, False])
+def test_zip_over_concat_flies_each_child_with_its_slice(concat_left: bool):
+    zipped = Zip(_x1_x2(), _y7()) if concat_left else Zip(_y7(), _x1_x2())
+    ws = windows(Sync(zipped, fly=True, trigger_group=_tg("det")).compile())
+    starts = [{ax: m.start_position for ax, m in w.moving_axes.items()} for w in ws]
+    ends = [{ax: m.end_position for ax, m in w.moving_axes.items()} for w in ws]
+    assert starts == [
+        {"x": pytest.approx(-0.25), "y": pytest.approx(-0.5)},  # type: ignore[reportUnknownMemberType]
+        {"x": pytest.approx(5 / 6), "y": pytest.approx(2.5)},  # type: ignore[reportUnknownMemberType]
+    ]
+    assert ends == [
+        {"x": pytest.approx(1.25), "y": pytest.approx(2.5)},  # type: ignore[reportUnknownMemberType]
+        {"x": pytest.approx(13 / 6), "y": pytest.approx(6.5)},  # type: ignore[reportUnknownMemberType]
+    ]
+    assert [w.non_linear for w in ws] == [False, False]
+    assert [w.duration for w in ws] == pytest.approx([0.033, 0.044])  # type: ignore[reportUnknownMemberType]
+
+
+def test_zip_over_concat_stream_dimension_moves_both_axes():
+    sc = Sync(Zip(_x1_x2(), _y7()), fly=True, trigger_group=_tg("det")).compile()
+    (dim,) = sc.windowed_streams[0].dimensions
+    assert sorted(dim.axes) == ["x", "y"]
+    assert dim.length == 7
+    np.testing.assert_allclose(
+        next(dim.setpoints("y")), [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+    )
+
+
+def test_zip_static_over_concat_as_concat_side():
+    """The zipped concat's children move x and y, matching the other side."""
+    left = Zip(_x1_x2(), Static("y", 5.0))
+    right = Zip(Linspace("x", 3.0, 4.0, 2), Static("y", 5.0))
+    pts = [w.static_axes for w in windows(left.concat(right).compile())]
+    assert [p["x"] for p in pts if "x" in p] == pytest.approx(  # type: ignore[reportUnknownMemberType]
+        [0.0, 0.5, 1.0, 4 / 3, 5 / 3, 2.0, 3.0, 4.0]
+    )
+    assert pts[0]["y"] == 5.0
+
+
+def test_zip_with_snaked_concat_side_raises():
+    """y is one generator: it can't reverse with only the snaked side."""
+    x = Linspace("x", 0.0, 1.0, 2).concat(~Linspace("x", 2.0, 3.0, 2))
+    with pytest.raises(ValueError, match="snaked Concat side"):
+        Zip(x, Linspace("y", 10.0, 13.0, 4)).compile()
+
+
+def test_snaked_zip_over_concat_reverses_both_axes():
+    x = Linspace("x", 0.0, 1.0, 2).concat(Linspace("x", 2.0, 3.0, 2))
+    spec = Linspace("z", 0.0, 1.0, 2) * ~Zip(x, Linspace("y", 10.0, 13.0, 4))
+    ws = windows(spec.compile())
+    # Static axes are deltas: the odd pass starts where the even one ended.
+    assert [w.static_axes for w in ws[4:]] == [
+        {"z": 1.0},
+        {"x": 2.0, "y": 12.0},
+        {"x": 1.0, "y": 11.0},
+        {"x": 0.0, "y": 10.0},
+    ]
+
+
+def test_zip_of_two_concats_raises():
+    with pytest.raises(ValueError, match="two Concats at the same position"):
+        y = Linspace("y", 0.0, 1.0, 3).concat(Linspace("y", 2.0, 3.0, 4))
+        Zip(_x1_x2(), y).compile()
+
+
 # ---------------------------------------------------------------------------
 # Concat
 # ---------------------------------------------------------------------------

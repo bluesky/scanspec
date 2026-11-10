@@ -761,6 +761,12 @@ class Zip(Spec[AxisT, DetectorT, MonitorT]):
       extra outer generators are left untouched.
     - Right has a single generator of length 1 (e.g. ``Static``): expand
       it to match left's innermost generator length.
+
+    A ``Concat`` on either side at a merged position stays a concat: each
+    of its sides is zipped with the slice of the other spec covering its
+    points, so ``Zip(a.concat(b), y)`` runs as
+    ``Zip(a, y[:len(a)]).concat(Zip(b, y[len(a):]))``. Two concats at the
+    same position, or a snaked concat side, raise.
     """
 
     left: AnySpec[AxisT, DetectorT, MonitorT] = Field(description="First spec.")
@@ -845,11 +851,47 @@ class Zip(Spec[AxisT, DetectorT, MonitorT]):
             left_scan.generators[i] = self._merge_generators(l_gen, r_gen)
         return left_scan
 
-    @staticmethod
+    @classmethod
     def _merge_generators(
-        left: WindowGenerator[AxisT], right: WindowGenerator[AxisT]
+        cls, left: WindowGenerator[AxisT], right: WindowGenerator[AxisT]
     ) -> WindowGenerator[AxisT]:
-        """Merge two generators into one with combined axes."""
+        """Merge two equal-length generators into one with combined axes.
+
+        A concat on either side stays a concat: each of its children is
+        zipped with the slice of the other side that covers the child's
+        index range, so ``Zip(a.concat(b), y)`` runs as
+        ``Zip(a, y[:len(a)]).concat(Zip(b, y[len(a):]))``.
+        """
+        l_concat = isinstance(left.source, ConcatSource)
+        r_concat = isinstance(right.source, ConcatSource)
+        if l_concat and r_concat:
+            raise ValueError(
+                "Zip cannot merge two Concats at the same position; "
+                "zip inside the Concats' sides instead"
+            )
+        if l_concat or r_concat:
+            concat, other = (left, right) if l_concat else (right, left)
+            assert isinstance(concat.source, ConcatSource)
+            children: list[list[WindowGenerator[AxisT]]] = []
+            offset = 0
+            for (child,) in concat.source.children:
+                if child.snake:
+                    # The other spec is one generator, so it can't reverse
+                    # with just this side on odd passes.
+                    raise ValueError(
+                        "Zip cannot merge a snaked Concat side with another "
+                        "spec; zip inside the Concat's sides instead"
+                    )
+                piece = _slice_generator(other, offset, child.length)
+                pair = (child, piece) if l_concat else (piece, child)
+                children.append([cls._merge_generators(*pair)])
+                offset += child.length
+            return WindowGenerator(
+                axes=[],
+                length=concat.length,
+                snake=concat.snake,
+                source=ConcatSource(children),
+            )
         if isinstance(left.source, LinearSource) and isinstance(
             right.source, LinearSource
         ):
@@ -876,6 +918,38 @@ class Zip(Spec[AxisT, DetectorT, MonitorT]):
             snake=left.snake,
             source=FunctionSource(_merged),
         )
+
+
+def _slice_generator(
+    gen: WindowGenerator[AxisT], offset: int, length: int
+) -> WindowGenerator[AxisT]:
+    """The points ``offset`` to ``offset + length`` of *gen*, as a generator.
+
+    A linear source stays linear, with the same step; anything else is
+    evaluated through *gen* at shifted indexes.
+    """
+    if isinstance(gen.source, LinearSource):
+        first = gen.setpoints(np.array([offset + 0.5]))
+        second = gen.setpoints(np.array([offset + 1.5]))
+        ranges = {
+            ax: (
+                float(first[ax][0]),
+                float(
+                    first[ax][0] + max(length - 1, 1) * (second[ax][0] - first[ax][0])
+                ),
+            )
+            for ax in gen.source.axis_ranges
+        }
+        source: LinearSource[AxisT] | FunctionSource[AxisT] = LinearSource(
+            ranges, length
+        )
+    else:
+
+        def _shifted(indexes: np.ndarray) -> dict[AxisT, np.ndarray]:
+            return gen.setpoints(indexes + offset)
+
+        source = FunctionSource(_shifted)
+    return WindowGenerator(axes=gen.axes, length=length, source=source)
 
 
 class Concat(Spec[AxisT, DetectorT, MonitorT]):

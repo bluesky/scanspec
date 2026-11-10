@@ -176,7 +176,10 @@ scan = spec.compile()
   dimension sweeps continuously; all outer dimensions step. When that
   dimension is a `Concat`, each side sweeps (or steps) on its own, a
   sweep's triggers and duration scaling with that side's length:
-  `Sync(a.concat(b))` runs as `Sync(a).concat(Sync(b))`.
+  `Sync(a.concat(b))` runs as `Sync(a).concat(Sync(b))`. A `Concat` join
+  always starts a new window and trigger sequence, even where position and
+  velocity are continuous across it; unlike 1.x, v2 doesn't fly such joins
+  as one segment.
 - **Where a `Sync` may appear.** Its `spec` is pure motion. `Sync`s are
   combined only through `Concat` (optionally inside `Repeat` and the
   outermost wrappers); a `Sync` nested in another `Sync`, or anywhere under
@@ -222,7 +225,11 @@ scan = spec.compile()
   them inside its sides. A `Concat` with no streams must move the same
   axes on both sides.
 - `Snake` operates on a single-dimension spec (deviation from 1.x). `Zip`
-  supports exactly the cases 1.x supported. `Squash` is not needed and was
+  supports the cases 1.x supported, and distributes over a `Concat`: each
+  side is zipped with the slice of the other spec covering its points, so
+  `Zip(a.concat(b), y)` runs as `Zip(a, y[:len(a)]).concat(Zip(b,
+  y[len(a):]))`. Two `Concat`s at the same position, or a snaked `Concat`
+  side, are rejected: zip inside the sides instead. `Squash` is not needed and was
   dropped — dimensions are never merged.
 - Out-of-package `Spec` subclasses are supported: the serialization union is
   rebuilt automatically whenever a `Spec` subclass is defined.

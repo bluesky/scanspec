@@ -883,7 +883,12 @@ detector-bearing specs only inside `Concat`/`Repeat`, never `Product`/`Zip`.
 which has no single flat dimension for them to work on.
 A `Sync` over a `Concat` of single-generator sides applies to each side:
 `Sync(a.concat(b), fly=True)` flies `a` and `b` as separate sweeps, exactly
-like `Sync(a, fly=True).concat(Sync(b, fly=True))`.
+like `Sync(a, fly=True).concat(Sync(b, fly=True))`. `Zip` distributes the
+same way: `Zip(a.concat(b), y)` zips `a` with `y`'s first `len(a)` points and
+`b` with the rest, so `Sync(Zip(a.concat(b), y), fly=True)` flies two sweeps
+that move both axes. `Zip` rejects two `Concat`s at the same position, and a
+snaked `Concat` side, which the other spec can't follow. A `Concat` join
+always starts a new window, even where the motion is continuous across it.
 
 ### Attaching triggering to motion — `Sync`
 
