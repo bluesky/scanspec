@@ -1,11 +1,12 @@
 from collections.abc import Mapping
 from typing import Any
 
+import numpy as np
 import pytest
 from ophyd_async.core import Device
 from pydantic import TypeAdapter, ValidationError
 
-from scanspec.specs import Ellipse, Fly, Linspace, Spec, Spiral
+from scanspec.specs import Array, Ellipse, Fly, Linspace, Spec, Spiral
 
 
 def test_line_serializes() -> None:
@@ -180,3 +181,64 @@ def test_spec_with_ophyd_async_device_axis_is_json_serializable():
     assert serialized["spec"]["axis"] == motor.name
     # Should not raise
     json.dumps(serialized)
+
+
+def test_array_serializes() -> None:
+    ob = Array(
+        "x",
+        array=np.array([0.0, 1.0, 3.0]),
+        bounds=np.array([-0.5, 0.5, 2.0, 4.0]),
+        durations=np.array([0.1, 0.2, 0.3]),
+    )
+    serialized = {
+        "type": "Array",
+        "axis": "x",
+        "array": [0.0, 1.0, 3.0],
+        "bounds": [-0.5, 0.5, 2.0, 4.0],
+        "durations": [0.1, 0.2, 0.3],
+    }
+    assert ob.serialize() == serialized
+    roundtrip = Spec.deserialize(serialized)
+    assert isinstance(roundtrip, Array)
+    assert roundtrip.array is not None
+    np.testing.assert_array_equal(roundtrip.array, ob.array)
+    np.testing.assert_array_equal(roundtrip.bounds, ob.bounds)
+    np.testing.assert_array_equal(roundtrip.durations, ob.durations)
+
+
+def test_array_accepts_lists_and_ints() -> None:
+    ob = Array("x", array=[0, 1, 3])  # type: ignore
+    assert ob.array is not None
+    assert ob.array.dtype == np.float64
+    assert ob.serialize()["array"] == [0.0, 1.0, 3.0]
+    assert ob.bounds is None
+
+
+def test_array_equality() -> None:
+    def array(
+        axis: str = "x",
+        array: list[float] | None = None,
+        bounds: list[float] | None = None,
+        durations: list[float] | None = None,
+    ) -> Array[str]:
+        return Array(
+            axis,
+            None if array is None else np.array(array),
+            None if bounds is None else np.array(bounds),
+            None if durations is None else np.array(durations),
+        )
+
+    mid, bounds, durations = [0.0, 1.0, 3.0], [-0.5, 0.5, 2.0, 4.0], [1.0, 1.0, 1.0]
+    a = array(array=mid, bounds=bounds, durations=durations)
+    assert a == array(array=mid, bounds=bounds, durations=durations)
+    assert a != array(array=[0.0, 1.0, 4.0], bounds=bounds, durations=durations)
+    assert a != array(array=mid, durations=durations)
+    assert a != array(array=mid, bounds=bounds, durations=[1.0, 1.0, 2.0])
+    assert a != array(array=mid, bounds=bounds)
+    assert a != array("y", array=mid, bounds=bounds, durations=durations)
+    assert a != "not a spec"
+
+
+def test_array_roundtrips_inside_fly() -> None:
+    spec = Fly(Array("x", np.array([0.0, 1.0, 3.0])))
+    assert Spec.deserialize(spec.serialize()) == spec

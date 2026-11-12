@@ -9,11 +9,20 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Callable, Mapping
-from typing import Any, Generic, Literal, SupportsFloat
+from typing import Annotated, Any, Generic, Literal, SupportsFloat, cast
 
 import numpy as np
 import numpy.typing as npt
-from pydantic import Field, TypeAdapter, validate_call
+from pydantic import (
+    Field,
+    PlainSerializer,
+    PlainValidator,
+    TypeAdapter,
+    ValidationInfo,
+    WithJsonSchema,
+    model_validator,
+    validate_call,
+)
 from pydantic.dataclasses import dataclass
 
 from .core import (
@@ -33,6 +42,7 @@ from .core import (
 
 __all__ = [
     "VARIABLE_DURATION",
+    "Array",
     "Concat",
     "ConstantDuration",
     "Ellipse",
@@ -816,6 +826,165 @@ class Spiral(Spec[Axis]):
         return _dimensions_from_indexes(
             self._spiral_from_indexes, self.axes(), self._num, bounds
         )
+
+
+def _to_float_array(value: Any, info: ValidationInfo) -> npt.NDArray[np.float64]:
+    # Copy so the spec doesn't alias (and can't be mutated through) caller data
+    array = np.array(value, dtype=np.float64)
+    if array.ndim != 1:
+        raise ValueError(
+            f"{str(info.field_name).capitalize()} must be 1-dimensional, "
+            f"got {array.ndim} dimensions"
+        )
+    return array
+
+
+def _float_array_to_list(array: npt.NDArray[np.float64]) -> list[float]:
+    return array.tolist()
+
+
+# A numpy array of floats that is (de)serialized as a JSON list of numbers, and
+# accepts any array-like (such as a list) as input.
+_FloatArray = Annotated[
+    npt.NDArray[np.float64],
+    PlainValidator(_to_float_array),
+    PlainSerializer(_float_array_to_list, return_type=list[float]),
+    WithJsonSchema({"type": "array", "items": {"type": "number"}}),
+]
+
+
+@dataclass(config=StrictConfig)
+class Array(Spec[Axis]):
+    """Frames at user-defined midpoints, optionally with explicit bounds and durations.
+
+    Give midpoints, bounds or both. With only midpoints, `Fly` places each frame's
+    bounds halfway to its neighbours; with only bounds, the midpoints are the
+    average of each pair of consecutive bounds. Bounds need one more point than
+    there are frames, and only matter when wrapped in `Fly`. Calculated bounds are
+    approximate for non-monotonic midpoints, so pass bounds for those.
+
+    .. seealso::
+        `Linspace`: For linearly spaced frames defined with a number of frames.
+
+    .. example_spec::
+
+        import numpy as np
+
+        from scanspec.specs import Array, Fly
+
+        spec = Fly(Array("x", np.array([0.0, 1.0, 3.0])))
+    """
+
+    axis: Axis = Field(description="An identifier for what to move")
+    array: _FloatArray | None = Field(
+        description="The midpoint of each frame", default=None
+    )
+    bounds: _FloatArray | None = Field(
+        description="The bounds of the frames, one more than the number of frames",
+        default=None,
+    )
+    durations: _FloatArray | None = Field(
+        description="The duration of each frame",
+        default=None,
+    )
+
+    @model_validator(mode="after")
+    def _check_input_array(self):
+        if self.array is None and self.bounds is None:
+            raise ValueError("Must provide bounds, array or both")
+        for name in ("array", "bounds", "durations"):
+            value = getattr(self, name)
+            if value is None:
+                continue
+            if len(value) == 0:
+                raise ValueError(f"{name.capitalize()} must not be empty")
+            if not np.all(np.isfinite(value)):
+                raise ValueError(f"{name.capitalize()} must only contain finite values")
+        if self.array is None and self.bounds is not None and len(self.bounds) < 2:
+            raise ValueError("Bounds must contain at least 2 points")
+        if self.array is not None and self.bounds is not None:
+            if len(self.bounds) != len(self.array) + 1:
+                raise ValueError(
+                    "Bounds must have one more point than array, "
+                    f"got {len(self.bounds)} and {len(self.array)}"
+                )
+        if self.durations is not None:
+            if self.array is not None:
+                frames = len(self.array)
+            else:
+                frames = len(self.bounds) - 1 if self.bounds is not None else 0
+            if len(self.durations) != frames:
+                raise ValueError(
+                    "Durations must have one point per frame, "
+                    f"got {len(self.durations)} and {frames} frames"
+                )
+        return self
+
+    def __eq__(self, other: object) -> bool:
+        # The generated dataclass __eq__ compares the numpy arrays with ==, which
+        # raises on arrays with more than one element
+        if not isinstance(other, Array):
+            return NotImplemented
+        other_array = cast("Array[Any]", other)
+        return self.axis == other_array.axis and all(
+            (a is None and b is None)
+            or (a is not None and b is not None and np.array_equal(a, b))
+            for a, b in (
+                (self.array, other_array.array),
+                (self.bounds, other_array.bounds),
+                (self.durations, other_array.durations),
+            )
+        )
+
+    def axes(self) -> list[Axis]:  # noqa: D102
+        return [self.axis]
+
+    def duration(self) -> None | float | Literal["VARIABLE_DURATION"]:  # noqa: D102
+        if self.durations is None:
+            return None
+        # Spec.__post_init__ calls this before the input is validated, so durations
+        # may still be empty here
+        elif len(self.durations) > 0 and np.all(self.durations == self.durations[0]):
+            return float(self.durations[0])
+        else:
+            return VARIABLE_DURATION
+
+    def calculate(  # noqa: D102
+        self, bounds: bool = False, nested: bool = False
+    ) -> list[Dimension[Axis]]:
+        if self.array is not None:
+            mid = self.array
+            if not bounds:
+                lower = upper = mid
+            elif self.bounds is not None:
+                lower, upper = self.bounds[:-1], self.bounds[1:]
+            elif len(mid) == 1:
+                lower = upper = mid
+            else:
+                # Assume no gaps: each edge is halfway to the neighbouring midpoint,
+                # and the first and last frames reuse their only neighbour's spacing
+                half_gaps = np.diff(mid) / 2
+                lower = mid - np.append(half_gaps[0], half_gaps)
+                upper = mid + np.append(half_gaps, half_gaps[-1])
+        elif self.bounds is not None:
+            # The midpoints are the same whether or not bounds are asked for, so a
+            # step scan works too
+            lower, upper = self.bounds[:-1], self.bounds[1:]
+            mid = lower + (upper - lower) / 2
+            if not bounds:
+                lower = upper = mid
+        else:
+            raise ValueError("Must provide bounds, array or both")
+
+        return [
+            Dimension(
+                {self.axis: mid},
+                {self.axis: lower},
+                {self.axis: upper},
+                None,
+                self.durations,
+            )
+        ]
 
 
 def fly(spec: Spec[Axis], duration: float) -> Spec[Axis | str]:
