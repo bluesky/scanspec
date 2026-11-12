@@ -828,30 +828,27 @@ class Spiral(Spec[Axis]):
 class Array(Spec[Axis]):
     """User defined array containing position of the frames to acquire.
 
-    There are three possible combinations of inputs that are calculate when wrapping
+    There are three possible combinations of inputs, which are used when wrapping
     this spec with `Fly`:
-    * midpoints only:
-        bounds will be calculated as the array plus or minus the average of the
-        midpoints array.
-    * bounds only:
-        midpoints will be calculated as the average between two consecutive points in
-        the bounds array. Important to note that len(bounds) == len(array) + 1
-    * midpoints and bounds:
-        if len(bounds) == len(array) + 1 then no calculations will be made.
+
+    - midpoints only: each frame's lower and upper bounds are placed halfway towards
+      the neighbouring midpoints, and the first and last frames reuse the spacing of
+      their only neighbour.
+    - bounds only: the midpoints are calculated as the average of each pair of
+      consecutive bounds, so ``len(bounds) == len(array) + 1``.
+    - midpoints and bounds: no calculation is made, but ``len(bounds)`` must equal
+      ``len(array) + 1``.
 
     .. example_spec::
 
         import numpy as np
 
-        from scanspec.specs import Fly, Array
+        from scanspec.specs import Array, Fly
 
-        array = np.array([0, 1, 3])
+        spec = Fly(Array("x", np.array([0, 1, 3])))
 
-        spec = Fly(Array("x", array)).calculate()
-
-        * spec.midpoints == [0, 1, 3]
-        * spec.lower == [-0.5, 0.5, 2]
-        * spec.upper == [0.5, 1.5, 4]
+    Here the midpoints are ``[0, 1, 3]``, the lower bounds ``[-0.5, 0.5, 2]`` and
+    the upper bounds ``[0.5, 2, 4]``.
     """
 
     axis: Axis = Field(description="An identifier for what to move")
