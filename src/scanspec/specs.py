@@ -849,16 +849,20 @@ class Spiral(Spec[Axis]):
 class Array(Spec[Axis]):
     """User defined array containing position of the frames to acquire.
 
-    There are three possible combinations of inputs, which are used when wrapping
-    this spec with `Fly`:
+    There are three possible combinations of inputs:
 
     - midpoints only: each frame's lower and upper bounds are placed halfway towards
       the neighbouring midpoints, and the first and last frames reuse the spacing of
       their only neighbour.
     - bounds only: the midpoints are calculated as the average of each pair of
-      consecutive bounds, so ``len(bounds) == len(array) + 1``.
+      consecutive bounds, so there is one more bound than there are frames and at
+      least two bounds are needed.
     - midpoints and bounds: no calculation is made, but ``len(bounds)`` must equal
       ``len(array) + 1``.
+
+    The bounds only matter when wrapping this spec with `Fly`; in a step scan only
+    the midpoints are used, so a bounds-only array steps through the same midpoints
+    that it would fly through.
 
     .. example_spec::
 
@@ -889,6 +893,8 @@ class Array(Spec[Axis]):
         """Method for validating correct inputs for the class."""
         if self.array is None and self.bounds is None:
             raise ValueError("Must provide bounds, array or both. None provided.")
+        if self.array is None and self.bounds is not None and len(self.bounds) < 2:
+            raise ValueError("Bounds array must contain more than 1 point")
         if (
             self.array is not None
             and self.bounds is not None
@@ -942,14 +948,14 @@ class Array(Spec[Axis]):
 
         # Case where the users only provided the bounds array.
         # Need to calculate the midpoints array by averaging the
-        # value between lower and upper
-        elif self.array is None and bounds is True and self.bounds is not None:
-            if len(self.bounds) == 1:
-                raise ValueError("Bounds array must contain more than 1 point")
-            mid = np.empty(len(self.bounds) - 1, dtype=np.float64)
+        # value between lower and upper. The midpoints are the same whether or
+        # not the bounds are asked for, so a step scan works too.
+        elif self.array is None and self.bounds is not None:
             lower = self.bounds[:-1]
             upper = self.bounds[1:]
             mid = np.asarray(lower + ((upper - lower) / 2))
+            if bounds is False:
+                lower = upper = mid
 
         # Case where midpoints and bounds were provided.
         # We guarantee they have the correct shape with the pydantic model_validator.

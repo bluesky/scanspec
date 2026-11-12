@@ -622,6 +622,30 @@ def test_array_spec_all():
     assert dim.gap == ints("10000")
 
 
+def test_array_spec_bounds_only_step_scan():
+    bounds = np.array([0.0, 1.0, 3.0, 6.0])
+    spec = Array("x", bounds=bounds)
+    (dim,) = spec.calculate(bounds=False)
+    assert dim.midpoints == {"x": approx([0.5, 2.0, 4.5])}
+    assert dim.lower == dim.midpoints
+    assert dim.upper == dim.midpoints
+    assert list(spec.midpoints()) == [
+        {"x": approx(0.5)},
+        {"x": approx(2.0)},
+        {"x": approx(4.5)},
+    ]
+
+
+def test_array_spec_bounds_only_as_outer_axis_of_fly_product():
+    # Product asks its outer spec for step points even inside Fly
+    spec = Fly(
+        Array("x", bounds=np.array([0.0, 1.0, 3.0, 6.0])) * Linspace("y", 0, 1, 2)
+    )
+    dims = spec.calculate()
+    assert dims[0].midpoints == {"x": approx([0.5, 2.0, 4.5])}
+    assert dims[1].midpoints == {"y": approx([0.0, 1.0])}
+
+
 def test_array_spec_raises():
     points = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     bounds = np.array([-0.5, 0.5, 1.5, 2.5])
@@ -645,9 +669,7 @@ def test_array_spec_raises():
         Array("x", array=points, bounds=None, durations=duration)
 
     with pytest.raises(ValueError, match="Bounds array must contain more than 1 point"):
-        Array("x", array=None, bounds=single_point, durations=None).calculate(
-            bounds=True
-        )
+        Array("x", array=None, bounds=single_point, durations=None)
 
 
 def test_array_spec_fly():
