@@ -56,7 +56,7 @@ def test_one_point_linspace() -> None:
     assert dim.duration is None
 
 
-def test_one_pointarray_duration() -> None:
+def test_one_point_duration() -> None:
     duration = ConstantDuration[Any](1.0)
     (dim,) = duration.calculate()
     assert dim.duration == approx([1.0])
@@ -378,7 +378,7 @@ def test_product_snaking_linspaces() -> None:
     assert dim.gap == ints("101010")
 
 
-def test_productarray_duration() -> None:
+def test_product_duration() -> None:
     with pytest.raises(ValueError) as msg:
         _ = Fly(1.0 @ Linspace(y, 1, 2, 3)) * Fly(1.0 @ ~Linspace(x, 0, 1, 2))
     assert "Both inner and outer specs defined a duration" in str(msg.value)
@@ -544,7 +544,7 @@ def test_shape(spec: Spec[Any], expected_shape: tuple[int, ...]):
     assert expected_shape == spec.shape()
 
 
-def test_constantarray_duration():
+def test_constant_duration():
     spec1 = Fly(1.0 @ Linspace("x", 0, 1, 2))
     spec2 = 2.0 @ Linspace("x", 0, 1, 2)
 
@@ -561,7 +561,7 @@ def test_constantarray_duration():
     assert "Only one of left and right defines a duration" in str(msg.value)
 
 
-def test_intarray_duration():
+def test_int_duration():
     spec1 = 1 @ Linspace("x", 0, 1, 2)
     assert spec1.duration() == 1.0
 
@@ -677,6 +677,18 @@ def test_array_spec_raises():
             bounds=np.array([0.0, 1.0, 3.0, 6.0]),
             durations=duration[:2],
         )
+
+    with pytest.raises(ValueError, match="array must not be empty"):
+        Array("x", array=np.array([]))
+
+    with pytest.raises(ValueError, match="bounds must not be empty"):
+        Array("x", bounds=np.array([]))
+
+    with pytest.raises(ValueError, match="1-dimensional"):
+        Array("x", array=np.zeros((2, 2)))
+
+    with pytest.raises(ValueError, match="finite"):
+        Array("x", array=np.array([1.0, np.nan]))
 
     with pytest.raises(ValueError, match="Bounds array must contain more than 1 point"):
         Array("x", array=None, bounds=single_point, durations=None)
@@ -1094,3 +1106,12 @@ def test_polygon(
     assert dim.lower == exp_lower
     assert dim.upper == exp_upper
     assert dim.gap == ints(exp_gap)
+
+
+def test_array_spec_copies_input_and_duration_is_float():
+    points = np.array([0.0, 1.0])
+    spec = Array("x", points, durations=np.array([0.5, 0.5]))
+    points[0] = 9.0
+    assert spec.array is not None
+    assert spec.array[0] == 0.0
+    assert type(spec.duration()) is float

@@ -65,7 +65,11 @@ _NpMask = npt.NDArray[np.bool_]
 
 
 def _to_float_array(value: Any) -> npt.NDArray[np.float64]:
-    return np.asarray(value, dtype=np.float64)
+    # Copy so the spec doesn't alias (and can't be mutated through) caller data
+    array = np.array(value, dtype=np.float64)
+    if array.ndim != 1:
+        raise ValueError(f"Expected a 1-dimensional array, got {array.ndim} dimensions")
+    return array
 
 
 def _float_array_to_list(array: npt.NDArray[np.float64]) -> list[float]:
@@ -860,6 +864,10 @@ class Array(Spec[Axis]):
     - midpoints and bounds: no calculation is made, but ``len(bounds)`` must equal
       ``len(array) + 1``.
 
+    All arrays must be 1-dimensional, non-empty and finite. The midpoints are
+    expected to be monotonic; otherwise the calculated bounds will not surround
+    their midpoints.
+
     The bounds only matter when wrapping this spec with `Fly`; in a step scan only
     the midpoints are used, so a bounds-only array steps through the same midpoints
     that it would fly through.
@@ -893,6 +901,14 @@ class Array(Spec[Axis]):
         """Method for validating correct inputs for the class."""
         if self.array is None and self.bounds is None:
             raise ValueError("Must provide bounds, array or both. None provided.")
+        for name in ("array", "bounds", "durations"):
+            value = getattr(self, name)
+            if value is None:
+                continue
+            if len(value) == 0:
+                raise ValueError(f"{name} must not be empty")
+            if not np.all(np.isfinite(value)):
+                raise ValueError(f"{name} must only contain finite values")
         if self.array is None and self.bounds is not None and len(self.bounds) < 2:
             raise ValueError("Bounds array must contain more than 1 point")
         if (
@@ -929,7 +945,7 @@ class Array(Spec[Axis]):
         if self.durations is None:
             return None
         elif len(self.durations) > 0 and np.all(self.durations == self.durations[0]):
-            return self.durations[0]
+            return float(self.durations[0])
         else:
             return VARIABLE_DURATION
 
