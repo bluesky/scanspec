@@ -668,6 +668,16 @@ def test_array_spec_raises():
     ):
         Array("x", array=points, bounds=None, durations=duration)
 
+    with pytest.raises(
+        ValueError, match="len\\(bounds\\) - 1 must equal len\\(durations\\);"
+    ):
+        Array(
+            "x",
+            array=None,
+            bounds=np.array([0.0, 1.0, 3.0, 6.0]),
+            durations=duration[:2],
+        )
+
     with pytest.raises(ValueError, match="Bounds array must contain more than 1 point"):
         Array("x", array=None, bounds=single_point, durations=None)
 

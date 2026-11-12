@@ -904,16 +904,22 @@ class Array(Spec[Axis]):
                 f"len(array) must equal len(bounds) - 1; "
                 f"got len(array)={len(self.array)} and len(bounds)={len(self.bounds)}"
             )
-        if (
-            self.array is not None
-            and self.durations is not None
-            and len(self.durations) != len(self.array)
-        ):
-            raise ValueError(
-                f"len(array) must equal len(durations); "
-                f"got len(array)={len(self.array)} "
-                f"and len(durations)={len(self.durations)}"
-            )
+        if self.durations is not None:
+            if self.array is not None:
+                if len(self.durations) != len(self.array):
+                    raise ValueError(
+                        f"len(array) must equal len(durations); "
+                        f"got len(array)={len(self.array)} "
+                        f"and len(durations)={len(self.durations)}"
+                    )
+            elif self.bounds is not None and len(self.durations) != (
+                len(self.bounds) - 1
+            ):
+                raise ValueError(
+                    f"len(bounds) - 1 must equal len(durations); "
+                    f"got len(bounds)={len(self.bounds)} "
+                    f"and len(durations)={len(self.durations)}"
+                )
         return self
 
     def axes(self) -> list[Axis]:  # noqa: D102
