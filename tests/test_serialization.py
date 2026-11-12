@@ -212,3 +212,29 @@ def test_array_accepts_lists_and_ints() -> None:
     assert ob.array.dtype == np.float64
     assert ob.serialize()["array"] == [0.0, 1.0, 3.0]
     assert ob.bounds is None
+
+
+def test_array_equality() -> None:
+    a = Array(
+        "x",
+        array=np.array([0, 1, 3], dtype=float),
+        bounds=np.array([-0.5, 0.5, 2, 4], dtype=float),
+    )
+    assert a == Array(
+        "x",
+        array=np.array([0, 1, 3], dtype=float),
+        bounds=np.array([-0.5, 0.5, 2, 4], dtype=float),
+    )
+    assert a != Array(
+        "x",
+        array=np.array([0, 1, 4], dtype=float),
+        bounds=np.array([-0.5, 0.5, 2, 4], dtype=float),
+    )
+    assert a != Array("x", array=np.array([0, 1, 3], dtype=float))
+    assert a != Array(
+        "y",
+        array=np.array([0, 1, 3], dtype=float),
+        bounds=np.array([-0.5, 0.5, 2, 4], dtype=float),
+    )
+    assert a != "not a spec"
+    assert Fly(a) == Spec.deserialize(Fly(a).serialize())

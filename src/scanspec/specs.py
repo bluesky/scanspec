@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Callable, Mapping
-from typing import Annotated, Any, Generic, Literal, SupportsFloat
+from typing import Annotated, Any, Generic, Literal, SupportsFloat, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -937,6 +937,22 @@ class Array(Spec[Axis]):
                     f"and len(durations)={len(self.durations)}"
                 )
         return self
+
+    def __eq__(self, other: object) -> bool:
+        # The generated dataclass __eq__ compares the numpy arrays with ==, which
+        # raises on arrays with more than one element
+        if not isinstance(other, Array):
+            return NotImplemented
+        other_array = cast("Array[Any]", other)
+        return self.axis == other_array.axis and all(
+            (a is None and b is None)
+            or (a is not None and b is not None and np.array_equal(a, b))
+            for a, b in (
+                (self.array, other_array.array),
+                (self.bounds, other_array.bounds),
+                (self.durations, other_array.durations),
+            )
+        )
 
     def axes(self) -> list[Axis]:  # noqa: D102
         return [self.axis]
