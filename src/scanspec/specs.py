@@ -928,7 +928,7 @@ class Array(Spec[Axis]):
     def duration(self) -> None | float | Literal["VARIABLE_DURATION"]:  # noqa: D102
         if self.durations is None:
             return None
-        elif len(set(self.durations)) == 1:
+        elif len(self.durations) > 0 and np.all(self.durations == self.durations[0]):
             return self.durations[0]
         else:
             return VARIABLE_DURATION
@@ -949,8 +949,8 @@ class Array(Spec[Axis]):
 
                 mid = self.array
 
-                lower = np.asarray(mid - np.append(_bounds[0], _bounds))
-                upper = np.asarray(mid + np.append(_bounds, [_bounds[-1]]))
+                lower = mid - np.append(_bounds[0], _bounds)
+                upper = mid + np.append(_bounds, [_bounds[-1]])
 
         # Case where the users only provided the bounds array.
         # Need to calculate the midpoints array by averaging the
@@ -959,7 +959,7 @@ class Array(Spec[Axis]):
         elif self.array is None and self.bounds is not None:
             lower = self.bounds[:-1]
             upper = self.bounds[1:]
-            mid = np.asarray(lower + ((upper - lower) / 2))
+            mid = lower + ((upper - lower) / 2)
             if bounds is False:
                 lower = upper = mid
 
@@ -967,12 +967,12 @@ class Array(Spec[Axis]):
         # We guarantee they have the correct shape with the pydantic model_validator.
         elif self.array is not None and bounds is True and self.bounds is not None:
             mid = self.array
-            lower = np.asarray(self.bounds[:-1])
-            upper = np.asarray(self.bounds[1:])
+            lower = self.bounds[:-1]
+            upper = self.bounds[1:]
 
         # Case where only the midpoints were provided and no bounds are to be calculated
         elif self.array is not None and bounds is False:
-            mid = np.asarray(self.array)
+            mid = self.array
             lower = mid
             upper = mid
 
