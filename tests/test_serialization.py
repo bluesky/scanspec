@@ -215,26 +215,30 @@ def test_array_accepts_lists_and_ints() -> None:
 
 
 def test_array_equality() -> None:
-    a = Array(
-        "x",
-        array=np.array([0, 1, 3], dtype=float),
-        bounds=np.array([-0.5, 0.5, 2, 4], dtype=float),
-    )
-    assert a == Array(
-        "x",
-        array=np.array([0, 1, 3], dtype=float),
-        bounds=np.array([-0.5, 0.5, 2, 4], dtype=float),
-    )
-    assert a != Array(
-        "x",
-        array=np.array([0, 1, 4], dtype=float),
-        bounds=np.array([-0.5, 0.5, 2, 4], dtype=float),
-    )
-    assert a != Array("x", array=np.array([0, 1, 3], dtype=float))
-    assert a != Array(
-        "y",
-        array=np.array([0, 1, 3], dtype=float),
-        bounds=np.array([-0.5, 0.5, 2, 4], dtype=float),
-    )
+    def array(
+        axis: str = "x",
+        array: list[float] | None = None,
+        bounds: list[float] | None = None,
+        durations: list[float] | None = None,
+    ) -> Array[str]:
+        return Array(
+            axis,
+            None if array is None else np.array(array),
+            None if bounds is None else np.array(bounds),
+            None if durations is None else np.array(durations),
+        )
+
+    mid, bounds, durations = [0.0, 1.0, 3.0], [-0.5, 0.5, 2.0, 4.0], [1.0, 1.0, 1.0]
+    a = array(array=mid, bounds=bounds, durations=durations)
+    assert a == array(array=mid, bounds=bounds, durations=durations)
+    assert a != array(array=[0.0, 1.0, 4.0], bounds=bounds, durations=durations)
+    assert a != array(array=mid, durations=durations)
+    assert a != array(array=mid, bounds=bounds, durations=[1.0, 1.0, 2.0])
+    assert a != array(array=mid, bounds=bounds)
+    assert a != array("y", array=mid, bounds=bounds, durations=durations)
     assert a != "not a spec"
-    assert Fly(a) == Spec.deserialize(Fly(a).serialize())
+
+
+def test_array_roundtrips_inside_fly() -> None:
+    spec = Fly(Array("x", np.array([0.0, 1.0, 3.0])))
+    assert Spec.deserialize(spec.serialize()) == spec

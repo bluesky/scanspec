@@ -331,7 +331,7 @@
                             }
                         ],
                         "title": "Array",
-                        "description": "Array describing the midpoint of each frame"
+                        "description": "The midpoint of each frame"
                     },
                     "bounds": {
                         "anyOf": [
@@ -346,7 +346,7 @@
                             }
                         ],
                         "title": "Bounds",
-                        "description": "Array describing the bounds of the array"
+                        "description": "The bounds of the frames, one more than the number of frames"
                     },
                     "durations": {
                         "anyOf": [
@@ -361,7 +361,7 @@
                             }
                         ],
                         "title": "Durations",
-                        "description": "Array describing the duration of each point in the array"
+                        "description": "The duration of each frame"
                     },
                     "type": {
                         "type": "string",
@@ -376,7 +376,7 @@
                     "axis"
                 ],
                 "title": "Array",
-                "description": "User defined array containing position of the frames to acquire.\n\nThere are three possible combinations of inputs:\n\n- midpoints only: each frame's lower and upper bounds are placed halfway towards\n  the neighbouring midpoints, and the first and last frames reuse the spacing of\n  their only neighbour.\n- bounds only: the midpoints are calculated as the average of each pair of\n  consecutive bounds, so there is one more bound than there are frames and at\n  least two bounds are needed.\n- midpoints and bounds: no calculation is made, but ``len(bounds)`` must equal\n  ``len(array) + 1``.\n\nAll arrays must be 1-dimensional, non-empty and finite. The midpoints are\nexpected to be monotonic; otherwise the calculated bounds will not surround\ntheir midpoints.\n\nThe bounds only matter when wrapping this spec with `Fly`; in a step scan only\nthe midpoints are used, so a bounds-only array steps through the same midpoints\nthat it would fly through.\n\n.. example_spec::\n\n    import numpy as np\n\n    from scanspec.specs import Array, Fly\n\n    spec = Fly(Array(\"x\", np.array([0, 1, 3])))\n\nHere the midpoints are ``[0, 1, 3]``, the lower bounds ``[-0.5, 0.5, 2]`` and\nthe upper bounds ``[0.5, 2, 4]``."
+                "description": "Frames at user-defined midpoints, optionally with explicit bounds and durations.\n\nGive midpoints, bounds or both. With only midpoints, `Fly` places each frame's\nbounds halfway to its neighbours; with only bounds, the midpoints are the\naverage of each pair of consecutive bounds. Bounds need one more point than\nthere are frames, and only matter when wrapped in `Fly`. Calculated bounds are\napproximate for non-monotonic midpoints, so pass bounds for those.\n\n.. seealso::\n    `Linspace`: For linearly spaced frames defined with a number of frames.\n\n.. example_spec::\n\n    import numpy as np\n\n    from scanspec.specs import Array, Fly\n\n    spec = Fly(Array(\"x\", np.array([0.0, 1.0, 3.0])))"
             },
             "BoundsResponse": {
                 "properties": {
