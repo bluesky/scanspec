@@ -9,13 +9,16 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Callable, Mapping
-from typing import Any, Generic, Literal, SupportsFloat
+from typing import Annotated, Any, Generic, Literal, SupportsFloat
 
 import numpy as np
 import numpy.typing as npt
 from pydantic import (
     Field,
+    PlainSerializer,
+    PlainValidator,
     TypeAdapter,
+    WithJsonSchema,
     model_validator,
     validate_call,
 )
@@ -59,6 +62,24 @@ __all__ = [
 ]
 
 _NpMask = npt.NDArray[np.bool_]
+
+
+def _to_float_array(value: Any) -> npt.NDArray[np.float64]:
+    return np.asarray(value, dtype=np.float64)
+
+
+def _float_array_to_list(array: npt.NDArray[np.float64]) -> list[float]:
+    return array.tolist()
+
+
+#: A numpy array of floats that is (de)serialized as a JSON list of numbers, and
+#: accepts any array-like (such as a list) as input.
+_FloatArray = Annotated[
+    npt.NDArray[np.float64],
+    PlainValidator(_to_float_array),
+    PlainSerializer(_float_array_to_list, return_type=list[float]),
+    WithJsonSchema({"type": "array", "items": {"type": "number"}}),
+]
 
 #: A string returned from `Spec.duration` to signify it produces
 #: a different duration for each point
@@ -852,13 +873,13 @@ class Array(Spec[Axis]):
     """
 
     axis: Axis = Field(description="An identifier for what to move")
-    array: npt.NDArray[np.float64] | None = Field(
+    array: _FloatArray | None = Field(
         description="Array describing the midpoint of each frame", default=None
     )
-    bounds: npt.NDArray[np.float64] | None = Field(
+    bounds: _FloatArray | None = Field(
         description="Array describing the bounds of the array", default=None
     )
-    durations: npt.NDArray[np.float64] | None = Field(
+    durations: _FloatArray | None = Field(
         description="Array describing the duration of each point in the array",
         default=None,
     )

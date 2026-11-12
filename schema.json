@@ -311,6 +311,73 @@
     },
     "components": {
         "schemas": {
+            "Array_str_": {
+                "properties": {
+                    "axis": {
+                        "type": "string",
+                        "title": "Axis",
+                        "description": "An identifier for what to move"
+                    },
+                    "array": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "number"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Array",
+                        "description": "Array describing the midpoint of each frame"
+                    },
+                    "bounds": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "number"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Bounds",
+                        "description": "Array describing the bounds of the array"
+                    },
+                    "durations": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "number"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Durations",
+                        "description": "Array describing the duration of each point in the array"
+                    },
+                    "type": {
+                        "type": "string",
+                        "const": "Array",
+                        "title": "Type",
+                        "default": "Array"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "axis"
+                ],
+                "title": "Array",
+                "description": "User defined array containing position of the frames to acquire.\n\nThere are three possible combinations of inputs, which are used when wrapping\nthis spec with `Fly`:\n\n- midpoints only: each frame's lower and upper bounds are placed halfway towards\n  the neighbouring midpoints, and the first and last frames reuse the spacing of\n  their only neighbour.\n- bounds only: the midpoints are calculated as the average of each pair of\n  consecutive bounds, so ``len(bounds) == len(array) + 1``.\n- midpoints and bounds: no calculation is made, but ``len(bounds)`` must equal\n  ``len(array) + 1``.\n\n.. example_spec::\n\n    import numpy as np\n\n    from scanspec.specs import Array, Fly\n\n    spec = Fly(Array(\"x\", np.array([0, 1, 3])))\n\nHere the midpoints are ``[0, 1, 3]``, the lower bounds ``[-0.5, 0.5, 2]`` and\nthe upper bounds ``[0.5, 2, 4]``."
+            },
             "BoundsResponse": {
                 "properties": {
                     "total_frames": {
@@ -1104,6 +1171,9 @@
                         "$ref": "#/components/schemas/Spiral_str_"
                     },
                     {
+                        "$ref": "#/components/schemas/Array_str_"
+                    },
+                    {
                         "$ref": "#/components/schemas/Ellipse_str_"
                     },
                     {
@@ -1113,6 +1183,7 @@
                 "discriminator": {
                     "propertyName": "type",
                     "mapping": {
+                        "Array": "#/components/schemas/Array_str_",
                         "Concat": "#/components/schemas/Concat_str_-Input",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Input",
                         "Ellipse": "#/components/schemas/Ellipse_str_",
@@ -1165,6 +1236,9 @@
                         "$ref": "#/components/schemas/Spiral_str_"
                     },
                     {
+                        "$ref": "#/components/schemas/Array_str_"
+                    },
+                    {
                         "$ref": "#/components/schemas/Ellipse_str_"
                     },
                     {
@@ -1174,6 +1248,7 @@
                 "discriminator": {
                     "propertyName": "type",
                     "mapping": {
+                        "Array": "#/components/schemas/Array_str_",
                         "Concat": "#/components/schemas/Concat_str_-Output",
                         "ConstantDuration": "#/components/schemas/ConstantDuration_str_-Output",
                         "Ellipse": "#/components/schemas/Ellipse_str_",
