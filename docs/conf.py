@@ -82,6 +82,16 @@ nitpick_ignore = [
     ("py:obj", "typing.Annotated[float"),
 ]
 
+# autodoc-pydantic renders the numpy array field type of `scanspec.specs.Array`
+# (an Annotated alias around numpy's array type) and tries to cross-reference it.
+# The target is spelled differently depending on the numpy version, and numpy
+# documents none of them.
+nitpick_ignore_regex = [
+    ("py:class", r"numpy\._typing\._array_like\.NDArray"),
+    ("py:class", r"numpy\.Annotated\[.*"),
+    ("py:obj", r"typing\.Annotated\[~numpy\..*"),
+]
+
 # Both the class’ and the __init__ method’s docstring are concatenated and
 # inserted into the main body of the autoclass directive
 autoclass_content = "both"
