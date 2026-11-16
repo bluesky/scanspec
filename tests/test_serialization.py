@@ -242,3 +242,11 @@ def test_array_equality() -> None:
 def test_array_roundtrips_inside_fly() -> None:
     spec = Fly(Array("x", np.array([0.0, 1.0, 3.0])))
     assert Spec.deserialize(spec.serialize()) == spec
+
+
+def test_array_equality_in_composed_specs() -> None:
+    def spec(last: float) -> Spec[str]:
+        return Linspace("y", 0, 1, 2) * ~Array("x", np.array([0.0, 1.0, last]))
+
+    assert spec(3.0) == spec(3.0)
+    assert spec(3.0) != spec(4.0)

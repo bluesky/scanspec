@@ -829,13 +829,16 @@ class Spiral(Spec[Axis]):
 
 
 def _to_float_array(value: Any, info: ValidationInfo) -> npt.NDArray[np.float64]:
-    # Copy so the spec doesn't alias (and can't be mutated through) caller data
-    array = np.array(value, dtype=np.float64)
-    if array.ndim != 1:
-        raise ValueError(
-            f"{str(info.field_name).capitalize()} must be 1-dimensional, "
-            f"got {array.ndim} dimensions"
-        )
+    name = str(info.field_name).capitalize()
+    numbers = np.asarray(value)
+    if numbers.dtype.kind not in "iuf":
+        raise ValueError(f"{name} must only contain numbers, got {numbers.dtype}")
+    if numbers.ndim != 1:
+        raise ValueError(f"{name} must be 1-dimensional, got {numbers.ndim} dimensions")
+    # Copy so the spec doesn't alias caller data, and make it read-only so neither
+    # the spec nor the Dimensions calculated from it can be changed in place
+    array = np.array(numbers, dtype=np.float64)
+    array.flags.writeable = False
     return array
 
 
@@ -860,8 +863,13 @@ class Array(Spec[Axis]):
     Give midpoints, bounds or both. With only midpoints, `Fly` places each frame's
     bounds halfway to its neighbours; with only bounds, the midpoints are the
     average of each pair of consecutive bounds. Bounds need one more point than
-    there are frames, and only matter when wrapped in `Fly`. Calculated bounds are
-    approximate for non-monotonic midpoints, so pass bounds for those.
+    there are frames, and only matter when wrapped in `Fly`.
+
+    Bounds are contiguous, so the upper bound of one frame is the lower bound of
+    the next and gaps between frames cannot be expressed. Explicit bounds are not
+    checked against the midpoints. Calculated bounds assume midpoints are
+    monotonic: otherwise a midpoint may not lie within its own frame, so pass
+    bounds for those.
 
     .. seealso::
         `Linspace`: For linearly spaced frames defined with a number of frames.

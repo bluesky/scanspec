@@ -634,6 +634,12 @@ def test_array_spec_bounds_only_as_outer_axis_of_fly_product():
             "Durations must not be empty",
         ),
         ({"array": np.zeros((2, 2))}, "Array must be 1-dimensional"),
+        ({"bounds": np.zeros((2, 2))}, "Bounds must be 1-dimensional"),
+        ({"array": np.array([1.0]), "durations": np.ones((1, 1))}, "Durations must be"),
+        ({"array": ["1", "2"]}, "Array must only contain numbers"),
+        ({"array": [True, False]}, "Array must only contain numbers"),
+        ({"bounds": [0, 1 + 2j]}, "Bounds must only contain numbers"),
+        ({"array": [1.0, None]}, "Array must only contain numbers"),
         ({"array": np.array([1.0, np.nan])}, "Array must only contain finite values"),
         ({"bounds": np.array([1.0, np.inf])}, "Bounds must only contain finite values"),
         ({"bounds": np.array([1.0])}, "Bounds must contain at least 2 points"),
@@ -695,12 +701,96 @@ def test_array_spec_duration():
     assert Array(x, points).duration() is None
 
 
-def test_array_spec_copies_input():
-    points = np.array([0.0, 1.0])
-    spec = Array(x, points)
-    points[0] = 9.0
-    assert spec.array is not None
-    assert spec.array[0] == 0.0
+@pytest.mark.parametrize("field", ["array", "bounds", "durations"])
+def test_array_spec_copies_input_and_is_read_only(field: str):
+    arrays = {
+        "array": np.array([0.0, 1.0]),
+        "bounds": np.array([0.0, 1.0, 2.0]),
+        "durations": np.array([0.5, 0.5]),
+    }
+    spec = Array(x, **arrays)
+    arrays[field][0] = 9.0
+    stored = getattr(spec, field)
+    assert stored[0] == approx(0.0 if field != "durations" else 0.5)
+    with pytest.raises(ValueError, match="read-only"):
+        stored[0] = 9.0
+
+
+def test_array_spec_dimension_cannot_change_spec():
+    spec = Array(x, np.array([0.0, 1.0, 3.0]), durations=np.ones(3))
+    (dim,) = spec.calculate(bounds=True)
+    with pytest.raises(ValueError, match="read-only"):
+        dim.midpoints[x][0] = 99.0
+    assert dim.duration is not None
+    with pytest.raises(ValueError, match="read-only"):
+        dim.duration[0] = 99.0
+
+
+@pytest.mark.parametrize(
+    "midpoints,lower,upper",
+    [
+        ([0.0, 2.0], [-1.0, 1.0], [1.0, 3.0]),
+        ([3.0, 1.0, 0.0], [4.0, 2.0, 0.5], [2.0, 0.5, -0.5]),
+        ([0.0, 1.0, 1.0, 2.0], [-0.5, 0.5, 1.0, 1.5], [0.5, 1.0, 1.5, 2.5]),
+        # A non-monotonic midpoint can fall outside its own frame (1.0 in [1.5, 3.0])
+        ([0.0, 2.0, 1.0, 5.0], [-1.0, 1.0, 1.5, 3.0], [1.0, 1.5, 3.0, 7.0]),
+    ],
+)
+def test_array_spec_calculated_bounds(
+    midpoints: list[float], lower: list[float], upper: list[float]
+):
+    (dim,) = Array(x, np.array(midpoints)).calculate(bounds=True)
+    assert dim.midpoints == {x: approx(midpoints)}
+    assert dim.lower == {x: approx(lower)}
+    assert dim.upper == {x: approx(upper)}
+
+
+def test_array_spec_single_frame_from_two_bounds():
+    spec = Array(x, bounds=np.array([1.0, 3.0]))
+    (dim,) = spec.calculate(bounds=True)
+    assert dim.midpoints == {x: approx([2.0])}
+    assert dim.lower == {x: approx([1.0])}
+    assert dim.upper == {x: approx([3.0])}
+
+
+def test_array_spec_midpoints_and_bounds_step_scan():
+    spec = Array(x, np.array([0.0, 1.0]), np.array([5.0, 6.0, 7.0]))
+    (dim,) = spec.calculate(bounds=False)
+    assert dim.midpoints == dim.lower == dim.upper == {x: approx([0.0, 1.0])}
+
+
+def test_array_spec_in_product():
+    spec = Linspace(y, 0, 1, 2) * Array(x, np.array([0.0, 1.0, 3.0]))
+    assert spec.shape() == (2, 3)
+    midpoints = Path(spec.calculate()).consume().midpoints
+    assert midpoints[y] == approx([0, 0, 0, 1, 1, 1])
+    assert midpoints[x] == approx([0, 1, 3, 0, 1, 3])
+
+
+def test_array_spec_in_snaked_product():
+    spec = Linspace(y, 0, 1, 2) * ~Array(x, np.array([0.0, 1.0, 3.0]))
+    midpoints = Path(spec.calculate()).consume().midpoints
+    assert midpoints[x] == approx([0, 1, 3, 3, 1, 0])
+
+
+def test_array_spec_in_zip():
+    spec = Linspace(y, 0, 2, 3).zip(Array(x, np.array([0.0, 1.0, 3.0])))
+    midpoints = Path(spec.calculate()).consume().midpoints
+    assert midpoints[y] == approx([0, 1, 2])
+    assert midpoints[x] == approx([0, 1, 3])
+
+
+def test_array_spec_in_concat():
+    spec = Concat(Array(x, np.array([0.0, 1.0])), Array(x, np.array([5.0, 6.0])))
+    midpoints = Path(spec.calculate()).consume().midpoints
+    assert midpoints[x] == approx([0, 1, 5, 6])
+
+
+def test_array_spec_in_squash():
+    spec = Squash(Linspace(y, 0, 1, 2) * Array(x, np.array([0.0, 1.0, 3.0])))
+    assert spec.shape() == (6,)
+    midpoints = Path(spec.calculate()).consume().midpoints
+    assert midpoints[x] == approx([0, 1, 3, 0, 1, 3])
 
 
 @pytest.mark.filterwarnings("ignore:fly")
