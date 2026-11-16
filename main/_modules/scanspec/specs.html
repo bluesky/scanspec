@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scanspec.specs &#8212; scanspec 1.0.1.dev18+g6884bd8c0 documentation</title>
+    <title>scanspec.specs &#8212; scanspec 1.0.1.dev19+gb7c0781d0 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=376cd624"></script>
+    <script src="../../_static/documentation_options.js?v=5eeb061a"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -472,11 +472,20 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">SupportsFloat</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Generic</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">SupportsFloat</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">Field</span><span class="p">,</span> <span class="n">TypeAdapter</span><span class="p">,</span> <span class="n">validate_call</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Field</span><span class="p">,</span>
+    <span class="n">PlainSerializer</span><span class="p">,</span>
+    <span class="n">PlainValidator</span><span class="p">,</span>
+    <span class="n">TypeAdapter</span><span class="p">,</span>
+    <span class="n">ValidationInfo</span><span class="p">,</span>
+    <span class="n">WithJsonSchema</span><span class="p">,</span>
+    <span class="n">model_validator</span><span class="p">,</span>
+    <span class="n">validate_call</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic.dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.core</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -496,6 +505,7 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"VARIABLE_DURATION"</span><span class="p">,</span>
+    <span class="s2">"Array"</span><span class="p">,</span>
     <span class="s2">"Concat"</span><span class="p">,</span>
     <span class="s2">"ConstantDuration"</span><span class="p">,</span>
     <span class="s2">"Ellipse"</span><span class="p">,</span>
@@ -1436,6 +1446,185 @@
         <span class="k">return</span> <span class="n">_dimensions_from_indexes</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_spiral_from_indexes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num</span><span class="p">,</span> <span class="n">bounds</span>
         <span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_to_float_array</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">ValidationInfo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">field_name</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
+    <span class="n">numbers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numbers</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">"iuf"</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must only contain numbers, got </span><span class="si">{</span><span class="n">numbers</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">numbers</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be 1-dimensional, got </span><span class="si">{</span><span class="n">numbers</span><span class="o">.</span><span class="n">ndim</span><span class="si">}</span><span class="s2"> dimensions"</span><span class="p">)</span>
+    <span class="c1"># Copy so the spec doesn't alias caller data, and make it read-only so neither</span>
+    <span class="c1"># the spec nor the Dimensions calculated from it can be changed in place</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">numbers</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">array</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">array</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_float_array_to_list</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">array</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+
+<span class="c1"># A numpy array of floats that is (de)serialized as a JSON list of numbers, and</span>
+<span class="c1"># accepts any array-like (such as a list) as input.</span>
+<span class="n">_FloatArray</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span>
+    <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+    <span class="n">PlainValidator</span><span class="p">(</span><span class="n">_to_float_array</span><span class="p">),</span>
+    <span class="n">PlainSerializer</span><span class="p">(</span><span class="n">_float_array_to_list</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]),</span>
+    <span class="n">WithJsonSchema</span><span class="p">({</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"array"</span><span class="p">,</span> <span class="s2">"items"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"type"</span><span class="p">:</span> <span class="s2">"number"</span><span class="p">}}),</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="Array">
+<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Array">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">StrictConfig</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Array</span><span class="p">(</span><span class="n">Spec</span><span class="p">[</span><span class="n">Axis</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">"""Frames at user-defined midpoints, optionally with explicit bounds and durations.</span>
+
+<span class="sd">    Give midpoints, bounds or both. With only midpoints, `Fly` places each frame's</span>
+<span class="sd">    bounds halfway to its neighbours; with only bounds, the midpoints are the</span>
+<span class="sd">    average of each pair of consecutive bounds. Bounds need one more point than</span>
+<span class="sd">    there are frames, and only matter when wrapped in `Fly`.</span>
+
+<span class="sd">    Bounds are contiguous, so the upper bound of one frame is the lower bound of</span>
+<span class="sd">    the next and gaps between frames cannot be expressed. Explicit bounds are not</span>
+<span class="sd">    checked against the midpoints. Calculated bounds assume midpoints are</span>
+<span class="sd">    monotonic: otherwise a midpoint may not lie within its own frame, so pass</span>
+<span class="sd">    bounds for those.</span>
+
+<span class="sd">    .. seealso::</span>
+<span class="sd">        `Linspace`: For linearly spaced frames defined with a number of frames.</span>
+
+<span class="sd">    .. example_spec::</span>
+
+<span class="sd">        import numpy as np</span>
+
+<span class="sd">        from scanspec.specs import Array, Fly</span>
+
+<span class="sd">        spec = Fly(Array("x", np.array([0.0, 1.0, 3.0])))</span>
+<span class="sd">    """</span>
+
+    <span class="n">axis</span><span class="p">:</span> <span class="n">Axis</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">"An identifier for what to move"</span><span class="p">)</span>
+    <span class="n">array</span><span class="p">:</span> <span class="n">_FloatArray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"The midpoint of each frame"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="n">bounds</span><span class="p">:</span> <span class="n">_FloatArray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"The bounds of the frames, one more than the number of frames"</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">durations</span><span class="p">:</span> <span class="n">_FloatArray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"The duration of each frame"</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_input_array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Must provide bounds, array or both"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"array"</span><span class="p">,</span> <span class="s2">"bounds"</span><span class="p">,</span> <span class="s2">"durations"</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s2"> must not be empty"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s2"> must only contain finite values"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Bounds must contain at least 2 points"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">"Bounds must have one more point than array, "</span>
+                    <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">durations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">durations</span><span class="p">)</span> <span class="o">!=</span> <span class="n">frames</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">"Durations must have one point per frame, "</span>
+                    <span class="sa">f</span><span class="s2">"got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">durations</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">frames</span><span class="si">}</span><span class="s2"> frames"</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># The generated dataclass __eq__ compares the numpy arrays with ==, which</span>
+        <span class="c1"># raises on arrays with more than one element</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Array</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="n">other_array</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="s2">"Array[Any]"</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span> <span class="o">==</span> <span class="n">other_array</span><span class="o">.</span><span class="n">axis</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">other_array</span><span class="o">.</span><span class="n">array</span><span class="p">),</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">,</span> <span class="n">other_array</span><span class="o">.</span><span class="n">bounds</span><span class="p">),</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">durations</span><span class="p">,</span> <span class="n">other_array</span><span class="o">.</span><span class="n">durations</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Array.axes">
+<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Array.axes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">axes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Axis</span><span class="p">]:</span>  <span class="c1"># noqa: D102</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Array.duration">
+<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Array.duration">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">duration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"VARIABLE_DURATION"</span><span class="p">]:</span>  <span class="c1"># noqa: D102</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">durations</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># Spec.__post_init__ calls this before the input is validated, so durations</span>
+        <span class="c1"># may still be empty here</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">durations</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">durations</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">durations</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">durations</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">VARIABLE_DURATION</span></div>
+
+
+<div class="viewcode-block" id="Array.calculate">
+<a class="viewcode-back" href="../../_api/scanspec.specs.html#scanspec.specs.Array.calculate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate</span><span class="p">(</span>  <span class="c1"># noqa: D102</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">bounds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dimension</span><span class="p">[</span><span class="n">Axis</span><span class="p">]]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">bounds</span><span class="p">:</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="n">upper</span> <span class="o">=</span> <span class="n">mid</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="n">upper</span> <span class="o">=</span> <span class="n">mid</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Assume no gaps: each edge is halfway to the neighbouring midpoint,</span>
+                <span class="c1"># and the first and last frames reuse their only neighbour's spacing</span>
+                <span class="n">half_gaps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">half_gaps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">half_gaps</span><span class="p">)</span>
+                <span class="n">upper</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">half_gaps</span><span class="p">,</span> <span class="n">half_gaps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># The midpoints are the same whether or not bounds are asked for, so a</span>
+            <span class="c1"># step scan works too</span>
+            <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="n">mid</span> <span class="o">=</span> <span class="n">lower</span> <span class="o">+</span> <span class="p">(</span><span class="n">upper</span> <span class="o">-</span> <span class="n">lower</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">bounds</span><span class="p">:</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="n">upper</span> <span class="o">=</span> <span class="n">mid</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Must provide bounds, array or both"</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">Dimension</span><span class="p">(</span>
+                <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">:</span> <span class="n">mid</span><span class="p">},</span>
+                <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">:</span> <span class="n">lower</span><span class="p">},</span>
+                <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">:</span> <span class="n">upper</span><span class="p">},</span>
+                <span class="kc">None</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">durations</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">]</span></div>
 </div>
 
 

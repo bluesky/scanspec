@@ -1,7 +1,7 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Fly, Linspace
+from scanspec.specs import Fly, Range
 
-spec = Fly(Linspace("y", 1, 3, 3) * ~Linspace("x", 3, 5, 5))
+spec = Fly(Range.bounded("x", 1, 5, 2))
 plot_spec(spec)

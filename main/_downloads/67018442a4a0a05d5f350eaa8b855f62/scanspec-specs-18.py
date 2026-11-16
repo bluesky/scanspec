@@ -1,9 +1,7 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Fly, Linspace
+from scanspec.specs import Fly, Linspace, Static
 
-spec = Fly(
-    Linspace("z", 1, 2, 3) * Linspace("y", 3, 4, 5).zip(Linspace("x", 4, 5, 5))
-)
+spec = Fly(Linspace("y", 1, 2, 3).zip(Static("x", 3)))
 plot_spec(spec)

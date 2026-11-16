@@ -1,7 +1,9 @@
 # Example Spec
 
 from scanspec.plot import plot_spec
-from scanspec.specs import Fly, Linspace
+import numpy as np
 
-spec = Fly(Linspace("x", 1, 3, 3).concat(Linspace("x", 4, 5, 5)))
+from scanspec.specs import Array, Fly
+
+spec = Fly(Array("x", np.array([0.0, 1.0, 3.0])))
 plot_spec(spec)
